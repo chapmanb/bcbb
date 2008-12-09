@@ -4,15 +4,30 @@ The goal is to provide an ontology namespace and term for each item
 of a standard GenBank file.
 """
 from __future__ import with_statement
+import os
+import collections
 
-def main(ft_file, so_ft_map_file, so_file):
+from rdflib.Graph import Graph
+from Mgh.SemanticLiterature import sparta
+
+def main(ft_file, so_ft_map_file, so_file, dc_file):
+    # -- get all of the keys we need to map from GenBank
     # pulled by hand from the Biopython parser
     header_keys = ['ACCESSION', 'AUTHORS', 'COMMENT', 'CONSRTM', 'DBLINK',
             'DBSOURCE', 'DEFINITION', 'JOURNAL', 'KEYWORDS', 'MEDLINE', 'NID',
             'ORGANISM', 'ORIGIN', 'PID', 'PROJECT', 'PUBMED', 'REFERENCE',
             'REMARK', 'SEGMENT', 'SOURCE', 'TITLE', 'VERSION']
-    so_terms = parse_so_terms(so_file)
     feature_keys, qual_keys = parse_feature_table(ft_file)
+
+    # -- terms to map them two, along with dictionaries for the existing or
+    # hand defined mappings
+    dc_terms = parse_dc_terms(dc_file)
+    dc_ontology = OntologyGroup("http://purl.org/dc/terms/", dc_terms)
+    so_terms = parse_so_terms(so_file)
+    so_ontology = OntologyGroup("http://purl.org/obo/owl/SO", so_terms)
+    so_ft_map = parse_so_ft_map(so_ft_map_file)
+    so_ontology.add_map('feature', 
+            'http://www.sequenceontology.org/mappings/FT_SO_map.txt', so_ft_map)
     me_ft_map = dict(
             rep_origin = 'origin_of_replication',
             unsure = 'sequence_uncertainty',
@@ -20,29 +35,134 @@ def main(ft_file, so_ft_map_file, so_file):
             GC_signal = 'GC_rich_promoter_region',
             mat_peptide = 'mature_protein_region',
             )
-    so_ft_map = parse_so_ft_map(so_ft_map_file)
-    so_ft_map.update(me_ft_map)
-    match_keys_to_ontology('header', header_keys, so_terms, {})
-    match_keys_to_ontology('feature', feature_keys, so_terms, so_ft_map)
-    match_keys_to_ontology('qualifier', qual_keys, so_terms, {})
+    me_hd_map = {'ACCESSION': 'databank_entry'}
+    me_ql_map = dict(
+            bio_material = 'biomaterial_region',
+            bound_moiety = 'bound_by_factor',
+            codon_start = 'coding_start',
+            direction = 'direction_attribute',
+            experiment = 'experimental_result_region',
+            macronuclear = 'macronuclear_sequence',
+            map = 'fragment_assembly',
+            mobile_element = 'integrated_mobile_genetic_element',
+            mod_base = 'modified_base_site',
+            mol_type = 'sequence_attribute',
+            ncRNA_class = 'ncRNA',
+            organelle = 'organelle_sequence',
+            PCR_primers = 'primer',
+            proviral = 'proviral_region',
+            pseudo = 'pseudogene',
+            rearranged = 'rearranged_at_DNA_level',
+            satellite = 'satellite_DNA',
+            segment = 'gene_segment',
+            rpt_family = 'repeat_family',
+            rpt_type = 'repeat_unit',
+            rpt_unit_range = 'repeat_region',
+            rpt_unit_seq = 'repeat_component',
+            tag_peptide = 'cleaved_peptide_region',
+            trans_splicing = 'trans_spliced',
+            translation = 'polypeptide',
+            )
+    me_ql_dc_map = dict(
+            citation = 'bibliographicCitation',
+            gene_synonym = 'alternative',
+            identified_by = 'creator',
+            label = 'alternative',
+            locus_tag = 'alternative',
+            old_locus_tag = 'replaces',
+            replace = 'isReplacedBy',
+            )
+    ql_make_no_sense_list = ['number']
+    so_ontology.add_map('feature', 'Brad', me_ft_map)
+    so_ontology.add_map('header', 'Brad', me_hd_map)
+    so_ontology.add_map('qualifier', 'Brad', me_ql_map)
+    dc_ontology.add_map('qualifier', 'Brad', me_ql_dc_map)
 
-def match_keys_to_ontology(key_type, keys, so_terms, pre_map):
-    lower_so_terms = [t.lower() for t in so_terms]
-    print '***', key_type
-    nos = []
-    for key in keys:
-        try:
-            pre_key = pre_map[key]
-            if pre_key in so_terms:
-                print 'pre', key
-            else:
-                raise KeyError
-        except KeyError:
-            if key.lower() in lower_so_terms:
-                print 'SO ', key
-            else:
-                nos.append(key)
-    print 'no mapping', nos
+    # -- write out the mappings in each of the categories
+    match_keys_to_ontology('header', header_keys, [so_ontology, dc_ontology])
+    match_keys_to_ontology('feature', feature_keys, [so_ontology, dc_ontology])
+    match_keys_to_ontology('qualifier', qual_keys, [so_ontology, dc_ontology])
+
+class OntologyGroup:
+    def __init__(self, namespace, terms):
+        self.ns = namespace
+        self.terms = terms
+        self._maps = collections.defaultdict(lambda: [])
+
+    def add_map(self, key_type, origin, key_map):
+        """Add a mapping of keys to terms within this ontology.
+        """
+        self._maps[key_type].append((origin, key_map))
+
+    def normalized_terms(self):
+        """Retrieve the terms all lower cased and with extra items removed.
+        """
+        lower_so_terms = {}
+        for term in self.terms:
+            lower_so_terms[self._normal_term(term)] = term
+        return lower_so_terms
+
+    def _normal_term(self, term):
+        return term.replace("_", "").lower() 
+
+    def match_key_to_ontology(self, key_type, cur_key):
+        normal_terms = self.normalized_terms()
+        # try to get it from a dictionary
+        for map_origin, check_map in self._maps[key_type]:
+            try:
+                match_key = check_map[cur_key]
+            except KeyError:
+                match_key = None
+            if (match_key and
+                    self._normal_term(match_key) in normal_terms.keys()):
+                return match_key, map_origin
+        # try to match it by name
+        if self._normal_term(cur_key) in normal_terms.keys():
+            match_key = normal_terms[self._normal_term(cur_key)]
+            return match_key, 'name_match'
+        #in_terms = [x for x in normal_terms.keys() if
+        #        x.find(self._normal_term(cur_key)) != -1]
+        #if len(in_terms) > 0:
+        #    print '***', cur_key, in_terms, self.ns
+        # could not find a match
+        return None, ''
+
+
+def match_keys_to_ontology(key_type, keys, ontologies):
+    no_matches = []
+    for cur_key in keys:
+        found_match = False
+        for ontology in ontologies:
+            match_key, origin = ontology.match_key_to_ontology(key_type, cur_key)
+            if match_key is not None:
+                print key_type, cur_key, match_key, ontology.ns, origin
+                found_match = True
+                break
+        if not found_match:
+            no_matches.append(cur_key)
+    for no_key in no_matches:
+        print key_type, no_key
+
+def parse_dc_terms(dc_file):
+    """Retrieve a list of Dublin core terms from the RDF file.
+    """
+    graph = Graph()
+    graph.parse(dc_file)
+    sparta_store = sparta.ThingFactory(graph)
+    #sparta_store.addAlias("dc", "http://purl.org/dc/terms/")
+    subjects = []
+    for subj in graph.subjects():
+        if subj not in subjects:
+            subjects.append(subj)
+    terms = []
+    for subj in subjects:
+        rdf_item = sparta_store(subj)
+        str_item = str(rdf_item.get_id().replace("dcterms_", ""))
+        if str_item:
+            terms.append(str_item)
+    terms.sort()
+    #print terms
+    return terms
 
 def parse_so_terms(so_file):
     """Retrieve all available Sequence Ontology terms from the file.
@@ -98,4 +218,5 @@ if __name__ == "__main__":
     ft_file = "FT_index.html"
     so_ft_map_file = "FT_SO_map.txt"
     so_file = "so.obo"
-    main(ft_file, so_ft_map_file, so_file)
+    dc_file = os.path.join(os.pardir, "dcterms.rdf")
+    main(ft_file, so_ft_map_file, so_file, dc_file)
