@@ -1,0 +1,38 @@
+A recent thread by Peter on the BioSQL mailing list
+(http://lists.open-bio.org/pipermail/biosql-l/2008-November/001412.html),
+initiated some thinking about formalizing ontologies and terms in BioSQL. This
+is already formalized in an ad-hoc way in that BioPerl, BioPython and BioJava
+attempt to do the same thing. However, the problem is that this is not
+documented, no one is likely in a big hurry to document it, and we are
+essentially inventing another ontology.
+
+The BioSQL methodology of storing key/value pair information on items can be
+mapped to RDF triples as:
+
+BioSQL                      |  RDF
+-------------------------------------
+Bioentry or other (feature) |  Subject
+Ontology                    |  Namespace of predicate
+Term                        |  predicate item (in namespace)
+Value                       |  Object
+
+A nice place to look for ontologies is thus in standards intended for RDF
+normalization. Greg Tyrelle thought this same way a while ago and came up with
+a XSLT to transform GenBank XML to RDF (http://wiki.nodalpoint.org/semweb_hacks).
+This uses mostly the Dublin Core vocabulary (http://www.dublincore.org/).
+
+Some other RDF uses in biology to look at:
+
+- GoPubMed, which uses the Dublin Core and Prism Standard
+(http://prismstandard.org) vocabularies:
+
+http://www.gopubmed.org/GoMeshPubMed/gomeshpubmed/Search/RDF?q=18463287&type=RdfExportAll
+
+- UniProt RDF, which uses primarily its own ontology:
+
+http://www.uniprot.org/uniprot/Q21307.rdf
+
+Beyond the generic Dublin Core and Prism Standard ontologies, the right
+ontology for sequences is the Sequence Ontology project
+(http://www.sequenceontology.org/). This includes a mapping to GenBank feature
+table names (http://www.sequenceontology.org/so_mappings.shtml).

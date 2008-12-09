@@ -1,0 +1,324 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<rdf:RDF xmlns="http://purl.uniprot.org/core/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" xmlns:owl="http://www.w3.org/2002/07/owl#" xmlns:dc="http://purl.org/dc/elements/1.1/">
+<rdf:Description rdf:about="http://purl.uniprot.org/uniprot/Q21307">
+<rdf:type rdf:resource="http://purl.uniprot.org/core/Protein" />
+<reviewed>false</reviewed>
+<created>1996-11-01</created>
+<modified>2008-11-25</modified>
+<version>67</version>
+<mnemonic>Q21307_CAEEL</mnemonic>
+<citation rdf:resource="http://purl.uniprot.org/citations/9851916" rdf:ID="_1" />
+<submittedName rdf:resource="#_3" />
+<organism rdf:resource="http://purl.uniprot.org/taxonomy/6239" />
+<encodedBy rdf:resource="#_5" />
+<interaction rdf:resource="#_8" />
+<interaction rdf:resource="#_9" />
+<interaction rdf:resource="#_A" />
+<interaction rdf:resource="#_B" />
+<interaction rdf:resource="#_C" />
+<rdfs:seeAlso rdf:resource="http://purl.uniprot.org/embl-cds/AAA79746.2" />
+<rdfs:seeAlso rdf:resource="http://purl.uniprot.org/pir/T16583" />
+<rdfs:seeAlso rdf:resource="http://purl.uniprot.org/refseq/NP_001024771.1" />
+<rdfs:seeAlso rdf:resource="http://purl.uniprot.org/unigene/Cel.17226" />
+<rdfs:seeAlso rdf:resource="http://purl.uniprot.org/dip/DIP:24753N" />
+<rdfs:seeAlso rdf:resource="http://purl.uniprot.org/intact/Q21307" />
+<rdfs:seeAlso rdf:resource="http://purl.uniprot.org/ensembl/K08A8.1" />
+<rdfs:seeAlso rdf:resource="http://purl.uniprot.org/geneid/181004" />
+<rdfs:seeAlso rdf:resource="http://purl.uniprot.org/kegg/cel:K08A8.1" />
+<rdfs:seeAlso rdf:resource="http://purl.uniprot.org/wormbase/WBGene00003185" />
+<rdfs:seeAlso rdf:resource="http://purl.uniprot.org/wormpep/K08A8.1a" />
+<rdfs:seeAlso rdf:resource="http://purl.uniprot.org/nextbio/911940" />
+<rdfs:seeAlso rdf:resource="http://purl.uniprot.org/arrayexpress/Q21307" />
+<rdfs:seeAlso rdf:resource="http://purl.uniprot.org/interpro/IPR000719" />
+<rdfs:seeAlso rdf:resource="http://purl.uniprot.org/interpro/IPR000215" />
+<rdfs:seeAlso rdf:resource="http://purl.uniprot.org/interpro/IPR017442" />
+<rdfs:seeAlso rdf:resource="http://purl.uniprot.org/interpro/IPR008271" />
+<rdfs:seeAlso rdf:resource="http://purl.uniprot.org/pfam/PF00069" rdf:ID="_D" />
+<rdfs:seeAlso rdf:resource="http://purl.uniprot.org/prodom/PD000001" rdf:ID="_E" />
+<rdfs:seeAlso rdf:resource="http://purl.uniprot.org/prosite/PS50011" rdf:ID="_F" />
+<rdfs:seeAlso rdf:resource="http://purl.uniprot.org/prosite/PS00108" rdf:ID="_10" />
+<rdfs:seeAlso rdf:resource="http://purl.uniprot.org/prosite/PS00284" rdf:ID="_11" />
+<existence rdf:resource="http://purl.uniprot.org/core/Evidence_at_Protein_Level_Existence" />
+<classifiedWith rdf:resource="http://purl.uniprot.org/keywords/181" />
+<classifiedWith rdf:resource="http://purl.uniprot.org/keywords/418" />
+<classifiedWith rdf:resource="http://purl.uniprot.org/go/0005737" rdf:ID="_12" />
+<classifiedWith rdf:resource="http://purl.uniprot.org/go/0004708" rdf:ID="_13" />
+<classifiedWith rdf:resource="http://purl.uniprot.org/go/0005515" rdf:ID="_14" />
+<classifiedWith rdf:resource="http://purl.uniprot.org/go/0000187" rdf:ID="_15" />
+<classifiedWith rdf:resource="http://purl.uniprot.org/go/0040009" rdf:ID="_16" />
+<classifiedWith rdf:resource="http://purl.uniprot.org/go/0046686" rdf:ID="_17" />
+<classifiedWith rdf:resource="http://purl.uniprot.org/go/0046688" rdf:ID="_18" />
+<classifiedWith rdf:resource="http://purl.uniprot.org/go/0042594" rdf:ID="_19" />
+<classifiedWith rdf:resource="http://purl.uniprot.org/go/0009266" rdf:ID="_1A" />
+<sequence rdf:resource="http://purl.uniprot.org/isoforms/Q21307-1" />
+<memberOf rdf:resource="http://purl.uniprot.org/uniref/UniRef50_Q21307" />
+<memberOf rdf:resource="http://purl.uniprot.org/uniref/UniRef90_Q21307" />
+<memberOf rdf:resource="http://purl.uniprot.org/uniref/UniRef100_Q21307" />
+</rdf:Description>
+<rdf:Description rdf:about="http://purl.uniprot.org/citations/9851916">
+<rdf:type rdf:resource="http://purl.uniprot.org/core/Journal_Citation" />
+<title>Genome sequence of the nematode C. elegans: a platform for investigating biology.</title>
+<group>The C. elegans sequencing consortium</group>
+<owl:sameAs rdf:resource="http://purl.uniprot.org/medline/99069613" />
+<owl:sameAs rdf:resource="http://purl.uniprot.org/pubmed/9851916" />
+<dc:identifier>doi:10.1126/science.282.5396.2012</dc:identifier>
+<date>1998</date>
+<name>Science</name>
+<volume>282</volume>
+<pages>2012-2018</pages>
+</rdf:Description>
+<rdf:Description rdf:about="#_1">
+<rdf:type rdf:resource="http://purl.uniprot.org/core/Citation_Statement" />
+<scope>NUCLEOTIDE SEQUENCE [LARGE SCALE GENOMIC DNA]</scope>
+<context rdf:resource="#_2" />
+</rdf:Description>
+<rdf:Description rdf:about="#_2">
+<rdf:type rdf:resource="http://purl.uniprot.org/core/Strain" />
+<rdfs:label>Bristol N2</rdfs:label>
+</rdf:Description>
+<rdf:Description rdf:about="#_3">
+<rdf:type rdf:resource="http://purl.uniprot.org/core/Structured_Name" />
+<fullName rdf:ID="_4">Map kinase kinase or erk kinase protein 1, isoform a</fullName>
+</rdf:Description>
+<rdf:Description rdf:about="#_4">
+<source rdf:resource="http://purl.uniprot.org/embl/AAA79746.2" />
+</rdf:Description>
+<rdf:Description rdf:about="#_5">
+<rdf:type rdf:resource="http://purl.uniprot.org/core/Gene" />
+<name rdf:ID="_6">mek-1</name>
+<orfName rdf:ID="_7">K08A8.1</orfName>
+</rdf:Description>
+<rdf:Description rdf:about="#_6">
+<source rdf:resource="http://purl.uniprot.org/embl/AAA79746.2" />
+</rdf:Description>
+<rdf:Description rdf:about="#_7">
+<source rdf:resource="http://purl.uniprot.org/embl/AAA79746.2" />
+</rdf:Description>
+<rdf:Description rdf:about="#_8">
+<rdf:type rdf:resource="http://purl.uniprot.org/core/Interaction" />
+<xeno>false</xeno>
+<experiments>1</experiments>
+<participant rdf:resource="http://purl.uniprot.org/intact/EBI-312876" />
+<participant rdf:resource="http://purl.uniprot.org/intact/EBI-324459" />
+</rdf:Description>
+<rdf:Description rdf:about="http://purl.uniprot.org/intact/EBI-324459">
+<rdf:type rdf:resource="http://purl.uniprot.org/core/Participant" />
+<owl:sameAs rdf:resource="http://purl.uniprot.org/uniprot/Q93321" />
+</rdf:Description>
+<rdf:Description rdf:about="#_9">
+<rdf:type rdf:resource="http://purl.uniprot.org/core/Interaction" />
+<xeno>false</xeno>
+<experiments>1</experiments>
+<participant rdf:resource="http://purl.uniprot.org/intact/EBI-312876" />
+<participant rdf:resource="http://purl.uniprot.org/intact/EBI-324450" />
+</rdf:Description>
+<rdf:Description rdf:about="http://purl.uniprot.org/intact/EBI-324450">
+<rdf:type rdf:resource="http://purl.uniprot.org/core/Participant" />
+<owl:sameAs rdf:resource="http://purl.uniprot.org/uniprot/Q965N2" />
+</rdf:Description>
+<rdf:Description rdf:about="#_A">
+<rdf:type rdf:resource="http://purl.uniprot.org/core/Interaction" />
+<xeno>false</xeno>
+<experiments>1</experiments>
+<participant rdf:resource="http://purl.uniprot.org/intact/EBI-312876" />
+<participant rdf:resource="http://purl.uniprot.org/intact/EBI-312469" />
+</rdf:Description>
+<rdf:Description rdf:about="http://purl.uniprot.org/intact/EBI-312469">
+<rdf:type rdf:resource="http://purl.uniprot.org/core/Participant" />
+<rdfs:label>kel-8</rdfs:label>
+<owl:sameAs rdf:resource="http://purl.uniprot.org/uniprot/O61899" />
+</rdf:Description>
+<rdf:Description rdf:about="#_B">
+<rdf:type rdf:resource="http://purl.uniprot.org/core/Interaction" />
+<xeno>false</xeno>
+<experiments>1</experiments>
+<participant rdf:resource="http://purl.uniprot.org/intact/EBI-312876" />
+<participant rdf:resource="http://purl.uniprot.org/intact/EBI-322954" />
+</rdf:Description>
+<rdf:Description rdf:about="http://purl.uniprot.org/intact/EBI-322954">
+<rdf:type rdf:resource="http://purl.uniprot.org/core/Participant" />
+<rdfs:label>shc-1</rdfs:label>
+<owl:sameAs rdf:resource="http://purl.uniprot.org/uniprot/Q9TYT3" />
+</rdf:Description>
+<rdf:Description rdf:about="#_C">
+<rdf:type rdf:resource="http://purl.uniprot.org/core/Interaction" />
+<xeno>false</xeno>
+<experiments>1</experiments>
+<participant rdf:resource="http://purl.uniprot.org/intact/EBI-312876" />
+<participant rdf:resource="http://purl.uniprot.org/intact/EBI-317506" />
+</rdf:Description>
+<rdf:Description rdf:about="http://purl.uniprot.org/intact/EBI-317506">
+<rdf:type rdf:resource="http://purl.uniprot.org/core/Participant" />
+<rdfs:label>twk-37</rdfs:label>
+<owl:sameAs rdf:resource="http://purl.uniprot.org/uniprot/Q8IG65" />
+</rdf:Description>
+<rdf:Description rdf:about="http://purl.uniprot.org/embl-cds/AAA79746.2">
+<rdf:type rdf:resource="http://purl.uniprot.org/core/Nucleotide_Resource" />
+<database>EMBL</database>
+<locatedOn rdf:resource="http://purl.uniprot.org/embl/U38377" />
+</rdf:Description>
+<rdf:Description rdf:about="http://purl.uniprot.org/embl/U38377">
+<rdf:type rdf:resource="http://purl.uniprot.org/core/Genomic_DNA" />
+</rdf:Description>
+<rdf:Description rdf:about="http://purl.uniprot.org/pir/T16583">
+<rdf:type rdf:resource="http://purl.uniprot.org/core/Resource" />
+<database>PIR</database>
+</rdf:Description>
+<rdf:Description rdf:about="http://purl.uniprot.org/refseq/NP_001024771.1">
+<rdf:type rdf:resource="http://purl.uniprot.org/core/Resource" />
+<database>RefSeq</database>
+</rdf:Description>
+<rdf:Description rdf:about="http://purl.uniprot.org/unigene/Cel.17226">
+<rdf:type rdf:resource="http://purl.uniprot.org/core/Resource" />
+<database>UniGene</database>
+</rdf:Description>
+<rdf:Description rdf:about="http://purl.uniprot.org/dip/DIP:24753N">
+<rdf:type rdf:resource="http://purl.uniprot.org/core/Resource" />
+<database>DIP</database>
+</rdf:Description>
+<rdf:Description rdf:about="http://purl.uniprot.org/intact/Q21307">
+<rdf:type rdf:resource="http://purl.uniprot.org/core/Resource" />
+<database>IntAct</database>
+</rdf:Description>
+<rdf:Description rdf:about="http://purl.uniprot.org/ensembl/K08A8.1">
+<rdf:type rdf:resource="http://purl.uniprot.org/core/Resource" />
+<database>Ensembl</database>
+<rdfs:comment>Caenorhabditis elegans</rdfs:comment>
+</rdf:Description>
+<rdf:Description rdf:about="http://purl.uniprot.org/geneid/181004">
+<rdf:type rdf:resource="http://purl.uniprot.org/core/Resource" />
+<database>GeneID</database>
+</rdf:Description>
+<rdf:Description rdf:about="http://purl.uniprot.org/kegg/cel:K08A8.1">
+<rdf:type rdf:resource="http://purl.uniprot.org/core/Resource" />
+<database>KEGG</database>
+</rdf:Description>
+<rdf:Description rdf:about="http://purl.uniprot.org/wormbase/WBGene00003185">
+<rdf:type rdf:resource="http://purl.uniprot.org/core/Resource" />
+<database>WormBase</database>
+<rdfs:comment>mek-1</rdfs:comment>
+</rdf:Description>
+<rdf:Description rdf:about="http://purl.uniprot.org/wormpep/K08A8.1a">
+<rdf:type rdf:resource="http://purl.uniprot.org/core/Resource" />
+<database>WormPep</database>
+<rdfs:comment>CE30816</rdfs:comment>
+</rdf:Description>
+<rdf:Description rdf:about="http://purl.uniprot.org/nextbio/911940">
+<rdf:type rdf:resource="http://purl.uniprot.org/core/Resource" />
+<database>NextBio</database>
+</rdf:Description>
+<rdf:Description rdf:about="http://purl.uniprot.org/arrayexpress/Q21307">
+<rdf:type rdf:resource="http://purl.uniprot.org/core/Resource" />
+<database>ArrayExpress</database>
+</rdf:Description>
+<rdf:Description rdf:about="http://purl.uniprot.org/interpro/IPR000719">
+<rdf:type rdf:resource="http://purl.uniprot.org/core/Resource" />
+<database>InterPro</database>
+<rdfs:comment>Prot_kinase_core</rdfs:comment>
+</rdf:Description>
+<rdf:Description rdf:about="http://purl.uniprot.org/interpro/IPR000215">
+<rdf:type rdf:resource="http://purl.uniprot.org/core/Resource" />
+<database>InterPro</database>
+<rdfs:comment>Protease_inhib_I4_serpin</rdfs:comment>
+</rdf:Description>
+<rdf:Description rdf:about="http://purl.uniprot.org/interpro/IPR017442">
+<rdf:type rdf:resource="http://purl.uniprot.org/core/Resource" />
+<database>InterPro</database>
+<rdfs:comment>Se/Thr_pkinase-rel</rdfs:comment>
+</rdf:Description>
+<rdf:Description rdf:about="http://purl.uniprot.org/interpro/IPR008271">
+<rdf:type rdf:resource="http://purl.uniprot.org/core/Resource" />
+<database>InterPro</database>
+<rdfs:comment>Ser_thr_pkin_AS</rdfs:comment>
+</rdf:Description>
+<rdf:Description rdf:about="http://purl.uniprot.org/pfam/PF00069">
+<rdf:type rdf:resource="http://purl.uniprot.org/core/Resource" />
+<database>Pfam</database>
+<rdfs:comment>Pkinase</rdfs:comment>
+</rdf:Description>
+<rdf:Description rdf:about="#_D">
+<rdf:type rdf:resource="http://purl.uniprot.org/core/Domain_Assignment_Statement" />
+<hits>1</hits>
+</rdf:Description>
+<rdf:Description rdf:about="http://purl.uniprot.org/prodom/PD000001">
+<rdf:type rdf:resource="http://purl.uniprot.org/core/Resource" />
+<database>ProDom</database>
+<rdfs:comment>Prot_kinase</rdfs:comment>
+</rdf:Description>
+<rdf:Description rdf:about="#_E">
+<rdf:type rdf:resource="http://purl.uniprot.org/core/Domain_Assignment_Statement" />
+<hits>1</hits>
+</rdf:Description>
+<rdf:Description rdf:about="http://purl.uniprot.org/prosite/PS50011">
+<rdf:type rdf:resource="http://purl.uniprot.org/core/Resource" />
+<database>PROSITE</database>
+<rdfs:comment>PROTEIN_KINASE_DOM</rdfs:comment>
+</rdf:Description>
+<rdf:Description rdf:about="#_F">
+<rdf:type rdf:resource="http://purl.uniprot.org/core/Domain_Assignment_Statement" />
+<hits>1</hits>
+</rdf:Description>
+<rdf:Description rdf:about="http://purl.uniprot.org/prosite/PS00108">
+<rdf:type rdf:resource="http://purl.uniprot.org/core/Resource" />
+<database>PROSITE</database>
+<rdfs:comment>PROTEIN_KINASE_ST</rdfs:comment>
+</rdf:Description>
+<rdf:Description rdf:about="#_10">
+<rdf:type rdf:resource="http://purl.uniprot.org/core/Domain_Assignment_Statement" />
+<hits>1</hits>
+</rdf:Description>
+<rdf:Description rdf:about="http://purl.uniprot.org/prosite/PS00284">
+<rdf:type rdf:resource="http://purl.uniprot.org/core/Resource" />
+<database>PROSITE</database>
+<rdfs:comment>SERPIN</rdfs:comment>
+</rdf:Description>
+<rdf:Description rdf:about="#_11">
+<rdf:type rdf:resource="http://purl.uniprot.org/core/Domain_Assignment_Statement" />
+<hits>1</hits>
+<certain>false</certain>
+</rdf:Description>
+<rdf:Description rdf:about="#_12">
+<status rdf:resource="http://purl.uniprot.org/core/IC" />
+<database>WormBase</database>
+</rdf:Description>
+<rdf:Description rdf:about="#_13">
+<status rdf:resource="http://purl.uniprot.org/core/IMP" />
+<database>WormBase</database>
+</rdf:Description>
+<rdf:Description rdf:about="#_14">
+<status rdf:resource="http://purl.uniprot.org/core/IPI" />
+<database>IntAct</database>
+</rdf:Description>
+<rdf:Description rdf:about="#_15">
+<status rdf:resource="http://purl.uniprot.org/core/IMP" />
+<database>WormBase</database>
+</rdf:Description>
+<rdf:Description rdf:about="#_16">
+<status rdf:resource="http://purl.uniprot.org/core/IGI" />
+<database>WormBase</database>
+</rdf:Description>
+<rdf:Description rdf:about="#_17">
+<status rdf:resource="http://purl.uniprot.org/core/IMP" />
+<database>WormBase</database>
+</rdf:Description>
+<rdf:Description rdf:about="#_18">
+<status rdf:resource="http://purl.uniprot.org/core/IMP" />
+<database>WormBase</database>
+</rdf:Description>
+<rdf:Description rdf:about="#_19">
+<status rdf:resource="http://purl.uniprot.org/core/IGI" />
+<database>WormBase</database>
+</rdf:Description>
+<rdf:Description rdf:about="#_1A">
+<status rdf:resource="http://purl.uniprot.org/core/IMP" />
+<database>WormBase</database>
+</rdf:Description>
+<rdf:Description rdf:about="http://purl.uniprot.org/isoforms/Q21307-1">
+<rdf:type rdf:resource="http://purl.uniprot.org/core/Simple_Sequence" />
+<owl:sameAs rdf:resource="http://purl.uniprot.org/uniparc/UPI000007A3C9" />
+<modified>2002-10-01</modified>
+<version>2</version>
+<mass>39422</mass>
+<rdf:value>MERDFDLGMG RPGGLGGLGG EPIMQQMPQP APHHPSRSSN DHNVKNLMKQ AEENSGYLTL QGNRRKADLK ELQFVEDIGH GSCGTVTKCR YKSVIMAVKT MPRTSNSYEM SRILMDLDVI CLSFDCPYIV RCFGYFITNF DVRVCMECMA TCLDRLLIRI KQPIPERIIG KLSVSIIKAL HYLKTKHQIM HRDVKPSNIL LDWSGVIKLC DFGIAGRLIE SRAHSKQAGC PLYMGPERLD PNNFDSYDIR SDVWSFGVTL VELATGQYPY AGTEFDMMSK ILNDEPPRLD PAKFSPDFCQ LVESCLQRDP TMRPNYDMLL QHPFVVHHEK IETDVEEWFA DVMGECG</rdf:value>
+</rdf:Description>
+</rdf:RDF>
