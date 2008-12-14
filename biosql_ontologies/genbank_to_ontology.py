@@ -6,17 +6,20 @@ of a standard GenBank file.
 from __future__ import with_statement
 import os
 import collections
+import csv
 
 from rdflib.Graph import Graph
-from Mgh.SemanticLiterature import sparta
+#from Mgh.SemanticLiterature import sparta
+import sparta
 
-def main(ft_file, so_ft_map_file, so_file, dc_file):
+def main(ft_file, so_ft_map_file, so_file, dc_file, rdfs_file):
     # -- get all of the keys we need to map from GenBank
     # pulled by hand from the Biopython parser
     header_keys = ['ACCESSION', 'AUTHORS', 'COMMENT', 'CONSRTM', 'DBLINK',
             'DBSOURCE', 'DEFINITION', 'JOURNAL', 'KEYWORDS', 'MEDLINE', 'NID',
-            'ORGANISM', 'ORIGIN', 'PID', 'PROJECT', 'PUBMED', 'REFERENCE',
-            'REMARK', 'SEGMENT', 'SOURCE', 'TITLE', 'VERSION']
+            'ORGANISM', 'PID', 'PROJECT', 'PUBMED',
+            'REMARK', 'SEGMENT', 'SOURCE', 'TITLE', 'VERSION',
+            'VERSION;gi', 'LOCUS;date']
     feature_keys, qual_keys = parse_feature_table(ft_file)
 
     # -- terms to map them two, along with dictionaries for the existing or
@@ -28,14 +31,42 @@ def main(ft_file, so_ft_map_file, so_file, dc_file):
     so_ft_map = parse_so_ft_map(so_ft_map_file)
     so_ontology.add_map('feature', 
             'http://www.sequenceontology.org/mappings/FT_SO_map.txt', so_ft_map)
+    rdfs_terms = parse_rdfs_terms(rdfs_file)
+    rdfs_ontology = OntologyGroup('http://www.w3.org/2000/01/rdf-schema#',
+            rdfs_terms)
     me_ft_map = dict(
             rep_origin = 'origin_of_replication',
             unsure = 'sequence_uncertainty',
             conflict = 'sequence_conflict',
             GC_signal = 'GC_rich_promoter_region',
             mat_peptide = 'mature_protein_region',
+            C_region = 'C_cluster',
+            J_segment = 'J_gene',
+            N_region = '',
+            S_region = '',
+            V_region = 'V_cluster',
+            V_segment = 'V_gene'
             )
+    me_ft_dc_map = dict(
+            old_sequence = 'replaces')
     me_hd_map = {'ACCESSION': 'databank_entry'}
+    me_hd_dc_map = {'DEFINITION' : 'description',
+                    'VERSION' : 'hasVersion',
+                    'VERSION;gi' : 'identifier',
+                    'KEYWORDS' : 'subject',
+                    'LOCUS;date' : 'created',
+                    'PUBMED' : 'relation',
+                    'JOURNAL' : 'source',
+                    'AUTHORS' : 'contributor',
+                    'CONSRTM' : 'creator',
+                    'ORGANISM' : '',
+                    'SEGMENT' : 'isPartOf',
+                    'DBLINK' : 'relation',
+                    'DBSOURCE' : 'relation',
+                    'MEDLINE' : 'relation',
+                    'NID' : 'relation',
+                    'PID' : 'relation',
+                    'PROJECT' : 'relation'}
     me_ql_map = dict(
             bio_material = 'biomaterial_region',
             bound_moiety = 'bound_by_factor',
@@ -71,17 +102,38 @@ def main(ft_file, so_ft_map_file, so_file, dc_file):
             locus_tag = 'alternative',
             old_locus_tag = 'replaces',
             replace = 'isReplacedBy',
+            db_xref = 'relation',
+            compare = 'relation',
+            EC_number = 'relation',
+            protein_id = 'relation',
+            product = 'alternative',
+            standard_name = 'alternative',
+            number = 'coverage',
+            function = 'description',
+            )
+    me_ql_rdfs_map = dict(
+            note = 'comment',
             )
     ql_make_no_sense_list = ['number']
-    so_ontology.add_map('feature', 'Brad', me_ft_map)
     so_ontology.add_map('header', 'Brad', me_hd_map)
+    so_ontology.add_map('feature', 'Brad', me_ft_map)
     so_ontology.add_map('qualifier', 'Brad', me_ql_map)
+    dc_ontology.add_map('header', 'Brad', me_hd_dc_map)
+    dc_ontology.add_map('feature', 'Brad', me_ft_dc_map)
     dc_ontology.add_map('qualifier', 'Brad', me_ql_dc_map)
+    rdfs_ontology.add_map('qualifier', 'Brad', me_ql_rdfs_map)
 
     # -- write out the mappings in each of the categories
-    match_keys_to_ontology('header', header_keys, [so_ontology, dc_ontology])
-    match_keys_to_ontology('feature', feature_keys, [so_ontology, dc_ontology])
-    match_keys_to_ontology('qualifier', qual_keys, [so_ontology, dc_ontology])
+    with open("genbank_ontology_map.txt", "w") as out_handle:
+        out_writer = csv.writer(out_handle, delimiter="\t")
+        out_writer.writerow(['gb section', 'identifier', 'ontology',
+            'namespace', 'evidence'])
+        match_keys_to_ontology('header', header_keys, [so_ontology, dc_ontology,
+            rdfs_ontology], out_writer)
+        match_keys_to_ontology('feature', feature_keys, [so_ontology,
+            dc_ontology, rdfs_ontology], out_writer)
+        match_keys_to_ontology('qualifier', qual_keys, [so_ontology,
+            dc_ontology, rdfs_ontology], out_writer)
 
 class OntologyGroup:
     def __init__(self, namespace, terms):
@@ -127,29 +179,26 @@ class OntologyGroup:
         # could not find a match
         return None, ''
 
-
-def match_keys_to_ontology(key_type, keys, ontologies):
+def match_keys_to_ontology(key_type, keys, ontologies, out_writer):
     no_matches = []
     for cur_key in keys:
         found_match = False
         for ontology in ontologies:
             match_key, origin = ontology.match_key_to_ontology(key_type, cur_key)
             if match_key is not None:
-                print key_type, cur_key, match_key, ontology.ns, origin
+                out_writer.writerow([key_type, cur_key, match_key, ontology.ns,
+                    origin])
                 found_match = True
                 break
         if not found_match:
             no_matches.append(cur_key)
     for no_key in no_matches:
-        print key_type, no_key
+        out_writer.writerow([key_type, no_key])
 
-def parse_dc_terms(dc_file):
-    """Retrieve a list of Dublin core terms from the RDF file.
-    """
+def _parse_terms_from_rdf(in_file, prefix):
     graph = Graph()
-    graph.parse(dc_file)
+    graph.parse(in_file)
     sparta_store = sparta.ThingFactory(graph)
-    #sparta_store.addAlias("dc", "http://purl.org/dc/terms/")
     subjects = []
     for subj in graph.subjects():
         if subj not in subjects:
@@ -157,12 +206,20 @@ def parse_dc_terms(dc_file):
     terms = []
     for subj in subjects:
         rdf_item = sparta_store(subj)
-        str_item = str(rdf_item.get_id().replace("dcterms_", ""))
+        str_item = str(rdf_item.get_id().replace(prefix + "_", ""))
         if str_item:
             terms.append(str_item)
     terms.sort()
     #print terms
     return terms
+
+def parse_rdfs_terms(rdfs_file):
+    return _parse_terms_from_rdf(rdfs_file, "rdfs")
+
+def parse_dc_terms(dc_file):
+    """Retrieve a list of Dublin core terms from the RDF file.
+    """
+    return _parse_terms_from_rdf(dc_file, "dcterms")
 
 def parse_so_terms(so_file):
     """Retrieve all available Sequence Ontology terms from the file.
@@ -215,8 +272,9 @@ def parse_feature_table(ft_file):
     return feature_keys, qual_keys
 
 if __name__ == "__main__":
-    ft_file = "FT_index.html"
-    so_ft_map_file = "FT_SO_map.txt"
-    so_file = "so.obo"
-    dc_file = os.path.join(os.pardir, "dcterms.rdf")
-    main(ft_file, so_ft_map_file, so_file, dc_file)
+    ft_file = os.path.join("feature_table", "FT_index.html")
+    so_ft_map_file = os.path.join("feature_table", "FT_SO_map.txt")
+    so_file = os.path.join("ontologies", "so.obo")
+    dc_file = os.path.join("ontologies", "dcterms.rdf")
+    rdfs_file = os.path.join("ontologies", "rdf-schema.rdf")
+    main(ft_file, so_ft_map_file, so_file, dc_file, rdfs_file)

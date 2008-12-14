@@ -1,0 +1,175 @@
+gb section	identifier	ontology	namespace	evidence
+header	ACCESSION	databank_entry	http://purl.org/obo/owl/SO	Brad
+header	AUTHORS	contributor	http://purl.org/dc/terms/	Brad
+header	COMMENT	comment	http://www.w3.org/2000/01/rdf-schema#	name_match
+header	CONSRTM	creator	http://purl.org/dc/terms/	Brad
+header	DBLINK	relation	http://purl.org/dc/terms/	Brad
+header	DBSOURCE	relation	http://purl.org/dc/terms/	Brad
+header	DEFINITION	description	http://purl.org/dc/terms/	Brad
+header	JOURNAL	source	http://purl.org/dc/terms/	Brad
+header	KEYWORDS	subject	http://purl.org/dc/terms/	Brad
+header	MEDLINE	relation	http://purl.org/dc/terms/	Brad
+header	NID	relation	http://purl.org/dc/terms/	Brad
+header	PID	relation	http://purl.org/dc/terms/	Brad
+header	PROJECT	relation	http://purl.org/dc/terms/	Brad
+header	PUBMED	relation	http://purl.org/dc/terms/	Brad
+header	REMARK	remark	http://purl.org/obo/owl/SO	name_match
+header	SEGMENT	isPartOf	http://purl.org/dc/terms/	Brad
+header	SOURCE	source	http://purl.org/dc/terms/	name_match
+header	TITLE	title	http://purl.org/dc/terms/	name_match
+header	VERSION	hasVersion	http://purl.org/dc/terms/	Brad
+header	VERSION;gi	identifier	http://purl.org/dc/terms/	Brad
+header	LOCUS;date	created	http://purl.org/dc/terms/	Brad
+header	ORGANISM
+feature	-10_signal	minus_10_signal	http://purl.org/obo/owl/SO	http://www.sequenceontology.org/mappings/FT_SO_map.txt
+feature	-35_signal	minus_35_signal	http://purl.org/obo/owl/SO	http://www.sequenceontology.org/mappings/FT_SO_map.txt
+feature	3'UTR	three_prime_UTR	http://purl.org/obo/owl/SO	http://www.sequenceontology.org/mappings/FT_SO_map.txt
+feature	5'UTR	five_prime_UTR	http://purl.org/obo/owl/SO	http://www.sequenceontology.org/mappings/FT_SO_map.txt
+feature	CAAT_signal	CAAT_signal	http://purl.org/obo/owl/SO	http://www.sequenceontology.org/mappings/FT_SO_map.txt
+feature	CDS	CDS	http://purl.org/obo/owl/SO	http://www.sequenceontology.org/mappings/FT_SO_map.txt
+feature	C_region	C_cluster	http://purl.org/obo/owl/SO	Brad
+feature	D-loop	D_loop	http://purl.org/obo/owl/SO	http://www.sequenceontology.org/mappings/FT_SO_map.txt
+feature	D_segment	D_gene	http://purl.org/obo/owl/SO	http://www.sequenceontology.org/mappings/FT_SO_map.txt
+feature	GC_signal	GC_rich_promoter_region	http://purl.org/obo/owl/SO	Brad
+feature	J_segment	J_gene	http://purl.org/obo/owl/SO	Brad
+feature	LTR	long_terminal_repeat	http://purl.org/obo/owl/SO	http://www.sequenceontology.org/mappings/FT_SO_map.txt
+feature	RBS	ribosome_entry_site	http://purl.org/obo/owl/SO	http://www.sequenceontology.org/mappings/FT_SO_map.txt
+feature	STS	STS	http://purl.org/obo/owl/SO	http://www.sequenceontology.org/mappings/FT_SO_map.txt
+feature	TATA_signal	TATA_box	http://purl.org/obo/owl/SO	http://www.sequenceontology.org/mappings/FT_SO_map.txt
+feature	V_region	V_cluster	http://purl.org/obo/owl/SO	Brad
+feature	V_segment	V_gene	http://purl.org/obo/owl/SO	Brad
+feature	attenuator	attenuator	http://purl.org/obo/owl/SO	http://www.sequenceontology.org/mappings/FT_SO_map.txt
+feature	conflict	sequence_conflict	http://purl.org/obo/owl/SO	Brad
+feature	enhancer	enhancer	http://purl.org/obo/owl/SO	http://www.sequenceontology.org/mappings/FT_SO_map.txt
+feature	exon	exon	http://purl.org/obo/owl/SO	http://www.sequenceontology.org/mappings/FT_SO_map.txt
+feature	gap	gap	http://purl.org/obo/owl/SO	http://www.sequenceontology.org/mappings/FT_SO_map.txt
+feature	gene	gene	http://purl.org/obo/owl/SO	http://www.sequenceontology.org/mappings/FT_SO_map.txt
+feature	iDNA	iDNA	http://purl.org/obo/owl/SO	http://www.sequenceontology.org/mappings/FT_SO_map.txt
+feature	intron	intron	http://purl.org/obo/owl/SO	http://www.sequenceontology.org/mappings/FT_SO_map.txt
+feature	mRNA	mRNA	http://purl.org/obo/owl/SO	http://www.sequenceontology.org/mappings/FT_SO_map.txt
+feature	mat_peptide	mature_protein_region	http://purl.org/obo/owl/SO	Brad
+feature	misc_RNA	transcript	http://purl.org/obo/owl/SO	http://www.sequenceontology.org/mappings/FT_SO_map.txt
+feature	misc_binding	binding_site	http://purl.org/obo/owl/SO	http://www.sequenceontology.org/mappings/FT_SO_map.txt
+feature	misc_difference	sequence_difference	http://purl.org/obo/owl/SO	http://www.sequenceontology.org/mappings/FT_SO_map.txt
+feature	misc_feature	region	http://purl.org/obo/owl/SO	http://www.sequenceontology.org/mappings/FT_SO_map.txt
+feature	misc_recomb	recombination_feature	http://purl.org/obo/owl/SO	http://www.sequenceontology.org/mappings/FT_SO_map.txt
+feature	misc_signal	regulatory_region	http://purl.org/obo/owl/SO	http://www.sequenceontology.org/mappings/FT_SO_map.txt
+feature	misc_structure	sequence_secondary_structure	http://purl.org/obo/owl/SO	http://www.sequenceontology.org/mappings/FT_SO_map.txt
+feature	modified_base	modified_base_site	http://purl.org/obo/owl/SO	http://www.sequenceontology.org/mappings/FT_SO_map.txt
+feature	ncRNA	ncRNA	http://purl.org/obo/owl/SO	name_match
+feature	old_sequence	replaces	http://purl.org/dc/terms/	Brad
+feature	operon	operon	http://purl.org/obo/owl/SO	http://www.sequenceontology.org/mappings/FT_SO_map.txt
+feature	oriT	oriT	http://purl.org/obo/owl/SO	name_match
+feature	polyA_signal	polyA_signal_sequence	http://purl.org/obo/owl/SO	http://www.sequenceontology.org/mappings/FT_SO_map.txt
+feature	polyA_site	polyA_site	http://purl.org/obo/owl/SO	http://www.sequenceontology.org/mappings/FT_SO_map.txt
+feature	precursor_RNA	primary_transcript	http://purl.org/obo/owl/SO	http://www.sequenceontology.org/mappings/FT_SO_map.txt
+feature	prim_transcript	primary_transcript	http://purl.org/obo/owl/SO	http://www.sequenceontology.org/mappings/FT_SO_map.txt
+feature	primer_bind	primer_binding_site	http://purl.org/obo/owl/SO	http://www.sequenceontology.org/mappings/FT_SO_map.txt
+feature	promoter	promoter	http://purl.org/obo/owl/SO	http://www.sequenceontology.org/mappings/FT_SO_map.txt
+feature	protein_bind	protein_binding_site	http://purl.org/obo/owl/SO	http://www.sequenceontology.org/mappings/FT_SO_map.txt
+feature	rRNA	rRNA	http://purl.org/obo/owl/SO	http://www.sequenceontology.org/mappings/FT_SO_map.txt
+feature	rep_origin	origin_of_replication	http://purl.org/obo/owl/SO	Brad
+feature	repeat_region	repeat_region	http://purl.org/obo/owl/SO	http://www.sequenceontology.org/mappings/FT_SO_map.txt
+feature	sig_peptide	signal_peptide	http://purl.org/obo/owl/SO	http://www.sequenceontology.org/mappings/FT_SO_map.txt
+feature	source	databank_entry	http://purl.org/obo/owl/SO	http://www.sequenceontology.org/mappings/FT_SO_map.txt
+feature	stem_loop	stem_loop	http://purl.org/obo/owl/SO	http://www.sequenceontology.org/mappings/FT_SO_map.txt
+feature	tRNA	tRNA	http://purl.org/obo/owl/SO	http://www.sequenceontology.org/mappings/FT_SO_map.txt
+feature	terminator	terminator	http://purl.org/obo/owl/SO	http://www.sequenceontology.org/mappings/FT_SO_map.txt
+feature	tmRNA	tmRNA	http://purl.org/obo/owl/SO	name_match
+feature	transit_peptide	transit_peptide	http://purl.org/obo/owl/SO	http://www.sequenceontology.org/mappings/FT_SO_map.txt
+feature	unsure	sequence_uncertainty	http://purl.org/obo/owl/SO	Brad
+feature	variation	sequence_variant	http://purl.org/obo/owl/SO	http://www.sequenceontology.org/mappings/FT_SO_map.txt
+feature	N_region
+feature	S_region
+qualifier	EC_number	relation	http://purl.org/dc/terms/	Brad
+qualifier	PCR_primers	primer	http://purl.org/obo/owl/SO	Brad
+qualifier	allele	allele	http://purl.org/obo/owl/SO	name_match
+qualifier	anticodon	anticodon	http://purl.org/obo/owl/SO	name_match
+qualifier	bio_material	biomaterial_region	http://purl.org/obo/owl/SO	Brad
+qualifier	bound_moiety	bound_by_factor	http://purl.org/obo/owl/SO	Brad
+qualifier	chromosome	chromosome	http://purl.org/obo/owl/SO	name_match
+qualifier	citation	bibliographicCitation	http://purl.org/dc/terms/	Brad
+qualifier	clone	clone	http://purl.org/obo/owl/SO	name_match
+qualifier	codon	codon	http://purl.org/obo/owl/SO	name_match
+qualifier	codon_start	coding_start	http://purl.org/obo/owl/SO	Brad
+qualifier	compare	relation	http://purl.org/dc/terms/	Brad
+qualifier	db_xref	relation	http://purl.org/dc/terms/	Brad
+qualifier	direction	direction_attribute	http://purl.org/obo/owl/SO	Brad
+qualifier	experiment	experimental_result_region	http://purl.org/obo/owl/SO	Brad
+qualifier	frequency	Frequency	http://purl.org/dc/terms/	name_match
+qualifier	function	description	http://purl.org/dc/terms/	Brad
+qualifier	gene	gene	http://purl.org/obo/owl/SO	name_match
+qualifier	gene_synonym	alternative	http://purl.org/dc/terms/	Brad
+qualifier	haplotype	haplotype	http://purl.org/obo/owl/SO	name_match
+qualifier	identified_by	creator	http://purl.org/dc/terms/	Brad
+qualifier	label	alternative	http://purl.org/dc/terms/	Brad
+qualifier	locus_tag	alternative	http://purl.org/dc/terms/	Brad
+qualifier	macronuclear	macronuclear_sequence	http://purl.org/obo/owl/SO	Brad
+qualifier	map	fragment_assembly	http://purl.org/obo/owl/SO	Brad
+qualifier	mobile_element	integrated_mobile_genetic_element	http://purl.org/obo/owl/SO	Brad
+qualifier	mod_base	modified_base_site	http://purl.org/obo/owl/SO	Brad
+qualifier	mol_type	sequence_attribute	http://purl.org/obo/owl/SO	Brad
+qualifier	ncRNA_class	ncRNA	http://purl.org/obo/owl/SO	Brad
+qualifier	note	comment	http://www.w3.org/2000/01/rdf-schema#	Brad
+qualifier	number	coverage	http://purl.org/dc/terms/	Brad
+qualifier	old_locus_tag	replaces	http://purl.org/dc/terms/	Brad
+qualifier	operon	operon	http://purl.org/obo/owl/SO	name_match
+qualifier	organelle	organelle_sequence	http://purl.org/obo/owl/SO	Brad
+qualifier	plasmid	plasmid	http://purl.org/obo/owl/SO	name_match
+qualifier	product	alternative	http://purl.org/dc/terms/	Brad
+qualifier	protein_id	relation	http://purl.org/dc/terms/	Brad
+qualifier	proviral	proviral_region	http://purl.org/obo/owl/SO	Brad
+qualifier	pseudo	pseudogene	http://purl.org/obo/owl/SO	Brad
+qualifier	rearranged	rearranged_at_DNA_level	http://purl.org/obo/owl/SO	Brad
+qualifier	replace	isReplacedBy	http://purl.org/dc/terms/	Brad
+qualifier	rpt_family	repeat_family	http://purl.org/obo/owl/SO	Brad
+qualifier	rpt_type	repeat_unit	http://purl.org/obo/owl/SO	Brad
+qualifier	rpt_unit_range	repeat_region	http://purl.org/obo/owl/SO	Brad
+qualifier	rpt_unit_seq	repeat_component	http://purl.org/obo/owl/SO	Brad
+qualifier	satellite	satellite_DNA	http://purl.org/obo/owl/SO	Brad
+qualifier	segment	gene_segment	http://purl.org/obo/owl/SO	Brad
+qualifier	standard_name	alternative	http://purl.org/dc/terms/	Brad
+qualifier	tag_peptide	cleaved_peptide_region	http://purl.org/obo/owl/SO	Brad
+qualifier	trans_splicing	trans_spliced	http://purl.org/obo/owl/SO	Brad
+qualifier	transgenic	transgenic	http://purl.org/obo/owl/SO	name_match
+qualifier	translation	polypeptide	http://purl.org/obo/owl/SO	Brad
+qualifier	PCR_conditions
+qualifier	cell_line
+qualifier	cell_type
+qualifier	clone_lib
+qualifier	collected_by
+qualifier	collection_date
+qualifier	country
+qualifier	cultivar
+qualifier	culture_collection
+qualifier	dev_stage
+qualifier	ecotype
+qualifier	environmental_sample
+qualifier	estimated_length
+qualifier	exception
+qualifier	focus
+qualifier	germline
+qualifier	host
+qualifier	inference
+qualifier	isolate
+qualifier	isolation_source
+qualifier	lab_host
+qualifier	lat_lon
+qualifier	mating_type
+qualifier	organism
+qualifier	phenotype
+qualifier	pop_variant
+qualifier	ribosomal_slippage
+qualifier	serotype
+qualifier	serovar
+qualifier	sex
+qualifier	specimen_voucher
+qualifier	strain
+qualifier	sub_clone
+qualifier	sub_species
+qualifier	sub_strain
+qualifier	tissue_lib
+qualifier	tissue_type
+qualifier	transl_except
+qualifier	transl_table
+qualifier	variety
