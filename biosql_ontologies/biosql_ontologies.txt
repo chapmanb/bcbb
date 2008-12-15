@@ -6,9 +6,11 @@
 "========== Content ==========
 <p>
 A recent <a href="http://lists.open-bio.org/pipermail/biosql-l/2008-November/001412.html">thread</a> by Peter on the BioSQL mailing list
-initiated some thinking about formalizing ontologies and terms in BioSQL. This
-is already formalized in an ad-hoc way in that BioPerl, BioPython and BioJava
-attempt to do the same thing. However, the problem is that this is not
+initiated some thinking about formalizing ontologies and terms in
+<a href="http://www.biosql.org/wiki/Main_Page">BioSQL</a>. The
+current ad-hoc solution is that <a href="http://bioperl.org">BioPerl</a>,
+<a href="http://biopython.org">Biopython</a> and <a href="http://biojava.org">
+BioJava</a> attempt to use the same naming schemes. The worry is that this is not
 documented, no one is likely in a big hurry to document it, and we are
 essentially inventing another ontology.
 </p>
@@ -19,24 +21,22 @@ mapped to RDF triples as:
 
 <table border="1">
 <tr><th>BioSQL</th><th>RDF</th></tr>
-<tr><td>Bioentry or other (feature) </td><td>  Subject</td></tr>
-<tr><td>Ontology                    </td><td>  Namespace of predicate</td>
+<tr><td>Bioentry or Feature</td><td>  Subject</td></tr>
+<tr><td>Ontology           </td><td>  Namespace of predicate</td>
 </tr>
-<tr><td>Term                        </td><td>  predicate item (in namespace)
+<tr><td>Term               </td><td>  Predicate term, relative to namespace
 </td></tr>
-<tr><td>Value                       </td><td>  Object</td></tr>
+<tr><td>Value              </td><td>  Object</td></tr>
 </table>
 </p>
+<br/>
 
 <p>
-Thus, a nice place to look for ontologies is thus in standards intended for RDF
-normalization. Greg Tyrelle thought this same way a while ago and came up with
-a XSLT to <a href="http://wiki.nodalpoint.org/semweb_hacks">transform GenBank XML to RDF</a>.
-This uses mostly the <a href="http://www.dublincore.org/">Dublin Core</a> vocabulary.
-</p>
-
-<p>
-The <a href="http://www.sequenceontology.org/">Sequence Ontology project</a>
+Thus, a nice place to look for ontologies is in standards intended for RDF. 
+Greg Tyrelle thought this same way a while ago and came up with
+a XSLT to <a href="http://wiki.nodalpoint.org/semweb_hacks">transform GenBank
+XML to RDF</a>, using primarily the <a href="http://www.dublincore.org/">Dublin Core</a>
+vocabulary. On the biology side, the <a href="http://www.sequenceontology.org/">Sequence Ontology project</a>
 provides an ontology meant for describing biological sequences. This includes
 a <a href="http://www.sequenceontology.org/so_mappings.shtml">mapping</a> 
 to GenBank feature table names.
@@ -44,15 +44,23 @@ to GenBank feature table names.
 
 <p>
 Using these as a starting point, I generated a mapping of GenBank names to
-names in these two ontologies. This is meant as a starting point for
+names in the Dublin Core and SO ontologies. This is meant as a basis for
 standardizing and documenting naming in BioSQL. The mapping file thus far
-covers almost all of the header and feature keys, and more than half of the
-qualifier keys. You
+covers almost all of the header and feature keys, and more than half of the qualifier keys:
 
+<ul>
+<li><a
+href="http://github.com/chapmanb/bcbb/raw/master/biosql_ontologies/genbank_ontology_map.txt">
+Tab delimited mapping file</a></li>
 
-The python code that does the mapping and pulls 
-information from associated files is on <a
-href="http://github.com/chapmanb/bcbb/tree/master">github</a>.
+<li>All of the python code that does the mapping and pulls 
+information from associated files is available: <a
+href="http://github.com/chapmanb/bcbb/tree/master">github repository</a>.
+</li>
+</ul>
+
+I would welcome suggestions for missing GenBank terms, as well as corrections
+on the terms mapped by hand.
 </p>
 
 Some notes on the mapping:
@@ -60,9 +68,9 @@ Some notes on the mapping:
 <ul>
 <li>
 Cross references to other identifiers are mapped with the Dublin Core term
-'relation'. These can occur in many places in the GenBank format, and we
-can flatten them with this term and using a value in the form of
-<database:identifier> the way it is currently done in the /db_xref qualifier.
+'relation'. These can occur in many places in the GenBank format. Using a
+single term allows them to be flattened, with mapping values in form of
+'database:identifier.' This is consistent with the GenBank /db_xref qualifier.
 </li>
 
 <li>
