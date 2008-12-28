@@ -1,10 +1,15 @@
-"""Provide a remote REST-like API interface to Ensembl and FlyBase.
+"""Provide a remote REST-like API interface to Ensembl.
 
-This provides a wrapping around screen-scraping and XML parsing of
-Ensembl and FlyBase, with the goal of retrieving comparative genomics
-information.
+This provides a wrapping around screen-scraping of Ensembl
+with the goal of retrieving comparative genomics information.
+
+Usage:
+    ensembl_remote_rest.py Organism Gene_id
+Example:
+    ensembl_remote_rest.py Homo_sapiens ENSG00000173894
 """
 from __future__ import with_statement
+import sys
 import re
 import urllib2
 import os
@@ -14,50 +19,51 @@ from BeautifulSoup import BeautifulSoup
 from Bio import SeqIO
 import newick
 import networkx
+    
+#gene_ids = [("Homo_sapiens", "ENSG00000173894")]
+#gene_ids = [("Homo_sapiens", "ENSG00000168283")]
+#gene_ids = [("Homo_sapiens", "ENSG00000183741")]
 
-def main():
-    gene_ids = [("Homo_sapiens", "ENSG00000173894")]
-    #gene_ids = [("Homo_sapiens", "ENSG00000168283")]
-    #gene_ids = [("Homo_sapiens", "ENSG00000183741")]
+def main(organism, gene_id):
+    write_fasta = False
     cache_dir = os.path.join(os.getcwd(), "cache")
     ensembl_rest = EnsemblComparaRest(cache_dir)
-    for organism, gene_id in gene_ids:
-        orthologs = ensembl_rest.orthologs(organism, gene_id)
-        compara_tree = ensembl_rest.compara_tree(organism, gene_id)
-        compara_tree = '(' + compara_tree[:-1] + ');'
-        tree_rec = newick.parse_tree(compara_tree.strip())
-        d_vis = DistanceVisitor()
-        tree_rec.dfs_traverse(d_vis)
-        tree_proteins = [l.identifier for l in tree_rec.leaves]
-        orthologs = [(organism, gene_id)] + orthologs
-        out_recs = []
-        root_id = None
-        all_items = []
-        for o_organism, o_id in orthologs:
-            transcripts = ensembl_rest.transcripts(o_organism, o_id)
-            tx, p = [(tx, p) for (tx, p) in transcripts if p in
-                    tree_proteins][0]
-            cur_item = EnsemblComparaTranscript(o_organism, o_id, tx, p)
-            if root_id is None:
-                root_id = p
-            cur_item.distance = networkx.dijkstra_path_length(d_vis.graph,
-                    "'%s'" % root_id, "'%s'" % p)
-            print o_organism, o_id, p
-            cur_item.domains = ensembl_rest.protein_domains(o_organism, o_id,
+    orthologs = ensembl_rest.orthologs(organism, gene_id)
+    compara_tree = ensembl_rest.compara_tree(organism, gene_id)
+    compara_tree = '(' + compara_tree[:-1] + ');'
+    tree_rec = newick.parse_tree(compara_tree.strip())
+    d_vis = DistanceVisitor()
+    tree_rec.dfs_traverse(d_vis)
+    tree_proteins = [l.identifier for l in tree_rec.leaves]
+    orthologs = [(organism, gene_id)] + orthologs
+    out_recs = []
+    root_id = None
+    all_items = []
+    for o_organism, o_id in orthologs:
+        transcripts = ensembl_rest.transcripts(o_organism, o_id)
+        tx, p = [(tx, p) for (tx, p) in transcripts if p in
+                tree_proteins][0]
+        cur_item = EnsemblComparaTranscript(o_organism, o_id, tx, p)
+        if root_id is None:
+            root_id = p
+        cur_item.distance = networkx.dijkstra_path_length(d_vis.graph,
+                "'%s'" % root_id, "'%s'" % p)
+        #print o_organism, o_id, p
+        cur_item.domains = ensembl_rest.protein_domains(o_organism, o_id,
+                tx)
+        cur_item.statistics = ensembl_rest.protein_stats(o_organism, o_id,
+                tx)
+        all_items.append(cur_item)
+        if write_fasta:
+            out_rec = ensembl_rest.protein_fasta(o_organism, o_id,
                     tx)
-            cur_item.statistics = ensembl_rest.protein_stats(o_organism, o_id,
-                    tx)
-            all_items.append(cur_item)
-            #print statistics
-            # out_rec = ensembl_rest.protein_fasta(o_organism, o_id,
-            #         tx)
-            # out_rec.id = o_id
-            # out_rec.description = o_organism
-            # out_recs.append(out_rec)
-        if len(out_recs) > 0:
-            with open("%s_%s_orthologs.txt" % (organism, gene_id), "w") as \
-                    out_handle:
-                SeqIO.write(out_recs, out_handle, "fasta")
+            out_rec.id = o_id
+            out_rec.description = o_organism
+            out_recs.append(out_rec)
+    if len(out_recs) > 0:
+        with open("%s_%s_orthologs.txt" % (organism, gene_id), "w") as \
+                out_handle:
+            SeqIO.write(out_recs, out_handle, "fasta")
     analyze_comparative_set(all_items)
 
 def analyze_comparative_set(all_items):
@@ -217,4 +223,4 @@ class EnsemblComparaRest:
                 time.sleep(5)
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1], sys.argv[2])
