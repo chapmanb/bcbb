@@ -15,27 +15,52 @@ import urllib2
 import subprocess
 import xml.etree.ElementTree as ET
 import shelve
+import time
+import collections
 
 from Bio import SeqIO
+from Bio.SeqRecord import SeqRecord
 from Bio.Emboss import Applications
+
+from BeautifulSoup import BeautifulStoneSoup
 
 def main(ipr_number):
     cache_dir = os.path.join(os.getcwd(), "cache")
     db_dir = os.path.join(os.getcwd(), "db")
     interpro_retriever = InterproRestRetrieval(cache_dir)
     uniprot_retriever = UniprotRestRetrieval(cache_dir)
+    uniref_retriever = UniRefRetrieval(cache_dir)
     charge_calc = ProteinChargeCalculator(cache_dir)
     cur_db = shelve.open(os.path.join(db_dir, ipr_number))
     seq_recs = interpro_retriever.get_interpro_records(ipr_number)
+    uniref_data = {}
+    all_children = []
     for seq_rec in seq_recs:
         uniprot_id = seq_rec.id.split("|")[0]
         metadata = uniprot_retriever.get_xml_metadata(uniprot_id)
         if (metadata.has_key("org_lineage") and 
                 "Metazoa" in metadata["org_lineage"]):
+            uniref_info = uniref_retriever.get_90_group(uniprot_id)
+            for org, vals in uniref_info.items():
+                uniref_data[vals[0]] = vals[1:]
+                all_children.extend(vals[1:])
             metadata["seq"] = seq_rec.seq.data
             metadata["charge"] = charge_calc.get_neutral_charge(seq_rec)
+            metadata["charge_region"] = charge_calc.get_neutral_charge_region(
+                    seq_rec)
             print uniprot_id, metadata
             cur_db[uniprot_id] = metadata
+    # add information about whether an item is a child or parent in
+    # a uniref group based on sequence similarity
+    for uniprot_id in cur_db.keys():
+        metadata = cur_db[uniprot_id]
+        try:
+            uniref_children = uniref_data[uniprot_id]
+            metadata["uniref_children"] = uniref_children
+        except KeyError:
+            if uniprot_id in all_children:
+                metadata["is_uniref_child"] = "yes"
+        cur_db[uniprot_id] = metadata
     cur_db.close()
 
 class ProteinChargeCalculator:
@@ -57,6 +82,23 @@ class ProteinChargeCalculator:
                 if os.path.exists(fname):
                     os.remove(fname)
         return charge
+
+    def get_neutral_charge_region(self, aa_rec, aa_window = 100, aa_step = 50):
+        """Retrieve the largest charge in an amino acid window.
+        """
+        cur_pos = 0
+        seq = aa_rec.seq
+        charges = []
+        while cur_pos < len(seq):
+            cur_seq = seq[cur_pos:cur_pos+aa_window]
+            if len(cur_seq) >= aa_step:
+                cur_rec = SeqRecord(cur_seq, aa_rec.id)
+                charges.append(self.get_neutral_charge(cur_rec))
+            cur_pos += aa_step
+        if len(charges) == 0:
+            return self.get_neutral_charge(aa_rec)
+        else:
+            return max(charges)
 
     def _calc_neutral_charge(self, aa_rec, in_file, out_file, ph_target):
         with open(in_file, 'w') as in_handle:
@@ -84,13 +126,24 @@ class _BaseCachingRetrieval:
         self._cache_dir = cache_dir
         if not(os.path.exists(cache_dir)):
             os.makedirs(cache_dir)
+        # cache 404 errors so we don't call the page multiple times
+        self._not_found_file = os.path.join(self._cache_dir,
+                '404_not_found.txt')
+        self._not_found = []
+        if os.path.exists(self._not_found_file):
+            with open(self._not_found_file) as in_handle:
+                self._not_found = in_handle.read().split()
 
     def _get_open_handle(self, full_url):
+        if full_url in self._not_found:
+            return None
         url_parts = [p for p in full_url.split("/") if p]
         cache_file = os.path.join(self._cache_dir, "_".join(url_parts[1:]))
         if not os.path.exists(cache_file):
             #print full_url, cache_file
             in_handle = self._safe_open(full_url)
+            if in_handle is None:
+                return None
             with open(cache_file, 'w') as out_handle:
                 out_handle.write(in_handle.read())
             in_handle.close()
@@ -102,8 +155,61 @@ class _BaseCachingRetrieval:
                 in_handle = urllib2.urlopen(url)
                 return in_handle
             except urllib2.URLError, msg:
+                if str(msg).find("404: Not Found") >= 0:
+                    self._add_not_found(url)
+                    return None
                 print msg
                 time.sleep(5)
+
+    def _add_not_found(self, url):
+        with open(self._not_found_file, 'a') as out_handle:
+            out_handle.write("%s\n" % url)
+        self._not_found.append(url)
+
+class UniRefRetrieval(_BaseCachingRetrieval):
+    """Retrieve UniRef clusters for provided
+    """
+    def __init__(self, cache_dir):
+        _BaseCachingRetrieval.__init__(self, cache_dir)
+        self._server = "http://www.uniprot.org"
+        self._xml_ns = "{http://uniprot.org/uniref}"
+
+    def get_90_group(self, uniprot_id):
+        """Retrieve the UniProt 90 cluster related to the given uniprot_id.
+        """
+        url_base = "%s/uniref/UniRef90_%s.xml"
+        full_url = url_base % (self._server, uniprot_id)
+        group_ids = collections.defaultdict(lambda: [])
+        in_handle = self._get_open_handle(full_url)
+        if in_handle:
+            with in_handle:
+                root = ET.parse(in_handle).getroot()
+                db_refs = root.findall(
+                            "%sentry/%srepresentativeMember/%sdbReference" % (
+                            (self._xml_ns,) * 3)) + \
+                          root.findall("%sentry/%smember/%sdbReference" % (
+                            (self._xml_ns,) * 3))
+                for db_ref in db_refs:
+                    if db_ref.attrib["type"] in ["UniProtKB ID"]:
+                        cur_id, cur_org = (None, None)
+                        for prop in db_ref:
+                            if prop.attrib["type"] in ["UniProtKB accession"]:
+                                cur_id = prop.attrib["value"]
+                            if prop.attrib["type"] in ["source organism"]:
+                                cur_org = prop.attrib["value"]
+                        if cur_id and cur_org:
+                            cur_org = " ".join(cur_org.split()[:2])
+                            group_ids[cur_org].append(cur_id)
+        return self._filter_groups(dict(group_ids))
+
+    def _filter_groups(self, group_ids):
+        """Return only groups that contain more than a single identifier.
+        """
+        final_group_ids = {}
+        for org, vals in group_ids.items():
+            if len(vals) > 1:
+                final_group_ids[org] = vals
+        return final_group_ids
 
 class UniprotRestRetrieval(_BaseCachingRetrieval):
     """Retrieve RDF data from UniProt for proteins of interest.
