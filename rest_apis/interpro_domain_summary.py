@@ -15,6 +15,7 @@ import urllib2
 import subprocess
 import xml.etree.ElementTree as ET
 import shelve
+import time
 
 from Bio import SeqIO
 from Bio.Emboss import Applications
@@ -22,6 +23,8 @@ from Bio.Emboss import Applications
 def main(ipr_number):
     cache_dir = os.path.join(os.getcwd(), "cache")
     db_dir = os.path.join(os.getcwd(), "db")
+    if not os.path.exists(db_dir):
+        os.makedirs(db_dir)
     interpro_retriever = InterproRestRetrieval(cache_dir)
     uniprot_retriever = UniprotRestRetrieval(cache_dir)
     charge_calc = ProteinChargeCalculator(cache_dir)
@@ -34,7 +37,8 @@ def main(ipr_number):
                 "Metazoa" in metadata["org_lineage"]):
             metadata["seq"] = seq_rec.seq.data
             metadata["charge"] = charge_calc.get_neutral_charge(seq_rec)
-            print uniprot_id, metadata
+            if metadata.has_key("function_descr"):
+                print uniprot_id, metadata
             cur_db[uniprot_id] = metadata
     cur_db.close()
 
@@ -128,15 +132,49 @@ class UniprotRestRetrieval(_BaseCachingRetrieval):
         metadata = {}
         with self._get_open_handle(full_url) as in_handle:
             root = ET.parse(in_handle).getroot()
-            org = root.find("%sentry/%sorganism" % (self._xml_ns, self._xml_ns))
-            for org_node in org:
-                if org_node.tag == "%sname" % self._xml_ns:
-                    if org_node.attrib["type"] == "scientific":
-                        metadata["org_scientific_name"] = org_node.text
-                    elif org_node.attrib["type"] == "common":
-                        metadata["org_common_name"] = org_node.text
-                elif org_node.tag == "%slineage" % self._xml_ns:
-                    metadata["org_lineage"] = [n.text for n in org_node]
+            metadata = self._get_org_metadata(root, metadata)
+            metadata = self._get_interpro_metadata(root, metadata)
+            metadata = self._get_function_metadata(root, metadata)
+        return metadata
+
+    def _get_org_metadata(self, root, metadata):
+        """Retrieve the organism information from UniProt XML.
+        """
+        org = root.find("%sentry/%sorganism" % (self._xml_ns, self._xml_ns))
+        for org_node in org:
+            if org_node.tag == "%sname" % self._xml_ns:
+                if org_node.attrib["type"] == "scientific":
+                    metadata["org_scientific_name"] = org_node.text
+                elif org_node.attrib["type"] == "common":
+                    metadata["org_common_name"] = org_node.text
+            elif org_node.tag == "%slineage" % self._xml_ns:
+                metadata["org_lineage"] = [n.text for n in org_node]
+        return metadata
+
+    def _get_interpro_metadata(self, root, metadata):
+        """Retrieve InterPro domains present in the protein.
+        """
+        db_refs = root.findall("%sentry/%sdbReference" % (self._xml_ns,
+            self._xml_ns))
+        all_refs = []
+        for db_ref in db_refs:
+            if db_ref.attrib["type"] in ["InterPro"]:
+                all_refs.append("%s:%s" % (db_ref.attrib["type"],
+                    db_ref.attrib["id"]))
+        if len(all_refs) > 0:
+            metadata["db_refs"] = all_refs
+        return metadata
+
+    def _get_function_metadata(self, root, metadata):
+        """Retrieve an InterPro function description.
+        """
+        comments = root.findall("%sentry/%scomment" % (self._xml_ns,
+            self._xml_ns))
+        for comment in comments:
+            if comment.attrib["type"] in ["function"]:
+                for comment_node in comment:
+                    if comment_node.tag == "%stext" % (self._xml_ns):
+                        metadata["function_descr"] = comment_node.text
         return metadata
 
     def get_rdf_metadata(self, uniprot_id):
