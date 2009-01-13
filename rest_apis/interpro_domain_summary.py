@@ -22,8 +22,6 @@ from Bio import SeqIO
 from Bio.SeqRecord import SeqRecord
 from Bio.Emboss import Applications
 
-from BeautifulSoup import BeautifulStoneSoup
-
 def main(ipr_number):
     cache_dir = os.path.join(os.getcwd(), "cache")
     db_dir = os.path.join(os.getcwd(), "db")
@@ -32,6 +30,7 @@ def main(ipr_number):
     interpro_retriever = InterproRestRetrieval(cache_dir)
     uniprot_retriever = UniprotRestRetrieval(cache_dir)
     uniref_retriever = UniRefRetrieval(cache_dir)
+    string_retriever = StringRetrieval(cache_dir)
     charge_calc = ProteinChargeCalculator(cache_dir)
     cur_db = shelve.open(os.path.join(db_dir, ipr_number))
     seq_recs = interpro_retriever.get_interpro_records(ipr_number)
@@ -42,6 +41,9 @@ def main(ipr_number):
         metadata = uniprot_retriever.get_xml_metadata(uniprot_id)
         if (metadata.has_key("org_lineage") and 
                 "Metazoa" in metadata["org_lineage"]):
+            interactors = string_retriever.get_string_interactions(uniprot_id)
+            if len(interactors) > 0:
+                metadata["string_interactors"] = interactors
             uniref_info = uniref_retriever.get_90_group(uniprot_id)
             for org, vals in uniref_info.items():
                 uniref_data[vals[0]] = vals[1:]
@@ -168,6 +170,27 @@ class _BaseCachingRetrieval:
         with open(self._not_found_file, 'a') as out_handle:
             out_handle.write("%s\n" % url)
         self._not_found.append(url)
+
+class StringRetrieval(_BaseCachingRetrieval):
+    """Retrieve protein interaction data from STRING.
+    """
+    def __init__(self, cache_dir):
+        _BaseCachingRetrieval.__init__(self, cache_dir)
+        self._server = "http://string.embl.de"
+
+    def get_string_interactions(self, protein_id):
+        """Retrieve interaction data from STRING.
+        """
+        url_base = "%s/api/tsv/interactors?identifier=%s"
+        full_url = url_base % (self._server, protein_id)
+        print full_url
+        with self._get_open_handle(full_url) as in_handle:
+            lines = in_handle.read().split('\n')
+            # if we get an error, no interactions found
+            if lines[0].find('ErrorMessage') >= 0:
+                return []
+            else:
+                return [l for l in lines[1:] if l]
 
 class UniRefRetrieval(_BaseCachingRetrieval):
     """Retrieve UniRef clusters for provided
