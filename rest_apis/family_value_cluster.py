@@ -21,7 +21,7 @@ import numpy
 from Bio import Cluster
 
 def main(ipr_number):
-    number_clusters = 10
+    number_clusters = 100
     db_dir = os.path.join(os.getcwd(), "db")
     cur_db = shelve.open(os.path.join(db_dir, ipr_number))
     tax_graph = build_tax_graph(cur_db)
@@ -35,13 +35,15 @@ def main(ipr_number):
                     float(db_item["charge"]),
                     float(db_item["charge_region"]),
                     len(db_item.get("db_refs", [])),
-                    len(db_item.get("string_interactors", [])),
+                    max(len(db_item.get("string_interactors", [])) - 1, 0),
                     ]
             info_array.append(cur_cluster_info)
     info_array = numpy.array(info_array)
     print 'Num genes', len(info_array)
-    cluster_ids, error, nfound = Cluster.kcluster(info_array,
-            nclusters=number_clusters, method='a')
+    #cluster_ids, error, nfound = Cluster.kcluster(info_array,
+    #        nclusters=number_clusters, npass=20, method='a', dist='c')
+    tree = Cluster.treecluster(info_array, method='a', dist='c')
+    cluster_ids = tree.cut(number_clusters)
     cluster_dict = collections.defaultdict(lambda: [])
     for i, cluster_id in enumerate(cluster_ids):
         cluster_dict[cluster_id].append(uniprot_ids[i])
@@ -60,15 +62,26 @@ def main(ipr_number):
                 uniprot_id=get_uniprot_links([u]),
                 alt_ids=get_uniprot_links(cur_db[u].get("uniref_children", [])),
                 charge=cur_db[u]["charge"],
+                charge_region="%0.2f" % cur_db[u]["charge_region"],
                 domains=len(cur_db[u].get("db_refs", [])),
-                interactions=len(cur_db[u].get("string_interactors", [])),
+                interactions=get_string_link(u,
+                    max(len(cur_db[u].get("string_interactors", [])) - 1, 0)),
                 description=cur_db[u].get("function_descr", "&nbsp;"),
             ))
         with open("%s-cluster%s.html" % (ipr_number, index), "w") as out_handle:
             tmpl = Template(cluster_template)
             out_handle.write(tmpl.render(cluster_members=members))
+    #distribution_plot(info_array, 2)
     #distribution_plot(cur_db, "charge")
     #distribution_plot(cur_db, "charge_region")
+
+def get_string_link(uniprot_id, num_interactors):
+    if num_interactors == 0:
+        return num_interactors
+    else:
+        return '<a href="http://string.embl.de/newstring_cgi/' + \
+            'show_network_section.pl?identifier=' + uniprot_id + \
+            '">' + str(num_interactors)+'</a>'
 
 def get_uniprot_links(uniprot_ids):
     """Generate links to uniprot for a set of IDs. Simple HTML generation.
@@ -89,6 +102,7 @@ cluster_template = """
   <th><b>Protein</b></th>
   <th><b>Other names</b></th>
   <th><b>Charge</b></th>
+  <th><b>Regional charge</b></th>
   <th><b>Domains</b></th>
   <th><b>Interactions</b></th>
   <th><b>Description</b></th>
@@ -99,6 +113,7 @@ cluster_template = """
         <td>${member['uniprot_id']}</td>
         <td>${member['alt_ids']}</td>
         <td>${member['charge']}</td>
+        <td>${member['charge_region']}</td>
         <td>${member['domains']}</td>
         <td>${member['interactions']}</td>
         <td>${member['description']}</td>
@@ -109,11 +124,12 @@ cluster_template = """
 </html>
 """
 
-def distribution_plot(cur_db, item_key):
-    vals = []
-    for db_domain in cur_db.keys():
-        vals.append(cur_db[db_domain][item_key])
-    pylab.hist(vals, 100)
+def distribution_plot(item_array, index_num):
+    vals = [x[index_num] for x in item_array]
+    #vals = []
+    #for db_domain in cur_db.keys():
+    #    vals.append(cur_db[db_domain][item_key])
+    pylab.hist(vals, 20)
     pylab.show()
 
 def build_tax_graph(cur_db):

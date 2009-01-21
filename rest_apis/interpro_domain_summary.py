@@ -21,8 +21,12 @@ import collections
 from Bio import SeqIO
 from Bio.SeqRecord import SeqRecord
 from Bio.Emboss import Applications
+from Bio.SeqUtils import IsoelectricPoint
+from Bio.SeqUtils import ProtParam
 
 def main(ipr_number):
+    aa_window = 75
+    charge_thresh = 10.2
     cache_dir = os.path.join(os.getcwd(), "cache")
     db_dir = os.path.join(os.getcwd(), "db")
     if not os.path.exists(db_dir):
@@ -50,8 +54,8 @@ def main(ipr_number):
                 all_children.extend(vals[1:])
             metadata["seq"] = seq_rec.seq.data
             metadata["charge"] = charge_calc.get_neutral_charge(seq_rec)
-            metadata["charge_region"] = charge_calc.get_neutral_charge_region(
-                    seq_rec)
+            metadata["charge_region"] = charge_calc.get_region_charge_percent(
+                    seq_rec, aa_window, charge_thresh)
             if metadata.has_key("function_descr"):
                 print uniprot_id, metadata
             cur_db[uniprot_id] = metadata
@@ -88,22 +92,32 @@ class ProteinChargeCalculator:
                     os.remove(fname)
         return charge
 
-    def get_neutral_charge_region(self, aa_rec, aa_window = 100, aa_step = 50):
-        """Retrieve the largest charge in an amino acid window.
+    def get_region_charge_percent(self, aa_rec, aa_window, charge_thresh):
+        """Retrieve the percent of windows in a sequence above a given threshold
         """
-        cur_pos = 0
-        seq = aa_rec.seq
-        charges = []
-        while cur_pos < len(seq):
-            cur_seq = seq[cur_pos:cur_pos+aa_window]
-            if len(cur_seq) >= aa_step:
-                cur_rec = SeqRecord(cur_seq, aa_rec.id)
-                charges.append(self.get_neutral_charge(cur_rec))
-            cur_pos += aa_step
-        if len(charges) == 0:
-            return self.get_neutral_charge(aa_rec)
+        region_charges = self._calc_region_charges(aa_rec.seq, aa_window)
+        above_thresh = [c for c in region_charges if c >= charge_thresh]
+        if len(region_charges) > 0:
+            return float(len(above_thresh)) / float(len(region_charges))
         else:
-            return max(charges)
+            return 0.0
+
+    def _calc_region_charges(self, seq, cur_window):
+        """Perform calculation of charges via isoelectric points for a sequence.
+        """
+        # internal small regions, so do not deal with C and N terminal charges
+        IsoelectricPoint.pKcterminal = {}
+        IsoelectricPoint.pKnterminal = {}
+        cur_pos = 0
+        region_charges = []
+        while cur_pos < len(seq) - cur_window:
+            cur_seq = seq[cur_pos:cur_pos + cur_window]
+            prot_analysis = ProtParam.ProteinAnalysis(str(cur_seq))
+            ie_calc = IsoelectricPoint.IsoelectricPoint(cur_seq,
+                    prot_analysis.count_amino_acids())
+            region_charges.append(ie_calc.pi())
+            cur_pos += 1
+        return region_charges
 
     def _calc_neutral_charge(self, aa_rec, in_file, out_file, ph_target):
         with open(in_file, 'w') as in_handle:
@@ -145,6 +159,7 @@ class _BaseCachingRetrieval:
         url_parts = [p for p in full_url.split("/") if p]
         cache_file = os.path.join(self._cache_dir, "_".join(url_parts[1:]))
         if not os.path.exists(cache_file):
+            print full_url
             #print full_url, cache_file
             in_handle = self._safe_open(full_url)
             if in_handle is None:
@@ -160,10 +175,11 @@ class _BaseCachingRetrieval:
                 in_handle = urllib2.urlopen(url)
                 return in_handle
             except urllib2.URLError, msg:
-                if str(msg).find("404: Not Found") >= 0:
+                if (str(msg).find("404: Not Found") >= 0 or
+                    str(msg).find("HTTP Error 400: Bad Request") >= 0):
                     self._add_not_found(url)
                     return None
-                print msg
+                print msg, url
                 time.sleep(5)
 
     def _add_not_found(self, url):
@@ -183,8 +199,11 @@ class StringRetrieval(_BaseCachingRetrieval):
         """
         url_base = "%s/api/tsv/interactors?identifier=%s"
         full_url = url_base % (self._server, protein_id)
-        print full_url
-        with self._get_open_handle(full_url) as in_handle:
+        in_handle = self._get_open_handle(full_url)
+        # 400 error message
+        if in_handle is None:
+            return []
+        with in_handle:
             lines = in_handle.read().split('\n')
             # if we get an error, no interactions found
             if lines[0].find('ErrorMessage') >= 0:
