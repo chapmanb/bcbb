@@ -280,7 +280,7 @@ class UniprotRestRetrieval(_BaseCachingRetrieval):
         with self._get_open_handle(full_url) as in_handle:
             root = ET.parse(in_handle).getroot()
             metadata = self._get_org_metadata(root, metadata)
-            metadata = self._get_interpro_metadata(root, metadata)
+            metadata = self._get_dbref_metadata(root, metadata)
             metadata = self._get_function_metadata(root, metadata)
         return metadata
 
@@ -298,18 +298,25 @@ class UniprotRestRetrieval(_BaseCachingRetrieval):
                 metadata["org_lineage"] = [n.text for n in org_node]
         return metadata
 
-    def _get_interpro_metadata(self, root, metadata):
-        """Retrieve InterPro domains present in the protein.
+    def _get_dbref_metadata(self, root, metadata):
+        """Retrieve InterPro and Ensembl DB xrefs present in the protein.
+
+        XXX This needs to be generalized badly.
         """
         db_refs = root.findall("%sentry/%sdbReference" % (self._xml_ns,
             self._xml_ns))
         all_refs = []
+        ensembl_refs = []
         for db_ref in db_refs:
             if db_ref.attrib["type"] in ["InterPro"]:
                 all_refs.append("%s:%s" % (db_ref.attrib["type"],
                     db_ref.attrib["id"]))
+            elif db_ref.attrib["type"] in ["Ensembl"]:
+                ensembl_refs.append(db_ref.attrib["id"])
         if len(all_refs) > 0:
             metadata["db_refs"] = all_refs
+        if len(ensembl_refs) > 0:
+            metadata["db_refs_ensembl"] = ensembl_refs
         return metadata
 
     def _get_function_metadata(self, root, metadata):
