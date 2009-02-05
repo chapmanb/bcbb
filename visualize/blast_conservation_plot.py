@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 """Examine conservation of a protein by comparison to BLAST hits.
 
-Given a UniProt protein ID as input, this performs a BLAST search against the
+Given a UniProt protein ID or accession number as input (really anything that
+can be queried in NCBI), this performs a BLAST search against the
 non-redundant protein database and parses the results. Using them, a plot is
 generated of average conservation across the protein. This provides a quick
 evaluation of conserved and fluctuating regions.
 
 Usage:
-    blast_conservation_plot.py <uniprot ID>
+    blast_conservation_plot.py <accession>
 """
 from __future__ import with_statement
 import sys
@@ -20,13 +21,14 @@ from Bio.SubsMat import MatrixInfo
 import pylab
 import numpy
 
-def main(uniprot_id):
+def main(accession):
+    window_size = 29
     cache_dir = os.path.join(os.getcwd(), "cache")
     ncbi_manager = NCBIManager(cache_dir)
-    protein_gi = ncbi_manager.search_for_gi(uniprot_id, "protein")
+    protein_gi = ncbi_manager.search_for_gi(accession, "protein")
     blast_rec = ncbi_manager.remote_blast(protein_gi, "blastp")
     cons_caculator = BlastConservationCalculator()
-    data_smoother = SavitzkyGolayDataSmoother(29)
+    data_smoother = SavitzkyGolayDataSmoother(window_size)
     cons_dict = cons_caculator.conservation_dict(blast_rec)
     indexes = cons_dict.keys()
     indexes.sort()
@@ -45,8 +47,7 @@ def main(uniprot_id):
     pylab.axis(xmin=min(pos_data), xmax=max(pos_data))
     pylab.xlabel("Amino acid position")
     pylab.ylabel("Conservation")
-    pylab.title(title)
-    pylab.savefig('%s_conservation.png' % uniprot_id)
+    pylab.savefig('%s_conservation.png' % accession.replace(".", "_"))
 
 class SavitzkyGolayDataSmoother:
     """Smooth data using the Savitzky-Golay technique from:
@@ -166,8 +167,8 @@ class NCBIManager:
         handle = Entrez.esearch(db=db_name, term=uniprot_id)
         record = Entrez.read(handle)
         ids = record["IdList"]
-        if len(ids) != 1:
-            raise ValueError("Multiple GIs: %s" % ids)
+        if len(ids) == 0:
+            raise ValueError("Not found in NCBI: %s" % ids)
         return ids[0]
 
     def remote_blast(self, search_gi, blast_method):
