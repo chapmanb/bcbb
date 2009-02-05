@@ -21,7 +21,9 @@ import numpy
 from Bio import Cluster
 
 def main(ipr_number):
-    number_clusters = 100
+    #cluster_div = 20.0
+    cluster_div = 20.0
+    #number_clusters = 100
     db_dir = os.path.join(os.getcwd(), "db")
     cur_db = shelve.open(os.path.join(db_dir, ipr_number))
     tax_graph = build_tax_graph(cur_db)
@@ -33,17 +35,20 @@ def main(ipr_number):
             db_item = cur_db[db_domain]
             cur_cluster_info = [
                     float(db_item["charge"]),
-                    float(db_item["charge_region"]),
-                    len(db_item.get("db_refs", [])),
-                    max(len(db_item.get("string_interactors", [])) - 1, 0),
+                    float(db_item["charge_region"]) * 100.0,
+                    len(db_item.get("db_refs", [])) * 5.0,
+                    calc_domain_distance(db_item) * 100.0,
+                    #max(len(db_item.get("string_interactors", [])) - 1, 0),
                     ]
             info_array.append(cur_cluster_info)
     info_array = numpy.array(info_array)
-    print 'Num genes', len(info_array)
-    #cluster_ids, error, nfound = Cluster.kcluster(info_array,
-    #        nclusters=number_clusters, npass=20, method='a', dist='c')
-    tree = Cluster.treecluster(info_array, method='a', dist='c')
-    cluster_ids = tree.cut(number_clusters)
+    #number_clusters = int(round(float(len(info_array) / cluster_div)))
+    number_clusters = 10
+    print 'Num genes', len(info_array), number_clusters
+    cluster_ids, error, nfound = Cluster.kcluster(info_array,
+            nclusters=number_clusters, npass=20)#, method='a', dist='c')
+    #tree = Cluster.treecluster(info_array, method='a', dist='c')
+    #cluster_ids = tree.cut(number_clusters)
     cluster_dict = collections.defaultdict(lambda: [])
     for i, cluster_id in enumerate(cluster_ids):
         cluster_dict[cluster_id].append(uniprot_ids[i])
@@ -67,6 +72,7 @@ def main(ipr_number):
                 interactions=get_string_link(u,
                     max(len(cur_db[u].get("string_interactors", [])) - 1, 0)),
                 description=cur_db[u].get("function_descr", "&nbsp;"),
+                c_distance="%0.2f" % calc_domain_distance(cur_db[u]),
             ))
         with open("%s-cluster%s.html" % (ipr_number, index), "w") as out_handle:
             tmpl = Template(cluster_template)
@@ -74,6 +80,16 @@ def main(ipr_number):
     #distribution_plot(info_array, 2)
     #distribution_plot(cur_db, "charge")
     #distribution_plot(cur_db, "charge_region")
+
+def calc_domain_distance(db_item):
+    """Calculate the relative distance of the domain from the protein start.
+
+    Our expectation is that our domains will be located in the C-terminal
+    region of the protein, and this calculates the relative distance from the
+    C-terminal.
+    """
+    domain_start = min(db_item["domain_positions"])
+    return float(domain_start) / float(len(db_item["seq"]))
 
 def get_string_link(uniprot_id, num_interactors):
     if num_interactors == 0:
@@ -105,6 +121,7 @@ cluster_template = """
   <th><b>Regional charge</b></th>
   <th><b>Domains</b></th>
   <th><b>Interactions</b></th>
+  <th><b>C-terminal distance</b></th>
   <th><b>Description</b></th>
 </tr>
 % for member in cluster_members:
@@ -116,6 +133,7 @@ cluster_template = """
         <td>${member['charge_region']}</td>
         <td>${member['domains']}</td>
         <td>${member['interactions']}</td>
+        <td>${member['c_distance']}</td>
         <td>${member['description']}</td>
     </tr>
 % endfor

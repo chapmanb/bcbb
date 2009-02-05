@@ -6,7 +6,7 @@ proteins containing that domain, and provides an output table of those
 proteins plus characteristics for downstream analysis.
 
 Usage:
-    interpro_domain_summary.py <IPRnumber>
+    interpro_domain_summary.py <IPRnumber> <domain description>
 """
 from __future__ import with_statement
 import sys
@@ -24,7 +24,7 @@ from Bio.Emboss import Applications
 from Bio.SeqUtils import IsoelectricPoint
 from Bio.SeqUtils import ProtParam
 
-def main(ipr_number):
+def main(ipr_number, domain_description):
     aa_window = 75
     charge_thresh = 10.2
     cache_dir = os.path.join(os.getcwd(), "cache")
@@ -42,9 +42,11 @@ def main(ipr_number):
     all_children = []
     for seq_rec in seq_recs:
         uniprot_id = seq_rec.id.split("|")[0]
-        metadata = uniprot_retriever.get_xml_metadata(uniprot_id)
+        metadata = uniprot_retriever.get_xml_metadata(uniprot_id,
+                domain_description)
         if (metadata.has_key("org_lineage") and 
-                "Metazoa" in metadata["org_lineage"]):
+                "Metazoa" in metadata["org_lineage"] and
+                metadata.has_key("domain_positions")):
             interactors = string_retriever.get_string_interactions(uniprot_id)
             if len(interactors) > 0:
                 metadata["string_interactors"] = interactors
@@ -264,7 +266,7 @@ class UniprotRestRetrieval(_BaseCachingRetrieval):
         self._server = "http://www.uniprot.org"
         self._xml_ns = "{http://uniprot.org/uniprot}"
 
-    def get_xml_metadata(self, uniprot_id):
+    def get_xml_metadata(self, uniprot_id, domain_description):
         """Retrieve data from the UniProt XML for a record.
 
         XXX This retrieves only a subset of metadata right now. Needs to
@@ -282,6 +284,8 @@ class UniprotRestRetrieval(_BaseCachingRetrieval):
             metadata = self._get_org_metadata(root, metadata)
             metadata = self._get_dbref_metadata(root, metadata)
             metadata = self._get_function_metadata(root, metadata)
+            metadata = self._get_domain_position_metadata(domain_description,
+                    root, metadata)
         return metadata
 
     def _get_org_metadata(self, root, metadata):
@@ -331,6 +335,27 @@ class UniprotRestRetrieval(_BaseCachingRetrieval):
                         metadata["function_descr"] = comment_node.text
         return metadata
 
+    def _get_domain_position_metadata(self, domain_descr, root, metadata):
+        """Find the positions of our domain of interest in the protein.
+        """
+        features = root.findall("%sentry/%sfeature" % (self._xml_ns,
+            self._xml_ns))
+        positions = []
+        for feature in features:
+            if (feature.attrib["type"] in ["domain", "zinc finger region"] and
+                feature.attrib["description"].find(domain_descr) >= 0):
+                location = feature[0]
+                for loc_info in location:
+                    cur_pos = int(loc_info.attrib['position'])
+                    # convert to 0-based coordinates
+                    if loc_info.tag.find("begin") >= 0:
+                        cur_pos -= 1
+                    positions.append(cur_pos)
+        if len(positions) > 0:
+            metadata["domain_positions"] = positions
+        return metadata
+
+
     def get_rdf_metadata(self, uniprot_id):
         """Retrieve RDF metadata for the given UniProt accession.
 
@@ -366,8 +391,8 @@ class InterproRestRetrieval(_BaseCachingRetrieval):
         return recs
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
+    if len(sys.argv) != 3:
         print "Incorrect arguments"
         print __doc__
         sys.exit()
-    main(sys.argv[1])
+    main(sys.argv[1], sys.argv[2])
