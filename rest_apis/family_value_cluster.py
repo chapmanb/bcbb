@@ -84,9 +84,9 @@ def main(ipr_number):
 def calc_domain_distance(db_item):
     """Calculate the relative distance of the domain from the protein start.
 
-    Our expectation is that our domains will be located in the C-terminal
+    Our expectation is that our domains will be located in the N-terminal
     region of the protein, and this calculates the relative distance from the
-    C-terminal.
+    N-terminal.
     """
     domain_start = min(db_item["domain_positions"])
     return float(domain_start) / float(len(db_item["seq"]))
@@ -121,7 +121,7 @@ cluster_template = """
   <th><b>Regional charge</b></th>
   <th><b>Domains</b></th>
   <th><b>Interactions</b></th>
-  <th><b>C-terminal distance</b></th>
+  <th><b>N-terminal distance</b></th>
   <th><b>Description</b></th>
 </tr>
 % for member in cluster_members:
