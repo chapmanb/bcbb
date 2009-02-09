@@ -113,7 +113,7 @@ def examine_paralogs(dup_info, ensembl_to_uniprot):
             is_unique = True
             for exist_i, exist_group in enumerate(cur_groups):
                 if len(new_group & exist_group) > 0:
-                    update_group = new_group & exist_group
+                    update_group = new_group | exist_group
                     cur_groups[exist_i] = update_group
                     is_unique = False
                     break
