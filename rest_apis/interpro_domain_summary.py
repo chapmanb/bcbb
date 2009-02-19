@@ -29,6 +29,7 @@ def main(ipr_number, domain_description):
     charge_thresh = 10.2
     cache_dir = os.path.join(os.getcwd(), "cache")
     db_dir = os.path.join(os.getcwd(), "db")
+    domain_dir = os.path.join(os.getcwd(), "pfam_domains")
     if not os.path.exists(db_dir):
         os.makedirs(db_dir)
     interpro_retriever = InterproRestRetrieval(cache_dir)
@@ -36,31 +37,44 @@ def main(ipr_number, domain_description):
     uniref_retriever = UniRefRetrieval(cache_dir)
     string_retriever = StringRetrieval(cache_dir)
     charge_calc = ProteinChargeCalculator(cache_dir)
+    hmmsearch_parser = SimpleHmmsearchDomainParser(std_name_parser)
     cur_db = shelve.open(os.path.join(db_dir, ipr_number))
     seq_recs = interpro_retriever.get_interpro_records(ipr_number)
+    with open(os.path.join(domain_dir, "%s.hmm" % ipr_number)) as in_handle:
+        hmm_locations = hmmsearch_parser.domain_locations(in_handle)
     uniref_data = {}
     all_children = []
+    all_recs = []
     for seq_rec in seq_recs:
-        uniprot_id = seq_rec.id.split("|")[0]
+        uniprot_id = std_name_parser(seq_rec.id)
         metadata = uniprot_retriever.get_xml_metadata(uniprot_id,
                 domain_description)
         if (metadata.has_key("org_lineage") and 
-                "Metazoa" in metadata["org_lineage"] and
-                metadata.has_key("domain_positions")):
-            interactors = string_retriever.get_string_interactions(uniprot_id)
-            if len(interactors) > 0:
-                metadata["string_interactors"] = interactors
-            uniref_info = uniref_retriever.get_90_group(uniprot_id)
-            for org, vals in uniref_info.items():
-                uniref_data[vals[0]] = vals[1:]
-                all_children.extend(vals[1:])
-            metadata["seq"] = seq_rec.seq.data
-            metadata["charge"] = charge_calc.get_neutral_charge(seq_rec)
-            metadata["charge_region"] = charge_calc.get_region_charge_percent(
-                    seq_rec, aa_window, charge_thresh)
-            if metadata.has_key("function_descr"):
-                print uniprot_id, metadata
-            cur_db[uniprot_id] = metadata
+                "Metazoa" in metadata["org_lineage"]):
+            all_recs.append(seq_rec)
+            if not metadata.has_key("domain_positions"):
+                positions = []
+                for start, end in hmm_locations.get(uniprot_id, []):
+                    positions.append(start)
+                    positions.append(end)
+                metadata["domain_positions"] = positions
+            if len(metadata["domain_positions"]) > 0:
+                interactors = string_retriever.get_string_interactions(
+                        uniprot_id)
+                if len(interactors) > 0:
+                    metadata["string_interactors"] = interactors
+                uniref_info = uniref_retriever.get_90_group(uniprot_id)
+                for org, vals in uniref_info.items():
+                    uniref_data[vals[0]] = vals[1:]
+                    all_children.extend(vals[1:])
+                metadata["seq"] = seq_rec.seq.data
+                metadata["charge"] = charge_calc.get_neutral_charge(seq_rec)
+                metadata["charge_region"] = \
+                        charge_calc.get_region_charge_percent(
+                        seq_rec, aa_window, charge_thresh)
+                if metadata.has_key("function_descr"):
+                    print uniprot_id, metadata
+                cur_db[uniprot_id] = metadata
     # add information about whether an item is a child or parent in
     # a uniref group based on sequence similarity
     for uniprot_id in cur_db.keys():
@@ -72,7 +86,56 @@ def main(ipr_number, domain_description):
             if uniprot_id in all_children:
                 metadata["is_uniref_child"] = "yes"
         cur_db[uniprot_id] = metadata
+    with open(os.path.join(domain_dir, "%s.fa" % ipr_number),
+            "w") as out_handle:
+        SeqIO.write(all_recs, out_handle, "fasta")
     cur_db.close()
+
+def std_name_parser(name):
+    return name.split('|')[0]
+
+class SimpleHmmsearchDomainParser:
+    """Simple hmmsearch parser which pulls out domain locations as a dictionary.
+    """
+    def __init__(self, name_parser=None):
+        """Initialize with a function to parse out name information.
+
+        The name parser is a function that will parse out the final name 
+        from that listed in the Hmm
+        """
+        # define a do nothing function if one is not supplied
+        if name_parser is None:
+            name_parser = lambda x: x
+        self._name_parser = name_parser
+
+    def domain_locations(self, in_handle):
+        """Retrieve a dictionary of domain locations from a Hmmsearch report.
+        """
+        while 1:
+            line = in_handle.readline()
+            if line.find('Parsed for domains:') == 0:
+                break
+        in_handle.readline()
+        in_handle.readline()
+        domain_locs = collections.defaultdict(lambda: []) 
+        while 1:
+            line = in_handle.readline().strip()
+            if not line:
+                break
+            name, start, end = self._parse_domain_line(line)
+            domain_locs[name].append((start, end))
+        return dict(domain_locs)
+
+    def _parse_domain_line(self, line):
+        """Retrieve domain information from the Hmmsearch report.
+
+        Q28HD9|Q28HD9_XENTR   1/2  21    70 ..   1    69 []    90.0 7.7e-25
+        """
+        parts = [x.strip() for x in line.split() if x.strip()]
+        name = self._name_parser(parts[0])
+        start = int(parts[2]) - 1
+        end = int(parts[3])
+        return name, start, end
 
 class ProteinChargeCalculator:
     """Calculate protein charge using the emboss iep program.
@@ -354,7 +417,6 @@ class UniprotRestRetrieval(_BaseCachingRetrieval):
         if len(positions) > 0:
             metadata["domain_positions"] = positions
         return metadata
-
 
     def get_rdf_metadata(self, uniprot_id):
         """Retrieve RDF metadata for the given UniProt accession.
