@@ -32,6 +32,11 @@ org_includes = [
         'Nematostella vectensis'
 ]
 
+# hard code items that have tandem duplications, so we don't have to
+# rebuild this here
+with_tandem = ["Mus musculus", "Homo sapiens", "Drosophila melanogaster",
+        "Danio rerio"]#, "Bos taurus"]
+
 def main():
     db_dir = os.path.join(os.getcwd(), "db")
     cur_dbs = get_available_dbs(db_dir)
@@ -108,10 +113,6 @@ def classify_org(org, group_info):
     - Zinc-ring proteins (active or not active or not present)
     - Tandem duplications (identified or not)
     """
-    # hard code items that have tandem duplications, so we don't have to
-    # rebuild this here
-    with_tandem = ["Mus musculus", "Homo sapiens", "Drosophila melanogaster",
-            "Danio rerio", "Bos taurus"]
     ch_labels = {("chromo", "active") : 'ch',
                  ("chromo", "non-active") : '-',
                  ("zinc-ring", "active"): 'zn',
@@ -126,7 +127,7 @@ def classify_org(org, group_info):
             new_class = '- (%s)' % (len(group_info[
                 (base_name, "non-active")]))
         else:
-            new_class = ""
+            new_class = "- (0)"
         new_class = "%s%s" % (new_class, "\ " * (7 - len(new_class)))
         classifiers.append(new_class)
     if org in with_tandem:

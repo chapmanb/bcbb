@@ -24,6 +24,22 @@ from Bio.Emboss import Applications
 from Bio.SeqUtils import IsoelectricPoint
 from Bio.SeqUtils import ProtParam
 
+org_includes = [
+        'Homo sapiens',
+        'Mus musculus',
+        'Rattus norvegicus',
+        'Bos taurus',
+        'Gallus gallus',
+        'Xenopus laevis',
+        'Danio rerio',
+        'Tetraodon nigroviridis',
+        'Branchiostoma floridae',
+        'Caenorhabditis elegans',
+        'Anopheles gambiae',
+        'Drosophila melanogaster',
+        'Nematostella vectensis'
+]
+
 def main(ipr_number, domain_description):
     aa_window = 75
     charge_thresh = 10.2
@@ -40,41 +56,49 @@ def main(ipr_number, domain_description):
     hmmsearch_parser = SimpleHmmsearchDomainParser(std_name_parser)
     cur_db = shelve.open(os.path.join(db_dir, ipr_number))
     seq_recs = interpro_retriever.get_interpro_records(ipr_number)
-    with open(os.path.join(domain_dir, "%s.hmm" % ipr_number)) as in_handle:
+    with open(os.path.join(domain_dir, 
+              "%s.hmmsearch" % ipr_number)) as in_handle:
         hmm_locations = hmmsearch_parser.domain_locations(in_handle)
+    # retrieve filtering information based on HMM searches
+    with open(os.path.join(domain_dir, 
+              "%s-filter1.hmmsearch" % ipr_number)) as in_handle:
+        filter_hmm = hmmsearch_parser.domain_locations(in_handle)
     uniref_data = {}
     all_children = []
     all_recs = []
     for seq_rec in seq_recs:
         uniprot_id = std_name_parser(seq_rec.id)
-        metadata = uniprot_retriever.get_xml_metadata(uniprot_id,
-                domain_description)
-        if (metadata.has_key("org_lineage") and 
-                "Metazoa" in metadata["org_lineage"]):
-            all_recs.append(seq_rec)
-            if not metadata.has_key("domain_positions"):
-                positions = []
-                for start, end in hmm_locations.get(uniprot_id, []):
-                    positions.append(start)
-                    positions.append(end)
-                metadata["domain_positions"] = positions
-            if len(metadata["domain_positions"]) > 0:
-                interactors = string_retriever.get_string_interactions(
-                        uniprot_id)
-                if len(interactors) > 0:
-                    metadata["string_interactors"] = interactors
-                uniref_info = uniref_retriever.get_90_group(uniprot_id)
-                for org, vals in uniref_info.items():
-                    uniref_data[vals[0]] = vals[1:]
-                    all_children.extend(vals[1:])
-                metadata["seq"] = seq_rec.seq.data
-                metadata["charge"] = charge_calc.get_neutral_charge(seq_rec)
-                metadata["charge_region"] = \
-                        charge_calc.get_region_charge_percent(
-                        seq_rec, aa_window, charge_thresh)
-                if metadata.has_key("function_descr"):
-                    print uniprot_id, metadata
-                cur_db[uniprot_id] = metadata
+        if passes_filters(uniprot_id, filter_hmm):
+            metadata = uniprot_retriever.get_xml_metadata(uniprot_id,
+                    domain_description)
+            if (metadata.has_key("org_lineage") and 
+                    "Metazoa" in metadata["org_lineage"] and
+                    (len(org_includes) == 0 or 
+                     metadata["org_scientific_name"] in org_includes)):
+                all_recs.append(seq_rec)
+                if not metadata.has_key("domain_positions"):
+                    positions = []
+                    for start, end in hmm_locations.get(uniprot_id, []):
+                        positions.append(start)
+                        positions.append(end)
+                    metadata["domain_positions"] = positions
+                if len(metadata["domain_positions"]) > 0:
+                    interactors = string_retriever.get_string_interactions(
+                            uniprot_id)
+                    if len(interactors) > 0:
+                        metadata["string_interactors"] = interactors
+                    uniref_info = uniref_retriever.get_90_group(uniprot_id)
+                    for org, vals in uniref_info.items():
+                        uniref_data[vals[0]] = vals[1:]
+                        all_children.extend(vals[1:])
+                    metadata["seq"] = seq_rec.seq.data
+                    metadata["charge"] = charge_calc.get_neutral_charge(seq_rec)
+                    metadata["charge_region"] = \
+                            charge_calc.get_region_charge_percent(
+                            seq_rec, aa_window, charge_thresh)
+                    if metadata.has_key("function_descr"):
+                        print uniprot_id, metadata
+                    cur_db[uniprot_id] = metadata
     # add information about whether an item is a child or parent in
     # a uniref group based on sequence similarity
     for uniprot_id in cur_db.keys():
@@ -90,6 +114,14 @@ def main(ipr_number, domain_description):
             "w") as out_handle:
         SeqIO.write(all_recs, out_handle, "fasta")
     cur_db.close()
+
+def passes_filters(uniprot_id, filter_hmm):
+    """Determine if a uniprot_id contains domains based on HMM search results.
+
+    This is meant as a general filter to retrieve only items contained defined
+    domains regions.
+    """
+    return len(filter_hmm.get(uniprot_id, [])) > 0
 
 def std_name_parser(name):
     return name.split('|')[0]
@@ -344,11 +376,25 @@ class UniprotRestRetrieval(_BaseCachingRetrieval):
         metadata = {}
         with self._get_open_handle(full_url) as in_handle:
             root = ET.parse(in_handle).getroot()
+            metadata = self._get_genename_metadata(root, metadata)
             metadata = self._get_org_metadata(root, metadata)
             metadata = self._get_dbref_metadata(root, metadata)
             metadata = self._get_function_metadata(root, metadata)
             metadata = self._get_domain_position_metadata(domain_description,
                     root, metadata)
+        return metadata
+
+    def _get_genename_metadata(self, root, metadata):
+        """Retrieve gene names for this uniprot record.
+        """
+        gene = root.find("%sentry/%sgene" % (self._xml_ns, self._xml_ns))
+        gene_names = []
+        if gene:
+            for gene_node in gene:
+                if gene_node.tag == "%sname" % self._xml_ns:
+                    gene_names.append(gene_node.text)
+        if len(gene_names) > 0:
+            metadata["gene_names"] = gene_names
         return metadata
 
     def _get_org_metadata(self, root, metadata):

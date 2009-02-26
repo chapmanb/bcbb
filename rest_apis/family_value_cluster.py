@@ -35,7 +35,7 @@ def main(ipr_number, num_clusters):
             db_item = cur_db[db_domain]
             cur_cluster_info = [
                     float(db_item["charge"]),
-                    float(db_item["charge_region"]) * 100.0,
+                    float(db_item["charge_region"]) * 10.0,
                     len(db_item.get("db_refs", [])) * 5.0,
                     calc_domain_distance(db_item) * 100.0,
                     #max(len(db_item.get("string_interactors", [])) - 1, 0),
@@ -63,6 +63,7 @@ def main(ipr_number, num_clusters):
         for d, o, u in org_dists:
             members.append(dict(organism=o,
                 uniprot_id=get_uniprot_links([u]),
+                alt_names=get_alt_names(cur_db[u]),
                 alt_ids=get_uniprot_links(cur_db[u].get("uniref_children", [])),
                 charge=cur_db[u]["charge"],
                 charge_region="%0.2f" % cur_db[u]["charge_region"],
@@ -78,6 +79,13 @@ def main(ipr_number, num_clusters):
     #distribution_plot(info_array, 2)
     #distribution_plot(cur_db, "charge")
     #distribution_plot(cur_db, "charge_region")
+
+def get_alt_names(cur_db):
+    alt_names = cur_db.get('gene_names', [])
+    if len(alt_names) > 0:
+        return "<br/>(%s)" % (", ".join(alt_names))
+    else:
+        return ""
 
 def calc_domain_distance(db_item):
     """Calculate the relative distance of the domain from the protein start.
@@ -125,7 +133,7 @@ cluster_template = """
 % for member in cluster_members:
     <tr>
         <td>${member['organism']}</td>
-        <td>${member['uniprot_id']}</td>
+        <td>${member['uniprot_id']}${member['alt_names']}</td>
         <td>${member['alt_ids']}</td>
         <td>${member['charge']}</td>
         <td>${member['charge_region']}</td>
