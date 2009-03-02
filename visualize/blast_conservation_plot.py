@@ -39,7 +39,7 @@ def main(accession):
         if len(cons_dict[pos]) > 0:
             cons_data.append(numpy.median(cons_dict[pos]))
         else:
-            cons_dict.append(0)
+            cons_data.append(0)
     smooth_data = data_smoother.smooth_values(cons_data)
     smooth_pos_data = pos_data[data_smoother.half_window():
             len(pos_data) - data_smoother.half_window()]
