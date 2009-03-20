@@ -1,0 +1,2 @@
+"""Placeholder for GFF init.
+"""

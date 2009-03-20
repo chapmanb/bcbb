@@ -8,6 +8,55 @@ import pprint
 
 from Bio import SeqIO
 from BCBio.SeqIO.GFFIO import GFFFeatureAdder
+from BCBio.GFF.GFFParser import GFFMapReduceFeatureAdder
+
+class MapReduceGFFTest(unittest.TestCase):
+    """Tests GFF parsing using a map-reduce framework for parallelization.
+    """
+    def setUp(self):
+        self._test_dir = os.path.join(os.getcwd(), "GFF")
+        self._test_gff_file = os.path.join(self._test_dir,
+                "c_elegans_WS199_shortened_gff.txt")
+        self._disco_host = "http://localhost:7000"
+    
+    def t_local_map_reduce(self):
+        """Map reduce framework with no parallelization.
+        """
+        cds_limit_info = dict(
+                gff_types = [('Non_coding_transcript', 'gene'),
+                             ('Coding_transcript', 'gene'),
+                             ('Coding_transcript', 'mRNA'),
+                             ('Coding_transcript', 'CDS')],
+                gff_id = ['I']
+                )
+        feature_adder = GFFMapReduceFeatureAdder(dict(), None)
+        feature_adder.add_features(self._test_gff_file, cds_limit_info)
+        final_rec = feature_adder.base['I']
+        # second gene feature is multi-parent
+        assert len(final_rec.features) == 2 # two gene feature
+
+    def t_disco_map_reduce(self):
+        """Map reduce framework parallelized using disco.
+        """
+        # this needs to be more generalized but fails okay with no disco
+        try:
+            import disco
+            import simplejson
+        except ImportError:
+            print "Skipping -- disco and json not found"
+            return
+        cds_limit_info = dict(
+                gff_types = [('Non_coding_transcript', 'gene'),
+                             ('Coding_transcript', 'gene'),
+                             ('Coding_transcript', 'mRNA'),
+                             ('Coding_transcript', 'CDS')],
+                gff_id = ['I']
+                )
+        feature_adder = GFFMapReduceFeatureAdder(dict(), self._disco_host)
+        feature_adder.add_features(self._test_gff_file, cds_limit_info)
+        final_rec = feature_adder.base['I']
+        # second gene feature is multi-parent
+        assert len(final_rec.features) == 2 # two gene feature
 
 class CElegansGFFTest(unittest.TestCase):
     """Real life test case using C elegans chromosome and GFF data
@@ -137,7 +186,7 @@ def testing_suite():
     test_suite = unittest.TestSuite()
     test_loader = unittest.TestLoader()
     test_loader.testMethodPrefix = 't_'
-    tests = [CElegansGFFTest]
+    tests = [CElegansGFFTest, MapReduceGFFTest]
     for test in tests:
         cur_suite = test_loader.loadTestsFromTestCase(test)
         test_suite.addTest(cur_suite)
