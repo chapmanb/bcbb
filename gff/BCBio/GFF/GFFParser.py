@@ -17,7 +17,7 @@ from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 from Bio.SeqFeature import SeqFeature, FeatureLocation
 
-def gff_line_map(line, params):
+def _gff_line_map(line, params):
     """Map part of Map-Reduce; parses a line of GFF into a dictionary.
     """
     strand_map = {'+' : 1, '-' : -1, '?' : None, None: None}
@@ -47,13 +47,13 @@ def gff_line_map(line, params):
             for key, val in [a.split('=') for a in gff_parts[8].split(';')]:
                 quals[key].extend(val.split(','))
             gff_info['quals'] = dict(quals)
+            gff_info['rec_id'] = gff_parts[0]
             # if we are describing a location, then we are a feature
             if gff_parts[3] and gff_parts[4]:
                 gff_info['location'] = [int(gff_parts[3]) - 1,
                         int(gff_parts[4])]
                 gff_info['type'] = gff_parts[2]
                 gff_info['id'] = quals.get('ID', [''])[0]
-                gff_info['rec_id'] = gff_parts[0]
                 gff_info['strand'] = strand_map[gff_parts[6]]
                 # Handle flat features
                 if not gff_info['id']:
@@ -72,7 +72,7 @@ def gff_line_map(line, params):
                 else gff_info))]
     return []
 
-def gff_line_reduce(map_results, out, params):
+def _gff_line_reduce(map_results, out, params):
     """Reduce part of Map-Reduce; combines results of parsed features.
     """
     final_items = dict()
@@ -105,17 +105,51 @@ class GFFMapReduceFeatureAdder:
         """
         self.base = base_dict
         self._create_missing = create_missing
-        self._map_fn = gff_line_map
-        self._reduce_fn = gff_line_reduce
         self._disco_host = disco_host
+        self._map_fn = _gff_line_map
+        self._reduce_fn = _gff_line_reduce
         # details on what we can filter items with
         self._filter_info = dict(gff_id = [0], gff_types = [1, 2])
+    
+    def available_limits(self, gff_file):
+        """Return dictionary information on possible limits for this file.
+
+        This returns a nested dictionary with the following structure:
+        
+        keys -- names of items to filter by
+        values -- dictionary with:
+            keys -- filter choice
+            value -- counts of that filter in this file
+
+        Not a parallelized map-reduce implementation.
+        """
+        gff_handle = open(gff_file)
+        cur_limits = dict()
+        for filter_key in self._filter_info.keys():
+            cur_limits[filter_key] = collections.defaultdict(int)
+        for line in gff_handle:
+            # ignore comment lines
+            if line.strip()[0] != "#":
+                parts = [p.strip() for p in line.split('\t')]
+                assert len(parts) == 9, line
+                for filter_key, cur_indexes in self._filter_info.items():
+                    cur_id = tuple([parts[i] for i in cur_indexes])
+                    cur_limits[filter_key][cur_id] += 1
+        # get rid of the default dicts
+        final_dict = dict()
+        for key, value_dict in cur_limits.items():
+            if len(key) == 1:
+                key = key[0]
+            final_dict[key] = dict(value_dict)
+        gff_handle.close()
+        return final_dict
 
     def add_features(self, gff_file, limit_info=None):
         # turn all limit information into tuples for identical comparisons
         final_limit_info = {}
-        for key, values in limit_info.items():
-            final_limit_info[key] = [tuple(v) for v in values]
+        if limit_info:
+            for key, values in limit_info.items():
+                final_limit_info[key] = [tuple(v) for v in values]
         if self._disco_host:
             results = self._disco_process(gff_file, final_limit_info)
         else:
@@ -160,8 +194,8 @@ class GFFMapReduceFeatureAdder:
         # add these as a list of annotations, checking not to overwrite
         # current values
         for ann in anns:
-            rec = self.base[ann['rec_id']]
-            for key, vals in ann['quals']:
+            rec = self._get_rec(ann)
+            for key, vals in ann['quals'].items():
                 if rec.annotations.has_key(key):
                     try:
                         rec.annotations[key].extend(vals)
@@ -170,19 +204,25 @@ class GFFMapReduceFeatureAdder:
                 else:
                     rec.annotations[key] = vals
 
-    def _add_toplevel_feature(self, feature_dict):
-        """Add a toplevel non-nested feature to the appropriate record.
+    def _get_rec(self, base_dict):
+        """Retrieve a record to add features to.
         """
-        new_feature = self._get_feature(feature_dict)
         try:
-            self.base[feature_dict['rec_id']].features.append(new_feature)
+            return self.base[base_dict['rec_id']]
         except KeyError:
             if not self._create_missing:
                 raise
             else:
-                new_rec = SeqRecord(Seq(""), feature_dict['rec_id'])
-                new_rec.features.append(new_feature)
-                self.base[feature_dict['rec_id']] = new_rec
+                new_rec = SeqRecord(Seq(""), base_dict['rec_id'])
+                self.base[base_dict['rec_id']] = new_rec
+                return new_rec
+
+    def _add_toplevel_feature(self, feature_dict):
+        """Add a toplevel non-nested feature to the appropriate record.
+        """
+        new_feature = self._get_feature(feature_dict)
+        rec = self._get_rec(feature_dict)
+        rec.features.append(new_feature)
         return new_feature
 
     def _get_feature(self, feature_dict):

@@ -1,0 +1,2 @@
+# modified GFF file to remove location coordinates and test annotations
+I	Expr_profile	experimental_result_region	.	.	.	+	.	expr_profile=B0019.1

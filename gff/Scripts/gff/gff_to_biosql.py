@@ -21,7 +21,7 @@ import sys
 from BioSQL import BioSeqDatabase
 from Bio import SeqIO
 
-from BCBio.SeqIO.GFFIO import GFFFeatureAdder
+from BCBio.GFF.GFFParser import GFFMapReduceFeatureAdder
 
 def main(seq_file, gff_file):
     user = "chapmanb"
@@ -34,7 +34,7 @@ def main(seq_file, gff_file):
         seq_dict = SeqIO.to_dict(SeqIO.parse(seq_handle, "fasta"))
 
     print "Parsing GFF data file..."
-    feature_adder = GFFFeatureAdder(seq_dict)
+    feature_adder = GFFMapReduceFeatureAdder(seq_dict)
     rnai_types = [('Orfeome', 'PCR_product'),
                 ('GenePair_STS', 'PCR_product'),
                 ('Promoterome', 'PCR_product')]
