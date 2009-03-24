@@ -33,12 +33,16 @@ org_includes = [
         'Xenopus laevis',
         'Danio rerio',
         'Tetraodon nigroviridis',
+        'Ciona intestinalis',
         'Branchiostoma floridae',
         'Caenorhabditis elegans',
         'Anopheles gambiae',
         'Drosophila melanogaster',
         'Nematostella vectensis'
 ]
+
+extra_info = ['Ciona savignyi', 'Ciona intestinalis',
+        'Strongylocentrotus purpuratus']
 
 def main(ipr_number, domain_description):
     aa_window = 75
@@ -57,7 +61,7 @@ def main(ipr_number, domain_description):
     cur_db = shelve.open(os.path.join(db_dir, ipr_number))
     seq_recs = interpro_retriever.get_interpro_records(ipr_number)
     with open(os.path.join(domain_dir, 
-              "%s.hmmsearch" % ipr_number)) as in_handle:
+              "%s-domains.hmmsearch" % ipr_number)) as in_handle:
         hmm_locations = hmmsearch_parser.domain_locations(in_handle)
     # retrieve filtering information based on HMM searches
     with open(os.path.join(domain_dir, 
@@ -68,14 +72,17 @@ def main(ipr_number, domain_description):
     all_recs = []
     for seq_rec in seq_recs:
         uniprot_id = std_name_parser(seq_rec.id)
-        if passes_filters(uniprot_id, filter_hmm):
-            metadata = uniprot_retriever.get_xml_metadata(uniprot_id,
-                    domain_description)
-            if (metadata.has_key("org_lineage") and 
-                    "Metazoa" in metadata["org_lineage"] and
-                    (len(org_includes) == 0 or 
-                     metadata["org_scientific_name"] in org_includes)):
-                all_recs.append(seq_rec)
+        metadata = uniprot_retriever.get_xml_metadata(uniprot_id,
+                domain_description)
+        if (metadata.has_key("org_lineage") and 
+                "Metazoa" in metadata["org_lineage"] and
+                (len(org_includes) == 0 or 
+                 metadata["org_scientific_name"] in org_includes)):
+            all_recs.append(seq_rec)
+            if metadata["org_scientific_name"] in extra_info:
+                print metadata["org_scientific_name"], uniprot_id, \
+                        passes_filters(uniprot_id, filter_hmm)
+            if passes_filters(uniprot_id, filter_hmm):
                 if not metadata.has_key("domain_positions"):
                     positions = []
                     for start, end in hmm_locations.get(uniprot_id, []):
@@ -96,8 +103,8 @@ def main(ipr_number, domain_description):
                     metadata["charge_region"] = \
                             charge_calc.get_region_charge_percent(
                             seq_rec, aa_window, charge_thresh)
-                    if metadata.has_key("function_descr"):
-                        print uniprot_id, metadata
+                    #if metadata.has_key("function_descr"):
+                    #    print uniprot_id, metadata
                     cur_db[uniprot_id] = metadata
     # add information about whether an item is a child or parent in
     # a uniref group based on sequence similarity

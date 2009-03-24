@@ -3,6 +3,7 @@
 """
 from __future__ import with_statement
 import os
+import sys
 import re
 import glob
 import shelve
@@ -25,6 +26,8 @@ org_includes = [
         'Xenopus laevis',
         'Danio rerio',
         'Tetraodon nigroviridis',
+        'Ciona savignyi',
+        'Ciona intestinalis',
         'Branchiostoma floridae',
         'Caenorhabditis elegans',
         'Anopheles gambiae',
@@ -37,11 +40,11 @@ org_includes = [
 with_tandem = ["Mus musculus", "Homo sapiens", "Drosophila melanogaster",
         "Danio rerio"]#, "Bos taurus"]
 
-def main():
+def main(base_dir):
     db_dir = os.path.join(os.getcwd(), "db")
     cur_dbs = get_available_dbs(db_dir)
-    base_dir = "/usr/home/chapmanb/mgh/dan_grau/analysis_domains/"\
-            "no_interactions_cluster/"
+    #base_dir = "/usr/home/chapmanb/mgh/dan_grau/analysis_domains/"\
+    #        "no_interactions_cluster/"
     #base_dir = "/usr/home/chapmanb/mgh/src/wormbase_lite/web/WormBaseLite/"\
     #        "wormbaselite/public/dan/"
     org_classifications = get_organism_classifications(cur_dbs, base_dir)
@@ -59,7 +62,7 @@ def main():
     gv_graph.write("org_charge.dot")
     gv_graph.layout(prog='dot')
     #gv_graph.layout(prog='neato')
-    gv_graph.draw('org_charge.png')
+    gv_graph.draw(os.path.join(base_dir, 'tax_results_summary.png'))
 
 def get_organism_classifications(cur_dbs, base_dir):
     """Determine organism classifications based on grouping of genes in clusters
@@ -74,12 +77,13 @@ def get_organism_classifications(cur_dbs, base_dir):
         Zinc ring      |  Zing ring
         Psc (active)   |  Bmi1 (not-active)
     """
-    file_base = base_dir + "*-cluster-%s.html"
+    file_base = os.path.join(base_dir, "*-cluster-%s.html")
     groups = [(("chromo", "active"), ["Cbx2"]),
               (("chromo", "non-active"), ["Pc"]),#, "Cbx7"]),
               (("zinc-ring", "active"), ["Psc"]),#, "Suz2"]),
               (("zinc-ring", "non-active"), ["Bmi1"])]
-    org_info = collections.defaultdict(lambda: collections.defaultdict(lambda: []))
+    org_info = collections.defaultdict(lambda: collections.defaultdict(
+        lambda: []))
     for cur_group, group_names in groups:
         all_ids = []
         for group_name in group_names:
@@ -247,4 +251,4 @@ def get_org_label(org, org_labels, org_classifications):
     return "{%s|%s}" % (name, "|".join(classifications))
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1])
