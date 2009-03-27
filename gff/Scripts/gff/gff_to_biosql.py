@@ -24,17 +24,16 @@ from Bio import SeqIO
 from BCBio.GFF.GFFParser import GFFMapReduceFeatureAdder
 
 def main(seq_file, gff_file):
+    # -- To be customized
+    # You need to update these parameters to point to your local database
     user = "chapmanb"
     passwd = "cdev"
     host = "localhost"
     db_name = "wb199_gff"
     biodb_name = "wb199_gff_cds_pcr"
-    print "Parsing FASTA sequence file..."
-    with open(seq_file) as seq_handle:
-        seq_dict = SeqIO.to_dict(SeqIO.parse(seq_handle, "fasta"))
-
-    print "Parsing GFF data file..."
-    feature_adder = GFFMapReduceFeatureAdder(seq_dict)
+    # These need to be updated to reflect what you would like to parse
+    # out of the GFF file. Set limit_info=None to parse everything, but
+    # be sure the file is small or you may deal with memory issues.
     rnai_types = [('Orfeome', 'PCR_product'),
                 ('GenePair_STS', 'PCR_product'),
                 ('Promoterome', 'PCR_product')]
@@ -43,8 +42,14 @@ def main(seq_file, gff_file):
                   ('Coding_transcript', 'mRNA'),
                   ('Coding_transcript', 'CDS')]
     limit_info = dict(gff_types = rnai_types + gene_types)
-    with open(gff_file) as gff_handle:
-        feature_adder.add_features(gff_handle, limit_info)
+    # --
+    print "Parsing FASTA sequence file..."
+    with open(seq_file) as seq_handle:
+        seq_dict = SeqIO.to_dict(SeqIO.parse(seq_handle, "fasta"))
+
+    print "Parsing GFF data file..."
+    feature_adder = GFFMapReduceFeatureAdder(seq_dict)
+    feature_adder.add_features(gff_file, limit_info)
     recs = feature_adder.base.values()
 
     print "Writing to BioSQL database..."

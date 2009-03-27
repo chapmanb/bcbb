@@ -1,0 +1,62 @@
+I	Genomic_canonical	region	1	2679	.	+	.	Sequence "cTel33B" ; Note "Clone cTel33B; Genbank AC199162" ; Note "Clone cTel33B; Genbank AC199162"
+I	Coding_transcript	Transcript	12759582	12764949	.	-	.	Transcript "B0019.1" ; WormPep "WP:CE40797" ; Note "amx-2" ; Prediction_status "Partially_confirmed" ; Gene "WBGene00000138" ; CDS "B0019.1" ; WormPep "WP:CE40797" ; Note "amx-2" ; Prediction_status "Partially_confirmed" ; Gene "WBGene00000138"
+I	Coding_transcript	intron	12759829	12759948	.	-	.	Transcript "B0019.1" ; Confirmed_EST EC034652
+I	Coding_transcript	intron	12760014	12760226	.	-	.	Transcript "B0019.1" ; Confirmed_EST EC034652
+I	Coding_transcript	intron	12760320	12760364	.	-	.	Transcript "B0019.1" ; Confirmed_EST yk1054h04.3
+I	Coding_transcript	intron	12760495	12760833	.	-	.	Transcript "B0019.1" ; Confirmed_EST EC027594
+I	Coding_transcript	intron	12760905	12761171	.	-	.	Transcript "B0019.1" ; Confirmed_EST EC027594
+I	Coding_transcript	intron	12761517	12761798	.	-	.	Transcript "B0019.1" ; Confirmed_EST EC027594
+I	Coding_transcript	intron	12761954	12762126	.	-	.	Transcript "B0019.1" ; Confirmed_EST yk262g9.5
+I	Coding_transcript	intron	12762269	12762647	.	-	.	Transcript "B0019.1" ; Confirmed_EST yk262g9.5
+I	Coding_transcript	intron	12762807	12763111	.	-	.	Transcript "B0019.1" ; Confirmed_EST yk1056c07.5
+I	Coding_transcript	intron	12763250	12763447	.	-	.	Transcript "B0019.1" ; Confirmed_EST yk1056c07.5
+I	Coding_transcript	intron	12763656	12763728	.	-	.	Transcript "B0019.1" ; Confirmed_EST yk1056c07.5
+I	Coding_transcript	intron	12763883	12763978	.	-	.	Transcript "B0019.1" ; Confirmed_EST yk1054h04.5 ; Confirmed_EST OSTF088D9_1
+I	Coding_transcript	intron	12764103	12764290	.	-	.	Transcript "B0019.1" ; Confirmed_EST yk1054h04.5 ; Confirmed_EST OSTF088D9_1
+I	Coding_transcript	intron	12764472	12764811	.	-	.	Transcript "B0019.1" ; Confirmed_EST yk1054h04.5 ; Confirmed_EST OSTF088D9_1
+I	Coding_transcript	exon	12759582	12759828	.	-	.	Transcript "B0019.1"
+I	Coding_transcript	exon	12759949	12760013	.	-	.	Transcript "B0019.1"
+I	Coding_transcript	exon	12760227	12760319	.	-	.	Transcript "B0019.1"
+I	Coding_transcript	exon	12760365	12760494	.	-	.	Transcript "B0019.1"
+I	Coding_transcript	exon	12760834	12760904	.	-	.	Transcript "B0019.1"
+I	Coding_transcript	exon	12761172	12761516	.	-	.	Transcript "B0019.1"
+I	Coding_transcript	exon	12761799	12761953	.	-	.	Transcript "B0019.1"
+I	Coding_transcript	exon	12762127	12762268	.	-	.	Transcript "B0019.1"
+I	Coding_transcript	exon	12762648	12762806	.	-	.	Transcript "B0019.1"
+I	Coding_transcript	exon	12763112	12763249	.	-	.	Transcript "B0019.1"
+I	Coding_transcript	exon	12763448	12763655	.	-	.	Transcript "B0019.1"
+I	Coding_transcript	exon	12763729	12763882	.	-	.	Transcript "B0019.1"
+I	Coding_transcript	exon	12763979	12764102	.	-	.	Transcript "B0019.1"
+I	Coding_transcript	exon	12764291	12764471	.	-	.	Transcript "B0019.1"
+I	Coding_transcript	exon	12764812	12764949	.	-	.	Transcript "B0019.1"
+I	SAGE_tag_unambiguously_mapped	SAGE_tag	12761492	12761512	.	-	.	Sequence SAGE:aacggagccgtacacgc;count 5;Gene amx-2;Transcript B0019.1
+I	SAGE_tag_most_three_prime	SAGE_tag	12761499	12761512	.	-	.	Sequence SAGE:aacggagccg;count 9;Gene amx-2;Transcript B0019.1
+I	mass_spec_genome	translated_nucleotide_match	12761920	12761953	.	-	.	Target "Mass_spec_peptide:MSP:FADFSPLDVSDVNFATDDLAK" 10 21 ; Note "MSP:FADFSPLDVSDVNFATDDLAK" ; Protein_matches "WP:CE40797" ; CDS_matches "B0019.1" ; Times_observed "3"
+I	mass_spec_genome	translated_nucleotide_match	12762127	12762155	.	-	.	Target "Mass_spec_peptide:MSP:FADFSPLDVSDVNFATDDLAK" 1 10 ; Note "MSP:FADFSPLDVSDVNFATDDLAK" ; Protein_matches "WP:CE40797" ; CDS_matches "B0019.1" ; Times_observed "3"
+I	mass_spec_genome	translated_nucleotide_match	12763506	12763559	.	-	.	Target "Mass_spec_peptide:MSP:FGHGQSLLAQGGMNEVVR" 1 18 ; Note "MSP:FGHGQSLLAQGGMNEVVR" ; Protein_matches "WP:CE40797" ; CDS_matches "B0019.1" ; Times_observed "1"
+I	SAGE_tag_unambiguously_mapped	SAGE_tag	12763533	12763553	.	-	.	Sequence SAGE:ggcagagtcttttggca;count 1;Gene amx-2;Transcript B0019.1
+I	mass_spec_genome	translated_nucleotide_match	12764361	12764411	.	-	.	Target "Mass_spec_peptide:MSP:NIQQNRPGLSVLVLEAR" 1 17 ; Note "MSP:NIQQNRPGLSVLVLEAR" ; Protein_matches "WP:CE40797" ; CDS_matches "B0019.1" ; Times_observed "2"
+I	GenePair_STS	PCR_product	12762449	12764118	.	+	.	PCR_product "sjj_B0019.1"
+I	Expr_profile	experimental_result_region	12762449	12764118	.	+	.	Expr_profile "B0019.1"
+I	Allele	SNP	12764272	12764272	.	+	.	Variation "snp_B0019[1]" ; Interpolated_map_position "14.003" ; ; RFLP "No"
+I	Promoterome	PCR_product	12764938	12766937	.	+	.	PCR_product "p_B0019.1_93"
+I	Oligo_set	reagent	12759745	12761589	.	-	.	Oligo_set "Aff_B0019.1"
+I	Orfeome	PCR_product	12759747	12764936	.	-	.	PCR_product "mv_B0019.1" ; Amplified 1 ; Amplified 1
+I	Coding_transcript	three_prime_UTR	12759582	12759744	.	-	.	Transcript "B0019.1"
+I	Coding_transcript	coding_exon	12759745	12759828	.	-	0	Transcript "B0019.1" ; CDS "B0019.1"
+I	Coding_transcript	coding_exon	12759949	12760013	.	-	2	Transcript "B0019.1" ; CDS "B0019.1"
+I	Coding_transcript	coding_exon	12760227	12760319	.	-	2	Transcript "B0019.1" ; CDS "B0019.1"
+I	Coding_transcript	coding_exon	12760365	12760494	.	-	0	Transcript "B0019.1" ; CDS "B0019.1"
+I	Coding_transcript	coding_exon	12760834	12760904	.	-	2	Transcript "B0019.1" ; CDS "B0019.1"
+I	Coding_transcript	coding_exon	12761172	12761516	.	-	2	Transcript "B0019.1" ; CDS "B0019.1"
+I	Coding_transcript	coding_exon	12761799	12761953	.	-	1	Transcript "B0019.1" ; CDS "B0019.1"
+I	Coding_transcript	coding_exon	12762127	12762268	.	-	2	Transcript "B0019.1" ; CDS "B0019.1"
+I	Coding_transcript	coding_exon	12762648	12762806	.	-	2	Transcript "B0019.1" ; CDS "B0019.1"
+I	Coding_transcript	coding_exon	12763112	12763249	.	-	2	Transcript "B0019.1" ; CDS "B0019.1"
+I	Coding_transcript	coding_exon	12763448	12763655	.	-	0	Transcript "B0019.1" ; CDS "B0019.1"
+I	Coding_transcript	coding_exon	12763729	12763882	.	-	1	Transcript "B0019.1" ; CDS "B0019.1"
+I	Coding_transcript	coding_exon	12763979	12764102	.	-	2	Transcript "B0019.1" ; CDS "B0019.1"
+I	Coding_transcript	coding_exon	12764291	12764471	.	-	0	Transcript "B0019.1" ; CDS "B0019.1"
+I	Coding_transcript	five_prime_UTR	12764938	12764949	.	-	.	Transcript "B0019.1"
+I	Coding_transcript	coding_exon	12764812	12764937	.	-	0	Transcript "B0019.1" ; CDS "B0019.1"
+X	SAGE_tag	SAGE_tag	6819353	6819366	.	+	.	Sequence SAGE:aacggagccg;count 9;Gene amx-2;Transcript B0019.1

@@ -188,7 +188,9 @@ class CElegansGFFTest(unittest.TestCase):
         feature_adder = GFFMapReduceFeatureAdder(dict())
         feature_adder.add_features(self._test_gff_ann_file)
         final_rec = feature_adder.base['I']
-        print final_rec.annotations
+        assert len(final_rec.annotations.keys()) == 2
+        assert final_rec.annotations['source'] == ['Expr_profile']
+        assert final_rec.annotations['expr_profile'] == ['B0019.1']
 
 class SolidGFFTester(unittest.TestCase):
     """Test reading output from SOLiD analysis, as GFF3.
@@ -210,12 +212,66 @@ class SolidGFFTester(unittest.TestCase):
         test_feature = feature_adder.base['3_341_424_F3'].features[0]
         assert test_feature.location.nofuzzy_start == 102716
         assert test_feature.location.nofuzzy_end == 102736
+        assert len(test_feature.qualifiers) == 7
         assert test_feature.qualifiers['score'] == ['10.6']
         assert test_feature.qualifiers['source'] == ['solid']
         assert test_feature.strand == -1
         assert test_feature.type == 'read'
         assert test_feature.qualifiers['g'] == ['T2203031313223113212']
         assert len(test_feature.qualifiers['q']) == 20
+
+class GFF2Tester(unittest.TestCase):
+    """Parse GFF2 and GTF files, building features.
+    """
+    def setUp(self):
+        self._test_dir = os.path.join(os.getcwd(), "GFF")
+        self._ensembl_file = os.path.join(self._test_dir, "ensembl_gtf.txt")
+        self._wormbase_file = os.path.join(self._test_dir, "wormbase_gff2.txt")
+        self._jgi_file = os.path.join(self._test_dir, "jgi_gff2.txt")
+
+    def t_basic_attributes(self):
+        """Parse out basic attributes of GFF2 from Ensembl GTF.
+        """
+        limit_info = dict(
+                gff_types = [('snoRNA', 'exon')]
+                )
+        feature_adder = GFFMapReduceFeatureAdder(dict())
+        feature_adder.add_features(self._ensembl_file, limit_info)
+        assert len(feature_adder.base['I'].features) == 1
+        test_feature = feature_adder.base['I'].features[0]
+        qual_keys = test_feature.qualifiers.keys()
+        qual_keys.sort()
+        assert qual_keys == ['exon_number', 'gene_id', 'gene_name', 'source',
+                'transcript_id', 'transcript_name']
+        assert test_feature.qualifiers['source'] == ['snoRNA']
+        assert test_feature.qualifiers['transcript_name'] == ['NR_001477.2']
+        assert test_feature.qualifiers['exon_number'] == ['1']
+
+    def t_tricky_semicolons(self):
+        """Parsing of tricky semi-colon positions in WormBase GFF2.
+        """
+        limit_info = dict(
+                gff_types = [('Genomic_canonical', 'region')]
+                )
+        feature_adder = GFFMapReduceFeatureAdder(dict())
+        feature_adder.add_features(self._wormbase_file, limit_info)
+        assert len(feature_adder.base['I'].features) == 1
+        test_feature = feature_adder.base['I'].features[0]
+        assert test_feature.qualifiers['Note'] == \
+          ['Clone cTel33B; Genbank AC199162', 'Clone cTel33B; Genbank AC199162']
+
+    def t_jgi_gff(self):
+        """Parsing of JGI formatted GFF2, examining features flattened.
+        """
+        feature_adder = GFFMapReduceFeatureAdder(dict())
+        feature_adder.add_features(self._jgi_file)
+        tfeature = feature_adder.base['chr_1'].features[1]
+        assert tfeature.location.nofuzzy_start == 37060
+        assert tfeature.location.nofuzzy_end == 37174
+        assert tfeature.type == 'CDS'
+        assert tfeature.qualifiers['proteinId'] == ['873']
+        assert tfeature.qualifiers['phase'] == ['0']
+
 
 def run_tests(argv):
     test_suite = testing_suite()
@@ -228,7 +284,7 @@ def testing_suite():
     test_suite = unittest.TestSuite()
     test_loader = unittest.TestLoader()
     test_loader.testMethodPrefix = 't_'
-    tests = [CElegansGFFTest, MapReduceGFFTest, SolidGFFTester]
+    tests = [CElegansGFFTest, MapReduceGFFTest, SolidGFFTester, GFF2Tester]
     for test in tests:
         cur_suite = test_loader.loadTestsFromTestCase(test)
         test_suite.addTest(cur_suite)

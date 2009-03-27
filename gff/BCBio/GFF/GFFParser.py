@@ -5,6 +5,11 @@ sequence features and annotations:
 
 http://www.sequenceontology.org/gff3.shtml
 
+It will also deal with older GFF versions (GTF/GFF2):
+
+http://www.sanger.ac.uk/Software/formats/GFF/GFF_Spec.shtml
+http://mblab.wustl.edu/GTF22.html
+
 The implementation utilizes map/reduce parsing of GFF using Disco. Disco
 (http://discoproject.org) is a Map-Reduce framework for Python utilizing
 Erlang for parallelization. The code works on a single processor without
@@ -19,7 +24,53 @@ from Bio.SeqFeature import SeqFeature, FeatureLocation
 
 def _gff_line_map(line, params):
     """Map part of Map-Reduce; parses a line of GFF into a dictionary.
+
+    Given an input line from a GFF file, this:
+    - decides if the file passes our filtering limits
+    - if so:
+        - breaks it into component elements
+        - determines the type of attribute (flat, parent, child or annotation)
+        - generates a dictionary of GFF info which can be serialized as JSON
     """
+    import re
+    gff3_kw_pat = re.compile("\w+=")
+    def _split_keyvals(keyval_str):
+        """Split key-value pairs in a GFF2, GTF and GFF3 compatible way.
+
+        GFF3 has key value pairs like:
+          count=9;gene=amx-2;sequence=SAGE:aacggagccg
+        GFF2 and GTF have:           
+          Sequence "Y74C9A" ; Note "Clone Y74C9A; Genbank AC024206"
+          name "fgenesh1_pg.C_chr_1000003"; transcriptId 869
+        """
+        quals = collections.defaultdict(list)
+        if keyval_str is None:
+            return quals
+        # ensembl GTF has a stray semi-colon at the end
+        if keyval_str[-1] == ';':
+            keyval_str = keyval_str[:-1]
+        # GFF2/GTF has a semi-colon with at least one space after it.
+        # It can have spaces on both sides; wormbase does this.
+        # GFF3 works with no spaces.
+        # Split at the first one we can recognize as working
+        parts = keyval_str.split(" ; ")
+        if len(parts) == 1:
+            parts = keyval_str.split("; ")
+            if len(parts) == 1:
+                parts = keyval_str.split(";")
+        # check if we have GFF3 style key-vals (with =)
+        if gff3_kw_pat.match(parts[0]):
+            key_vals = [p.split('=') for p in parts]
+        # otherwise, we are separated by a space with a key as the first item
+        else:
+            pieces = [p.strip().split(" ") for p in parts]
+            key_vals = [(p[0], " ".join(p[1:])) for p in pieces]
+        for key, val in key_vals:
+            val = (val[1:-1] if val[0] == '"' and val[-1] == '"' else val)
+            if val:
+                quals[key].extend(val.split(','))
+        return quals
+
     strand_map = {'+' : 1, '-' : -1, '?' : None, None: None}
     line = line.strip()
     if line[0] != "#":
@@ -37,15 +88,16 @@ def _gff_line_map(line, params):
             gff_parts = [(None if p == '.' else p) for p in parts]
             gff_info = dict()
             # collect all of the base qualifiers for this item
-            quals = collections.defaultdict(list)
+            quals = _split_keyvals(gff_parts[8])
             if gff_parts[1]:
                 quals["source"].append(gff_parts[1])
             if gff_parts[5]:
                 quals["score"].append(gff_parts[5])
             if gff_parts[7]:
                 quals["phase"].append(gff_parts[7])
-            for key, val in [a.split('=') for a in gff_parts[8].split(';')]:
-                quals[key].extend(val.split(','))
+            #for key, val in [a.split('=') for a in gff_parts[8].split(';')]:
+            #    val = (val[1:-1] if val[0] == "" and val[-1] == "" else val)
+            #    quals[key].extend(val.split(','))
             gff_info['quals'] = dict(quals)
             gff_info['rec_id'] = gff_parts[0]
             # if we are describing a location, then we are a feature
@@ -144,16 +196,19 @@ class GFFMapReduceFeatureAdder:
         gff_handle.close()
         return final_dict
 
-    def add_features(self, gff_file, limit_info=None):
+    def add_features(self, gff_files, limit_info=None):
+        # gracefully handle a single file passed
+        if isinstance(gff_files, str):
+            gff_files = [gff_files]
         # turn all limit information into tuples for identical comparisons
         final_limit_info = {}
         if limit_info:
             for key, values in limit_info.items():
                 final_limit_info[key] = [tuple(v) for v in values]
         if self._disco_host:
-            results = self._disco_process(gff_file, final_limit_info)
+            results = self._disco_process(gff_files, final_limit_info)
         else:
-            results = self._std_process(gff_file, final_limit_info)
+            results = self._std_process(gff_files, final_limit_info)
         #print results
         self._add_annotations(results.get('annotation', []))
         [self._add_toplevel_feature(f) for f in results.get('feature', [])]
@@ -234,7 +289,7 @@ class GFFMapReduceFeatureAdder:
         new_feature.qualifiers = feature_dict['quals']
         return new_feature
 
-    def _std_process(self, gff_file, limit_info):
+    def _std_process(self, gff_files, limit_info):
         """Process GFF addition without any parallelization.
         """
         class _LocalParams:
@@ -254,22 +309,25 @@ class GFFMapReduceFeatureAdder:
             def get_results(self):
                 return self._items
         out_info = _LocalOut()
-        in_handle = open(gff_file)
-        for line in in_handle:
-            results = self._map_fn(line, params)
-            self._reduce_fn(results, out_info, params)
-        in_handle.close()
+        for gff_file in gff_files:
+            in_handle = open(gff_file)
+            for line in in_handle:
+                results = self._map_fn(line, params)
+                self._reduce_fn(results, out_info, params)
+            in_handle.close()
         return out_info.get_results()
 
-    def _disco_process(self, gff_file, limit_info):
+    def _disco_process(self, gff_files, limit_info):
         """Process GFF addition, using Disco to parallelize the process.
         """
         # make these imports local; only need them when using disco
         import simplejson
         import disco
-        full_file = os.path.join(os.getcwd(), gff_file)
+        # absolute path names unless they are special disco files 
+        full_files = [(os.path.abspath(f) if f.split(":")[0] != "disco" else f)
+                for f in gff_files]
         results = disco.job(self._disco_host, name="gff_reader",
-                input=[full_file],
+                input=full_files,
                 params=disco.Params(limit_info=limit_info, jsonify=True,
                     filter_info=self._filter_info),
                 required_modules=["simplejson", "collections"],

@@ -1,0 +1,6 @@
+chr_1	JGI	exon	37061	37174	.	-	.	name "fgenesh1_pg.C_chr_1000007"; transcriptId 873
+chr_1	JGI	CDS	37061	37174	.	-	0	name "fgenesh1_pg.C_chr_1000007"; proteinId 873; exonNumber 3
+chr_1	JGI	exon	37315	37620	.	-	.	name "fgenesh1_pg.C_chr_1000007"; transcriptId 873
+chr_1	JGI	CDS	37315	37620	.	-	0	name "fgenesh1_pg.C_chr_1000007"; proteinId 873; exonNumber 2
+chr_1	JGI	exon	37752	38216	.	-	.	name "fgenesh1_pg.C_chr_1000007"; transcriptId 873
+chr_1	JGI	CDS	37752	38216	.	-	0	name "fgenesh1_pg.C_chr_1000007"; proteinId 873; exonNumber 1
