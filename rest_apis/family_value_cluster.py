@@ -21,6 +21,7 @@ import pylab
 import numpy
 
 from Bio import Cluster
+from Bio import Fasta
 from Bio.SeqUtils import IsoelectricPoint
 from Bio.SeqUtils import ProtParam
 
@@ -52,6 +53,8 @@ def main(ipr_number, num_clusters, out_dir):
     cluster_dict = collections.defaultdict(lambda: [])
     for i, cluster_id in enumerate(cluster_ids):
         cluster_dict[cluster_id].append(uniprot_ids[i])
+    out_seq_file = os.path.join(out_dir, "%s-seqs.fa" % (ipr_number))
+    out_seq_handle = open(out_seq_file, "w")
     for index, cluster_group in enumerate(cluster_dict.values()):
         print '***********', index
         org_dists = []
@@ -65,6 +68,12 @@ def main(ipr_number, num_clusters, out_dir):
         for d, o, u in org_dists:
             charge_plot_img = calc_charge_plot(u, cur_db[u], charge_window,
                     out_dir)
+            base, ext = os.path.splitext(charge_plot_img)
+            disorder_plot_img = "%s-idr%s" % (base, ext)
+            rec = Fasta.Record()
+            rec.title = u
+            rec.sequence = cur_db[u]["seq"]
+            out_seq_handle.write(str(rec) + "\n")
             members.append(dict(organism=o,
                 uniprot_id=get_uniprot_links([u]),
                 alt_names=get_alt_names(cur_db[u]),
@@ -72,6 +81,7 @@ def main(ipr_number, num_clusters, out_dir):
                 charge=cur_db[u]["charge"],
                 charge_region="%0.2f" % cur_db[u]["charge_region"],
                 charge_plot_img=charge_plot_img,
+                disorder_plot_img=disorder_plot_img,
                 domains=len(cur_db[u].get("db_refs", [])),
                 interactions=get_string_link(u,
                     max(len(cur_db[u].get("string_interactors", [])) - 1, 0)),
@@ -127,11 +137,12 @@ def calc_charge_plot(uniprot_id, cur_db, charge_window, out_dir):
     region_charges = calc_region_charges(cur_db["seq"], charge_window)
     positions = [i + 1 for i in range(len(region_charges))]
     pylab.clf()
-    #pylab.ylim(1, 13)
     #pylab.yticks([i + 1 for i in range(13)])
     pylab.plot(positions, region_charges)
     pylab.ylabel('Isoelectric point')
     pylab.xlabel('Amino acid position, window start')
+    pylab.axis(ymin=1)
+    pylab.ylim(ymin=1, ymax=13)
     pylab.title('%s: Protein charge of %s amino acid windows' % (uniprot_id,
         charge_window))
     file_name = uniprot_id.replace(".", "_") + ".png"
@@ -170,6 +181,7 @@ cluster_template = """
   <th><b>Charge</b></th>
   <th><b>Regional charge</b></th>
   <th><b>Charge plot</b></th>
+  <th><b>Disorder plot</b></th>
   <th><b>Domains</b></th>
   <th><b>Interactions</b></th>
   <th><b>N-terminal distance</b></th>
@@ -185,6 +197,9 @@ cluster_template = """
         <td><a href="${member['charge_plot_img']}">
             <img height="125px" width="125px" 
              src="${member['charge_plot_img']}"/></a></td>
+        <td><a href="${member['disorder_plot_img']}">
+            <img height="125px" width="125px" 
+             src="${member['disorder_plot_img']}"/></a></td>
         <td>${member['domains']}</td>
         <td>${member['interactions']}</td>
         <td>${member['c_distance']}</td>
