@@ -60,3 +60,4 @@ I	Coding_transcript	coding_exon	12764291	12764471	.	-	0	Transcript "B0019.1" ; C
 I	Coding_transcript	five_prime_UTR	12764938	12764949	.	-	.	Transcript "B0019.1"
 I	Coding_transcript	coding_exon	12764812	12764937	.	-	0	Transcript "B0019.1" ; CDS "B0019.1"
 X	SAGE_tag	SAGE_tag	6819353	6819366	.	+	.	Sequence SAGE:aacggagccg;count 9;Gene amx-2;Transcript B0019.1
+X 	gene 	processed_transcript 	944828 	948883 	.	-	.    	Gene "WBGene00004893"

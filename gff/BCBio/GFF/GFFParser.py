@@ -16,6 +16,7 @@ Erlang for parallelization. The code works on a single processor without
 Disco using the same architecture.
 """
 import os
+import copy
 import collections
 
 from Bio.Seq import Seq
@@ -59,7 +60,9 @@ def _gff_line_map(line, params):
             if len(parts) == 1:
                 parts = keyval_str.split(";")
         # check if we have GFF3 style key-vals (with =)
+        is_gff2 = True
         if gff3_kw_pat.match(parts[0]):
+            is_gff2 = False
             key_vals = [p.split('=') for p in parts]
         # otherwise, we are separated by a space with a key as the first item
         else:
@@ -69,7 +72,36 @@ def _gff_line_map(line, params):
             val = (val[1:-1] if val[0] == '"' and val[-1] == '"' else val)
             if val:
                 quals[key].extend(val.split(','))
-        return quals
+        return quals, is_gff2
+
+    def _nest_gff2_features(gff_parts):
+        """Provide nesting of GFF2 transcript parts with transcript IDs.
+
+        exons and coding sequences are mapped to a parent with a transcript_id
+        in GFF2. This is implemented differently at different genome centers
+        and this function attempts to resolve that and map things to the GFF3
+        way of doing them.
+        """
+        # map protein or transcript ids to a parent
+        for transcript_id in ["transcript_id", "transcriptId", "proteinId"]:
+            try:
+                gff_parts["quals"]["Parent"] = \
+                        gff_parts["quals"][transcript_id]
+                break
+            except KeyError:
+                pass
+        # case for WormBase GFF -- everything labelled as Transcript
+        if gff_parts["quals"].has_key("Transcript"):
+            # parent types
+            if gff_parts["type"] in ["Transcript"]:
+                if not gff_parts["id"]:
+                    gff_parts["id"] = gff_parts["quals"]["Transcript"][0]
+            # children types
+            elif gff_parts["type"] in ["intron", "exon", "three_prime_UTR",
+                    "coding_exon", "five_prime_UTR", "CDS", "stop_codon",
+                    "start_codon"]:
+                gff_parts["quals"]["Parent"] = gff_parts["quals"]["Transcript"]
+        return gff_parts
 
     strand_map = {'+' : 1, '-' : -1, '?' : None, None: None}
     line = line.strip()
@@ -88,16 +120,14 @@ def _gff_line_map(line, params):
             gff_parts = [(None if p == '.' else p) for p in parts]
             gff_info = dict()
             # collect all of the base qualifiers for this item
-            quals = _split_keyvals(gff_parts[8])
+            quals, is_gff2 = _split_keyvals(gff_parts[8])
+            gff_info["is_gff2"] = is_gff2
             if gff_parts[1]:
                 quals["source"].append(gff_parts[1])
             if gff_parts[5]:
                 quals["score"].append(gff_parts[5])
             if gff_parts[7]:
                 quals["phase"].append(gff_parts[7])
-            #for key, val in [a.split('=') for a in gff_parts[8].split(';')]:
-            #    val = (val[1:-1] if val[0] == "" and val[-1] == "" else val)
-            #    quals[key].extend(val.split(','))
             gff_info['quals'] = dict(quals)
             gff_info['rec_id'] = gff_parts[0]
             # if we are describing a location, then we are a feature
@@ -107,16 +137,17 @@ def _gff_line_map(line, params):
                 gff_info['type'] = gff_parts[2]
                 gff_info['id'] = quals.get('ID', [''])[0]
                 gff_info['strand'] = strand_map[gff_parts[6]]
-                # Handle flat features
-                if not gff_info['id']:
-                    final_key = 'feature'
+                if is_gff2:
+                    gff_info = _nest_gff2_features(gff_info)
                 # features that have parents need to link so we can pick up
                 # the relationship
-                elif gff_info['quals'].has_key('Parent'):
+                if gff_info['quals'].has_key('Parent'):
                     final_key = 'child'
-                # top level features
-                else:
+                elif gff_info['id']:
                     final_key = 'parent'
+                # Handle flat features
+                else:
+                    final_key = 'feature'
             # otherwise, associate these annotations with the full record
             else:
                 final_key = 'annotation'
@@ -141,7 +172,7 @@ def _gff_line_reduce(map_results, out, params):
 class GFFMapReduceFeatureAdder:
     """Move through a GFF file, adding new features to SeqRecord objects.
     """
-    def __init__(self, base_dict, disco_host=None, create_missing=True):
+    def __init__(self, base_dict=None, disco_host=None, create_missing=True):
         """Initialize with dictionary of records to add to.
 
         This class is instantiated with a dictionary where the keys are IDs
@@ -155,6 +186,8 @@ class GFFMapReduceFeatureAdder:
         create_missing - If True, create blank records for GFF ids not in
         the base_dict. If False, an error will be raised.
         """
+        if base_dict is None:
+            base_dict = dict()
         self.base = base_dict
         self._create_missing = create_missing
         self._disco_host = disco_host
@@ -197,6 +230,13 @@ class GFFMapReduceFeatureAdder:
         return final_dict
 
     def add_features(self, gff_files, limit_info=None):
+        """Add all features from a GFF file to our base dictionary.
+        """
+        [b for b in self.add_features_gen(gff_files, limit_info)]
+
+    def add_features_gen(self, gff_files, limit_info=None, target_lines=None):
+        """Generator add_features version which can be used for partial parses.
+        """
         # gracefully handle a single file passed
         if isinstance(gff_files, str):
             gff_files = [gff_files]
@@ -206,10 +246,18 @@ class GFFMapReduceFeatureAdder:
             for key, values in limit_info.items():
                 final_limit_info[key] = [tuple(v) for v in values]
         if self._disco_host:
+            assert target_lines is None, "Cannot split parallelized jobs"
             results = self._disco_process(gff_files, final_limit_info)
+            self._results_to_features(results)
         else:
-            results = self._std_process(gff_files, final_limit_info)
-        #print results
+            for results in self._std_process(gff_files, final_limit_info,
+                    target_lines):
+                self._results_to_features(results)
+                yield
+
+    def _results_to_features(self, results):
+        """Add parsed dictionaries of results to Biopython SeqFeatures.
+        """
         self._add_annotations(results.get('annotation', []))
         [self._add_toplevel_feature(f) for f in results.get('feature', [])]
         self._add_parent_child_features(results.get('parent', []),
@@ -222,21 +270,34 @@ class GFFMapReduceFeatureAdder:
         for child_dict in children:
             child_feature = self._get_feature(child_dict)
             for parent in child_feature.qualifiers['Parent']:
-                children_prep[parent].append(child_feature)
+                children_prep[parent].append((child_dict['rec_id'],
+                    child_feature))
         children = dict(children_prep)
+        # add children to parents that exist
         for cur_parent_dict in parents:
             cur_parent = self._add_toplevel_feature(cur_parent_dict)
             cur_parent, children = self._add_children_to_parent(cur_parent,
                     children)
-        if len(children) > 0:
-            raise ValueError("Non-added children: %s" % children.keys())
+        # create parents for children without them (GFF2 or split/bad files)
+        while len(children) > 0:
+            parent_id, cur_children = children.items()[0]
+            # one child, do not nest it
+            if len(cur_children) == 1:
+                rec_id, child = cur_children[0]
+                rec = self._get_rec(dict(rec_id=rec_id))
+                rec.features.append(child)
+                del children[parent_id]
+            else:
+                cur_parent = self._add_missing_parent(parent_id, cur_children)
+                cur_parent, children = self._add_children_to_parent(cur_parent,
+                        children)
 
     def _add_children_to_parent(self, cur_parent, children):
         """Recursively add children to parent features.
         """
         if children.has_key(cur_parent.id):
             cur_children = children[cur_parent.id]
-            for cur_child in cur_children:
+            for rec_id, cur_child in cur_children:
                 cur_child, children = self._add_children_to_parent(cur_child,
                         children)
                 cur_parent.sub_features.append(cur_child)
@@ -272,6 +333,19 @@ class GFFMapReduceFeatureAdder:
                 self.base[base_dict['rec_id']] = new_rec
                 return new_rec
 
+    def _add_missing_parent(self, parent_id, cur_children):
+        """Add a new feature that is missing from the GFF file.
+        """
+        base_rec_id = list(set(c[0] for c in cur_children))
+        assert len(base_rec_id) == 1
+        feature_dict = dict(id=parent_id, strand=None,
+                type="inferred_parent", quals=dict(), rec_id=base_rec_id[0])
+        coords = [(c.location.nofuzzy_start, c.location.nofuzzy_end) 
+                for r, c in cur_children]
+        feature_dict["location"] = (min([c[0] for c in coords]),
+                max([c[1] for c in coords]))
+        return self._add_toplevel_feature(feature_dict)
+
     def _add_toplevel_feature(self, feature_dict):
         """Add a toplevel non-nested feature to the appropriate record.
         """
@@ -289,8 +363,12 @@ class GFFMapReduceFeatureAdder:
         new_feature.qualifiers = feature_dict['quals']
         return new_feature
 
-    def _std_process(self, gff_files, limit_info):
+    def _std_process(self, gff_files, limit_info, target_lines):
         """Process GFF addition without any parallelization.
+
+        In addition to limit filtering, this accepts a target_lines attribute
+        which provides a number of lines to parse before returning results.
+        This allows partial parsing of a file to prevent memory issues.
         """
         class _LocalParams:
             def __init__(self):
@@ -299,23 +377,58 @@ class GFFMapReduceFeatureAdder:
         params.limit_info = limit_info
         params.filter_info = self._filter_info
         class _LocalOut:
-            def __init__(self):
+            def __init__(self, smart_breaks=False):
                 self._items = dict()
+                self._smart_breaks = smart_breaks
+                self._missing_keys = collections.defaultdict(int)
+                self.can_break = True
+                self.num_lines = 0
             def add(self, key, vals):
+                if self._smart_breaks:
+                    # if we are not GFF2 we expect parents and break
+                    # based on not having missing ones
+                    if not vals[0].get("is_gff2", False):
+                        self._update_missing_parents(key, vals)
+                        self.can_break = (len(self._missing_keys) == 0)
+                    # otherwise, break more simply when we are done with
+                    # stretches of child features
+                    else:
+                        self.can_break = (key != 'child')
+                self.num_lines += 1
                 try:
                     self._items[key].extend(vals)
                 except KeyError:
                     self._items[key] = vals
+            def _update_missing_parents(self, key, vals):
+                # smart way of deciding if we can break this.
+                # if this is too much, can go back to not breaking in the
+                # middle of children
+                if key in ["child"]:
+                    for val in vals:
+                        for p_id in val["quals"]["Parent"]:
+                            self._missing_keys[p_id] += 1
+                for val in vals:
+                    try:
+                        del self._missing_keys[val["quals"]["ID"][0]]
+                    except KeyError:
+                        pass
+            def has_items(self):
+                return len(self._items) > 0
             def get_results(self):
                 return self._items
-        out_info = _LocalOut()
+        out_info = _LocalOut(target_lines is not None)
         for gff_file in gff_files:
             in_handle = open(gff_file)
             for line in in_handle:
                 results = self._map_fn(line, params)
                 self._reduce_fn(results, out_info, params)
+                if (target_lines and out_info.num_lines >= target_lines and
+                        out_info.can_break):
+                    yield out_info.get_results()
+                    out_info = _LocalOut(True)
             in_handle.close()
-        return out_info.get_results()
+        if out_info.has_items():
+            yield out_info.get_results()
 
     def _disco_process(self, gff_files, limit_info):
         """Process GFF addition, using Disco to parallelize the process.
@@ -336,3 +449,37 @@ class GFFMapReduceFeatureAdder:
         for out_key, out_val in disco.result_iterator(results):
             processed[out_key] = simplejson.loads(out_val)
         return processed
+
+class GFFAddingIterator:
+    """Iterate over regions of a GFF file, returning features from each region.
+    """
+    def __init__(self, seed_dict=None, feature_adder=None):
+        """Initialize with a dictionary of SeqRecords to serve as a seed.
+
+        seed_dict -- dictionary which will be used as the base for every
+        group of GFF features added
+        feature_adder -- An initialized feature adder like
+        GFFMapReduceFeatureAdder, which can be individually customized
+        """
+        if seed_dict is None:
+            seed_dict = dict()
+        self._seed = seed_dict
+        if feature_adder is None:
+            feature_adder = GFFMapReduceFeatureAdder()
+        self._adder = feature_adder
+
+    def get_features(self, gff_files, limit_info=None, target_lines=None):
+        """Retrieve features from a GFF file added to a seed dict in groups.
+
+        gff_files -- list of one or more GFF files from which features will
+        be parsed.
+        target_lines -- the number of lines to parse. You are not guaranteed to
+        get exactly this many lines as it will be broken to try and keep nested
+        features together. If None, the entire set of files will be parsed.
+        """
+        self._adder.base = copy.deepcopy(self._seed)
+        for file_break in self._adder.add_features_gen(gff_files,
+                limit_info=limit_info, target_lines=target_lines):
+            yield self._adder.base
+            self._adder.base = copy.deepcopy(self._seed)
+

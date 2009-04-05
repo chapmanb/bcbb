@@ -6,7 +6,8 @@ import unittest
 import pprint
 
 from Bio import SeqIO
-from BCBio.GFF.GFFParser import GFFMapReduceFeatureAdder
+from BCBio.GFF.GFFParser import (GFFMapReduceFeatureAdder,
+        GFFAddingIterator)
 
 class MapReduceGFFTest(unittest.TestCase):
     """Tests GFF parsing using a map-reduce framework for parallelization.
@@ -191,6 +192,18 @@ class CElegansGFFTest(unittest.TestCase):
         assert len(final_rec.annotations.keys()) == 2
         assert final_rec.annotations['source'] == ['Expr_profile']
         assert final_rec.annotations['expr_profile'] == ['B0019.1']
+    
+    def t_gff3_iterator(self):
+        """Iterated parsing in GFF3 files with nested features.
+        """
+        gff_iterator = GFFAddingIterator()
+        feature_sizes = []
+        for rec_dict in gff_iterator.get_features(self._test_gff_file,
+                target_lines=70):
+            feature_sizes.append([len(r.features) for r in rec_dict.values()])
+        # should be one big set because we don't have a good place to split
+        assert len(feature_sizes) == 1
+        assert feature_sizes[0][0] == 59
 
 class SolidGFFTester(unittest.TestCase):
     """Test reading output from SOLiD analysis, as GFF3.
@@ -219,6 +232,17 @@ class SolidGFFTester(unittest.TestCase):
         assert test_feature.type == 'read'
         assert test_feature.qualifiers['g'] == ['T2203031313223113212']
         assert len(test_feature.qualifiers['q']) == 20
+    
+    def t_solid_iterator(self):
+        """Iterated parsing in a flat file without nested features.
+        """
+        gff_iterator = GFFAddingIterator()
+        feature_sizes = []
+        for rec_dict in gff_iterator.get_features(self._test_gff_file,
+                target_lines=5):
+            feature_sizes.append([len(r.features) for r in rec_dict.values()])
+        assert max([sum(s) for s in feature_sizes]) == 5
+        assert len(feature_sizes) == 23
 
 class GFF2Tester(unittest.TestCase):
     """Parse GFF2 and GTF files, building features.
@@ -241,8 +265,8 @@ class GFF2Tester(unittest.TestCase):
         test_feature = feature_adder.base['I'].features[0]
         qual_keys = test_feature.qualifiers.keys()
         qual_keys.sort()
-        assert qual_keys == ['exon_number', 'gene_id', 'gene_name', 'source',
-                'transcript_id', 'transcript_name']
+        assert qual_keys == ['Parent', 'exon_number', 'gene_id', 'gene_name',
+                'source', 'transcript_id', 'transcript_name']
         assert test_feature.qualifiers['source'] == ['snoRNA']
         assert test_feature.qualifiers['transcript_name'] == ['NR_001477.2']
         assert test_feature.qualifiers['exon_number'] == ['1']
@@ -261,17 +285,53 @@ class GFF2Tester(unittest.TestCase):
           ['Clone cTel33B; Genbank AC199162', 'Clone cTel33B; Genbank AC199162']
 
     def t_jgi_gff(self):
-        """Parsing of JGI formatted GFF2, examining features flattened.
+        """Parsing of JGI formatted GFF2, nested using transcriptId and proteinID
         """
         feature_adder = GFFMapReduceFeatureAdder(dict())
         feature_adder.add_features(self._jgi_file)
-        tfeature = feature_adder.base['chr_1'].features[1]
+        tfeature = feature_adder.base['chr_1'].features[0]
         assert tfeature.location.nofuzzy_start == 37060
-        assert tfeature.location.nofuzzy_end == 37174
-        assert tfeature.type == 'CDS'
-        assert tfeature.qualifiers['proteinId'] == ['873']
-        assert tfeature.qualifiers['phase'] == ['0']
+        assert tfeature.location.nofuzzy_end == 38216
+        assert tfeature.type == 'inferred_parent'
+        assert len(tfeature.sub_features) == 6
+        sfeature = tfeature.sub_features[1]
+        assert sfeature.qualifiers['proteinId'] == ['873']
+        assert sfeature.qualifiers['phase'] == ['0']
 
+    def t_ensembl_nested_features(self):
+        """Test nesting of features with GFF2 files using transcript_id.
+        """
+        gff_iterator = GFFAddingIterator()
+        rec_dict = gff_iterator.get_features(self._ensembl_file).next()
+        assert len(rec_dict["I"].features) == 2
+        t_feature = rec_dict["I"].features[0]
+        assert len(t_feature.sub_features) == 32
+
+    def t_wormbase_nested_features(self):
+        """Test nesting of features with GFF2 files using Transcript only.
+        """
+        gff_iterator = GFFAddingIterator()
+        rec_dict = gff_iterator.get_features(self._wormbase_file).next()
+        assert len(rec_dict) == 3
+        parent_features = [f for f in rec_dict["I"].features if f.type ==
+                "Transcript"]
+        assert len(parent_features) == 1
+        inferred_features = [f for f in rec_dict["I"].features if f.type ==
+                "inferred_parent"]
+        assert len(inferred_features) == 0
+        tfeature = parent_features[0]
+        assert tfeature.qualifiers["WormPep"][0] == "WP:CE40797"
+        assert len(tfeature.sub_features) == 46
+
+    def t_gff2_iteration(self):
+        """Test iterated features with GFF2 files, breaking without parents.
+        """
+        gff_iterator = GFFAddingIterator()
+        break_dicts = []
+        for rec_dict in gff_iterator.get_features(self._wormbase_file,
+                target_lines=15):
+            break_dicts.append(rec_dict)
+        assert len(break_dicts) == 3
 
 def run_tests(argv):
     test_suite = testing_suite()
@@ -285,6 +345,7 @@ def testing_suite():
     test_loader = unittest.TestLoader()
     test_loader.testMethodPrefix = 't_'
     tests = [CElegansGFFTest, MapReduceGFFTest, SolidGFFTester, GFF2Tester]
+    #tests = [GFF2Tester]
     for test in tests:
         cur_suite = test_loader.loadTestsFromTestCase(test)
         test_suite.addTest(cur_suite)
