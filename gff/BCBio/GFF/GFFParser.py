@@ -17,6 +17,7 @@ Disco using the same architecture.
 """
 import os
 import copy
+import re
 import collections
 
 from Bio.Seq import Seq
@@ -33,7 +34,6 @@ def _gff_line_map(line, params):
         - determines the type of attribute (flat, parent, child or annotation)
         - generates a dictionary of GFF info which can be serialized as JSON
     """
-    import re
     gff3_kw_pat = re.compile("\w+=")
     def _split_keyvals(keyval_str):
         """Split key-value pairs in a GFF2, GTF and GFF3 compatible way.
@@ -443,7 +443,7 @@ class GFFMapReduceFeatureAdder:
                 input=full_files,
                 params=disco.Params(limit_info=limit_info, jsonify=True,
                     filter_info=self._filter_info),
-                required_modules=["simplejson", "collections"],
+                required_modules=["simplejson", "collections", "re"],
                 map=self._map_fn, reduce=self._reduce_fn)
         processed = dict()
         for out_key, out_val in disco.result_iterator(results):
