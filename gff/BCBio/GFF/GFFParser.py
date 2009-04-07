@@ -116,7 +116,7 @@ def _gff_line_map(line, params):
                     should_do = False
                     break
         if should_do:
-            assert len(parts) == 9, line
+            assert len(parts) >= 9, line
             gff_parts = [(None if p == '.' else p) for p in parts]
             gff_info = dict()
             # collect all of the base qualifiers for this item
@@ -151,7 +151,7 @@ def _gff_line_map(line, params):
             # otherwise, associate these annotations with the full record
             else:
                 final_key = 'annotation'
-            return [(final_key, (simplejson.dumps(gff_info) if params.jsonify
+            return [(final_key, (json.dumps(gff_info) if params.jsonify
                 else gff_info))]
     return []
 
@@ -160,14 +160,14 @@ def _gff_line_reduce(map_results, out, params):
     """
     final_items = dict()
     for gff_type, final_val in map_results:
-        send_val = (simplejson.loads(final_val) if params.jsonify else 
+        send_val = (json.loads(final_val) if params.jsonify else 
                 final_val)
         try:
             final_items[gff_type].append(send_val)
         except KeyError:
             final_items[gff_type] = [send_val]
     for key, vals in final_items.items():
-        out.add(key, (simplejson.dumps(vals) if params.jsonify else vals))
+        out.add(key, (json.dumps(vals) if params.jsonify else vals))
 
 class GFFMapReduceFeatureAdder:
     """Move through a GFF file, adding new features to SeqRecord objects.
@@ -197,39 +197,6 @@ class GFFMapReduceFeatureAdder:
         self._filter_info = dict(gff_id = [0], gff_source_type = [1, 2],
                 gff_type = [2])
     
-    def available_limits(self, gff_file):
-        """Return dictionary information on possible limits for this file.
-
-        This returns a nested dictionary with the following structure:
-        
-        keys -- names of items to filter by
-        values -- dictionary with:
-            keys -- filter choice
-            value -- counts of that filter in this file
-
-        Not a parallelized map-reduce implementation.
-        """
-        gff_handle = open(gff_file)
-        cur_limits = dict()
-        for filter_key in self._filter_info.keys():
-            cur_limits[filter_key] = collections.defaultdict(int)
-        for line in gff_handle:
-            # ignore comment lines
-            if line.strip()[0] != "#":
-                parts = [p.strip() for p in line.split('\t')]
-                assert len(parts) == 9, line
-                for filter_key, cur_indexes in self._filter_info.items():
-                    cur_id = tuple([parts[i] for i in cur_indexes])
-                    cur_limits[filter_key][cur_id] += 1
-        # get rid of the default dicts
-        final_dict = dict()
-        for key, value_dict in cur_limits.items():
-            if len(key) == 1:
-                key = key[0]
-            final_dict[key] = dict(value_dict)
-        gff_handle.close()
-        return final_dict
-
     def add_features(self, gff_files, limit_info=None):
         """Add all features from a GFF file to our base dictionary.
         """
@@ -365,6 +332,15 @@ class GFFMapReduceFeatureAdder:
         new_feature.qualifiers = feature_dict['quals']
         return new_feature
 
+    def _get_local_params(self, limit_info=None):
+        class _LocalParams:
+            def __init__(self):
+                self.jsonify = False
+        params = _LocalParams()
+        params.limit_info = limit_info
+        params.filter_info = self._filter_info
+        return params
+
     def _std_process(self, gff_files, limit_info, target_lines):
         """Process GFF addition without any parallelization.
 
@@ -372,12 +348,7 @@ class GFFMapReduceFeatureAdder:
         which provides a number of lines to parse before returning results.
         This allows partial parsing of a file to prevent memory issues.
         """
-        class _LocalParams:
-            def __init__(self):
-                self.jsonify = False
-        params = _LocalParams()
-        params.limit_info = limit_info
-        params.filter_info = self._filter_info
+        params = self._get_local_params(limit_info)
         class _LocalOut:
             def __init__(self, smart_breaks=False):
                 self._items = dict()
@@ -436,7 +407,10 @@ class GFFMapReduceFeatureAdder:
         """Process GFF addition, using Disco to parallelize the process.
         """
         # make these imports local; only need them when using disco
-        import simplejson
+        try:
+            import json
+        except ImportError:
+            import simplejson as json
         import disco
         # absolute path names unless they are special disco files 
         full_files = [(os.path.abspath(f) if f.split(":")[0] != "disco" else f)
@@ -445,12 +419,97 @@ class GFFMapReduceFeatureAdder:
                 input=full_files,
                 params=disco.Params(limit_info=limit_info, jsonify=True,
                     filter_info=self._filter_info),
-                required_modules=["simplejson", "collections", "re"],
+                required_modules=["json", "collections", "re"],
                 map=self._map_fn, reduce=self._reduce_fn)
         processed = dict()
         for out_key, out_val in disco.result_iterator(results):
-            processed[out_key] = simplejson.loads(out_val)
+            processed[out_key] = json.loads(out_val)
         return processed
+
+class GFFExaminer:
+    """Provide high level details about a GFF file to refine parsing.
+
+    GFF is a spec and is provided by many different centers. Real life files
+    will present the same information in slightly different ways. Becoming
+    familiar with the file you are dealing with is the best way to extract the
+    information you need. This class provides high level summary details to
+    help in learning.
+    """
+    def __init__(self):
+        feature_adder = GFFMapReduceFeatureAdder()
+        self._filter_info = feature_adder._filter_info
+        self._local_params = feature_adder._get_local_params()
+    
+    def available_limits(self, gff_file):
+        """Return dictionary information on possible limits for this file.
+
+        This returns a nested dictionary with the following structure:
+        
+        keys -- names of items to filter by
+        values -- dictionary with:
+            keys -- filter choice
+            value -- counts of that filter in this file
+
+        Not a parallelized map-reduce implementation.
+        """
+        gff_handle = open(gff_file)
+        cur_limits = dict()
+        for filter_key in self._filter_info.keys():
+            cur_limits[filter_key] = collections.defaultdict(int)
+        for line in gff_handle:
+            # ignore comment lines
+            if line.strip()[0] != "#":
+                parts = [p.strip() for p in line.split('\t')]
+                assert len(parts) == 9, line
+                for filter_key, cur_indexes in self._filter_info.items():
+                    cur_id = tuple([parts[i] for i in cur_indexes])
+                    cur_limits[filter_key][cur_id] += 1
+        # get rid of the default dicts
+        final_dict = dict()
+        for key, value_dict in cur_limits.items():
+            if len(key) == 1:
+                key = key[0]
+            final_dict[key] = dict(value_dict)
+        gff_handle.close()
+        return final_dict
+
+    def parent_child_map(self, gff_file):
+        """Provide a mapping of parent to child relationships in the file.
+
+        Returns a dictionary of parent child relationships:
+
+        keys -- tuple of (source, type) for each parent
+        values -- tuple of (source, type) as children of that parent
+        
+        Not a parallelized map-reduce implementation.
+        """
+        gff_handle = open(gff_file)
+        # collect all of the parent and child types mapped to IDs
+        parent_sts = dict()
+        child_sts = collections.defaultdict(list)
+        for line in gff_handle:
+            line_type, line_info = _gff_line_map(line, self._local_params)[0]
+            if (line_type == 'parent' or (line_type == 'child' and
+                line_info['id'])):
+                parent_sts[line_info['id']] = (line_info['quals']['source'][0],
+                        line_info['type'])
+            if line_type == 'child':
+                for parent_id in line_info['quals']['Parent']:
+                    child_sts[parent_id].append((line_info['quals']['source'][0],
+                        line_info['type']))
+        #print parent_sts, child_sts
+        # generate a dictionary of the unique final type relationships
+        pc_map = collections.defaultdict(list)
+        for parent_id, parent_type in parent_sts.items():
+            for child_type in child_sts[parent_id]:
+                pc_map[parent_type].append(child_type)
+        pc_final_map = dict()
+        for ptype, ctypes in pc_map.items():
+            unique_ctypes = list(set(ctypes))
+            unique_ctypes.sort()
+            pc_final_map[ptype] = unique_ctypes
+        gff_handle.close()
+        return pc_final_map
 
 class GFFAddingIterator:
     """Iterate over regions of a GFF file, returning features from each region.

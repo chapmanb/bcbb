@@ -7,7 +7,7 @@ import pprint
 
 from Bio import SeqIO
 from BCBio.GFF.GFFParser import (GFFMapReduceFeatureAdder,
-        GFFAddingIterator)
+        GFFAddingIterator, GFFExaminer)
 
 class MapReduceGFFTest(unittest.TestCase):
     """Tests GFF parsing using a map-reduce framework for parallelization.
@@ -111,10 +111,18 @@ class CElegansGFFTest(unittest.TestCase):
     def t_possible_limits(self):
         """Calculate possible queries to limit a GFF file.
         """
-        feature_adder = self._get_feature_adder()
-        possible_limits = feature_adder.available_limits(self._test_gff_file)
+        gff_examiner = GFFExaminer()
+        possible_limits = gff_examiner.available_limits(self._test_gff_file)
         print
         pprint.pprint(possible_limits)
+
+    def t_parent_child(self):
+        """Summarize parent-child relationships in a GFF file.
+        """
+        gff_examiner = GFFExaminer()
+        pc_map = gff_examiner.parent_child_map(self._test_gff_file)
+        print
+        pprint.pprint(pc_map)
 
     def t_flat_features(self):
         """Check addition of flat non-nested features to multiple records.
