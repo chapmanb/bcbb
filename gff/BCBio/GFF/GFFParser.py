@@ -151,7 +151,7 @@ def _gff_line_map(line, params):
             # otherwise, associate these annotations with the full record
             else:
                 final_key = 'annotation'
-            return [(final_key, (json.dumps(gff_info) if params.jsonify
+            return [(final_key, (simplejson.dumps(gff_info) if params.jsonify
                 else gff_info))]
     return []
 
@@ -160,14 +160,14 @@ def _gff_line_reduce(map_results, out, params):
     """
     final_items = dict()
     for gff_type, final_val in map_results:
-        send_val = (json.loads(final_val) if params.jsonify else 
+        send_val = (simplejson.loads(final_val) if params.jsonify else 
                 final_val)
         try:
             final_items[gff_type].append(send_val)
         except KeyError:
             final_items[gff_type] = [send_val]
     for key, vals in final_items.items():
-        out.add(key, (json.dumps(vals) if params.jsonify else vals))
+        out.add(key, (simplejson.dumps(vals) if params.jsonify else vals))
 
 class GFFMapReduceFeatureAdder:
     """Move through a GFF file, adding new features to SeqRecord objects.
@@ -407,10 +407,7 @@ class GFFMapReduceFeatureAdder:
         """Process GFF addition, using Disco to parallelize the process.
         """
         # make these imports local; only need them when using disco
-        try:
-            import json
-        except ImportError:
-            import simplejson as json
+        import simplejson
         import disco
         # absolute path names unless they are special disco files 
         full_files = [(os.path.abspath(f) if f.split(":")[0] != "disco" else f)
@@ -419,11 +416,11 @@ class GFFMapReduceFeatureAdder:
                 input=full_files,
                 params=disco.Params(limit_info=limit_info, jsonify=True,
                     filter_info=self._filter_info),
-                required_modules=["json", "collections", "re"],
+                required_modules=["simplejson", "collections", "re"],
                 map=self._map_fn, reduce=self._reduce_fn)
         processed = dict()
         for out_key, out_val in disco.result_iterator(results):
-            processed[out_key] = json.loads(out_val)
+            processed[out_key] = simplejson.loads(out_val)
         return processed
 
 class GFFExaminer:
