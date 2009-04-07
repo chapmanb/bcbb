@@ -21,7 +21,7 @@ import sys
 from BioSQL import BioSeqDatabase
 from Bio import SeqIO
 
-from BCBio.GFF.GFFParser import GFFMapReduceFeatureAdder
+from BCBio.GFF.GFFParser import GFFAddingIterator
 
 def main(seq_file, gff_file):
     # -- To be customized
@@ -41,16 +41,15 @@ def main(seq_file, gff_file):
                   ('Coding_transcript', 'gene'),
                   ('Coding_transcript', 'mRNA'),
                   ('Coding_transcript', 'CDS')]
-    limit_info = dict(gff_types = rnai_types + gene_types)
+    limit_info = dict(gff_source_type = rnai_types + gene_types)
     # --
     print "Parsing FASTA sequence file..."
     with open(seq_file) as seq_handle:
         seq_dict = SeqIO.to_dict(SeqIO.parse(seq_handle, "fasta"))
 
     print "Parsing GFF data file..."
-    feature_adder = GFFMapReduceFeatureAdder(seq_dict)
-    feature_adder.add_features(gff_file, limit_info)
-    recs = feature_adder.base.values()
+    feature_adder = GFFAddingIterator(seq_dict)
+    recs = feature_adder.get_all_features(gff_file, limit_info)
 
     print "Writing to BioSQL database..."
     server = BioSeqDatabase.open_database(driver="MySQLdb", user=user,

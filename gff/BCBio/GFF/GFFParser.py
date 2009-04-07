@@ -194,7 +194,8 @@ class GFFMapReduceFeatureAdder:
         self._map_fn = _gff_line_map
         self._reduce_fn = _gff_line_reduce
         # details on what we can filter items with
-        self._filter_info = dict(gff_id = [0], gff_types = [1, 2])
+        self._filter_info = dict(gff_id = [0], gff_source_type = [1, 2],
+                gff_type = [2])
     
     def available_limits(self, gff_file):
         """Return dictionary information on possible limits for this file.
@@ -244,7 +245,8 @@ class GFFMapReduceFeatureAdder:
         final_limit_info = {}
         if limit_info:
             for key, values in limit_info.items():
-                final_limit_info[key] = [tuple(v) for v in values]
+                final_limit_info[key] = [(v,) if isinstance(v, str) 
+                        else tuple(v) for v in values]
         if self._disco_host:
             assert target_lines is None, "Cannot split parallelized jobs"
             results = self._disco_process(gff_files, final_limit_info)
@@ -483,3 +485,7 @@ class GFFAddingIterator:
             yield self._adder.base
             self._adder.base = copy.deepcopy(self._seed)
 
+    def get_all_features(self, gff_files, limit_info=None):
+        """Retrieve all features from a GFF file, ignoring iterators.
+        """
+        return self.get_features(gff_files, limit_info).next()

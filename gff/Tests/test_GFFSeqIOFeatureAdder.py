@@ -22,17 +22,13 @@ class MapReduceGFFTest(unittest.TestCase):
         """General map reduce framework without parallelization.
         """
         cds_limit_info = dict(
-                gff_types = [('Non_coding_transcript', 'gene'),
-                             ('Coding_transcript', 'gene'),
-                             ('Coding_transcript', 'mRNA'),
-                             ('Coding_transcript', 'CDS')],
+                gff_type = ["gene", "mRNA", "CDS"],
                 gff_id = ['I']
                 )
         feature_adder = GFFMapReduceFeatureAdder(dict(), None)
         feature_adder.add_features(self._test_gff_file, cds_limit_info)
         final_rec = feature_adder.base['I']
-        # second gene feature is multi-parent
-        assert len(final_rec.features) == 2 # two gene feature
+        assert len(final_rec.features) == 32
 
     def t_disco_map_reduce(self):
         """Map reduce framework parallelized using disco.
@@ -45,7 +41,7 @@ class MapReduceGFFTest(unittest.TestCase):
             print "Skipping -- disco and json not found"
             return
         cds_limit_info = dict(
-                gff_types = [('Non_coding_transcript', 'gene'),
+                gff_source_type = [('Non_coding_transcript', 'gene'),
                              ('Coding_transcript', 'gene'),
                              ('Coding_transcript', 'mRNA'),
                              ('Coding_transcript', 'CDS')],
@@ -101,7 +97,7 @@ class CElegansGFFTest(unittest.TestCase):
                       ('Coding_transcript', 'gene'),
                       ('Coding_transcript', 'mRNA'),
                       ('Coding_transcript', 'CDS')]
-        limit_info = dict(gff_types = rnai_types + gene_types)
+        limit_info = dict(gff_source_type = rnai_types + gene_types)
         feature_adder.add_features(gff_file, limit_info)
 
     def _get_feature_adder(self):
@@ -125,7 +121,7 @@ class CElegansGFFTest(unittest.TestCase):
         """
         feature_adder = self._get_feature_adder()
         pcr_limit_info = dict(
-            gff_types = [('Orfeome', 'PCR_product'),
+            gff_source_type = [('Orfeome', 'PCR_product'),
                          ('GenePair_STS', 'PCR_product'),
                          ('Promoterome', 'PCR_product')]
             )
@@ -138,7 +134,7 @@ class CElegansGFFTest(unittest.TestCase):
         """
         feature_adder = self._get_feature_adder()
         cds_limit_info = dict(
-                gff_types = [('Coding_transcript', 'gene'),
+                gff_source_type = [('Coding_transcript', 'gene'),
                              ('Coding_transcript', 'mRNA'),
                              ('Coding_transcript', 'CDS')],
                 gff_id = ['I']
@@ -156,7 +152,7 @@ class CElegansGFFTest(unittest.TestCase):
         """
         feature_adder = self._get_feature_adder()
         cds_limit_info = dict(
-                gff_types = [('Coding_transcript', 'gene'),
+                gff_source_type = [('Coding_transcript', 'gene'),
                              ('Coding_transcript', 'mRNA'),
                              ('Coding_transcript', 'CDS')],
                 gff_id = ['I']
@@ -257,7 +253,7 @@ class GFF2Tester(unittest.TestCase):
         """Parse out basic attributes of GFF2 from Ensembl GTF.
         """
         limit_info = dict(
-                gff_types = [('snoRNA', 'exon')]
+                gff_source_type = [('snoRNA', 'exon')]
                 )
         feature_adder = GFFMapReduceFeatureAdder(dict())
         feature_adder.add_features(self._ensembl_file, limit_info)
@@ -275,7 +271,7 @@ class GFF2Tester(unittest.TestCase):
         """Parsing of tricky semi-colon positions in WormBase GFF2.
         """
         limit_info = dict(
-                gff_types = [('Genomic_canonical', 'region')]
+                gff_source_type = [('Genomic_canonical', 'region')]
                 )
         feature_adder = GFFMapReduceFeatureAdder(dict())
         feature_adder.add_features(self._wormbase_file, limit_info)
@@ -302,7 +298,7 @@ class GFF2Tester(unittest.TestCase):
         """Test nesting of features with GFF2 files using transcript_id.
         """
         gff_iterator = GFFAddingIterator()
-        rec_dict = gff_iterator.get_features(self._ensembl_file).next()
+        rec_dict = gff_iterator.get_all_features(self._ensembl_file)
         assert len(rec_dict["I"].features) == 2
         t_feature = rec_dict["I"].features[0]
         assert len(t_feature.sub_features) == 32
@@ -311,7 +307,7 @@ class GFF2Tester(unittest.TestCase):
         """Test nesting of features with GFF2 files using Transcript only.
         """
         gff_iterator = GFFAddingIterator()
-        rec_dict = gff_iterator.get_features(self._wormbase_file).next()
+        rec_dict = gff_iterator.get_all_features(self._wormbase_file)
         assert len(rec_dict) == 3
         parent_features = [f for f in rec_dict["I"].features if f.type ==
                 "Transcript"]
