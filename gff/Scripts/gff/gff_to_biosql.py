@@ -49,7 +49,8 @@ def main(seq_file, gff_file):
 
     print "Parsing GFF data file..."
     feature_adder = GFFAddingIterator(seq_dict)
-    recs = feature_adder.get_all_features(gff_file, limit_info)
+    rec_dict = feature_adder.get_all_features(gff_file, limit_info)
+    recs = rec_dict.values()
 
     print "Writing to BioSQL database..."
     server = BioSeqDatabase.open_database(driver="MySQLdb", user=user,
