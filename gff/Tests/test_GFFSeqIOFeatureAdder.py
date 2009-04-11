@@ -208,6 +208,26 @@ class CElegansGFFTest(unittest.TestCase):
         # should be one big set because we don't have a good place to split
         assert len(feature_sizes) == 1
         assert feature_sizes[0][0] == 59
+    
+    def t_gff3_iterator_limit(self):
+        """Iterated interface using a limit query on GFF3 files.
+        """
+        gff_iterator = GFFAddingIterator()
+        cds_limit_info = dict(
+                gff_source_type = [('Coding_transcript', 'gene'),
+                             ('Coding_transcript', 'mRNA'),
+                             ('Coding_transcript', 'CDS')],
+                gff_id = ['I']
+                )
+        it_recs = []
+        for rec_dict in gff_iterator.get_features(self._test_gff_file,
+                limit_info=cds_limit_info):
+            it_recs.append(rec_dict)
+        assert len(it_recs) == 1
+        tfeature = it_recs[0]["I"].features[0].sub_features[0]
+        for sub_test in tfeature.sub_features:
+            assert sub_test.type == "CDS", sub_test
+
 
 class SolidGFFTester(unittest.TestCase):
     """Test reading output from SOLiD analysis, as GFF3.

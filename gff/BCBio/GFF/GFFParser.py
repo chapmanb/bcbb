@@ -172,7 +172,8 @@ def _gff_line_reduce(map_results, out, params):
 class GFFMapReduceFeatureAdder:
     """Move through a GFF file, adding new features to SeqRecord objects.
     """
-    def __init__(self, base_dict=None, disco_host=None, create_missing=True):
+    def __init__(self, base_dict=None, line_adjust_fn=None,
+            disco_host=None, create_missing=True):
         """Initialize with dictionary of records to add to.
 
         This class is instantiated with a dictionary where the keys are IDs
@@ -193,6 +194,7 @@ class GFFMapReduceFeatureAdder:
         self._disco_host = disco_host
         self._map_fn = _gff_line_map
         self._reduce_fn = _gff_line_reduce
+        self._line_adjust_fn = line_adjust_fn
         # details on what we can filter items with
         self._filter_info = dict(gff_id = [0], gff_source_type = [1, 2],
                 gff_type = [2])
@@ -216,6 +218,8 @@ class GFFMapReduceFeatureAdder:
                         else tuple(v) for v in values]
         if self._disco_host:
             assert target_lines is None, "Cannot split parallelized jobs"
+            assert self._line_adjust_fn is None, \
+                    "Cannot adjust lines on parallelized jobs"
             results = self._disco_process(gff_files, final_limit_info)
             self._results_to_features(results)
         else:
@@ -394,6 +398,9 @@ class GFFMapReduceFeatureAdder:
             in_handle = open(gff_file)
             for line in in_handle:
                 results = self._map_fn(line, params)
+                if self._line_adjust_fn and results:
+                    results = [(results[0][0],
+                        self._line_adjust_fn(results[0][1]))]
                 self._reduce_fn(results, out_info, params)
                 if (target_lines and out_info.num_lines >= target_lines and
                         out_info.can_break):
@@ -511,7 +518,8 @@ class GFFExaminer:
 class GFFAddingIterator:
     """Iterate over regions of a GFF file, returning features from each region.
     """
-    def __init__(self, seed_dict=None, feature_adder=None):
+    def __init__(self, seed_dict=None, line_adjust_fn=None,
+            feature_adder=None):
         """Initialize with a dictionary of SeqRecords to serve as a seed.
 
         seed_dict -- dictionary which will be used as the base for every
@@ -523,7 +531,8 @@ class GFFAddingIterator:
             seed_dict = dict()
         self._seed = seed_dict
         if feature_adder is None:
-            feature_adder = GFFMapReduceFeatureAdder()
+            feature_adder = GFFMapReduceFeatureAdder(
+                    line_adjust_fn=line_adjust_fn)
         self._adder = feature_adder
 
     def get_features(self, gff_files, limit_info=None, target_lines=None):
