@@ -47,7 +47,8 @@ class MapReduceGFFTest(unittest.TestCase):
                              ('Coding_transcript', 'CDS')],
                 gff_id = ['I']
                 )
-        feature_adder = GFFMapReduceFeatureAdder(dict(), self._disco_host)
+        feature_adder = GFFMapReduceFeatureAdder(dict(),
+                disco_host=self._disco_host)
         feature_adder.add_features(self._test_gff_file, cds_limit_info)
         final_rec = feature_adder.base['I']
         # second gene feature is multi-parent
@@ -273,7 +274,7 @@ class SolidGFFTester(unittest.TestCase):
                 target_lines=5):
             feature_sizes.append([len(r.features) for r in rec_dict.values()])
         assert max([sum(s) for s in feature_sizes]) == 5
-        assert len(feature_sizes) == 23
+        assert len(feature_sizes) == 26, len(feature_sizes)
 
     def t_line_adjust(self):
         """Adjust lines during parsing to fix potential GFF problems.
@@ -381,6 +382,35 @@ class GFF2Tester(unittest.TestCase):
             break_dicts.append(rec_dict)
         assert len(break_dicts) == 3
 
+class DirectivesTest(unittest.TestCase):
+    """Tests for parsing directives and other meta-data.
+    """
+    def setUp(self):
+        self._test_dir = os.path.join(os.getcwd(), "GFF")
+        self._gff_file = os.path.join(self._test_dir, "hybrid1.gff3")
+
+    def t_basic_directives(self):
+        """Parse out top level meta-data supplied in a GFF3 file.
+        """
+        iterator = GFFAddingIterator()
+        recs = iterator.get_all_features(self._gff_file)
+        anns = recs['chr17'].annotations
+        assert anns['gff-version'] == ['3']
+        assert anns['attribute-ontology'] == ['baz']
+        assert anns['feature-ontology'] == ['bar']
+        assert anns['source-ontology'] == ['boo']
+        assert anns['sequence-region'] == [('foo', '1', '100'), ('chr17',
+            '62467934', '62469545')]
+
+    def t_fasta_directive(self):
+        """Parse FASTA sequence information contained in a GFF3 file.
+        """
+        iterator = GFFAddingIterator()
+        recs = iterator.get_all_features(self._gff_file)
+        assert len(recs) == 1
+        test_rec = recs['chr17']
+        assert str(test_rec.seq) == "GATTACAGATTACA"
+
 def run_tests(argv):
     test_suite = testing_suite()
     runner = unittest.TextTestRunner(sys.stdout, verbosity = 2)
@@ -392,8 +422,8 @@ def testing_suite():
     test_suite = unittest.TestSuite()
     test_loader = unittest.TestLoader()
     test_loader.testMethodPrefix = 't_'
-    tests = [CElegansGFFTest, MapReduceGFFTest, SolidGFFTester, GFF2Tester]
-    #tests = [GFF2Tester]
+    tests = [CElegansGFFTest, MapReduceGFFTest, SolidGFFTester, GFF2Tester,
+             DirectivesTest]
     for test in tests:
         cur_suite = test_loader.loadTestsFromTestCase(test)
         test_suite.addTest(cur_suite)

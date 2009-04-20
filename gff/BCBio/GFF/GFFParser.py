@@ -23,6 +23,7 @@ import collections
 from Bio.Seq import Seq, UnknownSeq
 from Bio.SeqRecord import SeqRecord
 from Bio.SeqFeature import SeqFeature, FeatureLocation
+from Bio import SeqIO
 
 def _gff_line_map(line, params):
     """Map part of Map-Reduce; parses a line of GFF into a dictionary.
@@ -105,7 +106,9 @@ def _gff_line_map(line, params):
 
     strand_map = {'+' : 1, '-' : -1, '?' : None, None: None}
     line = line.strip()
-    if line[0] != "#":
+    if line[:2] == "##":
+        return [('directive', line[2:])]
+    elif line[0] != "#":
         parts = line.split('\t')
         should_do = True
         if params.limit_info:
@@ -160,8 +163,8 @@ def _gff_line_reduce(map_results, out, params):
     """
     final_items = dict()
     for gff_type, final_val in map_results:
-        send_val = (simplejson.loads(final_val) if params.jsonify else 
-                final_val)
+        send_val = (simplejson.loads(final_val) if (params.jsonify and 
+                    gff_type not in ['directive']) else final_val)
         try:
             final_items[gff_type].append(send_val)
         except KeyError:
@@ -235,6 +238,33 @@ class GFFMapReduceFeatureAdder:
         [self._add_toplevel_feature(f) for f in results.get('feature', [])]
         self._add_parent_child_features(results.get('parent', []),
                 results.get('child', []))
+        self._add_seqs(results.get('fasta', []))
+        self._add_directives(results.get('directive', []))
+
+    def _add_directives(self, directives):
+        """Handle any directives or meta-data in the GFF file.
+
+        Relevant items are added as annotation meta-data to each record.
+        """
+        dir_keyvals = collections.defaultdict(list)
+        for directive in directives:
+            parts = directive.split()
+            if len(parts) > 1:
+                key = parts[0]
+                val = (parts[1] if len(parts) == 2 else tuple(parts[1:]))
+                dir_keyvals[key].append(val)
+        for key, vals in dir_keyvals.items():
+            for rec in self.base.values():
+                self._add_ann_to_rec(rec, key, vals)
+
+    def _add_seqs(self, recs):
+        """Add sequence information contained in the GFF3 to records.
+        """
+        for rec in recs:
+            if self.base.has_key(rec.id):
+                self.base[rec.id].seq = rec.seq
+            else:
+                self.base[rec.id] = rec
     
     def _add_parent_child_features(self, parents, children):
         """Add nested features with parent child relationships.
@@ -286,13 +316,18 @@ class GFFMapReduceFeatureAdder:
         for ann in anns:
             rec = self._get_rec(ann)
             for key, vals in ann['quals'].items():
-                if rec.annotations.has_key(key):
-                    try:
-                        rec.annotations[key].extend(vals)
-                    except AttributeError:
-                        rec.annotations[key] = [rec.annotations[key]] + vals
-                else:
-                    rec.annotations[key] = vals
+                self._add_ann_to_rec(rec, key, vals)
+
+    def _add_ann_to_rec(self, rec, key, vals):
+        """Add a key/value annotation to the given SeqRecord.
+        """
+        if rec.annotations.has_key(key):
+            try:
+                rec.annotations[key].extend(vals)
+            except AttributeError:
+                rec.annotations[key] = [rec.annotations[key]] + vals
+        else:
+            rec.annotations[key] = vals
 
     def _get_rec(self, base_dict):
         """Retrieve a record to add features to.
@@ -370,7 +405,10 @@ class GFFMapReduceFeatureAdder:
                 if self._smart_breaks:
                     # if we are not GFF2 we expect parents and break
                     # based on not having missing ones
-                    if not vals[0].get("is_gff2", False):
+                    if key == 'directive':
+                        if vals[0] == '#':
+                            self.can_break = True
+                    elif not vals[0].get("is_gff2", False):
                         self._update_missing_parents(key, vals)
                         self.can_break = (len(self._missing_keys) == 0)
                     # otherwise, break more simply when we are done with
@@ -402,19 +440,36 @@ class GFFMapReduceFeatureAdder:
         out_info = _LocalOut(target_lines is not None)
         for gff_file in gff_files:
             in_handle = open(gff_file)
-            for line in in_handle:
+            found_seqs = False
+            while 1:
+                line = in_handle.readline()
+                if not line:
+                    break
                 results = self._map_fn(line, params)
                 if self._line_adjust_fn and results:
-                    results = [(results[0][0],
-                        self._line_adjust_fn(results[0][1]))]
+                    if results[0][0] not in ['directive']:
+                        results = [(results[0][0],
+                            self._line_adjust_fn(results[0][1]))]
                 self._reduce_fn(results, out_info, params)
                 if (target_lines and out_info.num_lines >= target_lines and
                         out_info.can_break):
                     yield out_info.get_results()
                     out_info = _LocalOut(True)
+                if (results and results[0][0] == 'directive' and 
+                        results[0][1] == 'FASTA'):
+                    found_seqs = True
+                    break
+            if found_seqs:
+                fasta_recs = self._parse_fasta(in_handle)
+                out_info.add('fasta', fasta_recs)
             in_handle.close()
         if out_info.has_items():
             yield out_info.get_results()
+
+    def _parse_fasta(self, in_handle):
+        """Parse FASTA sequence information contained in the GFF3 file.
+        """
+        return list(SeqIO.parse(in_handle, "fasta"))
 
     def _disco_process(self, gff_files, limit_info):
         """Process GFF addition, using Disco to parallelize the process.
