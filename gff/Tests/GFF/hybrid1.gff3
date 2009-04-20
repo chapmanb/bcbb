@@ -1,0 +1,17 @@
+##gff-version 3
+##sequence-region foo 1 100
+##feature-ontology bar
+##attribute-ontology baz
+##source-ontology boo
+##sequence-region chr17 62467934 62469545 
+chr17	UCSC	mRNA	62467934	62469545	.	-	.	ID=A00469;Dbxref=AFFX-U133:205840_x_at,Locuslink:2688,Genbank-mRNA:A00469,Swissprot:P01241,PFAM:PF00103,AFFX-U95:1332_f_at,Swissprot:SOMA_HUMAN;Note=growth%20hormone%201;Alias=GH1
+chr17	UCSC	CDS	62468039	62468236	.	-	1	Parent=A00469
+chr17	UCSC	CDS	62468490	62468654	.	-	2	Parent=A00469
+chr17	UCSC	CDS	62468747	62468866	.	-	1	Parent=A00469
+chr17	UCSC	CDS	62469076	62469236	.	-	1	Parent=A00469
+chr17	UCSC	CDS	62469497	62469506	.	-	0	Parent=A00469
+###
+##FASTA
+>A00469
+GATTACA
+GATTACA

@@ -187,6 +187,14 @@ class CElegansGFFTest(unittest.TestCase):
         except KeyError:
             pass
 
+    def t_unknown_seq(self):
+        """Prepare unknown base sequences with the correct length.
+        """
+        gff_iterator = GFFAddingIterator()
+        rec_dict = gff_iterator.get_all_features(self._test_gff_file)
+        assert len(rec_dict["I"].seq) == 12766937
+        assert len(rec_dict["X"].seq) == 17718531
+
     def t_gff_annotations(self):
         """Check GFF annotations placed on an entire sequence.
         """
@@ -228,7 +236,6 @@ class CElegansGFFTest(unittest.TestCase):
         for sub_test in tfeature.sub_features:
             assert sub_test.type == "CDS", sub_test
 
-
 class SolidGFFTester(unittest.TestCase):
     """Test reading output from SOLiD analysis, as GFF3.
 
@@ -267,6 +274,23 @@ class SolidGFFTester(unittest.TestCase):
             feature_sizes.append([len(r.features) for r in rec_dict.values()])
         assert max([sum(s) for s in feature_sizes]) == 5
         assert len(feature_sizes) == 23
+
+    def t_line_adjust(self):
+        """Adjust lines during parsing to fix potential GFF problems.
+        """
+        def adjust_fn(results):
+            rec_index = results['quals']['i'][0]
+            read_name = results['rec_id']
+            results['quals']['read_name'] = [read_name]
+            results['rec_id'] = rec_index
+            return results
+        gff_iterator = GFFAddingIterator(line_adjust_fn=adjust_fn)
+        rec_dict = gff_iterator.get_all_features(self._test_gff_file)
+        assert len(rec_dict) == 1
+        assert rec_dict.keys() == ['1']
+        assert len(rec_dict.values()[0].features) == 112
+        assert rec_dict.values()[0].features[0].qualifiers['read_name'] == \
+                ['3_336_815_F3']
 
 class GFF2Tester(unittest.TestCase):
     """Parse GFF2 and GTF files, building features.

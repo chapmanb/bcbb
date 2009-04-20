@@ -20,7 +20,7 @@ import copy
 import re
 import collections
 
-from Bio.Seq import Seq
+from Bio.Seq import Seq, UnknownSeq
 from Bio.SeqRecord import SeqRecord
 from Bio.SeqFeature import SeqFeature, FeatureLocation
 
@@ -257,7 +257,8 @@ class GFFMapReduceFeatureAdder:
             # one child, do not nest it
             if len(cur_children) == 1:
                 rec_id, child = cur_children[0]
-                rec = self._get_rec(dict(rec_id=rec_id))
+                loc = (child.location.nofuzzy_start, child.location.nofuzzy_end)
+                rec = self._get_rec(dict(rec_id=rec_id, location=loc))
                 rec.features.append(child)
                 del children[parent_id]
             else:
@@ -296,15 +297,20 @@ class GFFMapReduceFeatureAdder:
     def _get_rec(self, base_dict):
         """Retrieve a record to add features to.
         """
+        max_loc = base_dict.get('location', (0, 1))[1]
         try:
-            return self.base[base_dict['rec_id']]
+            cur_rec = self.base[base_dict['rec_id']]
+            # update generated unknown sequences with the expected maximum length
+            if isinstance(cur_rec.seq, UnknownSeq):
+                cur_rec.seq._length = max([max_loc, cur_rec.seq._length])
+            return cur_rec
         except KeyError:
-            if not self._create_missing:
-                raise
-            else:
-                new_rec = SeqRecord(Seq(""), base_dict['rec_id'])
+            if self._create_missing:
+                new_rec = SeqRecord(UnknownSeq(max_loc), base_dict['rec_id'])
                 self.base[base_dict['rec_id']] = new_rec
                 return new_rec
+            else:
+                raise
 
     def _add_missing_parent(self, parent_id, cur_children):
         """Add a new feature that is missing from the GFF file.
