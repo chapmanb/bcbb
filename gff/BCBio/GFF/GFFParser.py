@@ -70,9 +70,14 @@ def _gff_line_map(line, params):
             pieces = [p.strip().split(" ") for p in parts]
             key_vals = [(p[0], " ".join(p[1:])) for p in pieces]
         for key, val in key_vals:
-            val = (val[1:-1] if val[0] == '"' and val[-1] == '"' else val)
+            val = (val[1:-1] if (len(val) > 0 and val[0] == '"' 
+                                 and val[-1] == '"') else val)
             if val:
                 quals[key].extend(val.split(','))
+            # if we don't have a value, make this a key=True/False style
+            # attribute
+            else:
+                quals[key].append('true')
         return quals, is_gff2
 
     def _nest_gff2_features(gff_parts):

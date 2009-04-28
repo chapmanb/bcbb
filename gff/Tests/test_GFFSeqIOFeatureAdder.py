@@ -54,14 +54,16 @@ class MapReduceGFFTest(unittest.TestCase):
         # second gene feature is multi-parent
         assert len(final_rec.features) == 2 # two gene feature
 
-class CElegansGFFTest(unittest.TestCase):
-    """Real life test case using C elegans chromosome and GFF data
+class GFF3Test(unittest.TestCase):
+    """Real live GFF3 tests from WormBase and NCBI.
 
     Uses GFF3 data from:
 
     ftp://ftp.wormbase.org/pub/wormbase/genomes/c_elegans/
     genome_feature_tables/GFF3/
     ftp://ftp.wormbase.org/pub/wormbase/genomes/c_elegans/sequences/dna/
+
+    and from NCBI.
     """
     def setUp(self):
         self._test_dir = os.path.join(os.getcwd(), "GFF")
@@ -73,6 +75,8 @@ class CElegansGFFTest(unittest.TestCase):
                 "c_elegans_WS199_ann_gff.txt")
         self._full_dir = "/usr/home/chapmanb/mgh/ruvkun_rnai/wormbase/" + \
                 "data_files_WS198"
+        self._test_ncbi = os.path.join(self._test_dir,
+                "ncbi_gff3.txt")
 
     def not_t_full_celegans(self):
         """Test the full C elegans chromosome and GFF files.
@@ -236,6 +240,15 @@ class CElegansGFFTest(unittest.TestCase):
         tfeature = it_recs[0]["I"].features[0].sub_features[0]
         for sub_test in tfeature.sub_features:
             assert sub_test.type == "CDS", sub_test
+
+    def t_gff3_noval_attrib(self):
+        """Parse GFF3 file from NCBI with a key/value pair with no value.
+        """
+        gff_iterator = GFFAddingIterator()
+        recs = gff_iterator.get_all_features(self._test_ncbi)
+        assert len(recs) == 1
+        t_feature = recs.values()[0].features[0]
+        assert t_feature.qualifiers["pseudo"] == ["true"]
 
 class SolidGFFTester(unittest.TestCase):
     """Test reading output from SOLiD analysis, as GFF3.
@@ -422,7 +435,7 @@ def testing_suite():
     test_suite = unittest.TestSuite()
     test_loader = unittest.TestLoader()
     test_loader.testMethodPrefix = 't_'
-    tests = [CElegansGFFTest, MapReduceGFFTest, SolidGFFTester, GFF2Tester,
+    tests = [GFF3Test, MapReduceGFFTest, SolidGFFTester, GFF2Tester,
              DirectivesTest]
     for test in tests:
         cur_suite = test_loader.loadTestsFromTestCase(test)
