@@ -177,6 +177,28 @@ def _gff_line_reduce(map_results, out, params):
     for key, vals in final_items.items():
         out.add(key, (simplejson.dumps(vals) if params.jsonify else vals))
 
+class _MultiIDRemapper:
+    """Provide an ID remapping for cases where a parent has a non-unique ID.
+
+    Real life GFF3 cases have non-unique ID attributes, which we fix here
+    by using the unique sequence region to assign children to the right
+    parent.
+    """
+    def __init__(self, base_id, all_parents):
+        self._base_id = base_id
+        self._parents = all_parents
+
+    def remap_id(self, feature_dict):
+        rstart, rend = feature_dict['location']
+        for index, parent in enumerate(self._parents):
+            pstart, pend = parent['location']
+            if rstart >= pstart and rend <= pend:
+                return ("%s_%s" % (self._base_id, index + 1) if index > 0
+                        else self._base_id)
+        raise ValueError("Did not find remapped ID location: %s, %s, %s" % (
+                self._base_id, [p['location'] for p in self._parents],
+                feature_dict['location']))
+
 class GFFMapReduceFeatureAdder:
     """Move through a GFF file, adding new features to SeqRecord objects.
     """
@@ -274,15 +296,24 @@ class GFFMapReduceFeatureAdder:
     def _add_parent_child_features(self, parents, children):
         """Add nested features with parent child relationships.
         """
+        multi_remap = self._identify_dup_ids(parents)
+        # add children features
         children_prep = collections.defaultdict(list)
         for child_dict in children:
             child_feature = self._get_feature(child_dict)
-            for parent in child_feature.qualifiers['Parent']:
-                children_prep[parent].append((child_dict['rec_id'],
+            for pindex, pid in enumerate(child_feature.qualifiers['Parent']):
+                if multi_remap.has_key(pid):
+                    pid = multi_remap[pid].remap_id(child_dict)
+                    child_feature.qualifiers['Parent'][pindex] = pid
+                children_prep[pid].append((child_dict['rec_id'],
                     child_feature))
         children = dict(children_prep)
         # add children to parents that exist
         for cur_parent_dict in parents:
+            cur_id = cur_parent_dict['id']
+            if multi_remap.has_key(cur_id):
+                cur_parent_dict['id'] = multi_remap[cur_id].remap_id(
+                        cur_parent_dict)
             cur_parent = self._add_toplevel_feature(cur_parent_dict)
             cur_parent, children = self._add_children_to_parent(cur_parent,
                     children)
@@ -300,6 +331,23 @@ class GFFMapReduceFeatureAdder:
                 cur_parent = self._add_missing_parent(parent_id, cur_children)
                 cur_parent, children = self._add_children_to_parent(cur_parent,
                         children)
+
+    def _identify_dup_ids(self, parents):
+        """Identify duplicated ID attributes in potential nested parents.
+
+        According to the GFF3 spec ID attributes are supposed to be unique
+        for a file, but this is not always true in practice. This looks
+        for duplicates, and provides unique IDs sorted by locations.
+        """
+        multi_ids = collections.defaultdict(list)
+        for parent in parents:
+            multi_ids[parent['id']].append(parent)
+        multi_ids = [(mid, parents) for (mid, parents) in multi_ids.items()
+                if len(parents) > 1]
+        multi_remap = dict()
+        for mid, parents in multi_ids:
+            multi_remap[mid] = _MultiIDRemapper(mid, parents)
+        return multi_remap
 
     def _add_children_to_parent(self, cur_parent, children):
         """Recursively add children to parent features.

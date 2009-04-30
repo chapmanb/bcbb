@@ -250,6 +250,18 @@ class GFF3Test(unittest.TestCase):
         t_feature = recs.values()[0].features[0]
         assert t_feature.qualifiers["pseudo"] == ["true"]
 
+    def t_gff3_multiple_ids(self):
+        """Deal with GFF3 with non-unique ID attributes, using NCBI example.
+        """
+        gff_iterator = GFFAddingIterator()
+        recs = gff_iterator.get_all_features(self._test_ncbi)
+        assert len(recs) == 1
+        t_features = recs.values()[0].features[1:]
+        # 4 feature sets, same ID, different positions, different attributes
+        assert len(t_features) == 4
+        for f in t_features:
+            assert len(f.sub_features) == 3
+
 class SolidGFFTester(unittest.TestCase):
     """Test reading output from SOLiD analysis, as GFF3.
 
