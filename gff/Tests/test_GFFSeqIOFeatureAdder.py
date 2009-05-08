@@ -4,10 +4,13 @@ import sys
 import os
 import unittest
 import pprint
+import StringIO
+import tempfile
 
 from Bio import SeqIO
 from BCBio.GFF.GFFParser import (GFFMapReduceFeatureAdder,
         GFFAddingIterator, GFFExaminer)
+from BCBio.GFF.GFFOutput import GFF3Writer
 
 class MapReduceGFFTest(unittest.TestCase):
     """Tests GFF parsing using a map-reduce framework for parallelization.
@@ -436,6 +439,42 @@ class DirectivesTest(unittest.TestCase):
         test_rec = recs['chr17']
         assert str(test_rec.seq) == "GATTACAGATTACA"
 
+class OutputTest(unittest.TestCase):
+    """Tests to write SeqFeatures to GFF3 output format.
+    """
+    def setUp(self):
+        self._test_dir = os.path.join(os.getcwd(), "GFF")
+        self._test_seq_file = os.path.join(self._test_dir,
+                "c_elegans_WS199_dna_shortened.fa")
+        self._test_gff_file = os.path.join(self._test_dir,
+                "c_elegans_WS199_shortened_gff.txt")
+        self._test_gff_ann_file = os.path.join(self._test_dir,
+                "c_elegans_WS199_ann_gff.txt")
+
+    def t_gff3_to_gff3(self):
+        """Read in and write out GFF3 without any loss of information.
+        """
+        gff_iterator = GFFAddingIterator()
+        recs = gff_iterator.get_all_features(self._test_gff_file)
+        out_handle = StringIO.StringIO()
+        writer = GFF3Writer()
+        writer.write(recs.values(), out_handle)
+        wrote_handle = StringIO.StringIO(out_handle.getvalue())
+        (_, tmp_file) = tempfile.mkstemp(dir=self._test_dir)
+        try:
+            tmp_handle = open(tmp_file, "w")
+            tmp_handle.write(wrote_handle.read())
+            tmp_handle.close()
+            recs_two = gff_iterator.get_all_features(tmp_file)
+        finally:
+            os.remove(tmp_file)
+
+        orig_rec = recs.values()[0]
+        re_rec = recs.values()[0]
+        assert len(orig_rec.features) == len(re_rec.features)
+        for i, orig_f in enumerate(orig_rec.features):
+            assert str(orig_f) == str(re_rec.features[i])
+
 def run_tests(argv):
     test_suite = testing_suite()
     runner = unittest.TextTestRunner(sys.stdout, verbosity = 2)
@@ -448,7 +487,8 @@ def testing_suite():
     test_loader = unittest.TestLoader()
     test_loader.testMethodPrefix = 't_'
     tests = [GFF3Test, MapReduceGFFTest, SolidGFFTester, GFF2Tester,
-             DirectivesTest]
+             DirectivesTest, OutputTest]
+    #tests = [OutputTest]
     for test in tests:
         cur_suite = test_loader.loadTestsFromTestCase(test)
         test_suite.addTest(cur_suite)

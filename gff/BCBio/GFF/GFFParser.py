@@ -19,6 +19,7 @@ import os
 import copy
 import re
 import collections
+import urllib
 
 from Bio.Seq import Seq, UnknownSeq
 from Bio.SeqRecord import SeqRecord
@@ -78,6 +79,8 @@ def _gff_line_map(line, params):
             # attribute
             else:
                 quals[key].append('true')
+        for key, vals in quals.items():
+            quals[key] = [urllib.unquote(v) for v in vals]
         return quals, is_gff2
 
     def _nest_gff2_features(gff_parts):
