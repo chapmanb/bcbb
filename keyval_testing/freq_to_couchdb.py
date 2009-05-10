@@ -31,6 +31,7 @@ def main(in_file):
           if len(bulk_docs) >= bulk_size
             db.update(bulk_docs)
             bulk_docs = []
+        db.update(bulk_docs)
 
 if __name__ == "__main__":
     main(sys.argv[1])
