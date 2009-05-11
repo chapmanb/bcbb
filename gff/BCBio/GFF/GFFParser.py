@@ -20,6 +20,7 @@ import copy
 import re
 import collections
 import urllib
+import itertools
 
 from Bio.Seq import Seq, UnknownSeq
 from Bio.SeqRecord import SeqRecord
@@ -71,7 +72,7 @@ def _gff_line_map(line, params):
             pieces = []
             for p in parts:
                 # fix misplaced semi-colons in keys in some GFF2 files
-                if p[0] == ';':
+                if p and p[0] == ';':
                     p = p[1:]
                 pieces.append(p.strip().split(" "))
             key_vals = [(p[0], " ".join(p[1:])) for p in pieces]
@@ -134,11 +135,14 @@ def _gff_line_map(line, params):
                     should_do = False
                     break
         if should_do:
-            assert len(parts) >= 9, line
+            assert len(parts) >= 8, line
             gff_parts = [(None if p == '.' else p) for p in parts]
             gff_info = dict()
             # collect all of the base qualifiers for this item
-            quals, is_gff2 = _split_keyvals(gff_parts[8])
+            if len(parts) > 8:
+                quals, is_gff2 = _split_keyvals(gff_parts[8])
+            else:
+                quals, is_gff2 = dict(), False
             gff_info["is_gff2"] = is_gff2
             if gff_parts[1]:
                 quals["source"].append(gff_parts[1])
@@ -329,7 +333,8 @@ class GFFMapReduceFeatureAdder:
                     children)
         # create parents for children without them (GFF2 or split/bad files)
         while len(children) > 0:
-            parent_id, cur_children = children.items()[0]
+            parent_id, cur_children = itertools.islice(children.items(),
+                    1).next()
             # one child, do not nest it
             if len(cur_children) == 1:
                 rec_id, child = cur_children[0]
@@ -416,7 +421,8 @@ class GFFMapReduceFeatureAdder:
         base_rec_id = list(set(c[0] for c in cur_children))
         assert len(base_rec_id) == 1
         feature_dict = dict(id=parent_id, strand=None,
-                type="inferred_parent", quals=dict(), rec_id=base_rec_id[0])
+                type="inferred_parent", quals=dict(ID=[parent_id]),
+                rec_id=base_rec_id[0])
         coords = [(c.location.nofuzzy_start, c.location.nofuzzy_end) 
                 for r, c in cur_children]
         feature_dict["location"] = (min([c[0] for c in coords]),
@@ -462,6 +468,7 @@ class GFFMapReduceFeatureAdder:
                 self._items = dict()
                 self._smart_breaks = smart_breaks
                 self._missing_keys = collections.defaultdict(int)
+                self._last_parent = None
                 self.can_break = True
                 self.num_lines = 0
             def add(self, key, vals):
@@ -474,10 +481,15 @@ class GFFMapReduceFeatureAdder:
                     elif not vals[0].get("is_gff2", False):
                         self._update_missing_parents(key, vals)
                         self.can_break = (len(self._missing_keys) == 0)
-                    # otherwise, break more simply when we are done with
-                    # stretches of child features
-                    else:
-                        self.can_break = (key != 'child')
+                    # break when we are done with stretches of child features
+                    elif key != 'child':
+                        self.can_break = True
+                    # break when we have lots of child features in a row
+                    # and change between parents
+                    elif (self._last_parent):
+                        cur_parent = vals[0]["quals"]["Parent"][0]
+                        self.can_break = (cur_parent != self._last_parent)
+                        self._last_parent = cur_parent
                 self.num_lines += 1
                 try:
                     self._items[key].extend(vals)

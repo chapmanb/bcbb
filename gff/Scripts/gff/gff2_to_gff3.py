@@ -19,7 +19,7 @@ def main(in_file):
     out_handle = open(out_file, "w")
     reader = GFFAddingIterator()
     writer = GFF3Writer()
-    for recs in reader.get_features(in_handle, target_lines = 10000):
+    for recs in reader.get_features(in_handle, target_lines = 25000):
         writer.write(recs.values(), out_handle)
 
     in_handle.close()

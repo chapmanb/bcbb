@@ -407,7 +407,7 @@ class GFF2Tester(unittest.TestCase):
         for rec_dict in gff_iterator.get_features(self._wormbase_file,
                 target_lines=15):
             break_dicts.append(rec_dict)
-        assert len(break_dicts) == 3
+        assert len(break_dicts) == 5, len(break_dicts)
 
 class DirectivesTest(unittest.TestCase):
     """Tests for parsing directives and other meta-data.
