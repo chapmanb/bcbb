@@ -37,7 +37,7 @@ class GFF3Writer:
         parts = [str(rec_id),
                  feature.qualifiers.get("source", ["feature"])[0],
                  (feature.type if feature.type else "sequence_feature"),
-                 str(feature.location.nofuzzy_start),
+                 str(feature.location.nofuzzy_start + 1), # 1-based indexing
                  str(feature.location.nofuzzy_end),
                  feature.qualifiers.get("score", ["."])[0],
                  strand,
@@ -50,7 +50,12 @@ class GFF3Writer:
     def _format_keyvals(self, keyvals):
         format_kvs = []
         for key, values in keyvals.items():
-            format_vals = [urllib.quote(v) for v in values]
+            key = key.strip()
+            format_vals = []
+            for val in values:
+                val = urllib.quote(val.strip())
+                if ((key and val) and val not in format_vals):
+                    format_vals.append(val)
             format_kvs.append("%s=%s" % (key, ",".join(format_vals)))
         return ";".join(format_kvs)
 

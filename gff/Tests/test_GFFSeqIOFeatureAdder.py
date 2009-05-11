@@ -5,7 +5,6 @@ import os
 import unittest
 import pprint
 import StringIO
-import tempfile
 
 from Bio import SeqIO
 from BCBio.GFF.GFFParser import (GFFMapReduceFeatureAdder,
@@ -450,6 +449,7 @@ class OutputTest(unittest.TestCase):
                 "c_elegans_WS199_shortened_gff.txt")
         self._test_gff_ann_file = os.path.join(self._test_dir,
                 "c_elegans_WS199_ann_gff.txt")
+        self._wormbase_file = os.path.join(self._test_dir, "wormbase_gff2.txt")
 
     def t_gff3_to_gff3(self):
         """Read in and write out GFF3 without any loss of information.
@@ -460,20 +460,36 @@ class OutputTest(unittest.TestCase):
         writer = GFF3Writer()
         writer.write(recs.values(), out_handle)
         wrote_handle = StringIO.StringIO(out_handle.getvalue())
-        (_, tmp_file) = tempfile.mkstemp(dir=self._test_dir)
-        try:
-            tmp_handle = open(tmp_file, "w")
-            tmp_handle.write(wrote_handle.read())
-            tmp_handle.close()
-            recs_two = gff_iterator.get_all_features(tmp_file)
-        finally:
-            os.remove(tmp_file)
+        recs_two = gff_iterator.get_all_features(wrote_handle)
 
         orig_rec = recs.values()[0]
         re_rec = recs.values()[0]
         assert len(orig_rec.features) == len(re_rec.features)
         for i, orig_f in enumerate(orig_rec.features):
             assert str(orig_f) == str(re_rec.features[i])
+
+    def t_gff2_to_gff3(self):
+        """Read in GFF2 and write out as GFF3.
+        """
+        gff_iterator = GFFAddingIterator()
+        recs = gff_iterator.get_all_features(self._wormbase_file)
+        out_handle = StringIO.StringIO()
+        writer = GFF3Writer()
+        writer.write(recs.values(), out_handle)
+        wrote_handle = StringIO.StringIO(out_handle.getvalue())
+        # check some tricky lines in the GFF2 file
+        checks = 0
+        for line in wrote_handle:
+            if line.find("Interpolated_map_position") >= 0:
+                checks += 1
+                assert line.find("RFLP=No") > 0
+            if line.find("Gene=WBGene00000138") > 0:
+                checks += 1
+                assert line.find("ID=B0019.1") > 0
+            if line.find("translated_nucleotide_match\t12762127") > 0:
+                checks += 1
+                assert line.find("Note=MSP%3AFADFSPLDVSDVNFATDDLAK") > 0
+        assert checks == 3, "Missing check line"
 
 def run_tests(argv):
     test_suite = testing_suite()

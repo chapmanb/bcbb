@@ -68,9 +68,15 @@ def _gff_line_map(line, params):
             key_vals = [p.split('=') for p in parts]
         # otherwise, we are separated by a space with a key as the first item
         else:
-            pieces = [p.strip().split(" ") for p in parts]
+            pieces = []
+            for p in parts:
+                # fix misplaced semi-colons in keys in some GFF2 files
+                if p[0] == ';':
+                    p = p[1:]
+                pieces.append(p.strip().split(" "))
             key_vals = [(p[0], " ".join(p[1:])) for p in pieces]
         for key, val in key_vals:
+            # remove quotes in GFF2 files
             val = (val[1:-1] if (len(val) > 0 and val[0] == '"' 
                                  and val[-1] == '"') else val)
             if val:
@@ -105,6 +111,7 @@ def _gff_line_map(line, params):
             if gff_parts["type"] in ["Transcript"]:
                 if not gff_parts["id"]:
                     gff_parts["id"] = gff_parts["quals"]["Transcript"][0]
+                    gff_parts["quals"]["ID"] = [gff_parts["id"]]
             # children types
             elif gff_parts["type"] in ["intron", "exon", "three_prime_UTR",
                     "coding_exon", "five_prime_UTR", "CDS", "stop_codon",
@@ -241,7 +248,7 @@ class GFFMapReduceFeatureAdder:
         """Generator add_features version which can be used for partial parses.
         """
         # gracefully handle a single file passed
-        if isinstance(gff_files, str):
+        if not isinstance(gff_files, (list, tuple)):
             gff_files = [gff_files]
         # turn all limit information into tuples for identical comparisons
         final_limit_info = {}
@@ -495,7 +502,10 @@ class GFFMapReduceFeatureAdder:
                 return self._items
         out_info = _LocalOut(target_lines is not None)
         for gff_file in gff_files:
-            in_handle = open(gff_file)
+            if hasattr(gff_file, "read"):
+                in_handle = gff_file
+            else:
+                in_handle = open(gff_file)
             found_seqs = False
             while 1:
                 line = in_handle.readline()
