@@ -34,9 +34,13 @@ class GFF3Writer:
         for std_qual in ["source", "score", "phase"]:
             if quals.has_key(std_qual) and len(quals[std_qual]) == 1:
                 del quals[std_qual]
+        if feature.type:
+            ftype = feature.type
+        else:
+            ftype = "sequence_feature"
         parts = [str(rec_id),
                  feature.qualifiers.get("source", ["feature"])[0],
-                 (feature.type if feature.type else "sequence_feature"),
+                 ftype,
                  str(feature.location.nofuzzy_start + 1), # 1-based indexing
                  str(feature.location.nofuzzy_end),
                  feature.qualifiers.get("score", ["."])[0],

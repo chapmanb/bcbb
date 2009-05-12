@@ -1,0 +1,9 @@
+Remanei_genome	Genomic_canonical	region	1	7816	.	+	.	Sequence "Contig1020";
+Contig102	WU_MERGED	CDS	1629	3377	.	-	.	CDS "cr01.sctg102.wum.2.1"
+Contig102	WU_MERGED	coding_exon	2927	3377	.	-	.	CDS "cr01.sctg102.wum.2.1"
+Contig102	WU_MERGED	coding_exon	2474	2875	.	-	.	CDS "cr01.sctg102.wum.2.1"
+Contig102	WU_MERGED	coding_exon	1928	2430	.	-	.	CDS "cr01.sctg102.wum.2.1"
+Contig102	WU_MERGED	coding_exon	1629	1883	.	-	.	CDS "cr01.sctg102.wum.2.1"
+Contig102	WU_MERGED	intron	2876	2926	.	-	.	CDS "cr01.sctg102.wum.2.1"
+Contig102	WU_MERGED	intron	2431	2473	.	-	.	CDS "cr01.sctg102.wum.2.1"
+Contig102	WU_MERGED	intron	1884	1927	.	-	.	CDS "cr01.sctg102.wum.2.1"

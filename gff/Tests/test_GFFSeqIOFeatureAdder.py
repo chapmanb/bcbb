@@ -328,6 +328,8 @@ class GFF2Tester(unittest.TestCase):
         self._ensembl_file = os.path.join(self._test_dir, "ensembl_gtf.txt")
         self._wormbase_file = os.path.join(self._test_dir, "wormbase_gff2.txt")
         self._jgi_file = os.path.join(self._test_dir, "jgi_gff2.txt")
+        self._wb_alt_file = os.path.join(self._test_dir,
+                "wormbase_gff2_alt.txt")
 
     def t_basic_attributes(self):
         """Parse out basic attributes of GFF2 from Ensembl GTF.
@@ -398,6 +400,18 @@ class GFF2Tester(unittest.TestCase):
         tfeature = parent_features[0]
         assert tfeature.qualifiers["WormPep"][0] == "WP:CE40797"
         assert len(tfeature.sub_features) == 46
+
+    def t_wb_cds_nested_features(self):
+        """Nesting of GFF2 features with a flat CDS key value pair.
+        """
+        gff_iterator = GFFAddingIterator()
+        rec_dict = gff_iterator.get_all_features(self._wb_alt_file)
+        assert len(rec_dict) == 2
+        features = rec_dict.values()[1].features
+        assert len(features) == 1
+        tfeature = features[0]
+        assert tfeature.id == "cr01.sctg102.wum.2.1"
+        assert len(tfeature.sub_features) == 7
 
     def t_gff2_iteration(self):
         """Test iterated features with GFF2 files, breaking without parents.

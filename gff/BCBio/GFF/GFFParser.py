@@ -22,6 +22,13 @@ import collections
 import urllib
 import itertools
 
+# Make defaultdict compatible with versions of python older than 2.4
+try:
+    collections.defaultdict
+except AttributeError:
+    import _utils
+    collections.defaultdict = _utils.defaultdict
+
 from Bio.Seq import Seq, UnknownSeq
 from Bio.SeqRecord import SeqRecord
 from Bio.SeqFeature import SeqFeature, FeatureLocation
@@ -78,8 +85,8 @@ def _gff_line_map(line, params):
             key_vals = [(p[0], " ".join(p[1:])) for p in pieces]
         for key, val in key_vals:
             # remove quotes in GFF2 files
-            val = (val[1:-1] if (len(val) > 0 and val[0] == '"' 
-                                 and val[-1] == '"') else val)
+            if (len(val) > 0 and val[0] == '"' and val[-1] == '"'):
+                val = val[1:-1] 
             if val:
                 quals[key].extend(val.split(','))
             # if we don't have a value, make this a key=True/False style
@@ -106,18 +113,21 @@ def _gff_line_map(line, params):
                 break
             except KeyError:
                 pass
-        # case for WormBase GFF -- everything labelled as Transcript
-        if gff_parts["quals"].has_key("Transcript"):
-            # parent types
-            if gff_parts["type"] in ["Transcript"]:
-                if not gff_parts["id"]:
-                    gff_parts["id"] = gff_parts["quals"]["Transcript"][0]
-                    gff_parts["quals"]["ID"] = [gff_parts["id"]]
-            # children types
-            elif gff_parts["type"] in ["intron", "exon", "three_prime_UTR",
-                    "coding_exon", "five_prime_UTR", "CDS", "stop_codon",
-                    "start_codon"]:
-                gff_parts["quals"]["Parent"] = gff_parts["quals"]["Transcript"]
+        # case for WormBase GFF -- everything labelled as Transcript or CDS
+        for flat_name in ["Transcript", "CDS"]:
+            if gff_parts["quals"].has_key(flat_name):
+                # parent types
+                if gff_parts["type"] in [flat_name]:
+                    if not gff_parts["id"]:
+                        gff_parts["id"] = gff_parts["quals"][flat_name][0]
+                        gff_parts["quals"]["ID"] = [gff_parts["id"]]
+                # children types
+                elif gff_parts["type"] in ["intron", "exon", "three_prime_UTR",
+                        "coding_exon", "five_prime_UTR", "CDS", "stop_codon",
+                        "start_codon"]:
+                    gff_parts["quals"]["Parent"] = gff_parts["quals"][flat_name]
+                break
+
         return gff_parts
 
     strand_map = {'+' : 1, '-' : -1, '?' : None, None: None}
@@ -136,7 +146,14 @@ def _gff_line_map(line, params):
                     break
         if should_do:
             assert len(parts) >= 8, line
-            gff_parts = [(None if p == '.' else p) for p in parts]
+            # not python2.4 compatible but easier to understand
+            #gff_parts = [(None if p == '.' else p) for p in parts]
+            gff_parts = []
+            for p in parts:
+                if p == ".":
+                    gff_parts.append(None)
+                else:
+                    gff_parts.append(p)
             gff_info = dict()
             # collect all of the base qualifiers for this item
             if len(parts) > 8:
@@ -173,8 +190,10 @@ def _gff_line_map(line, params):
             # otherwise, associate these annotations with the full record
             else:
                 final_key = 'annotation'
-            return [(final_key, (simplejson.dumps(gff_info) if params.jsonify
-                else gff_info))]
+            if params.jsonify:
+                return [(final_key, simplejson.dumps(gff_info))]
+            else:
+                return [(final_key, gff_info)]
     return []
 
 def _gff_line_reduce(map_results, out, params):
@@ -182,14 +201,16 @@ def _gff_line_reduce(map_results, out, params):
     """
     final_items = dict()
     for gff_type, final_val in map_results:
-        send_val = (simplejson.loads(final_val) if (params.jsonify and 
-                    gff_type not in ['directive']) else final_val)
+        if params.jsonify and gff_type not in ['directive']:
+            final_val = simplejson.loads(final_val)
         try:
-            final_items[gff_type].append(send_val)
+            final_items[gff_type].append(final_val)
         except KeyError:
-            final_items[gff_type] = [send_val]
+            final_items[gff_type] = [final_val]
     for key, vals in final_items.items():
-        out.add(key, (simplejson.dumps(vals) if params.jsonify else vals))
+        if params.jsonify:
+            vals = simplejson.dumps(vals)
+        out.add(key, vals)
 
 class _MultiIDRemapper:
     """Provide an ID remapping for cases where a parent has a non-unique ID.
@@ -207,8 +228,10 @@ class _MultiIDRemapper:
         for index, parent in enumerate(self._parents):
             pstart, pend = parent['location']
             if rstart >= pstart and rend <= pend:
-                return ("%s_%s" % (self._base_id, index + 1) if index > 0
-                        else self._base_id)
+                if index > 0:
+                    return ("%s_%s" % (self._base_id, index + 1))
+                else:
+                    return self._base_id
         raise ValueError("Did not find remapped ID location: %s, %s, %s" % (
                 self._base_id, [p['location'] for p in self._parents],
                 feature_dict['location']))
@@ -258,8 +281,12 @@ class GFFMapReduceFeatureAdder:
         final_limit_info = {}
         if limit_info:
             for key, values in limit_info.items():
-                final_limit_info[key] = [(v,) if isinstance(v, str) 
-                        else tuple(v) for v in values]
+                final_limit_info[key] = []
+                for v in values:
+                    if isinstance(v, str):
+                        final_limit_info[key].append((v,))
+                    else:
+                        final_limit_info[key].append(tuple(v))
         if self._disco_host:
             assert target_lines is None, "Cannot split parallelized jobs"
             assert self._line_adjust_fn is None, \
@@ -270,7 +297,7 @@ class GFFMapReduceFeatureAdder:
             for results in self._std_process(gff_files, final_limit_info,
                     target_lines):
                 self._results_to_features(results)
-                yield
+                yield None
 
     def _results_to_features(self, results):
         """Add parsed dictionaries of results to Biopython SeqFeatures.
@@ -292,7 +319,10 @@ class GFFMapReduceFeatureAdder:
             parts = directive.split()
             if len(parts) > 1:
                 key = parts[0]
-                val = (parts[1] if len(parts) == 2 else tuple(parts[1:]))
+                if len(parts) == 2:
+                    val = parts[1]
+                else:
+                    val = tuple(parts[1:])
                 dir_keyvals[key].append(val)
         for key, vals in dir_keyvals.items():
             for rec in self.base.values():
@@ -556,8 +586,12 @@ class GFFMapReduceFeatureAdder:
         import simplejson
         import disco
         # absolute path names unless they are special disco files 
-        full_files = [(os.path.abspath(f) if f.split(":")[0] != "disco" else f)
-                for f in gff_files]
+        full_files = []
+        for f in gff_files:
+            if f.split(":")[0] != "disco":
+                full_files.append(os.path.abspath(f))
+            else:
+                full_files.append(f)
         results = disco.job(self._disco_host, name="gff_reader",
                 input=full_files,
                 params=disco.Params(limit_info=limit_info, jsonify=True,
