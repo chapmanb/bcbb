@@ -21,11 +21,12 @@ import sys
 from BioSQL import BioSeqDatabase
 from Bio import SeqIO
 
-from BCBio.GFF.GFFParser import GFFAddingIterator
+from BCBio.GFF import GFFParser
 
 def main(seq_file, gff_file):
     # -- To be customized
     # You need to update these parameters to point to your local database
+    # XXX demo example could be swapped to use SQLite when that is integrated
     user = "chapmanb"
     passwd = "cdev"
     host = "localhost"
@@ -48,9 +49,8 @@ def main(seq_file, gff_file):
         seq_dict = SeqIO.to_dict(SeqIO.parse(seq_handle, "fasta"))
 
     print "Parsing GFF data file..."
-    feature_adder = GFFAddingIterator(seq_dict)
-    rec_dict = feature_adder.get_all_features(gff_file, limit_info)
-    recs = rec_dict.values()
+    parser = GFFParser()
+    recs = parser.parse(gff_file, seq_dict, limit_info=limit_info)
 
     print "Writing to BioSQL database..."
     server = BioSeqDatabase.open_database(driver="MySQLdb", user=user,

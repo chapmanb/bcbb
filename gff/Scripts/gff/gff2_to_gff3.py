@@ -9,19 +9,17 @@ The output file has the same name with the extension gff3.
 import sys
 import os
 
-from BCBio.GFF.GFFParser import GFFAddingIterator
-from BCBio.GFF.GFFOutput import GFF3Writer
+from BCBio.GFF import GFFParser, GFF3Writer
 
 def main(in_file):
     base, ext = os.path.splitext(in_file)
     out_file = "%s.gff3" % (base)
     in_handle = open(in_file)
     out_handle = open(out_file, "w")
-    reader = GFFAddingIterator()
+    reader = GFFParser()
     writer = GFF3Writer()
-    for recs in reader.get_features(in_handle, target_lines = 25000):
-        writer.write(recs.values(), out_handle)
-
+    writer.write(reader.parse_in_parts(in_handle, target_lines=25000),
+            out_handle)
     in_handle.close()
     out_handle.close()
 
