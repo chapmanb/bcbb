@@ -649,48 +649,13 @@ class DiscoGFFParser(_AbstractMapReduceGFF):
         results = disco.job(self._disco_host, name="gff_reader",
                 input=full_files,
                 params=disco.Params(limit_info=limit_info, jsonify=True,
-                    filter_info=self._filter_info),
+                    filter_info=self._examiner._filter_info),
                 required_modules=["simplejson", "collections", "re"],
                 map=self._map_fn, reduce=self._reduce_fn)
         processed = dict()
         for out_key, out_val in disco.result_iterator(results):
             processed[out_key] = simplejson.loads(out_val)
         yield processed
-
-class GFFMapReduceFeatureAdder:
-    """Move through a GFF file, adding new features to SeqRecord objects.
-    """
-    def __init__(self, base_dict=None, 
-            line_adjust_fn=None,
-            disco_host=None, create_missing=True):
-        """Initialize with dictionary of records to add to.
-
-        This class is instantiated with a dictionary where the keys are IDs
-        corresponding to those in the first column of the GFF file. As the GFF
-        file is processed, the items are added to the appropriate record as
-        features.
-
-        disco_host - Web reference to a Disco (http://discoproject.org) host
-        which will be used for parallelizing the GFF reading job.
-        """
-        self._disco_host = disco_host
-        # details on what we can filter items with
-        self._filter_info = dict(gff_id = [0], gff_source_type = [1, 2],
-                gff_type = [2])
-    
-    def add_features_gen(self, gff_files, limit_info=None, target_lines=None):
-        """Generator add_features version which can be used for partial parses.
-        """
-        if self._disco_host:
-            assert self._line_adjust_fn is None, \
-                    "Cannot adjust lines on parallelized jobs"
-            results = self._disco_process(gff_files, final_limit_info)
-            self._results_to_features(results)
-        else:
-            for results in self._std_process(gff_files, final_limit_info,
-                    target_lines):
-                self._results_to_features(results)
-                yield None
 
 class GFFExaminer:
     """Provide high level details about a GFF file to refine parsing.
@@ -702,7 +667,6 @@ class GFFExaminer:
     help in learning.
     """
     def __init__(self):
-        feature_adder = GFFMapReduceFeatureAdder()
         self._filter_info = dict(gff_id = [0], gff_source_type = [1, 2],
                 gff_type = [2])
     
@@ -787,42 +751,3 @@ class GFFExaminer:
         gff_handle.close()
         return pc_final_map
 
-class GFFAddingIterator:
-    """Iterate over regions of a GFF file, returning features from each region.
-    """
-    def __init__(self, seed_dict=None, line_adjust_fn=None,
-            feature_adder=None):
-        """Initialize with a dictionary of SeqRecords to serve as a seed.
-
-        seed_dict -- dictionary which will be used as the base for every
-        group of GFF features added
-        feature_adder -- An initialized feature adder like
-        GFFMapReduceFeatureAdder, which can be individually customized
-        """
-        if seed_dict is None:
-            seed_dict = dict()
-        self._seed = seed_dict
-        if feature_adder is None:
-            feature_adder = GFFMapReduceFeatureAdder(
-                    line_adjust_fn=line_adjust_fn)
-        self._adder = feature_adder
-
-    def get_features(self, gff_files, limit_info=None, target_lines=None):
-        """Retrieve features from a GFF file added to a seed dict in groups.
-
-        gff_files -- list of one or more GFF files from which features will
-        be parsed.
-        target_lines -- the number of lines to parse. You are not guaranteed to
-        get exactly this many lines as it will be broken to try and keep nested
-        features together. If None, the entire set of files will be parsed.
-        """
-        self._adder.base = copy.deepcopy(self._seed)
-        for file_break in self._adder.add_features_gen(gff_files,
-                limit_info=limit_info, target_lines=target_lines):
-            yield self._adder.base
-            self._adder.base = copy.deepcopy(self._seed)
-
-    def get_all_features(self, gff_files, limit_info=None):
-        """Retrieve all features from a GFF file, ignoring iterators.
-        """
-        return self.get_features(gff_files, limit_info).next()

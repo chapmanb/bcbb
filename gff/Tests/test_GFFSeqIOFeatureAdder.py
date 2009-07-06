@@ -50,7 +50,7 @@ class MapReduceGFFTest(unittest.TestCase):
                              ('Coding_transcript', 'CDS')],
                 gff_id = ['I']
                 )
-        feature_adder = DiscoGFFParser(disco_host=self._disco_host)
+        parser = DiscoGFFParser(disco_host=self._disco_host)
         rec_dict = SeqIO.to_dict(parser.parse(self._test_gff_file,
             limit_info=cds_limit_info))
         final_rec = rec_dict['I']
