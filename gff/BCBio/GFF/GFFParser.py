@@ -21,6 +21,7 @@ import re
 import collections
 import urllib
 import itertools
+from decorator import decorator
 
 # Make defaultdict compatible with versions of python older than 2.4
 try:
@@ -587,10 +588,10 @@ class GFFParser(_AbstractMapReduceGFF):
                 target_lines > 1))
         for gff_file in gff_files:
             if hasattr(gff_file, "read"):
-                need_close = True
+                need_close = False
                 in_handle = gff_file
             else:
-                need_close = False
+                need_close = True
                 in_handle = open(gff_file)
             found_seqs = False
             while 1:
@@ -657,6 +658,23 @@ class DiscoGFFParser(_AbstractMapReduceGFF):
             processed[out_key] = simplejson.loads(out_val)
         yield processed
 
+@decorator
+def _file_or_handle(fn, *args, **kwargs):
+    """Decorator to handle either an input handle or a file.
+    """
+    in_file = args[1]
+    if hasattr(in_file, "read"):
+        need_close = False
+        in_handle = in_file
+    else:
+        need_close = True
+        in_handle = open(in_file)
+    args = (args[0], in_handle) + args[2:]
+    out = fn(*args, **kwargs)
+    if need_close:
+        in_handle.close()
+    return out
+
 class GFFExaminer:
     """Provide high level details about a GFF file to refine parsing.
 
@@ -668,7 +686,7 @@ class GFFExaminer:
     """
     def __init__(self):
         self._filter_info = dict(gff_id = [0], gff_source_type = [1, 2],
-                gff_type = [2])
+                gff_source = [1], gff_type = [2])
     
     def _get_local_params(self, limit_info=None):
         class _LocalParams:
@@ -679,7 +697,8 @@ class GFFExaminer:
         params.filter_info = self._filter_info
         return params
     
-    def available_limits(self, gff_file):
+    @_file_or_handle
+    def available_limits(self, gff_handle):
         """Return dictionary information on possible limits for this file.
 
         This returns a nested dictionary with the following structure:
@@ -691,7 +710,6 @@ class GFFExaminer:
 
         Not a parallelized map-reduce implementation.
         """
-        gff_handle = open(gff_file)
         cur_limits = dict()
         for filter_key in self._filter_info.keys():
             cur_limits[filter_key] = collections.defaultdict(int)
@@ -712,7 +730,8 @@ class GFFExaminer:
         gff_handle.close()
         return final_dict
 
-    def parent_child_map(self, gff_file):
+    @_file_or_handle
+    def parent_child_map(self, gff_handle):
         """Provide a mapping of parent to child relationships in the file.
 
         Returns a dictionary of parent child relationships:
@@ -722,7 +741,6 @@ class GFFExaminer:
         
         Not a parallelized map-reduce implementation.
         """
-        gff_handle = open(gff_file)
         # collect all of the parent and child types mapped to IDs
         parent_sts = dict()
         child_sts = collections.defaultdict(list)
@@ -748,6 +766,4 @@ class GFFExaminer:
             unique_ctypes = list(set(ctypes))
             unique_ctypes.sort()
             pc_final_map[ptype] = unique_ctypes
-        gff_handle.close()
         return pc_final_map
-

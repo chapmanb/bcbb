@@ -56,8 +56,10 @@ class GFF3Writer:
         for key, values in keyvals.items():
             key = key.strip()
             format_vals = []
+            if not isinstance(values, list) or isinstance(values, tuple):
+                values = [values]
             for val in values:
-                val = urllib.quote(val.strip())
+                val = urllib.quote(str(val).strip())
                 if ((key and val) and val not in format_vals):
                     format_vals.append(val)
             format_kvs.append("%s=%s" % (key, ",".join(format_vals)))
@@ -68,7 +70,6 @@ class GFF3Writer:
         """
         format_anns = self._format_keyvals(anns)
         if format_anns:
-            print repr(format_anns)
             parts = [rec_id, "annotation", "remark", ".", ".", ".", ".", ".",
                      format_anns]
             out_handle.write("\t".join(parts) + "\n")
