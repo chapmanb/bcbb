@@ -26,7 +26,8 @@ def _remove_adaptor(seq, region, right_side=True):
         pos = seq.rfind(region)
         return seq[pos+len(region):]
 
-def _seq_or_str(fn, *args, **kws):
+@decorator
+def accept_seq_or_str(fn, *args, **kws):
     """Decorator allowing either a string or Seq as the first argument.
 
     A string or Seq is returning, determined by the input argument. The
@@ -45,9 +46,8 @@ def _seq_or_str(fn, *args, **kws):
     if seq is not None:
         final_seq = Seq(final_seq, seq.alphabet)
     return final_seq
-_seq_or_str = decorator(_seq_or_str)
 
-@_seq_or_str
+@accept_seq_or_str
 def trim_adaptor(seq, adaptor, num_errors, right_side=True):
     gap_char = '-'
     seq_a, adaptor_a, score, start, end = pairwise2.align.localms(str(seq),
