@@ -4,8 +4,6 @@
 Allows trimming of adaptor sequences from a list of SeqRecords produced
 by the Biopython SeqIO library.
 """
-from decorator import decorator
-
 from Bio import pairwise2
 from Bio.Seq import Seq
 
@@ -20,46 +18,32 @@ def _remove_adaptor(seq, region, right_side=True):
     #if pieces.count(region) != 1:
     #    raise ValueError("Non-single match: %s to %s" % (region, seq))
     if right_side:
-        pos = seq.find(region)
+        try:
+            pos = seq.find(region)
+        # handle Biopython SeqRecords
+        except AttributeError:
+            pos = seq.seq.find(region)
         return seq[:pos]
     else:
-        pos = seq.rfind(region)
+        try:
+            pos = seq.rfind(region)
+        # handle Biopython SeqRecords
+        except AttributeError:
+            pos = seq.seq.rfind(region)
         return seq[pos+len(region):]
 
-@decorator
-def accept_seq_or_str(fn, *args, **kws):
-    """Decorator allowing either a string or Seq as the first argument.
-
-    A string or Seq is returning, determined by the input argument. The
-    decorated function works on a string.
-    """
-    # check our sequence passed in as a keyword or first argument
-    seq = kws.get('seq', None) or args[0]
-    if isinstance(seq, Seq):
-        if kws.has_key('seq'):
-            kws['seq'] = str(seq)
-        else:
-            args = (str(seq),) + args[1:]
-    else:
-        seq = None
-    final_seq = fn(*args, **kws)
-    if seq is not None:
-        final_seq = Seq(final_seq, seq.alphabet)
-    return final_seq
-
-@accept_seq_or_str
 def trim_adaptor(seq, adaptor, num_errors, right_side=True):
     gap_char = '-'
     seq_a, adaptor_a, score, start, end = pairwise2.align.localms(str(seq),
-            str(adaptor), 5.0, -4.0, -10.0, -0.5,
+            str(adaptor), 5.0, -4.0, -9.0, -0.5,
             one_alignment_only=True, gap_char=gap_char)[0]
     #print seq_a, adaptor_a, score, start, end
     seq_region = seq_a[start:end]
     adapt_region = adaptor_a[start:end]
-    diffs = sum((0 if s == adapt_region[i] else 1) for i, s in
+    matches = sum((1 if s == adapt_region[i] else 0) for i, s in
             enumerate(seq_region))
     # too many errors -- no trimming
-    if diffs > num_errors:
+    if (len(adaptor) - matches) > num_errors:
         return seq
     # remove the adaptor sequence and return the result
     else:
@@ -70,6 +54,7 @@ def trim_adaptor(seq, adaptor, num_errors, right_side=True):
 import sys
 import unittest
 
+from Bio.SeqRecord import SeqRecord
 from Bio.Seq import Seq
 from Bio.Alphabet.IUPAC import unambiguous_dna
 
@@ -87,6 +72,8 @@ class AdaptorAlignTrimTest(unittest.TestCase):
         tseq = trim_adaptor("GGG" + "GATCGTTCGAAC" + "CCC", adaptor, 2)# 2 errors
         assert tseq == "GGG"
         tseq = trim_adaptor("GGG" + "GATCGATCGTC" + "CCC", adaptor, 2) # deletion
+        assert tseq == "GGG"
+        tseq = trim_adaptor("GGG" + "GACGATCGTC" + "CCC", adaptor, 2) # deletion
         assert tseq == "GGG"
         tseq = trim_adaptor("GGG" + "GAACGTTGGATC" + "CCC", adaptor, 2)# 3 errors
         assert tseq == "GGGGAACGTTGGATCCCC"
@@ -112,19 +99,25 @@ class AdaptorAlignTrimTest(unittest.TestCase):
         assert tseq == "CCC"
 
     def t_4_passing_seqs(self):
-        """Handle both Biopython Seq objects and strings.
+        """Handle both Biopython Seq and SeqRecord objects.
         """
         adaptor = "GATCGATCGATC"
-        tseq = trim_adaptor(Seq("GGG" + "GATCGTTCGATC" + "CCC", unambiguous_dna),
-            adaptor, 2)
+        seq = Seq("GGG" + "GATCGTTCGATC" + "CCC", unambiguous_dna)
+        tseq = trim_adaptor(seq, adaptor, 2)
         assert isinstance(tseq, Seq)
         assert tseq.alphabet == unambiguous_dna
-        tseq = trim_adaptor(
-                seq = Seq("GGG" + "GATCGTTCGATC" + "CCC", unambiguous_dna),
-                adaptor=adaptor,
-                num_errors=2)
+        tseq = trim_adaptor(seq=seq, adaptor=adaptor, num_errors=2)
         assert isinstance(tseq, Seq)
         assert tseq.alphabet == unambiguous_dna
+        trec = trim_adaptor(SeqRecord(seq, "test_id", "test_name", "test_d"),
+                adaptor, 2)
+        assert isinstance(trec, SeqRecord)
+        assert trec.id == "test_id"
+        assert str(trec.seq) == "GGG"
+        trec = trim_adaptor(SeqRecord(seq, "test_id", "test_name", "test_d"),
+                adaptor, 2, False)
+        assert isinstance(trec, SeqRecord)
+        assert str(trec.seq) == "CCC"
 
 def run_tests(argv):
     test_suite = testing_suite()
