@@ -34,12 +34,17 @@ def _remove_adaptor(seq, region, right_side=True):
 
 def trim_adaptor(seq, adaptor, num_errors, right_side=True):
     gap_char = '-'
-    seq_a, adaptor_a, score, start, end = pairwise2.align.localms(str(seq),
-            str(adaptor), 5.0, -4.0, -9.0, -0.5,
-            one_alignment_only=True, gap_char=gap_char)[0]
-    #print seq_a, adaptor_a, score, start, end
-    seq_region = seq_a[start:end]
-    adapt_region = adaptor_a[start:end]
+    exact_pos = str(seq).find(adaptor)
+    if exact_pos >= 0:
+        seq_region = str(seq[exact_pos:exact_pos+len(adaptor)])
+        adapt_region = adaptor
+    else:
+        seq_a, adaptor_a, score, start, end = pairwise2.align.localms(str(seq),
+                str(adaptor), 5.0, -4.0, -9.0, -0.5,
+                one_alignment_only=True, gap_char=gap_char)[0]
+        adapt_region = adaptor_a[start:end]
+        #print seq_a, adaptor_a, score, start, end
+        seq_region = seq_a[start:end]
     matches = sum((1 if s == adapt_region[i] else 0) for i, s in
             enumerate(seq_region))
     # too many errors -- no trimming
