@@ -135,7 +135,7 @@ def _gff_line_map(line, params):
     line = line.strip()
     if line[:2] == "##":
         return [('directive', line[2:])]
-    elif line[0] != "#":
+    elif line and line[0] != "#":
         parts = line.split('\t')
         should_do = True
         if params.limit_info:
