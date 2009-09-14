@@ -21,7 +21,7 @@ def main(count_file):
     base, ext = os.path.splitext(count_file)
     outfile = "%s-diffs.csv" % (base)
     counts = read_count_file(count_file)
-    data, groups, sizes, conditions, genes = edger_matrices(work_counts)
+    data, groups, sizes, conditions, genes = edger_matrices(counts)
     probs = run_edger(data, groups, sizes, genes)
     write_outfile(outfile, genes, conditions, counts, probs)
 
@@ -94,9 +94,9 @@ def read_count_file(in_file):
         conditions = header[1:]
         for parts in reader:
             region_name = parts[0]
-            counts = [float(x) for x in parts[1:]]
+            region_counts = [float(x) for x in parts[1:]]
             for ci, condition in enumerate(conditions):
-                counts[condition][region_name] = counts[ci]
+                counts[condition][region_name] = region_counts[ci]
     return dict(counts)
 
 if __name__ == "__main__":
