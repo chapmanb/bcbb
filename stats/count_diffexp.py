@@ -6,12 +6,10 @@ http://bioconductor.org/packages/2.5/bioc/html/edgeR.html
 Usage:
     count_diffexp.py <count_file>
 """
-import math
 import os
 import sys
 import csv
 import collections
-import itertools
 
 import numpy
 import rpy2.robjects as robjects
@@ -63,7 +61,6 @@ def get_conditions_and_genes(work_counts):
         all_genes.extend(work_counts[c].keys())
     all_genes = list(set(all_genes))
     all_genes.sort()
-
     sizes = [work_counts[c]["Total"] for c in conditions]
     all_genes.remove("Total")
     return conditions, all_genes, sizes
