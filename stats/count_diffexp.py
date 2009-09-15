@@ -46,7 +46,9 @@ def run_edger(data, groups, sizes, genes):
     ms = robjects.r.deDGE(dgelist, doPoisson=True)
     tags = robjects.r.topTags(ms, pair=groups, n=len(genes))
     indexes = [int(t) - 1 for t in tags.rownames()]
-    pvals = list(tags[-2])
+    # can retrieve either raw or adjusted p-values
+    #pvals = list(tags.r['P.Value'][0])
+    pvals = list(tags.r['adj.P.Val'][0])
     assert len(indexes) == len(pvals)
     pvals_w_index = zip(indexes, pvals)
     pvals_w_index.sort()
