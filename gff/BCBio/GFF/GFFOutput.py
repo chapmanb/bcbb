@@ -5,6 +5,59 @@ The target format is GFF3, the current GFF standard:
 """
 import urllib
 
+class _IdHandler:
+    """Generate IDs for GFF3 Parent/Child relationships where they don't exist.
+    """
+    def __init__(self):
+        self._prefix = "biopygen"
+        self._counter = 1
+        self._seen_ids = []
+
+    def _generate_id(self, quals):
+        """Generate a unique ID not present in our existing IDs.
+        """
+        gen_id = self._get_standard_id(quals)
+        if gen_id is None:
+            while 1:
+                gen_id = "%s%s" % (self._prefix, self._counter)
+                if gen_id not in self._seen_ids:
+                    break
+                self._counter += 1
+        return gen_id
+
+    def _get_standard_id(self, quals):
+        """Retrieve standardized IDs from other sources like NCBI GenBank.
+
+        This tries to find IDs from known key/values when stored differently
+        than GFF3 specifications.
+        """
+        possible_keys = ["transcript_id", "protein_id"]
+        for test_key in possible_keys:
+            if quals.has_key(test_key):
+                cur_id = quals[test_key]
+                if isinstance(cur_id, tuple) or isinstance(cur_id, list):
+                    return cur_id[0]
+                else:
+                    return cur_id
+        return None
+
+    def update_quals(self, quals, has_children):
+        """Update a set of qualifiers, adding an ID if necessary.
+        """
+        cur_id = quals.get("ID", None)
+        # if we have an ID, record it
+        if cur_id:
+            if not isinstance(cur_id, list) and not isinstance(cur_id, tuple):
+                cur_id = [cur_id]
+            for add_id in cur_id:
+                self._seen_ids.append(add_id)
+        # if we need one and don't have it, create a new one
+        elif has_children:
+            new_id = self._generate_id(quals)
+            self._seen_ids.append(new_id)
+            quals["ID"] = [new_id]
+        return quals
+
 class GFF3Writer:
     """Write GFF3 files starting with standard Biopython objects.
     """
@@ -14,13 +67,16 @@ class GFF3Writer:
     def write(self, recs, out_handle):
         """Write the provided records to the given handle in GFF3 format.
         """
+        id_handler = _IdHandler()
         self._write_header(out_handle)
         for rec in recs:
             self._write_annotations(rec.annotations, rec.id, out_handle)
             for sf in rec.features:
-                self._write_feature(sf, rec.id, out_handle)
+                id_handler = self._write_feature(sf, rec.id, out_handle,
+                        id_handler)
 
-    def _write_feature(self, feature, rec_id, out_handle):
+    def _write_feature(self, feature, rec_id, out_handle, id_handler,
+            parent_id=None):
         """Write a feature with location information.
         """
         if feature.strand == 1:
@@ -34,6 +90,12 @@ class GFF3Writer:
         for std_qual in ["source", "score", "phase"]:
             if quals.has_key(std_qual) and len(quals[std_qual]) == 1:
                 del quals[std_qual]
+        # add a link to a parent identifier if it exists
+        if parent_id:
+            if not quals.has_key("Parent"):
+                quals["Parent"] = []
+            quals["Parent"].append(parent_id)
+        quals = id_handler.update_quals(quals, len(feature.sub_features) > 0)
         if feature.type:
             ftype = feature.type
         else:
@@ -49,7 +111,9 @@ class GFF3Writer:
                  self._format_keyvals(quals)]
         out_handle.write("\t".join(parts) + "\n")
         for sub_feature in feature.sub_features:
-            self._write_feature(sub_feature, rec_id, out_handle)
+            id_handler = self._write_feature(sub_feature, rec_id, out_handle,
+                    id_handler, quals["ID"][0])
+        return id_handler
 
     def _format_keyvals(self, keyvals):
         format_kvs = []
