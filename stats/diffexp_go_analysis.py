@@ -4,6 +4,7 @@
 Usage:
     stats_go_analysis.py <input CVS> <gene to GO file>
 """
+from __future__ import with_statement
 import sys
 import csv
 import collections
@@ -14,10 +15,9 @@ import rpy2.robjects as robjects
 
 def main(input_csv, gene_to_go_file):
     gene_pval = 1e-2
-    go_pval = 0.3
+    go_pval = 0.2
     go_term_type = "MF"
-    topgo_method = "classic"
-
+    topgo_method = "classic" # choice of classic, elim, weight
 
     with open(input_csv) as in_handle:
         genes_w_pvals = parse_input_csv(in_handle)
@@ -25,7 +25,7 @@ def main(input_csv, gene_to_go_file):
         gene_to_go, go_to_gene = parse_go_map_file(in_handle, genes_w_pvals)
     go_terms = run_topGO(genes_w_pvals, gene_to_go, go_term_type,
             gene_pval, go_pval, topgo_method)
-        print_go_info(go_terms, go_term_type, go_to_gene)
+    print_go_info(go_terms, go_term_type, go_to_gene)
 
 def print_go_info(go_terms, go_term_type, go_to_gene):
     for final_pval, go_id, go_term in go_terms:
@@ -89,6 +89,7 @@ def run_topGO(gene_vals, gene_to_go, go_term_type, gene_pval, go_pval,
     # extract term names from the topGO summary dataframe
     results_table = robjects.r.GenTable(go_data, elimFisher=results,
             orderBy="elimFisher", topNodes=num_summarize)
+    print results_table
     GO_ID_INDEX = 0
     TERM_INDEX = 1
     ids_to_terms = dict()
@@ -125,12 +126,12 @@ def _multi_file_reader(reader):
             (chrom, start, end, references, _, _, pval, _) = parts
         yield chrom, start, end, references, pval
 
-def parse_input_csv(in_handle, thresh_pval):
+def parse_input_csv(in_handle):
     reader = csv.reader(in_handle)
     reader.next() # header
     all_genes = dict()
     for (gene_name, _, _, pval) in reader:
-        all_genes.append[gene_name] = pval
+        all_genes[gene_name] = float(pval)
     return all_genes
 
 if __name__ == "__main__":

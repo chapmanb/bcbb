@@ -1,0 +1,63 @@
+Loading required package: graph
+Loading required package: Biobase
+
+Welcome to Bioconductor
+
+  Vignettes contain introductory material. To view, type
+  'openVignette()'. To cite Bioconductor, see
+  'citation("Biobase")' and for packages 'citation(pkgname)'.
+
+Loading required package: GO.db
+Loading required package: AnnotationDbi
+Loading required package: DBI
+Loading required package: SparseM
+Package SparseM (0.80) loaded.  
+	   To cite, see citation("SparseM")
+
+
+Attaching package: 'SparseM'
+
+
+	The following object(s) are masked from package:stats :
+
+	 model.response 
+
+
+	The following object(s) are masked from package:base :
+
+	 backsolve,
+	 chol 
+
+
+groupGOTerms: 	GOBPTerm, GOMFTerm, GOCCTerm environments built.
+
+Building most specific GOs .....	( 3 GO terms found. )
+
+Build GO DAG topology ..........	( 7 GO terms and 6 relations. )
+
+Annotating nodes ...............	( 4 genes annotated to the GO terms. )
+
+			 -- Classic Algorithm -- 
+
+		 the algorithm is scoring 6 nontrivial nodes
+		 parameters: 
+			 test statistic:  fisher 
+       GO.ID                                        Term Annotated Significant
+1 GO:0042578         phosphoric ester hydrolase activity         2           2
+2 GO:0016791                        phosphatase activity         1           1
+3 GO:0003674                          molecular_function         4           2
+4 GO:0003824                          catalytic activity         4           2
+5 GO:0016787                          hydrolase activity         4           2
+6 GO:0016788 hydrolase activity, acting on ester bond...         4           2
+7 GO:0016298                             lipase activity         2           0
+  Expected elimFisher
+1      1.0       0.17
+2      0.5       0.50
+3      2.0       1.00
+4      2.0       1.00
+5      2.0       1.00
+6      2.0       1.00
+7      1.0       1.00
+-> GO:0042578 (phosphoric ester hydrolase activity) : 0.1667
+GeneA
+GeneC
