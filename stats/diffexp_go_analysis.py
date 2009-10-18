@@ -8,9 +8,7 @@ from __future__ import with_statement
 import sys
 import csv
 import collections
-import itertools
 
-import numpy
 import rpy2.robjects as robjects
 
 def main(input_csv, gene_to_go_file):
