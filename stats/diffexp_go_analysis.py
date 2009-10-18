@@ -117,15 +117,6 @@ def parse_go_map_file(in_handle, genes_w_pvals):
             go_to_gene[go_id].append(gene_id)
     return dict(gene_to_go), dict(go_to_gene)
 
-def _multi_file_reader(reader):
-    for parts in reader:
-        if len(parts) == 6:
-            (chrom, references, _, _, pval, _) = parts
-            (start, end) = ("", "")
-        else:
-            (chrom, start, end, references, _, _, pval, _) = parts
-        yield chrom, start, end, references, pval
-
 def parse_input_csv(in_handle):
     reader = csv.reader(in_handle)
     reader.next() # header
