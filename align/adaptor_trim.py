@@ -33,18 +33,32 @@ def _remove_adaptor(seq, region, right_side=True):
         return seq[pos+len(region):]
 
 def trim_adaptor(seq, adaptor, num_errors, right_side=True):
+    """Trim the given adaptor sequence from a starting sequence.
+
+    * seq can be either of:
+       - string
+       - Biopython SeqRecord
+    * adaptor is a string sequence
+    * num_errors specifies how many errors are allowed in the match between
+    adaptor and the base sequence. Matches with more than this number of errors
+    are not allowed.
+    """
     gap_char = '-'
     exact_pos = str(seq).find(adaptor)
     if exact_pos >= 0:
         seq_region = str(seq[exact_pos:exact_pos+len(adaptor)])
         adapt_region = adaptor
     else:
-        seq_a, adaptor_a, score, start, end = pairwise2.align.localms(str(seq),
-                str(adaptor), 5.0, -4.0, -9.0, -0.5,
-                one_alignment_only=True, gap_char=gap_char)[0]
-        adapt_region = adaptor_a[start:end]
-        #print seq_a, adaptor_a, score, start, end
-        seq_region = seq_a[start:end]
+        aligns = pairwise2.align.localms(str(seq), str(adaptor), 
+                5.0, -4.0, -9.0, -0.5, one_alignment_only=True, 
+                gap_char=gap_char)
+        if len(aligns) == 0:
+            adapt_region, seq_region = ("", "")
+        else:
+            seq_a, adaptor_a, score, start, end = aligns[0]
+            adapt_region = adaptor_a[start:end]
+            #print seq_a, adaptor_a, score, start, end
+            seq_region = seq_a[start:end]
     matches = sum((1 if s == adapt_region[i] else 0) for i, s in
             enumerate(seq_region))
     # too many errors -- no trimming
@@ -54,6 +68,21 @@ def trim_adaptor(seq, adaptor, num_errors, right_side=True):
     else:
         return _remove_adaptor(seq, seq_region.replace(gap_char, ""),
                 right_side)
+
+def trim_adaptor_w_qual(seq, qual, adaptor, num_errors, right_side=True):
+    """Trim an adaptor with an associated quality string.
+
+    Works like trimmed adaptor, but also trims an associated quality score.
+    """
+    assert len(seq) == len(qual)
+    tseq = trim_adaptor(seq, adaptor, num_errors, right_side=right_side)
+    if right_side:
+        pos = seq.find(tseq)
+    else:
+        pos = seq.rfind(tseq)
+    tqual = qual[pos:pos+len(tseq)]
+    assert len(tseq) == len(tqual)
+    return tseq, tqual
 
 # ------- Testing Code
 import sys
@@ -123,6 +152,28 @@ class AdaptorAlignTrimTest(unittest.TestCase):
                 adaptor, 2, False)
         assert isinstance(trec, SeqRecord)
         assert str(trec.seq) == "CCC"
+
+    def t_5_passing_tuple(self):
+        """Handle passing a tuple of sequence and quality as input.
+        """
+        adaptor = "GATCGATCGATC"
+        seq = "GGG" + "GATCGTTCGATC" + "CCC"
+        qual = "YDV`a`a^[Xa`a`^`_O"
+        tseq, tqual = trim_adaptor_w_qual(seq, qual, adaptor, num_errors=2)
+        assert tseq == "GGG"
+        assert tqual == "YDV"
+        tseq, tqual = trim_adaptor_w_qual(seq, qual, adaptor, num_errors=2,
+                right_side=False)
+        assert tseq == "CCC"
+        assert tqual == "`_O"
+
+    def t_6_no_alignment(self):
+        """Correctly handle case with no alignment between adaptor and sequence.
+        """
+        adaptor = "AAAAAAAAAAAAAA"
+        to_trim = "TTTTTTTTTTTTTTTTT"
+        tseq = trim_adaptor(to_trim, adaptor, 2)
+        assert tseq == to_trim
 
 def run_tests(argv):
     test_suite = testing_suite()
