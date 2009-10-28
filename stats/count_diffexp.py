@@ -41,14 +41,42 @@ def run_edger(data, groups, sizes, genes):
     robjects.r('''
         library(edgeR)
     ''')
+    # find the version we are running -- check for edgeR exactTest function
+    try:
+        robjects.r["exactTest"]
+        is_13_plus = True
+    except LookupError:
+        is_13_plus = False
+
     params = {'group' : groups, 'lib.size' : sizes}
     dgelist = robjects.r.DGEList(data, **params)
-    ms = robjects.r.deDGE(dgelist, doPoisson=True)
-    tags = robjects.r.topTags(ms, pair=groups, n=len(genes))
-    indexes = [int(t) - 1 for t in tags.rownames()]
-    # can retrieve either raw or adjusted p-values
-    #pvals = list(tags.r['P.Value'][0])
-    pvals = list(tags.r['adj.P.Val'][0])
+    # 1.3+ version has a different method of calling and retrieving p values
+    if is_13_plus:
+        # perform Poisson adjustment and assignment as recommended in the manual
+        robjects.globalEnv['dP'] = dgelist
+        robjects.r('''
+            msP <- de4DGE(dP, doPoisson = TRUE)
+            dP$pseudo.alt <- msP$pseudo
+            dP$common.dispersion <- 1e-06
+            dP$conc <- msP$conc
+            dP$common.lib.size <- msP$M
+        ''')
+        dgelist = robjects.globalEnv['dP']
+        de = robjects.r.exactTest(dgelist)
+        tags = robjects.r.topTags(de, n=len(genes))
+        tag_table = tags[0]
+        indexes = [int(t) - 1 for t in tag_table.rownames()]
+        # can retrieve either raw or adjusted p-values
+        #pvals = list(tags.r['p.value'][0])
+        pvals = list(tag_table.r['adj.p.val'][0])
+    # older 1.2 version of edgeR
+    else:
+        ms = robjects.r.deDGE(dgelist, doPoisson=True)
+        tags = robjects.r.topTags(ms, pair=groups, n=len(genes))
+        indexes = [int(t) - 1 for t in tags.rownames()]
+        # can retrieve either raw or adjusted p-values
+        #pvals = list(tags.r['P.Value'][0])
+        pvals = list(tags.r['adj.P.Val'][0])
     assert len(indexes) == len(pvals)
     pvals_w_index = zip(indexes, pvals)
     pvals_w_index.sort()
