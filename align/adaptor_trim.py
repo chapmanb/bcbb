@@ -3,9 +3,22 @@
 
 Allows trimming of adaptor sequences from a list of SeqRecords produced
 by the Biopython SeqIO library.
+
+This can be imported for use in other scripts, or can be run directly. Running
+the script with no arguments will run the tests. Run directly, it will convert a
+fastq to a fasta output file, trimming with the passed adaptor:
+
+Usage:
+
+    adaptor_trim.py <in fastq file> <out fasta file> <adaptor seq> <number of errors>
 """
+from __future__ import with_statement
+import sys
+import os
+
 from Bio import pairwise2
 from Bio.Seq import Seq
+from Bio import SeqIO
 
 def _remove_adaptor(seq, region, right_side=True):
     """Remove an adaptor region and all sequence to the right or left.
@@ -85,7 +98,6 @@ def trim_adaptor_w_qual(seq, qual, adaptor, num_errors, right_side=True):
     return tseq, tqual
 
 # ------- Testing Code
-import sys
 import unittest
 
 from Bio.SeqRecord import SeqRecord
@@ -192,5 +204,21 @@ def testing_suite():
         test_suite.addTest(cur_suite)
     return test_suite
 
+def main(in_file, out_file, adaptor_seq, num_errors):
+    num_errors = int(num_errors)
+   
+    with open(in_file) as in_handle:
+        with open(out_file, "w") as out_handle:
+            for rec in SeqIO.parse(in_handle, "fastq"):
+                trim = trim_adaptor(rec.seq, adaptor_seq, num_errors)
+                if len(trim) > 0 and len(trim) < len(rec):
+                    rec.letter_annotations = {}
+                    rec.seq = trim
+                    SeqIO.write([rec], out_handle, "fasta")
+
 if __name__ == "__main__":
-    sys.exit(run_tests(sys.argv))
+    if len(sys.argv) < 2:
+        sys.exit(run_tests(sys.argv))
+    else:
+        main(*sys.argv[1:])
+        
