@@ -142,3 +142,9 @@ class GFF3Writer:
         """Write out standard header directives.
         """
         out_handle.write("##gff-version 3\n")
+
+def write(recs, out_handle):
+    """High level interface to write GFF3 files from SeqRecords and SeqFeatures.
+    """
+    writer = GFF3Writer()
+    return writer.write(recs, out_handle)

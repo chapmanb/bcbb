@@ -21,7 +21,6 @@ import re
 import collections
 import urllib
 import itertools
-from decorator import decorator
 
 # Make defaultdict compatible with versions of python older than 2.4
 try:
@@ -658,22 +657,31 @@ class DiscoGFFParser(_AbstractMapReduceGFF):
             processed[out_key] = simplejson.loads(out_val)
         yield processed
 
-@decorator
-def _file_or_handle(fn, *args, **kwargs):
+def parse(gff_files, base_dict=None, limit_info=None, target_lines=None):
+    """High level interface to parse GFF files into SeqRecords and SeqFeatures.
+    """
+    parser = GFFParser()
+    for rec in parser.parse_in_parts(gff_files, base_dict, limit_info,
+            target_lines):
+        yield rec
+
+def _file_or_handle(fn):
     """Decorator to handle either an input handle or a file.
     """
-    in_file = args[1]
-    if hasattr(in_file, "read"):
-        need_close = False
-        in_handle = in_file
-    else:
-        need_close = True
-        in_handle = open(in_file)
-    args = (args[0], in_handle) + args[2:]
-    out = fn(*args, **kwargs)
-    if need_close:
-        in_handle.close()
-    return out
+    def _file_or_handle_inside(*args, **kwargs):
+        in_file = args[1]
+        if hasattr(in_file, "read"):
+            need_close = False
+            in_handle = in_file
+        else:
+            need_close = True
+            in_handle = open(in_file)
+        args = (args[0], in_handle) + args[2:]
+        out = fn(*args, **kwargs)
+        if need_close:
+            in_handle.close()
+        return out
+    return _file_or_handle_inside
 
 class GFFExaminer:
     """Provide high level details about a GFF file to refine parsing.

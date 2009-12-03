@@ -7,8 +7,7 @@ import pprint
 import StringIO
 
 from Bio import SeqIO
-#from BCBio.GFF.GFFParser import (GFFMapReduceFeatureAdder,
-#        GFFAddingIterator, GFFExaminer)
+from BCBio import GFF
 from BCBio.GFF import (GFF3Writer, GFFExaminer, GFFParser, DiscoGFFParser)
 
 class MapReduceGFFTest(unittest.TestCase):
@@ -27,8 +26,7 @@ class MapReduceGFFTest(unittest.TestCase):
                 gff_type = ["gene", "mRNA", "CDS"],
                 gff_id = ['I']
                 )
-        parser = GFFParser()
-        rec_dict = SeqIO.to_dict(parser.parse(self._test_gff_file,
+        rec_dict = SeqIO.to_dict(GFF.parse(self._test_gff_file,
             limit_info=cds_limit_info))
         test_rec = rec_dict['I']
         assert len(test_rec.features) == 32
@@ -105,8 +103,7 @@ class GFF3Test(unittest.TestCase):
                       ('Coding_transcript', 'mRNA'),
                       ('Coding_transcript', 'CDS')]
         limit_info = dict(gff_source_type = rnai_types + gene_types)
-        parser = GFFParser()
-        for rec in parser.parse(gff_file, seq_dict, limit_info=limit_info):
+        for rec in GFF.parse(gff_file, seq_dict, limit_info=limit_info):
             pass
 
     def _get_seq_dict(self):
@@ -206,8 +203,7 @@ class GFF3Test(unittest.TestCase):
     def t_unknown_seq(self):
         """Prepare unknown base sequences with the correct length.
         """
-        parser = GFFParser()
-        rec_dict = SeqIO.to_dict(parser.parse(self._test_gff_file))
+        rec_dict = SeqIO.to_dict(GFF.parse(self._test_gff_file))
         assert len(rec_dict["I"].seq) == 12766937
         assert len(rec_dict["X"].seq) == 17718531
 
@@ -356,8 +352,7 @@ class GFF2Tester(unittest.TestCase):
         limit_info = dict(
                 gff_source_type = [('snoRNA', 'exon')]
                 )
-        parser = GFFParser()
-        rec_dict = SeqIO.to_dict(parser.parse(self._ensembl_file,
+        rec_dict = SeqIO.to_dict(GFF.parse(self._ensembl_file,
             limit_info=limit_info))
         work_rec = rec_dict['I']
         assert len(work_rec.features) == 1
@@ -376,8 +371,7 @@ class GFF2Tester(unittest.TestCase):
         limit_info = dict(
                 gff_source_type = [('Genomic_canonical', 'region')]
                 )
-        parser = GFFParser()
-        rec_dict = SeqIO.to_dict(parser.parse(self._wormbase_file,
+        rec_dict = SeqIO.to_dict(GFF.parse(self._wormbase_file,
             limit_info=limit_info))
         work_rec = rec_dict['I']
         assert len(work_rec.features) == 1
@@ -388,8 +382,7 @@ class GFF2Tester(unittest.TestCase):
     def t_jgi_gff(self):
         """Parsing of JGI formatted GFF2, nested using transcriptId and proteinID
         """
-        parser = GFFParser()
-        rec_dict = SeqIO.to_dict(parser.parse(self._jgi_file))
+        rec_dict = SeqIO.to_dict(GFF.parse(self._jgi_file))
         tfeature = rec_dict['chr_1'].features[0]
         assert tfeature.location.nofuzzy_start == 37060
         assert tfeature.location.nofuzzy_end == 38216
@@ -402,8 +395,7 @@ class GFF2Tester(unittest.TestCase):
     def t_ensembl_nested_features(self):
         """Test nesting of features with GFF2 files using transcript_id.
         """
-        parser = GFFParser()
-        rec_dict = SeqIO.to_dict(parser.parse(self._ensembl_file))
+        rec_dict = SeqIO.to_dict(GFF.parse(self._ensembl_file))
         assert len(rec_dict["I"].features) == 2
         t_feature = rec_dict["I"].features[0]
         assert len(t_feature.sub_features) == 32
@@ -411,8 +403,7 @@ class GFF2Tester(unittest.TestCase):
     def t_wormbase_nested_features(self):
         """Test nesting of features with GFF2 files using Transcript only.
         """
-        parser = GFFParser()
-        rec_dict = SeqIO.to_dict(parser.parse(self._wormbase_file))
+        rec_dict = SeqIO.to_dict(GFF.parse(self._wormbase_file))
         assert len(rec_dict) == 3
         parent_features = [f for f in rec_dict["I"].features if f.type ==
                 "Transcript"]
@@ -427,8 +418,7 @@ class GFF2Tester(unittest.TestCase):
     def t_wb_cds_nested_features(self):
         """Nesting of GFF2 features with a flat CDS key value pair.
         """
-        parser = GFFParser()
-        rec_dict = SeqIO.to_dict(parser.parse(self._wb_alt_file))
+        rec_dict = SeqIO.to_dict(GFF.parse(self._wb_alt_file))
         assert len(rec_dict) == 2
         features = rec_dict.values()[1].features
         assert len(features) == 1
@@ -439,9 +429,8 @@ class GFF2Tester(unittest.TestCase):
     def t_gff2_iteration(self):
         """Test iterated features with GFF2 files, breaking without parents.
         """
-        parser = GFFParser()
         recs = []
-        for rec in parser.parse_in_parts(self._wormbase_file, target_lines=15):
+        for rec in GFF.parse(self._wormbase_file, target_lines=15):
             recs.append(rec)
         assert len(recs) == 4
         assert recs[0].features[0].type == 'region'
@@ -459,8 +448,7 @@ class DirectivesTest(unittest.TestCase):
         """Parse out top level meta-data supplied in a GFF3 file.
         """
 
-        parser = GFFParser()
-        recs = SeqIO.to_dict(parser.parse(self._gff_file))
+        recs = SeqIO.to_dict(GFF.parse(self._gff_file))
         anns = recs['chr17'].annotations
         assert anns['gff-version'] == ['3']
         assert anns['attribute-ontology'] == ['baz']
@@ -472,8 +460,7 @@ class DirectivesTest(unittest.TestCase):
     def t_fasta_directive(self):
         """Parse FASTA sequence information contained in a GFF3 file.
         """
-        parser = GFFParser()
-        recs = SeqIO.to_dict(parser.parse(self._gff_file))
+        recs = SeqIO.to_dict(GFF.parse(self._gff_file))
         assert len(recs) == 1
         test_rec = recs['chr17']
         assert str(test_rec.seq) == "GATTACAGATTACA"
@@ -494,13 +481,11 @@ class OutputTest(unittest.TestCase):
     def t_gff3_to_gff3(self):
         """Read in and write out GFF3 without any loss of information.
         """
-        parser = GFFParser()
-        recs = SeqIO.to_dict(parser.parse(self._test_gff_file))
+        recs = SeqIO.to_dict(GFF.parse(self._test_gff_file))
         out_handle = StringIO.StringIO()
-        writer = GFF3Writer()
-        writer.write(recs.values(), out_handle)
+        GFF.write(recs.values(), out_handle)
         wrote_handle = StringIO.StringIO(out_handle.getvalue())
-        recs_two = SeqIO.to_dict(parser.parse(wrote_handle))
+        recs_two = SeqIO.to_dict(GFF.parse(wrote_handle))
 
         orig_rec = recs.values()[0]
         re_rec = recs.values()[0]
@@ -511,11 +496,9 @@ class OutputTest(unittest.TestCase):
     def t_gff2_to_gff3(self):
         """Read in GFF2 and write out as GFF3.
         """
-        parser = GFFParser()
-        recs = SeqIO.to_dict(parser.parse(self._wormbase_file))
+        recs = SeqIO.to_dict(GFF.parse(self._wormbase_file))
         out_handle = StringIO.StringIO()
-        writer = GFF3Writer()
-        writer.write(recs.values(), out_handle)
+        GFF.write(recs.values(), out_handle)
         wrote_handle = StringIO.StringIO(out_handle.getvalue())
         # check some tricky lines in the GFF2 file
         checks = 0
