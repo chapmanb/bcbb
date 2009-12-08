@@ -175,7 +175,7 @@ def _gff_line_map(line, params):
                         int(gff_parts[4])]
                 gff_info['type'] = gff_parts[2]
                 gff_info['id'] = quals.get('ID', [''])[0]
-                gff_info['strand'] = strand_map[gff_parts[6]]
+                gff_info['strand'] = strand_map.get(gff_parts[6], None)
                 if is_gff2:
                     gff_info = _nest_gff2_features(gff_info)
                 # features that have parents need to link so we can pick up
