@@ -722,8 +722,8 @@ class GFFExaminer:
         for filter_key in self._filter_info.keys():
             cur_limits[filter_key] = collections.defaultdict(int)
         for line in gff_handle:
-            # ignore comment lines
-            if line.strip()[0] != "#":
+            # ignore empty and comment lines
+            if line.strip() and line.strip()[0] != "#":
                 parts = [p.strip() for p in line.split('\t')]
                 assert len(parts) == 9, line
                 for filter_key, cur_indexes in self._filter_info.items():
@@ -753,16 +753,17 @@ class GFFExaminer:
         parent_sts = dict()
         child_sts = collections.defaultdict(list)
         for line in gff_handle:
-            line_type, line_info = _gff_line_map(line,
-                    self._get_local_params())[0]
-            if (line_type == 'parent' or (line_type == 'child' and
-                line_info['id'])):
-                parent_sts[line_info['id']] = (line_info['quals']['source'][0],
-                        line_info['type'])
-            if line_type == 'child':
-                for parent_id in line_info['quals']['Parent']:
-                    child_sts[parent_id].append((line_info['quals']['source'][0],
-                        line_info['type']))
+            if line.strip():
+                line_type, line_info = _gff_line_map(line,
+                        self._get_local_params())[0]
+                if (line_type == 'parent' or (line_type == 'child' and
+                        line_info['id'])):
+                    parent_sts[line_info['id']] = (
+                            line_info['quals']['source'][0], line_info['type'])
+                if line_type == 'child':
+                    for parent_id in line_info['quals']['Parent']:
+                        child_sts[parent_id].append((
+                            line_info['quals']['source'][0], line_info['type']))
         #print parent_sts, child_sts
         # generate a dictionary of the unique final type relationships
         pc_map = collections.defaultdict(list)
