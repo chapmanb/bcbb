@@ -88,7 +88,7 @@ class ExperimentQueryBuilder:
             back_map[val] = key
         return [back_map[n] for n in self.attributes]
 
-    def available_names(self):
+    def available_attributes(self):
         return self._names.keys()
 
     def add_attributes(self, names):
