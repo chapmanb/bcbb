@@ -582,9 +582,13 @@ class GFFParser(_AbstractMapReduceGFF):
         which provides a number of lines to parse before returning results.
         This allows partial parsing of a file to prevent memory issues.
         """
-        params = self._examiner._get_local_params(limit_info)
-        out_info = _GFFParserLocalOut((target_lines is not None and
-                target_lines > 1))
+        line_gen = self._file_line_generator(gff_files)
+        for out in self._lines_to_out_info(line_gen, limit_info, target_lines):
+            yield out
+
+    def _file_line_generator(self, gff_files):
+        """Generate single lines from a set of GFF files.
+        """
         for gff_file in gff_files:
             if hasattr(gff_file, "read"):
                 need_close = False
@@ -597,26 +601,49 @@ class GFFParser(_AbstractMapReduceGFF):
                 line = in_handle.readline()
                 if not line:
                     break
-                results = self._map_fn(line, params)
-                if self._line_adjust_fn and results:
-                    if results[0][0] not in ['directive']:
-                        results = [(results[0][0],
-                            self._line_adjust_fn(results[0][1]))]
-                self._reduce_fn(results, out_info, params)
-                if (target_lines and out_info.num_lines >= target_lines and
-                        out_info.can_break):
-                    yield out_info.get_results()
-                    out_info = _GFFParserLocalOut((target_lines is not None and
-                            target_lines > 1))
-                if (results and results[0][0] == 'directive' and 
-                        results[0][1] == 'FASTA'):
-                    found_seqs = True
-                    break
-            if found_seqs:
-                fasta_recs = self._parse_fasta(in_handle)
-                out_info.add('fasta', fasta_recs)
+                yield line
             if need_close:
                 in_handle.close()
+
+    def _lines_to_out_info(self, line_iter, limit_info=None,
+            target_lines=None):
+        """Generate SeqRecord and SeqFeatures from GFF file lines.
+        """
+        params = self._examiner._get_local_params(limit_info)
+        out_info = _GFFParserLocalOut((target_lines is not None and
+                target_lines > 1))
+        found_seqs = False
+        for line in line_iter:
+            results = self._map_fn(line, params)
+            if self._line_adjust_fn and results:
+                if results[0][0] not in ['directive']:
+                    results = [(results[0][0],
+                        self._line_adjust_fn(results[0][1]))]
+            self._reduce_fn(results, out_info, params)
+            if (target_lines and out_info.num_lines >= target_lines and
+                    out_info.can_break):
+                yield out_info.get_results()
+                out_info = _GFFParserLocalOut((target_lines is not None and
+                        target_lines > 1))
+            if (results and results[0][0] == 'directive' and 
+                    results[0][1] == 'FASTA'):
+                found_seqs = True
+                break
+
+        class FakeHandle:
+            def __init__(self, line_iter):
+                self._iter = line_iter
+            def read(self):
+                return "".join(l for l in self._iter)
+            def readline(self):
+                try:
+                    return self._iter.next()
+                except StopIteration:
+                    return ""
+
+        if found_seqs:
+            fasta_recs = self._parse_fasta(FakeHandle(line_iter))
+            out_info.add('fasta', fasta_recs)
         if out_info.has_items():
             yield out_info.get_results()
 
