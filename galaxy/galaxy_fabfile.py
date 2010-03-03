@@ -12,6 +12,8 @@ from fabric.contrib.files import *
 
 # -- Host specific setup for various groups of servers.
 
+env.include_arachne = True
+
 def mothra():
     """Setup environment for mothra authentication.
     """
@@ -188,6 +190,8 @@ def _setup_ngs_genomes():
             sam_index = _index_sam(ref_file)
             bwa_index = _index_bwa(ref_file)
             bowtie_index = _index_bowtie(ref_file)
+            if env.include_arachne:
+                arachne_index = _index_arachne(ref_file)
         for ref_index_file, cur_index, prefix in [
                 ("sam_fa_indices.loc", sam_index, "index"),
                 ("bowtie_indices.loc", bowtie_index, ""),
@@ -237,6 +241,20 @@ def _index_sam(ref_file):
     if not exists("%s.fai" % ref_file):
         run("samtools faidx %s" % ref_file)
     return ref_file
+
+def _index_arachne(ref_file):
+    """Index for Broad's Arachne aligner.
+    """
+    dir_name = "arachne"
+    ref_base = os.path.splitext(ref_file)[0]
+    if not exists(dir_name):
+        run("mkdir %s" % dir_name)
+        with cd(dir_name):
+            run("ln -s %s" % os.path.join(os.pardir, ref_file))
+            run("MakeLookupTable SOURCE=%s OUT_HEAD=%s" % (ref_file,
+                ref_base))
+            run("rm -f %s" % ref_file)
+    return os.path.join(dir_name, ref_base)
 
 # ==
 

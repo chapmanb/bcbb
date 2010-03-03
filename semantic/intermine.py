@@ -27,7 +27,7 @@ class Intermine:
         self._base = "%s/query/service/query/results" % base_url
 
     def _do_query(self, query):
-        print query
+        #print query
         req = urllib2.Request(self._base,
                 urllib.urlencode(dict(query=query)))
         response = urllib2.urlopen(req)
