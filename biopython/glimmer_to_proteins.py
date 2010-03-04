@@ -1,7 +1,16 @@
 #!/usr/bin/env python
-"""Convert Glimmer gene predictions into protein sequences.
+"""Convert GlimmerHMM gene predictions into protein sequences.
 
-http://www.cbcb.umd.edu/software/glimmer/
+This works with the GlimmerHMM specific output format:
+
+  12    1  +  Initial       10748      10762       15
+  12    2  +  Internal      10940      10971       32
+  12    3  +  Internal      11035      11039        5
+  12    4  +  Internal      11072      11110       39
+  12    5  +  Internal      11146      11221       76
+  12    6  +  Terminal      11265      11388      124
+
+http://www.cbcb.umd.edu/software/GlimmerHMM/
 
 Usage:
     glimmer_to_proteins.py <glimmer output> <ref fasta>
