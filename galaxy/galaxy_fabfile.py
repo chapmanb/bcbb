@@ -7,6 +7,8 @@ Usage:
     fab -f galaxy_fabfile.py servername deploy_galaxy
 """
 import os
+from contextlib import contextmanager
+
 from fabric.api import *
 from fabric.contrib.files import *
 
@@ -15,13 +17,25 @@ from fabric.contrib.files import *
 env.include_arachne = True
 
 def mothra():
-    """Setup environment for mothra authentication.
+    """Setup environment for mothra.
     """
     env.user = 'chapman'
     env.hosts = ['mothra']
     env.path = '/home/chapman/install/web/galaxy-central'
     env.galaxy_files = '/store3/galaxy_files'
+    env.install_dir = '/source'
     env.shell = "/bin/zsh -l -i -c"
+
+def galaga():
+    """Setup environment for galaga.
+    """
+    env.user = 'chapman'
+    env.hosts = ['galaga']
+    env.path = '/source/galaxy/web'
+    env.galaxy_files = '/source/galaxy'
+    env.install_dir = '/source'
+    env.shell = "/bin/zsh -l -i -c"
+    env.include_arachne = False
 
 def localhost():
     """Setup environment for local authentication.
@@ -31,18 +45,24 @@ def localhost():
     env.shell = '/usr/local/bin/bash -l -c'
     env.path = '/home/chapmanb/tmp/galaxy-central'
 
-# -- Configuration for what to install
+# -- Configuration for genomes to download and prepare
 
-class UCSCGenome:
+class _DownloadHelper:
+    def _exists(self, fname, seq_dir):
+        """Check if a file exists in either download or final destination.
+        """
+        return exists(fname) or exists(os.path.join(seq_dir, fname))
+
+class UCSCGenome(_DownloadHelper):
     def __init__(self, genome_name):
         self._name = genome_name
         self._url = "ftp://hgdownload.cse.ucsc.edu/goldenPath/%s/bigZips" % \
                 genome_name
 
-    def download(self):
+    def download(self, seq_dir):
         for zipped_file in ["chromFa.tar.gz", "%s.fa.gz" % self._name,
                             "chromFa.zip"]:
-            if not exists(zipped_file):
+            if not self._exists(zipped_file, seq_dir):
                 with settings(warn_only=True):
                     result = run("wget %s/%s" % (self._url, zipped_file))
                 if not result.failed:
@@ -50,7 +70,7 @@ class UCSCGenome:
             else:
                 break
         genome_file = "%s.fa" % self._name
-        if not exists(genome_file):
+        if not self._exists(genome_file, seq_dir):
             if zipped_file.endswith(".tar.gz"):
                 run("tar -xzpf %s" % zipped_file)
             elif zipped_file.endswith(".zip"):
@@ -71,9 +91,9 @@ class UCSCGenome:
                          "-name '*hap*.fa' | xargs cat > %s" % tmp_file)
             run("rm -f *.fa")
             run("mv %s %s" % (tmp_file, genome_file))
-        return genome_file
+        return genome_file, [zipped_file]
 
-class NCBIRest:
+class NCBIRest(_DownloadHelper):
     """Retrieve files using the TogoWS REST server pointed at NCBI.
     """
     def __init__(self, name, refs):
@@ -81,9 +101,9 @@ class NCBIRest:
         self._refs = refs
         self._base_url = "http://togows.dbcls.jp/entry/genbank/%s.fasta"
 
-    def download(self):
+    def download(self, seq_dir):
         genome_file = "%s.fa" % self._name
-        if not exists(genome_file):
+        if not self._exists(genome_file, seq_dir):
             for ref in self._refs:
                 run("wget %s" % (self._base_url % ref))
                 run("ls -l")
@@ -96,9 +116,9 @@ class NCBIRest:
             run("rm -f *.fasta")
             run("rm -f *.bak")
             run("mv %s %s" % (tmp_file, genome_file))
-        return genome_file
+        return genome_file, []
 
-class EnsemblGenome:
+class EnsemblGenome(_DownloadHelper):
     """Retrieve genome FASTA files from Ensembl.
 
     ftp://ftp.ensemblgenomes.org/pub/plants/release-3/fasta/arabidopsis_thaliana/dna/Arabidopsis_thaliana.TAIR9.55.dna.toplevel.fa.gz
@@ -116,13 +136,13 @@ class EnsemblGenome:
                 release2)
         self._name = name
 
-    def download(self):
+    def download(self, seq_dir):
         genome_file = "%s.fa" % self._name
-        if not exists(self._get_file):
+        if not self._exists(self._get_file, seq_dir):
             run("wget %s%s" % (self._url, self._get_file))
-        if not exists(genome_file):
+        if not self._exists(genome_file, seq_dir):
             run("gunzip -c %s > %s" % (self._get_file, genome_file))
-        return genome_file
+        return genome_file, [self._get_file]
 
 genomes = [
            ("phiX174", "phix", NCBIRest("phix", ["NC_001422.1"])),
@@ -151,9 +171,33 @@ def deploy_galaxy():
     """Deploy a Galaxy server along with associated data files.
     """
     _required_libraries()
+    _support_programs()
     #latest_code()
     _setup_ngs_tools()
     _setup_liftover()
+
+# == Decorators and context managers
+
+def _if_not_installed(pname):
+    def argcatcher(func):
+        def decorator(*args, **kwargs):
+            with settings(
+                    hide('warnings', 'running', 'stdout', 'stderr'),
+                    warn_only=True):
+                result = run(pname)
+            if result.return_code == 127:
+                return func(*args, **kwargs)
+        return decorator
+    return argcatcher
+
+@contextmanager
+def _make_tmp_dir():
+    work_dir = os.path.join(env.galaxy_files, "tmp")
+    if not exists(work_dir):
+        run("mkdir %s" % work_dir)
+    yield work_dir
+    if exists(work_dir):
+        run("rm -rf %s" % work_dir)
 
 # == NGS
 
@@ -168,12 +212,81 @@ def _setup_ngs_tools():
 def _install_ngs_tools():
     """Install external next generation sequencing tools.
     """
-    # XXX to do:
-    # BWA
-    # Bowtie
-    # Fastx toolkit
-    # samtools
-    pass
+    _install_bowtie()
+    _install_bwa()
+    _install_samtools()
+    _install_fastx_toolkit()
+
+@_if_not_installed("bowtie")
+def _install_bowtie():
+    """Install the bowtie short read aligner.
+    """
+    version = "0.12.3"
+    url = "http://downloads.sourceforge.net/project/bowtie-bio/bowtie/%s/" \
+          "bowtie-%s-linux-x86_64.zip" % (version, version)
+    install_dir = os.path.join(env.install_dir, "bin")
+    with _make_tmp_dir() as work_dir:
+        with cd(work_dir):
+            run("wget %s" % url)
+            run("unzip %s" % os.path.split(url)[-1])
+            with cd("bowtie-%s" % version):
+                for fname in run("ls bowtie*").split("\n"):
+                    run("mv -f %s %s" % (fname, install_dir))
+
+@_if_not_installed("bwa")
+def _install_bwa():
+    version = "0.5.7"
+    url = "http://downloads.sourceforge.net/project/bio-bwa/bwa-%s.tar.bz2" % (
+            version)
+    install_dir = os.path.join(env.install_dir, "bin")
+    with _make_tmp_dir() as work_dir:
+        with cd(work_dir):
+            run("wget %s" % url)
+            run("tar -xjvpf %s" % (os.path.split(url)[-1]))
+            with cd("bwa-%s" % version):
+                run("make")
+                run("mv bwa %s" % install_dir)
+                run("mv solid2fastq.pl %s" % install_dir)
+                run("mv qualfa2fq.pl %s" % install_dir)
+
+@_if_not_installed("samtools")
+def _install_samtools():
+    version = "0.1.7"
+    vext = "a"
+    url = "http://downloads.sourceforge.net/project/samtools/samtools/%s/" \
+            "samtools-%s%s.tar.bz2" % (version, version, vext)
+    install_dir = os.path.join(env.install_dir, "bin")
+    with _make_tmp_dir() as work_dir:
+        with cd(work_dir):
+            run("wget %s" % url)
+            run("tar -xjvpf %s" % (os.path.split(url)[-1]))
+            with cd("samtools-%s%s" % (version, vext)):
+                run("sed -i.bak -r -e 's/-lcurses/-lncurses/g' Makefile")
+                #sed("Makefile", "-lcurses", "-lncurses")
+                run("make")
+                run("mv samtools %s" % install_dir)
+
+@_if_not_installed("fastq_quality_boxplot_graph.sh")
+def _install_fastx_toolkit():
+    version = "0.0.13"
+    gtext_version = "0.6"
+    url_base = "http://hannonlab.cshl.edu/fastx_toolkit/"
+    fastx_url = "%sfastx_toolkit-%s.tar.bz2" % (url_base, version)
+    gtext_url = "%slibgtextutils-%s.tar.bz2" % (url_base, gtext_version)
+    with _make_tmp_dir() as work_dir:
+        with cd(work_dir):
+            run("wget %s" % gtext_url)
+            run("tar -xjvpf %s" % (os.path.split(gtext_url)[-1]))
+            with cd("libgtextutils-%s" % gtext_version):
+                run("./configure --prefix=%s" % (env.install_dir))
+                run("make")
+                run("make install")
+            run("wget %s" % fastx_url)
+            run("tar -xjvpf %s" % os.path.split(fastx_url)[-1])
+            with cd("fastx_toolkit-%s" % version):
+                run("./configure --prefix=%s" % (env.install_dir))
+                run("make")
+                run("make install")
 
 def _setup_ngs_genomes():
     """Download and create index files for next generation genomes.
@@ -186,12 +299,15 @@ def _setup_ngs_genomes():
         if not exists(cur_dir):
             run('mkdir %s' % cur_dir)
         with cd(cur_dir):
-            ref_file = manager.download()
-            sam_index = _index_sam(ref_file)
+            seq_dir = 'seq'
+            ref_file, base_zips = manager.download(seq_dir)
+            ref_file = _move_seq_files(ref_file, base_zips, seq_dir)
             bwa_index = _index_bwa(ref_file)
             bowtie_index = _index_bowtie(ref_file)
             if env.include_arachne:
                 arachne_index = _index_arachne(ref_file)
+            with cd(seq_dir):
+                sam_index = _index_sam(ref_file)
         for ref_index_file, cur_index, prefix in [
                 ("sam_fa_indices.loc", sam_index, "index"),
                 ("bowtie_indices.loc", bowtie_index, ""),
@@ -200,6 +316,17 @@ def _setup_ngs_genomes():
             if prefix:
                 str_parts.insert(0, prefix)
             _update_loc_file(ref_index_file, str_parts)
+
+def _move_seq_files(ref_file, base_zips, seq_dir):
+    if not exists(seq_dir):
+        run('mkdir %s' % seq_dir)
+    for move_file in [ref_file] + base_zips:
+        if exists(move_file):
+            run("mv %s %s" % (move_file, seq_dir))
+    path, fname = os.path.split(ref_file)
+    moved_ref = os.path.join(path, seq_dir, fname)
+    assert exists(moved_ref), moved_ref
+    return moved_ref
 
 def _update_loc_file(ref_file, line_parts):
     """Add a reference to the given genome to the base index file.
@@ -214,7 +341,7 @@ def _update_loc_file(ref_file, line_parts):
 
 def _index_bowtie(ref_file):
     dir_name = "bowtie"
-    ref_base = os.path.splitext(ref_file)[0]
+    ref_base = os.path.splitext(os.path.split(ref_file)[-1])[0]
     if not exists(dir_name):
         run("mkdir %s" % dir_name)
         with cd(dir_name):
@@ -225,38 +352,41 @@ def _index_bowtie(ref_file):
 
 def _index_bwa(ref_file):
     dir_name = "bwa"
+    local_ref = os.path.split(ref_file)[-1]
     if not exists(dir_name):
         run("mkdir %s" % dir_name)
         with cd(dir_name):
             run("ln -s %s" % os.path.join(os.pardir, ref_file))
             with settings(warn_only=True):
-                result = run("bwa index -a bwtsw %s" % ref_file)
+                result = run("bwa index -a bwtsw %s" % local_ref)
             # work around a bug in bwa indexing for small files
             if result.failed:
-                run("bwa index %s" % ref_file)
-            run("rm -f %s" % ref_file)
-    return os.path.join(dir_name, ref_file)
+                run("bwa index %s" % local_ref)
+            run("rm -f %s" % local_ref)
+    return os.path.join(dir_name, local_ref)
 
 def _index_sam(ref_file):
-    if not exists("%s.fai" % ref_file):
-        run("samtools faidx %s" % ref_file)
+    (_, local_file) = os.path.split(ref_file)
+    if not exists("%s.fai" % local_file):
+        run("samtools faidx %s" % local_file)
     return ref_file
 
 def _index_arachne(ref_file):
     """Index for Broad's Arachne aligner.
     """
     dir_name = "arachne"
-    ref_base = os.path.splitext(ref_file)[0]
+    ref_base = os.path.splitext(os.path.split(ref_file)[-1])[0]
     if not exists(dir_name):
         run("mkdir %s" % dir_name)
         with cd(dir_name):
             run("ln -s %s" % os.path.join(os.pardir, ref_file))
+            ref_file = os.path.split(ref_file)[-1]
             run("MakeLookupTable SOURCE=%s OUT_HEAD=%s" % (ref_file,
                 ref_base))
             run("rm -f %s" % ref_file)
     return os.path.join(dir_name, ref_base)
 
-# ==
+# == Liftover files
 
 def _setup_liftover():
     """Download chain files for running liftOver.
@@ -303,6 +433,15 @@ def _required_libraries():
     # python2.6 setup.py build --hdf5=/source
     # python2.6 setup.py install --hdf5=/source
     pass
+
+def _support_programs():
+    """Install programs used by galaxy.
+    """
+    pass
+    # gnuplot
+    # gcc44-fortran
+    # R
+    # rpy
 
 def latest_code():
     """Pull the latest Galaxy code from bitbucket and update.
