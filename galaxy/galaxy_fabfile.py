@@ -216,6 +216,7 @@ def _install_ngs_tools():
     _install_bwa()
     _install_samtools()
     _install_fastx_toolkit()
+    _install_maq()
 
 @_if_not_installed("bowtie")
 def _install_bowtie():
@@ -264,7 +265,8 @@ def _install_samtools():
                 run("sed -i.bak -r -e 's/-lcurses/-lncurses/g' Makefile")
                 #sed("Makefile", "-lcurses", "-lncurses")
                 run("make")
-                run("mv samtools %s" % install_dir)
+                for install in ["samtools", "misc/maq2sam-long"]:
+                    run("mv -f %s %s" % (install, install_dir))
 
 @_if_not_installed("fastq_quality_boxplot_graph.sh")
 def _install_fastx_toolkit():
@@ -288,6 +290,20 @@ def _install_fastx_toolkit():
                 run("make")
                 run("make install")
 
+@_if_not_installed("maq")
+def _install_maq():
+    version = "0.7.1"
+    url = "http://downloads.sourceforge.net/project/maq/maq/%s/maq-%s.tar.bz2" \
+            % (version, version)
+    with _make_tmp_dir() as work_dir:
+        with cd(work_dir):
+            run("wget %s" % url)
+            run("tar -xjvpf %s" % (os.path.split(url)[-1]))
+            with cd("maq-%s" % version):
+                run("./configure --prefix=%s" % (env.install_dir))
+                run("make")
+                run("make install")
+
 def _setup_ngs_genomes():
     """Download and create index files for next generation genomes.
     """
@@ -304,6 +320,7 @@ def _setup_ngs_genomes():
             ref_file = _move_seq_files(ref_file, base_zips, seq_dir)
             bwa_index = _index_bwa(ref_file)
             bowtie_index = _index_bowtie(ref_file)
+            maq_index = _index_maq(ref_file)
             if env.include_arachne:
                 arachne_index = _index_arachne(ref_file)
             with cd(seq_dir):
@@ -364,6 +381,18 @@ def _index_bwa(ref_file):
                 run("bwa index %s" % local_ref)
             run("rm -f %s" % local_ref)
     return os.path.join(dir_name, local_ref)
+
+def _index_maq(ref_file):
+    dir_name = "maq"
+    local_ref = os.path.split(ref_file)[-1]
+    binary_out = "%s.bfa" % os.path.splitext(local_ref)[0]
+    if not exists(dir_name):
+        run("mkdir %s" % dir_name)
+        with cd(dir_name):
+            run("ln -s %s" % os.path.join(os.pardir, ref_file))
+            run("maq fasta2bfa %s %s" % (local_ref,
+                binary_out))
+    return os.path.join(dir_name, binary_out)
 
 def _index_sam(ref_file):
     (_, local_file) = os.path.split(ref_file)
@@ -442,6 +471,7 @@ def _support_programs():
     # gcc44-fortran
     # R
     # rpy
+    # easy_install gnuplot-py
 
 def latest_code():
     """Pull the latest Galaxy code from bitbucket and update.
