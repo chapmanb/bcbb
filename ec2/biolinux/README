@@ -1,0 +1,94 @@
+Overview
+========
+Provides a Fabric build file which will install a large selection of
+Bioinformatics and machine learning libraries on a bare machine. This is
+ideally designed for Amazon EC2, where you start with a bare bones
+system. The script can be used to bootstrap from these to a fully ready to go
+instance that can be distributed as an AMI for other users.
+
+EC2 quickstart
+==============
+This provides a quick cheat sheet of commands for getting up and running on EC2 using
+Amazon's command line tools.
+
+Initial set up
+--------------
+The first time using EC2, you'll need to install the toolkit and credentials
+for connecting. These basic directions follow: 
+http://docs.amazonwebservices.com/AWSEC2/latest/GettingStartedGuide/
+
+Login to Amazon EC2 account (http://aws.amazon.com/account/) and go to
+Security Credentials/X.509. Create a new certificate and download the public
+cert-*.pem and private pk-*.pem files. Put these in home directory: ~.ec2.
+
+Download and unzip the ec2 api tools, which require java:
+http://developer.amazonwebservices.com/connect/entry.jspa?externalID=351&categoryID=88
+
+Set up .zshrc/.bashrc with references to:
+
+export EC2_HOME=$HOME/install/ec2/ec2-api-tools
+export EC2_PRIVATE_KEY=~/.ec2/pk-UBH43XTAWVNQMIZRAV3RP5IIBAPBIFVP.pem
+export EC2_CERT=~/.ec2/cert-UBH43XTAWVNQMIZRAV3RP5IIBAPBIFVP.pem
+export PATH=$PATH:$EC2_HOME/bin
+
+To test, you should be able to run the command:
+
+% ec2-describe-regions
+
+Now generate a privatekey for logging in:
+
+% ec2-add-keypair yourmachine-keypair
+
+This will produce an RSA private key. You should copy and paste this to your
+.ec2 directory for future use:
+
+% vim ~/.ec2/id-yourmachine.keypair
+% chmod 600 ~/.ec2/id-yourmachine.keypair
+
+Allow ssh and web access to your instances:
+
+% ec2-authorize default -p 22
+% ec2-authorize default -p 80
+
+Starting an instance
+--------------------
+Each time you'd like to use EC2, you need to create a remote instance to work
+with. These quick start docs follow:
+http://docs.amazonwebservices.com/AWSEC2/latest/GettingStartedGuide/running-an-instance.html
+
+The first step is to pick an AMI to use. For instance:
+ 
+* bioperl-max (http://fortinbras.us/bioperl-max/) -- ami-1ad03273
+* unbuntu (http://alestic.com/) -- ami-6743ae0e
+
+Using this AMI, you begin an instance and ensure that it is running:
+
+% ec2-run-instances ami-1ad03273 -k sobchak-keypair
+RESERVATION	r-0a7af462	678711657553	default
+INSTANCE	i-0ca39764	ami-1ad03273			pending	sobchak-keypair	0		m1.small	2010-01-11T18:56:12+0000	us-east-1b	aki-a71cf9ce	ari-a51cf9cc		monitoring-disabled			instance-store
+
+% ec2-describe-instances i-0ca39764                                                                 1:56PM
+RESERVATION	r-0a7af462	678711657553	default
+INSTANCE	i-0ca39764	ami-1ad03273	ec2-174-129-68-135.compute-1.amazonaws.com	domU-12-31-39-03-44-11.compute-1.internal	running	sobchak-keypair	0		m1.small	2010-01-11T18:56:12+0000	us-east-1b	aki-a71cf9ce	ari-a51cf9cc		monitoring-disabled	174.129.68.135	10.249.71.223			instance-store
+
+Now you can ssh in using the key you created:
+
+% ssh -i ~/.ec2/id-sobchak.keypair root@ec2-174-129-68-135.compute-1.amazonaws.com
+
+You're in and paying per hour. When done:
+
+% ec2-terminate-instances i-0ca39764
+
+Bundling an AMI
+---------------
+XXX This is incomplete. EBS snapshots could be worth looking at to replace this.
+
+http://docs.amazonwebservices.com/AWSEC2/latest/GettingStartedGuide/creating-an-image.html
+
+From your machine:
+
+% scp -i ~/.ec2/id-sobchak.keypair ~/.ec2/cert-UBH43XTAWVNQMIZRAV3RP5IIBAPBIFVP.pem ~/.ec2/pk-UBH43XTAWVNQMIZRAV3RP5IIBAPBIFVP.pem root@ec2-174-129-68-135.compute-1.amazonaws.com:/mnt
+
+On the instance:
+
+# ec2-bundle-vol -d /mnt -k /mnt/pk-UBH43XTAWVNQMIZRAV3RP5IIBAPBIFVP.pem -c /mnt/cert-UBH43XTAWVNQMIZRAV3RP5IIBAPBIFVP.pem -u '6787-1165-7553' -r i386 -p sampleimage

@@ -1,0 +1,200 @@
+---
+# List of packages to be installed via the package manager.
+#
+# This is derived from the Infochimps machetEC2 package:
+#
+# http://github.com/infochimps/machetec2
+#
+# Package names are the terminal symbols in the tree (the text on any
+# line which begins with whitespace followed by a hypen and a space).
+#
+# The package list is organized taxonomically so that parts of it can
+# be selectively installed/ignored.  
+programming:
+  editors:
+    emacs:
+      - emacs
+      - emacs-goodies-el
+      - emacsen-common
+  version_control:
+    - git-core
+    - cvs
+    - subversion
+  misc:
+    - exuberant-ctags
+utils:
+  - tree
+lang:
+  - aspell
+  - dictionaries-common
+  - libaspell-dev
+amazon:
+  - s3cmd
+  - ec2-ami-tools
+python:
+  meta:
+    - ipython
+    - python-distutils-extra
+    - pyrex-mode
+    - python-dev
+  utils:
+    - python-dateutil
+  wrappers:
+    - libboost-dev
+    - libboost-python-dev
+    - python-libxslt1
+    - python-libccc
+    - python-libsvm
+    - python-libxml2
+    - bjam
+    - boost-build
+    - python-pyrex
+    - python-cairo
+    - python-cairo-dev
+    - python-mysqldb
+    - python-openssl
+    - pycaml
+    - python-pysqlite2
+    - python-bibtex
+    - python-boto
+    - python-cjson
+    - python-couchdb
+  bio:
+    - python-biopython
+    - python-biopython-martel
+    - python-biopython-sql
+  math:
+    - python-sympy
+    - python-crypto
+    - python-numeric
+    - python-numpy
+  viz:
+    - python-reportlab
+    - python-biggles
+  # FIXME please organize this huge list better!
+  misc:
+    - python-constraint
+    - python-cxx
+    - python-cxx-dev
+    - python-excelerator
+    - python-extclass
+    - python-extended-threading
+    - python-fuse
+    - python-gadfly
+    - python-glpk
+    - python-gmpy
+    - python-gnuplot
+    - python-gnutls
+    - python-hippocanvas
+    - python-ipy
+    - python-irclib
+    - python-jaxml
+    - python-json
+    - python-ll-core
+    - python-matplotlib
+    - python-matplotlib-data
+    - python-mode
+    - python-networkx
+    - python-nose
+    - python-numarray
+    - python-numarray-ext
+    - python-numeric-tutorial
+    - python-numpy-ext
+    - python-plplot
+    - python-pmock
+    - python-pprocess
+    - python-processing
+    - python-psycopg
+    - python-pycha
+    - python-pychart
+    - python-pydot
+    - python-pygooglechart
+    - python-pygraphviz
+    - python-pyme
+    - python-pymssql
+    - python-pyode
+    - python-pywt
+    - python-pyx
+    - python-reportlab-accel
+    - python-reverend
+    - python-rrdtool
+    - python-scientific
+    - python-scipy
+    - python-sparqlwrapper
+    - python-sparse
+    - python-sparse-examples
+    - python-sqlalchemy
+    - python-sqlite
+    - python-sqlitecachec
+    - python-sqlobject
+    - python-sqlrelay
+    - python-statgrab
+    - python-stats
+    - python-syck
+    - python-symeig
+    - python-sympy
+    - python-testresources
+    - python-visual
+    - python-xlrd
+    - python-xml
+    - python-yaml
+    - python-yapgvb
+    - python-lxml
+ruby:
+  # ruby gems are installed by components/ruby.rb
+  - rubygems
+  - ruby1.8-dev
+  - irb
+  - ri
+  - rdoc
+  - libmysql-ruby
+  - libxml-ruby
+  - libsqlite3-ruby
+  - libmysqlclient15-off
+  - libmysqlclient15-dev
+  - libsqlite3-0
+  - libsqlite3-dev
+  - libxml2
+  - libxml2-dev
+r:
+  - r-base
+  - r-base-core
+  - r-base-core-ra
+  - r-base-dev
+  - r-base-html
+  - r-base-latex
+  - r-cran-date
+perl: ~
+# FIXME some perl hacker please add some good modules
+java:
+  # FIXME these damn java packages need the human user to hit 'ok' in
+  # some special window DESIPTE apt-get's -y option being in
+  # place...[grumble]...
+  - sun-java6-bin
+  - sun-java6-jre
+  - sun-java6-jdk
+  - ant
+erlang:
+  - erlang
+  - erlang-base
+  - erlang-dev
+  - erlang-examples
+  - erlang-manpages
+  - erlang-mode
+databases:
+  mysql:
+    - mysql-client
+    - mysql-common
+    - mysql-server
+  postgres:
+    - postgresql
+    - postgresql-client
+    - postgresql-plpython-8.3
+    - postgresql-plperl-8.3
+math:
+  - prover9
+  - octave3.0
+viz:
+  - x11-apps
+  - mayavi
+  - mtasc # for modest maps
