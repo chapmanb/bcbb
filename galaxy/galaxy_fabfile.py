@@ -15,6 +15,7 @@ from fabric.contrib.files import *
 # -- Host specific setup for various groups of servers.
 
 env.include_arachne = True
+env.remove_old_genomes = False
 
 def mothra():
     """Setup environment for mothra.
@@ -35,7 +36,6 @@ def galaga():
     env.galaxy_files = '/source/galaxy'
     env.install_dir = '/source'
     env.shell = "/bin/zsh -l -i -c"
-    env.include_arachne = False
 
 def localhost():
     """Setup environment for local authentication.
@@ -84,11 +84,16 @@ class UCSCGenome(_DownloadHelper):
                 result = run("ls *.fa")
             # some UCSC downloads have the files in multiple directories
             # mv them to the parent directory and delete the child directories
+            #ignore_random = " -a \! -name '*_random.fa' -a \! -name 'chrUn*'" \
+            #        "-a \! -name '*hap*.fa'"
+            ignore_random = ""
             if result.failed:
-                run("find . -name '*.fa' -a \! -name '*_random.fa' -a \! -name 'chrUn*' -exec mv {} . \;")
+                run("find . -name '*.fa'%s -exec mv {} . \;" % ignore_random)
                 run("find . -type d -a \! -name '\.' | xargs rm -rf")
-            result = run("find . -name '*.fa' -a \! -name '*random.fa' -a \! " \
-                         "-name '*hap*.fa' | xargs cat > %s" % tmp_file)
+            result = run("find . -name '*.fa'%s" % ignore_random)
+            result = result.split("\n")
+            result.sort()
+            run("cat %s > %s" % (" ".join(result), tmp_file))
             run("rm -f *.fa")
             run("mv %s %s" % (tmp_file, genome_file))
         return genome_file, [zipped_file]
@@ -125,7 +130,7 @@ class EnsemblGenome(_DownloadHelper):
     ftp://ftp.ensembl.org/pub/release-56/fasta/caenorhabditis_elegans/dna/Caenorhabditis_elegans.WS200.56.dna.toplevel.fa.gz
     """
     def __init__(self, ensembl_section, release_number, release2, organism,
-            name):
+            name, convert_to_ucsc=False):
         if ensembl_section == "standard":
             url = "ftp://ftp.ensembl.org/pub/"
         else:
@@ -135,6 +140,7 @@ class EnsemblGenome(_DownloadHelper):
         self._get_file = "%s.%s.%s.dna.toplevel.fa.gz" % (organism, name,
                 release2)
         self._name = name
+        self._convert_to_ucsc = convert_to_ucsc
 
     def download(self, seq_dir):
         genome_file = "%s.fa" % self._name
@@ -142,6 +148,9 @@ class EnsemblGenome(_DownloadHelper):
             run("wget %s%s" % (self._url, self._get_file))
         if not self._exists(genome_file, seq_dir):
             run("gunzip -c %s > %s" % (self._get_file, genome_file))
+        if self._convert_to_ucsc:
+            #run("sed s/ / /g %s" % genome_file)
+            raise NotImplementedError("Replace with chr")
         return genome_file, [self._get_file]
 
 genomes = [
@@ -153,15 +162,16 @@ genomes = [
            ("Xtropicalis", "xenTro2", UCSCGenome("xenTro2")),
            ("Athaliana", "araTha_tair9", EnsemblGenome("plants", "3", "55",
                "Arabidopsis_thaliana", "TAIR9")),
+           ("Dmelanogaster", "dm3", UCSCGenome("dm3")),
            ("Celegans", "WS200", EnsemblGenome("standard", "56", "56",
                "Caenorhabditis_elegans", "WS200")),
-           ("Dmelanogaster", "BDGP5.13", EnsemblGenome("metazoa", "4", "55",
-               "Drosophila_melanogaster", "BDGP5.13")),
            ("Mtuberculosis_H37Rv", "mycoTube_H37RV", NCBIRest("mycoTube_H37RV",
                ["NC_000962"])),
            ("Msmegmatis", "92", NCBIRest("92", ["NC_008596.1"])),
            ("Paeruginosa_UCBPP-PA14", "386", NCBIRest("386", ["CP000438.1"])),
           ]
+           #("Dmelanogaster", "BDGP5.13", EnsemblGenome("metazoa", "4", "55",
+           #    "Drosophila_melanogaster", "BDGP5.13", convert_to_ucsc=True),
 
 lift_over_genomes = ['hg18', 'hg19', 'mm9', 'xenTro2', 'rn4']
 
@@ -315,6 +325,8 @@ def _setup_ngs_genomes():
         if not exists(cur_dir):
             run('mkdir %s' % cur_dir)
         with cd(cur_dir):
+            if env.remove_old_genomes:
+                _clean_genome_directory()
             seq_dir = 'seq'
             ref_file, base_zips = manager.download(seq_dir)
             ref_file = _move_seq_files(ref_file, base_zips, seq_dir)
@@ -333,6 +345,14 @@ def _setup_ngs_genomes():
             if prefix:
                 str_parts.insert(0, prefix)
             _update_loc_file(ref_index_file, str_parts)
+
+def _clean_genome_directory():
+    """Remove any existing sequence information in the current directory.
+    """
+    remove = ["arachne", "bowtie", "bwa", "maq", "seq"]
+    for dirname in remove:
+        if exists(dirname):
+            run("rm -rf %s" % dirname)
 
 def _move_seq_files(ref_file, base_zips, seq_dir):
     if not exists(seq_dir):
@@ -412,7 +432,9 @@ def _index_arachne(ref_file):
             ref_file = os.path.split(ref_file)[-1]
             run("MakeLookupTable SOURCE=%s OUT_HEAD=%s" % (ref_file,
                 ref_base))
-            run("rm -f %s" % ref_file)
+            run("fastaHeaderSizes FASTA=%s HEADER_SIZES=%s.headerSizes" %
+                    (ref_file, ref_file))
+            #run("rm -f %s" % ref_file)
     return os.path.join(dir_name, ref_base)
 
 # == Liftover files
