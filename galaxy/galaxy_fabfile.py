@@ -158,11 +158,14 @@ genomes = [
            ("Scerevisiae", "sacCer2", UCSCGenome("sacCer2")),
            ("Mmusculus", "mm9", UCSCGenome("mm9")),
            ("Hsapiens", "hg18", UCSCGenome("hg18")),
+           ("Hsapiens", "hg19", UCSCGenome("hg19")),
            ("Rnorvegicus", "rn4", UCSCGenome("rn4")),
            ("Xtropicalis", "xenTro2", UCSCGenome("xenTro2")),
            ("Athaliana", "araTha_tair9", EnsemblGenome("plants", "3", "55",
                "Arabidopsis_thaliana", "TAIR9")),
            ("Dmelanogaster", "dm3", UCSCGenome("dm3")),
+           #("Dmelanogaster", "BDGP5.13", EnsemblGenome("metazoa", "4", "55",
+           #    "Drosophila_melanogaster", "BDGP5.13", convert_to_ucsc=True),
            ("Celegans", "WS200", EnsemblGenome("standard", "56", "56",
                "Caenorhabditis_elegans", "WS200")),
            ("Mtuberculosis_H37Rv", "mycoTube_H37RV", NCBIRest("mycoTube_H37RV",
@@ -170,8 +173,6 @@ genomes = [
            ("Msmegmatis", "92", NCBIRest("92", ["NC_008596.1"])),
            ("Paeruginosa_UCBPP-PA14", "386", NCBIRest("386", ["CP000438.1"])),
           ]
-           #("Dmelanogaster", "BDGP5.13", EnsemblGenome("metazoa", "4", "55",
-           #    "Drosophila_melanogaster", "BDGP5.13", convert_to_ucsc=True),
 
 lift_over_genomes = ['hg18', 'hg19', 'mm9', 'xenTro2', 'rn4']
 
@@ -227,6 +228,20 @@ def _install_ngs_tools():
     _install_samtools()
     _install_fastx_toolkit()
     _install_maq()
+    _install_ucsc_tools()
+
+@_if_not_installed("faToTwoBit")
+def _install_ucsc_tools():
+    """Install useful executables from UCSC.
+    """
+    tools = ["liftOver", "faToTwoBit"]
+    url = "http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/"
+    install_dir = os.path.join(env.install_dir, "bin")
+    for tool in tools:
+        with cd(install_dir):
+            if not exists(tool):
+                run("wget %s%s" % (url, tool))
+                run("chmod a+rwx %s" % tool)
 
 @_if_not_installed("bowtie")
 def _install_bowtie():
@@ -333,6 +348,7 @@ def _setup_ngs_genomes():
             bwa_index = _index_bwa(ref_file)
             bowtie_index = _index_bowtie(ref_file)
             maq_index = _index_maq(ref_file)
+            twobit_index = _index_twobit(ref_file)
             if env.include_arachne:
                 arachne_index = _index_arachne(ref_file)
             with cd(seq_dir):
@@ -340,7 +356,10 @@ def _setup_ngs_genomes():
         for ref_index_file, cur_index, prefix in [
                 ("sam_fa_indices.loc", sam_index, "index"),
                 ("bowtie_indices.loc", bowtie_index, ""),
-                ("bwa_index.loc", bwa_index, "")]:
+                ("bwa_index.loc", bwa_index, ""),
+                ("alignseq.loc", twobit_index, "seq"),
+                ("twobit.loc", twobit_index, ""),
+                ]:
             str_parts = [genome, os.path.join(cur_dir, cur_index)]
             if prefix:
                 str_parts.insert(0, prefix)
@@ -375,6 +394,20 @@ def _update_loc_file(ref_file, line_parts):
             run("cp %s.sample %s" % (ref_file, ref_file))
         if not contains(add_str, ref_file):
             append(add_str, ref_file)
+
+def _index_twobit(ref_file):
+    """Index reference files using 2bit for random access.
+    """
+    dir_name = "ucsc"
+    ref_base = os.path.splitext(os.path.split(ref_file)[-1])[0]
+    out_file = "%s.2bit" % ref_base
+    if not exists(dir_name):
+        run("mkdir %s" % dir_name)
+    with cd(dir_name):
+        if not exists(out_file):
+            run("faToTwoBit %s %s" % (os.path.join(os.pardir, ref_file),
+                out_file))
+    return os.path.join(dir_name, out_file)
 
 def _index_bowtie(ref_file):
     dir_name = "bowtie"
