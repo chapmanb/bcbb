@@ -88,7 +88,7 @@ def _gff_line_map(line, params):
             if (len(val) > 0 and val[0] == '"' and val[-1] == '"'):
                 val = val[1:-1] 
             if val:
-                quals[key].extend(val.split(','))
+                quals[key].extend([v for v in val.split(',') if v])
             # if we don't have a value, make this a key=True/False style
             # attribute
             else:

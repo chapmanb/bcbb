@@ -278,6 +278,22 @@ class GFF3Test(unittest.TestCase):
                 ['yk1055g06.5', 'OSTF085G5_1']
         assert line_info['location'] == [4582718, 4583189]
 
+    def t_extra_comma(self):
+        """Correctly handle GFF3 files with extra trailing commas.
+        """
+        tfile = os.path.join(self._test_dir, "mouse_extra_comma.gff3")
+        in_handle = open(tfile)
+        for rec in GFF.parse(in_handle):
+            pass
+        in_handle.close()
+        tested = False
+        for sub_top in rec.features[0].sub_features:
+            for sub in sub_top.sub_features:
+                if sub.qualifiers.get("Name", "") == ["CDS:NC_000083.5:LOC100040603"]:
+                    tested = True
+                    assert len(sub.qualifiers["Parent"]) == 1
+        assert tested, "Did not find sub-feature to test"
+
 class SolidGFFTester(unittest.TestCase):
     """Test reading output from SOLiD analysis, as GFF3.
 
