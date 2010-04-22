@@ -480,6 +480,17 @@ class DirectivesTest(unittest.TestCase):
         assert len(recs) == 1
         test_rec = recs['chr17']
         assert str(test_rec.seq) == "GATTACAGATTACA"
+    
+    def t_examiner_with_fasta(self):
+        """Perform high level examination of files with FASTA directives.
+        """
+        examiner = GFFExaminer()
+        pc_map = examiner.parent_child_map(self._gff_file)
+        assert pc_map[('UCSC', 'mRNA')] == [('UCSC', 'CDS')]
+        limits = examiner.available_limits(self._gff_file)
+        assert limits['gff_id'].keys()[0][0] == 'chr17'
+        assert sorted(limits['gff_source_type'].keys()) == \
+                [('UCSC', 'CDS'), ('UCSC', 'mRNA')]
 
 class OutputTest(unittest.TestCase):
     """Tests to write SeqFeatures to GFF3 output format.

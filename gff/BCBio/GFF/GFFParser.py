@@ -749,6 +749,9 @@ class GFFExaminer:
         for filter_key in self._filter_info.keys():
             cur_limits[filter_key] = collections.defaultdict(int)
         for line in gff_handle:
+            # when we hit FASTA sequences, we are done with annotations
+            if line.startswith("##FASTA"):
+                break
             # ignore empty and comment lines
             if line.strip() and line.strip()[0] != "#":
                 parts = [p.strip() for p in line.split('\t')]
@@ -780,6 +783,9 @@ class GFFExaminer:
         parent_sts = dict()
         child_sts = collections.defaultdict(list)
         for line in gff_handle:
+            # when we hit FASTA sequences, we are done with annotations
+            if line.startswith("##FASTA"):
+                break
             if line.strip():
                 line_type, line_info = _gff_line_map(line,
                         self._get_local_params())[0]
