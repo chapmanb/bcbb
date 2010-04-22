@@ -37,6 +37,14 @@ def galaga():
     env.install_dir = '/source'
     env.shell = "/bin/zsh -l -i -c"
 
+def rcclu():
+    """Setup environment for rcclu cluster. Pass in hosts on commandline.
+    """
+    env.user = "chapmanb"
+    env.galaxy_files = "/solexa2/borowsky/tools/galaxy"
+    env.install_dir = "/solexa2/borowsky/tools"
+    env.shell = "/bin/bash -l -i -c"
+
 def localhost():
     """Setup environment for local authentication.
     """
@@ -201,6 +209,20 @@ def _if_not_installed(pname):
         return decorator
     return argcatcher
 
+def _if_installed(pname):
+    """Run if the given program name is installed.
+    """
+    def argcatcher(func):
+        def decorator(*args, **kwargs):
+            with settings(
+                    hide('warnings', 'running', 'stdout', 'stderr'),
+                    warn_only=True):
+                result = run(pname)
+            if result.return_code in [0, 1]: 
+                return func(*args, **kwargs)
+        return decorator
+    return argcatcher
+
 @contextmanager
 def _make_tmp_dir():
     work_dir = os.path.join(env.galaxy_files, "tmp")
@@ -351,6 +373,7 @@ def _setup_ngs_genomes():
             twobit_index = _index_twobit(ref_file)
             if env.include_arachne:
                 arachne_index = _index_arachne(ref_file)
+            _index_eland(ref_file)
             with cd(seq_dir):
                 sam_index = _index_sam(ref_file)
         for ref_index_file, cur_index, prefix in [
@@ -368,7 +391,7 @@ def _setup_ngs_genomes():
 def _clean_genome_directory():
     """Remove any existing sequence information in the current directory.
     """
-    remove = ["arachne", "bowtie", "bwa", "maq", "seq"]
+    remove = ["arachne", "bowtie", "bwa", "maq", "seq", "ucsc"]
     for dirname in remove:
         if exists(dirname):
             run("rm -rf %s" % dirname)
@@ -453,6 +476,7 @@ def _index_sam(ref_file):
         run("samtools faidx %s" % local_file)
     return ref_file
 
+@_if_installed("MakeLookupTable")
 def _index_arachne(ref_file):
     """Index for Broad's Arachne aligner.
     """
@@ -469,6 +493,50 @@ def _index_arachne(ref_file):
                     (ref_file, ref_file))
             #run("rm -f %s" % ref_file)
     return os.path.join(dir_name, ref_base)
+
+@_if_installed("squashGenome")
+def _index_eland(ref_file):
+    """Index for Solexa's Eland aligner.
+
+    This is nasty since Eland will choke on large files like the mm9 and h18
+    genomes. It also has a restriction on only having 24 larger reference 
+    files per directory. This indexes files with lots of shorter sequences (like
+    xenopus) as one file, and splits up other files, removing random and other
+    associated chromosomes to avoid going over the 24 file limit.
+    """
+    dir_name = "eland"
+    if not exists(dir_name):
+        run("mkdir %s" % dir_name)
+        num_refs = run("grep '^>' %s | wc -l" % ref_file)
+        # For a lot of reference sequences, Eland needs them in 1 file
+        if int(num_refs) > 239:
+            run("squashGenome %s %s" % (dir_name, ref_file))
+        # For large reference sequences, squash fails and need them split up
+        else:
+            tmp_dir = "tmp_seqparts"
+            run("mkdir %s" % tmp_dir)
+            run("seqretsplit -sequence %s -osdirectory2 %s -outseq ." % 
+                    (ref_file, tmp_dir))
+            with cd(tmp_dir):
+                result = run("ls *.fasta")
+                result = result.split("\n")
+            seq_files = [os.path.join(tmp_dir, f) for f in result]
+            run("squashGenome %s %s" % (dir_name, " ".join(seq_files)))
+            run("rm -rf %s" % tmp_dir)
+            # Eland can only handle up to 24 reference files in a directory
+            # If we have more, remove any with *random* in the name to get
+            # below. This sucks, but seemingly no way around it because
+            # Eland will choke on large reference files
+            if int(num_refs) > 24:
+                with cd(dir_name):
+                    for remove_re in ["*random*", "*_hap*", "chrun_*"]:
+                        with settings(warn_only=True):
+                            run("rm -f %s" % remove_re)
+                    new_count = run("ls | wc -l")
+                    # Human is still too big, need to remove chromosome M
+                    if int(new_count) // 2 > 24:
+                        with settings(warn_only=True):
+                            run("rm -f chrm*")
 
 # == Liftover files
 
