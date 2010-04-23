@@ -14,7 +14,6 @@ from fabric.contrib.files import *
 
 # -- Host specific setup for various groups of servers.
 
-env.include_arachne = True
 env.remove_old_genomes = False
 
 def mothra():
@@ -44,6 +43,7 @@ def rcclu():
     env.galaxy_files = "/solexa2/borowsky/tools/galaxy"
     env.install_dir = "/solexa2/borowsky/tools"
     env.shell = "/bin/bash -l -i -c"
+    env.path = None
 
 def localhost():
     """Setup environment for local authentication.
@@ -112,7 +112,7 @@ class NCBIRest(_DownloadHelper):
     def __init__(self, name, refs):
         self._name = name
         self._refs = refs
-        self._base_url = "http://togows.dbcls.jp/entry/genbank/%s.fasta"
+        self._base_url = "http://togows.dbcls.jp/entry/ncbi-nucleotide/%s.fasta"
 
     def download(self, seq_dir):
         genome_file = "%s.fa" % self._name
@@ -269,13 +269,14 @@ def _install_ucsc_tools():
 def _install_bowtie():
     """Install the bowtie short read aligner.
     """
-    version = "0.12.3"
+    version = "0.12.5"
+    mirror_info = "?use_mirror=cdnetworks-us-1"
     url = "http://downloads.sourceforge.net/project/bowtie-bio/bowtie/%s/" \
           "bowtie-%s-linux-x86_64.zip" % (version, version)
     install_dir = os.path.join(env.install_dir, "bin")
     with _make_tmp_dir() as work_dir:
         with cd(work_dir):
-            run("wget %s" % url)
+            run("wget %s%s" % (url, mirror_info))
             run("unzip %s" % os.path.split(url)[-1])
             with cd("bowtie-%s" % version):
                 for fname in run("ls bowtie*").split("\n"):
@@ -284,12 +285,13 @@ def _install_bowtie():
 @_if_not_installed("bwa")
 def _install_bwa():
     version = "0.5.7"
+    mirror_info = "?use_mirror=cdnetworks-us-1"
     url = "http://downloads.sourceforge.net/project/bio-bwa/bwa-%s.tar.bz2" % (
             version)
     install_dir = os.path.join(env.install_dir, "bin")
     with _make_tmp_dir() as work_dir:
         with cd(work_dir):
-            run("wget %s" % url)
+            run("wget %s%s" % (url, mirror_info))
             run("tar -xjvpf %s" % (os.path.split(url)[-1]))
             with cd("bwa-%s" % version):
                 run("make")
@@ -301,12 +303,13 @@ def _install_bwa():
 def _install_samtools():
     version = "0.1.7"
     vext = "a"
+    mirror_info = "?use_mirror=cdnetworks-us-1"
     url = "http://downloads.sourceforge.net/project/samtools/samtools/%s/" \
             "samtools-%s%s.tar.bz2" % (version, version, vext)
     install_dir = os.path.join(env.install_dir, "bin")
     with _make_tmp_dir() as work_dir:
         with cd(work_dir):
-            run("wget %s" % url)
+            run("wget %s%s" % (url, mirror_info))
             run("tar -xjvpf %s" % (os.path.split(url)[-1]))
             with cd("samtools-%s%s" % (version, vext)):
                 run("sed -i.bak -r -e 's/-lcurses/-lncurses/g' Makefile")
@@ -340,11 +343,12 @@ def _install_fastx_toolkit():
 @_if_not_installed("maq")
 def _install_maq():
     version = "0.7.1"
+    mirror_info = "?use_mirror=cdnetworks-us-1"
     url = "http://downloads.sourceforge.net/project/maq/maq/%s/maq-%s.tar.bz2" \
             % (version, version)
     with _make_tmp_dir() as work_dir:
         with cd(work_dir):
-            run("wget %s" % url)
+            run("wget %s%s" % (url, mirror_info))
             run("tar -xjvpf %s" % (os.path.split(url)[-1]))
             with cd("maq-%s" % version):
                 run("./configure --prefix=%s" % (env.install_dir))
@@ -371,8 +375,7 @@ def _setup_ngs_genomes():
             bowtie_index = _index_bowtie(ref_file)
             maq_index = _index_maq(ref_file)
             twobit_index = _index_twobit(ref_file)
-            if env.include_arachne:
-                arachne_index = _index_arachne(ref_file)
+            arachne_index = _index_arachne(ref_file)
             _index_eland(ref_file)
             with cd(seq_dir):
                 sam_index = _index_sam(ref_file)
@@ -410,13 +413,14 @@ def _move_seq_files(ref_file, base_zips, seq_dir):
 def _update_loc_file(ref_file, line_parts):
     """Add a reference to the given genome to the base index file.
     """
-    tools_dir = os.path.join(env.path, "tool-data")
-    add_str = "\t".join(line_parts)
-    with cd(tools_dir):
-        if not exists(ref_file):
-            run("cp %s.sample %s" % (ref_file, ref_file))
-        if not contains(add_str, ref_file):
-            append(add_str, ref_file)
+    if env.path is not None:
+        tools_dir = os.path.join(env.path, "tool-data")
+        add_str = "\t".join(line_parts)
+        with cd(tools_dir):
+            if not exists(ref_file):
+                run("cp %s.sample %s" % (ref_file, ref_file))
+            if not contains(add_str, ref_file):
+                append(add_str, ref_file)
 
 def _index_twobit(ref_file):
     """Index reference files using 2bit for random access.
@@ -595,19 +599,21 @@ def _support_programs():
     # R
     # rpy
     # easy_install gnuplot-py
+    # emboss
 
 def latest_code():
     """Pull the latest Galaxy code from bitbucket and update.
     """
     is_new = False
-    if not exists(env.path):
-        is_new = True
-        with cd(os.path.split(env.path)[0]):
-            run('hg clone https://chapmanb@bitbucket.org/chapmanb/galaxy-central/')
-    with cd(env.path):
-        run('hg pull')
-        run('hg update')
-        if is_new:
-            run('sh setup.sh')
-        else:
-            run('sh manage_db.sh upgrade')
+    if env.path is not None:
+        if not exists(env.path):
+            is_new = True
+            with cd(os.path.split(env.path)[0]):
+                run('hg clone https://chapmanb@bitbucket.org/chapmanb/galaxy-central/')
+        with cd(env.path):
+            run('hg pull')
+            run('hg update')
+            if is_new:
+                run('sh setup.sh')
+            else:
+                run('sh manage_db.sh upgrade')
