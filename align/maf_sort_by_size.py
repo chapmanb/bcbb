@@ -19,7 +19,6 @@ def main(in_file):
         build_index(in_file, index_file)
 
     # pull out the sizes and positions of each record
-    index = maf.Indexed(in_file, index_file)
     rec_info = []
     with open(in_file) as in_handle:
         reader = maf.Reader(in_handle)
@@ -32,6 +31,7 @@ def main(in_file):
     rec_info.sort(reverse=True)
 
     # write the records in order, pulling from the index
+    index = maf.Indexed(in_file, index_file)
     with open(out_file, "w") as out_handle:
         writer = maf.Writer(out_handle)
         for size, pos in rec_info:

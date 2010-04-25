@@ -5,6 +5,10 @@
 #
 # http://github.com/infochimps/machetec2
 #
+# and merged with packages from bioperl-max:
+#
+# http://fortinbras.us/bioperl-max/
+#
 # Package names are the terminal symbols in the tree (the text on any
 # line which begins with whitespace followed by a hypen and a space).
 #
@@ -12,16 +16,19 @@
 # be selectively installed/ignored.  
 programming:
   editors:
-    emacs:
-      - emacs
-      - emacs-goodies-el
-      - emacsen-common
+    - emacs
+    - emacs-goodies-el
+    - emacsen-common
+    - vim
   version_control:
     - git-core
     - cvs
     - subversion
+    - mercurial
   misc:
     - exuberant-ctags
+  build:
+    - swig
 utils:
   - tree
 lang:
@@ -61,7 +68,6 @@ python:
     - python-couchdb
   bio:
     - python-biopython
-    - python-biopython-martel
     - python-biopython-sql
   math:
     - python-sympy
@@ -104,7 +110,7 @@ python:
     - python-pmock
     - python-pprocess
     - python-processing
-    - python-psycopg
+    - python-psycopg2
     - python-pycha
     - python-pychart
     - python-pydot
@@ -120,7 +126,6 @@ python:
     - python-rrdtool
     - python-scientific
     - python-scipy
-    - python-sparqlwrapper
     - python-sparse
     - python-sparse-examples
     - python-sqlalchemy
@@ -150,7 +155,8 @@ ruby:
   - libmysql-ruby
   - libxml-ruby
   - libsqlite3-ruby
-  - libmysqlclient15-off
+  - libbio-ruby
+  - libbio-ruby1.8
   - libmysqlclient15-dev
   - libsqlite3-0
   - libsqlite3-dev
@@ -162,18 +168,20 @@ r:
   - r-base-core-ra
   - r-base-dev
   - r-base-html
-  - r-base-latex
   - r-cran-date
-perl: ~
-# FIXME some perl hacker please add some good modules
+perl: 
+  - perl
+  - libmoose-perl
+  - parrot
+  - parrot-devel
+  - bioperl
+  - bioperl-run
 java:
-  # FIXME these damn java packages need the human user to hit 'ok' in
-  # some special window DESIPTE apt-get's -y option being in
-  # place...[grumble]...
   - sun-java6-bin
   - sun-java6-jre
   - sun-java6-jdk
   - ant
+  - libbiojava-java
 erlang:
   - erlang
   - erlang-base
@@ -181,6 +189,18 @@ erlang:
   - erlang-examples
   - erlang-manpages
   - erlang-mode
+haskell:
+  - ghc6
+  - libghc6-mtl-dev
+  - libghc6-network-dev
+  - libghc6-parsec2-dev
+  - libghc6-parsec3-dev
+  - libghc6-quickcheck1-dev
+  - libghc6-quickcheck2-dev
+  - libghc6-tagsoup-dev
+  - libghc6-utf8-string-dev
+  - libghc6-x11-dev
+  - libghc6-x11-xft-dev
 databases:
   mysql:
     - mysql-client
@@ -198,3 +218,33 @@ viz:
   - x11-apps
   - mayavi
   - mtasc # for modest maps
+  - graphviz
+  - libgraphviz-dev
+web:
+  - apache2
+bioinformatics:
+  - blast2
+  - ncbi-tools-bin
+  - clustalw
+  - t-coffee
+  - mafft
+  - probcons
+  - emboss
+  - emboss-data
+  - emboss-lib
+  - exonerate
+  - hmmer
+  - maq
+  - muscle
+  - phylip
+  - phyml
+  - primer3
+  - samtools
+  - tigr-glimmer
+# ToDo, from BioPerl max
+# bwa
+# hyphy
+# bioperl-db
+# more perl modules
+# Add Bio-linux packages
+# http://www.jcvi.org/cms/research/projects/jcvi-cloud-biolinux/included-software/

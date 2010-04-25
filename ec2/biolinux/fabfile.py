@@ -17,16 +17,27 @@ from fabric.api import *
 from fabric.contrib.files import *
 import yaml
 
-def ec2_environment():
+def ec2_ubuntu_environment():
     """Setup default environmental variables for Ubuntu EC2 servers.
     """
-    env.user = "root"
+    env.user = "ubuntu"
     env.sources_file = "/etc/apt/sources.list"
+    env.std_sources = [
+      "deb http://us.archive.ubuntu.com/ubuntu/ karmic universe",
+      "deb http://us.archive.ubuntu.com/ubuntu/ karmic universe",
+      "deb-src http://us.archive.ubuntu.com/ubuntu/ karmic universe",
+      "deb http://us.archive.ubuntu.com/ubuntu/ karmic-updates universe",
+      "deb-src http://us.archive.ubuntu.com/ubuntu/ karmic-updates universe",
+      "deb http://us.archive.ubuntu.com/ubuntu/ karmic multiverse",
+      "deb-src http://us.archive.ubuntu.com/ubuntu/ karmic multiverse",
+      "deb http://us.archive.ubuntu.com/ubuntu/ karmic-updates multiverse",
+      "deb-src http://us.archive.ubuntu.com/ubuntu/ karmic-updates multiverse",
+    ]
 
 def install_biolinux():
     """Main entry point for installing Biolinux on a remote server.
     """
-    ec2_environment()
+    ec2_ubuntu_environment()
     _apt_packages()
 
 def _apt_packages():
@@ -39,14 +50,30 @@ def _apt_packages():
       "deb http://cran.stat.ucla.edu/bin/linux/ubuntu karmic/",
       "deb http://nebc.nox.ac.uk/bio-linux/ unstable bio-linux",
       ]
-    for source in sources_add:
+    for source in sources_add + env.std_sources:
         if not contains(source, env.sources_file):
-            append(source, env.sources_file)
-    run("apt-get update")
+            append(source, env.sources_file, use_sudo=True)
+    sudo("apt-get update")
     # Retrieve packages to get and install each of them
     packages = _yaml_to_packages(pkg_config)
+    _setup_licenses()
     for package in packages:
-        run("apt-get -y install %s" % package)
+        sudo("apt-get -y --force-yes install %s" % package)
+
+def _setup_licenses():
+    """Handle automated license acceptance for things like Sun java.
+
+    http://www.davidpashley.com/blog/debian/java-license
+    """
+    license_info = [
+            "sun-java5-jdk shared/accepted-sun-dlj-v1-1 select true",
+            "sun-java5-jre shared/accepted-sun-dlj-v1-1 select true",
+            "sun-java6-jdk shared/accepted-sun-dlj-v1-1 select true",
+            "sun-java6-jre shared/accepted-sun-dlj-v1-1 select true",
+            "sun-java6-bin shared/accepted-sun-dlj-v1-1 select true",
+            ]
+    for l in license_info:
+        sudo("echo %s | /usr/bin/debconf-set-selections" % l)
 
 def _yaml_to_packages(yaml_file):
     """Read a list of packages from a nested YAML configuration file.
