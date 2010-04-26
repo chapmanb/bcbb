@@ -84,8 +84,11 @@ def _gff_line_map(line, params):
                 pieces.append(p.strip().split(" "))
             key_vals = [(p[0], " ".join(p[1:])) for p in pieces]
         for item in key_vals:
+            # standard in-spec items are key=value
             if len(item) == 2:
                 key, val = item
+            # out-of-spec files can have just key values. We set an empty value
+            # which will be changed to true later to standardize.
             else:
                 assert len(item) == 1, item
                 key = item[0]
