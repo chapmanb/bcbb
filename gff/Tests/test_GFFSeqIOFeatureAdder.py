@@ -294,6 +294,18 @@ class GFF3Test(unittest.TestCase):
                     assert len(sub.qualifiers["Parent"]) == 1
         assert tested, "Did not find sub-feature to test"
 
+    def t_novalue_key(self):
+        """Handle GFF3 files with keys and no values.
+        """
+        tfile = os.path.join(self._test_dir, "glimmer_nokeyval.gff3")
+        rec = GFF.parse(tfile).next()
+        f1, f2 = rec.features
+        assert f1.qualifiers['ID'] == ['GL0000006']
+        assert len(f1.sub_features) == 2
+        assert f1.sub_features[0].qualifiers["Lack 3'-end"] == ["true"]
+        assert not f1.sub_features[0].qualifiers.has_key("ID")
+        assert f2.qualifiers["Complete"] == ["true"]
+
 class SolidGFFTester(unittest.TestCase):
     """Test reading output from SOLiD analysis, as GFF3.
 

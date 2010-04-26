@@ -1,0 +1,6 @@
+##gff-version 3
+##sequence-region scaffold4215_3 1 6526
+scaffold4215_3	glimmer	gene	3	62	.	-	.	ID=GL0000006;Name=GL0000006;Lack 3'-end;
+scaffold4215_3	glimmer	mRNA	3	62	.	-	.	ID=GL0000006;Name=GL0000006;Parent=GL0000006;Lack 3'-end;
+scaffold4215_3	glimmer	CDS	3	62	2.84	-	0	Parent=GL0000006;Lack 3'-end;
+scaffold4215_3	glimmer	gene	124	1983	.	-	.	ID=GL0000007;Name=GL0000007;Complete;

@@ -83,7 +83,13 @@ def _gff_line_map(line, params):
                     p = p[1:]
                 pieces.append(p.strip().split(" "))
             key_vals = [(p[0], " ".join(p[1:])) for p in pieces]
-        for key, val in key_vals:
+        for item in key_vals:
+            if len(item) == 2:
+                key, val = item
+            else:
+                assert len(item) == 1, item
+                key = item[0]
+                val = ''
             # remove quotes in GFF2 files
             if (len(val) > 0 and val[0] == '"' and val[-1] == '"'):
                 val = val[1:-1] 
@@ -181,6 +187,13 @@ def _gff_line_map(line, params):
                 # features that have parents need to link so we can pick up
                 # the relationship
                 if gff_info['quals'].has_key('Parent'):
+                    # check for self referential parent/child relationships
+                    # remove the ID, which is not useful
+                    for p in gff_info['quals']['Parent']:
+                        if p == gff_info['id']:
+                            gff_info['id'] = ''
+                            del gff_info['quals']['ID']
+                            break
                     final_key = 'child'
                 elif gff_info['id']:
                     final_key = 'parent'
