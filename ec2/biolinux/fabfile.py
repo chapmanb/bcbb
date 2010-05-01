@@ -44,8 +44,9 @@ def install_biolinux():
     """Main entry point for installing Biolinux on a remote server.
     """
     ec2_ubuntu_environment()
-    pkg_install = _read_main_config()
+    pkg_install, lib_install = _read_main_config()
     _apt_packages(pkg_install)
+    _do_library_installs(lib_install)
 
 def _apt_packages(to_install):
     """Install packages available via apt-get.
@@ -112,4 +113,47 @@ def _read_main_config():
     yaml_file = os.path.join(env.config_dir, "main.yaml")
     with open(yaml_file) as in_handle:
         full_data = yaml.load(in_handle)
-    return full_data['packages']
+    return full_data['packages'], full_data['libraries']
+
+# --- Library specific installation code
+
+def _r_library_installer(config):
+    """Install R libraries using CRAN and Bioconductor.
+
+    ToDo: Can we check if a package is installed and only upgrade
+    it if it's old? install.packages blindly downloads away.
+    """
+    # create an Rscript file which will be used to do the install
+    out_file = "install_packages.R"
+    run("touch %s" % out_file)
+    # CRAN
+    append(['repo <- getOption("repos")',
+            'repo["CRAN" ] <- "%s"' % config["cranrepo"],
+            'options(repos=repo)'], out_file)
+    for pname in config['cran']:
+        append('install.packages("%s")' % pname, out_file)
+    # Bioconductor
+    append('source("%s")' % config['biocrepo'], out_file)
+    for pname in config['bioc']:
+        append('biocLite("%s")' % pname, out_file)
+    # run the script and then get rid of it
+    sudo("Rscript %s" % out_file)
+    run("rm -f %s" % out_file)
+
+def _python_library_installer(config):
+    """Install python specific libraries using easy_install.
+    """
+    for pname in config['pypi']:
+        sudo("easy_install -U %s" % pname)
+
+lib_installers = {
+        "r-libs" : _r_library_installer,
+        "python-libs" : _python_library_installer,
+        }
+
+def _do_library_installs(to_install):
+    for iname in to_install:
+        yaml_file = os.path.join(env.config_dir, "%s.yaml" % iname)
+        with open(yaml_file) as in_handle:
+            config = yaml.load(in_handle)
+        lib_installers[iname](config)

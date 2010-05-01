@@ -7,8 +7,8 @@ packages:
   - programming
   - amazon
   - python
-  - ruby
   - r
+  - ruby
   - perl
   - java
   - erlang
@@ -27,3 +27,6 @@ packages:
   - bio_visualization
   - bio_utils
   - phylogeny
+libraries:
+  - r-libs
+  - python-libs

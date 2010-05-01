@@ -1,0 +1,29 @@
+---
+# Configuration file defining R specific libraries that are installed 
+# via CRAN and Bioconductor.
+cranrepo: http://software.rc.fas.harvard.edu/mirrors/R/
+cran:
+ - ggplot2
+ - rjson
+ - sqldf
+ - NMF
+ - caTools
+ - ape
+biocrepo: http://bioconductor.org/biocLite.R
+bioc:
+ - Biostrings
+ - ShortRead
+ - BSgenome
+ - edgeR
+ - GEOquery
+ - GOstats
+ - rtracklayer
+ - biomaRt
+ - Rsamtools
+ - PICS
+ - MotIV
+ - rGADEM
+ - GO.db
+ - KEGG.db
+ - org.Hs.eg.db
+ - org.Mm.eg.db

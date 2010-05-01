@@ -33,6 +33,13 @@ programming:
     - exuberant-ctags
   build:
     - swig
+    - curl
+    - libcurl4-openssl-dev
+    - libxml2
+    - libxml2-dev
+    - libgsl0-dev
+    - libgsl0ldbl
+    - gsl-bin
   util:
     - tree
   lang:
@@ -44,9 +51,14 @@ amazon:
   - ec2-ami-tools
 python:
   meta:
+    - python
     - ipython
+    - python-setuptools
+    - python-pip
+    - python-virtualenv
     - python-distutils-extra
     - pyrex-mode
+    - python-pyrex
     - python-dev
   utils:
     - python-dateutil
@@ -59,7 +71,6 @@ python:
     - python-libxml2
     - bjam
     - boost-build
-    - python-pyrex
     - python-cairo
     - python-cairo-dev
     - python-mysqldb
@@ -70,9 +81,6 @@ python:
     - python-boto
     - python-cjson
     - python-couchdb
-  bio:
-    - python-biopython
-    - python-biopython-sql
   math:
     - python-sympy
     - python-crypto
@@ -340,7 +348,6 @@ phylogeny:
 # from bio-linux:
 #   Celera Assembler
 #   arb
-#   ape
 #   genespring-2
 #   gsrint
 #   lamarc

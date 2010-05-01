@@ -1,0 +1,14 @@
+---
+# Configuration file defining python specific libraries on pypi to install
+# using easy install
+pypi:
+  - biopython
+  - cogent
+  - DendroPy
+  - HTSeq
+  - rpy2
+  - rpy2-bioconductor-extensions
+# Pulls the wrong file and then can't install automatically
+#  - pygr
+# Should get into pypi
+#  - bx-python 
