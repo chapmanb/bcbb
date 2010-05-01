@@ -9,11 +9,15 @@
 #
 # http://fortinbras.us/bioperl-max/
 #
+# and biolinux:
+#
+# http://www.jcvi.org/cms/research/projects/jcvi-cloud-biolinux/included-software/
+#
 # Package names are the terminal symbols in the tree (the text on any
 # line which begins with whitespace followed by a hypen and a space).
 #
 # The package list is organized taxonomically so that parts of it can
-# be selectively installed/ignored.  
+# be selectively installed/ignored. See main.yaml for top level configuration.
 programming:
   editors:
     - emacs
@@ -29,12 +33,12 @@ programming:
     - exuberant-ctags
   build:
     - swig
-utils:
-  - tree
-lang:
-  - aspell
-  - dictionaries-common
-  - libaspell-dev
+  util:
+    - tree
+  lang:
+    - aspell
+    - dictionaries-common
+    - libaspell-dev
 amazon:
   - s3cmd
   - ec2-ami-tools
@@ -79,11 +83,11 @@ python:
     - python-biggles
   # FIXME please organize this huge list better!
   misc:
+    - python-beautifulsoup
     - python-constraint
     - python-cxx
     - python-cxx-dev
     - python-excelerator
-    - python-extclass
     - python-extended-threading
     - python-fuse
     - python-gadfly
@@ -96,20 +100,14 @@ python:
     - python-irclib
     - python-jaxml
     - python-json
-    - python-ll-core
     - python-matplotlib
     - python-matplotlib-data
     - python-mode
     - python-networkx
     - python-nose
-    - python-numarray
-    - python-numarray-ext
-    - python-numeric-tutorial
     - python-numpy-ext
     - python-plplot
-    - python-pmock
     - python-pprocess
-    - python-processing
     - python-psycopg2
     - python-pycha
     - python-pychart
@@ -135,13 +133,11 @@ python:
     - python-sqlrelay
     - python-statgrab
     - python-stats
-    - python-syck
     - python-symeig
     - python-sympy
     - python-testresources
     - python-visual
     - python-xlrd
-    - python-xml
     - python-yaml
     - python-yapgvb
     - python-lxml
@@ -180,8 +176,11 @@ java:
   - sun-java6-bin
   - sun-java6-jre
   - sun-java6-jdk
+  - openjdk-6-jdk
+  - openjdk-6-jre
   - ant
   - libbiojava-java
+  - eclipse
 erlang:
   - erlang
   - erlang-base
@@ -209,42 +208,143 @@ databases:
   postgres:
     - postgresql
     - postgresql-client
-    - postgresql-plpython-8.3
-    - postgresql-plperl-8.3
+    - postgresql-plpython-8.4
+    - postgresql-plperl-8.4
 math:
   - prover9
   - octave3.0
 viz:
   - x11-apps
-  - mayavi
+  - mayavi2
   - mtasc # for modest maps
   - graphviz
   - libgraphviz-dev
 web:
   - apache2
-bioinformatics:
-  - blast2
-  - ncbi-tools-bin
-  - clustalw
-  - t-coffee
-  - mafft
-  - probcons
+bio_general:
   - emboss
   - emboss-data
   - emboss-lib
-  - exonerate
+  - primer3
+  - readseq
+  - bio-linux-taverna
+bio_search:
+  - blast2
   - hmmer
-  - maq
+  - ncbi-tools-bin
+  - bio-linux-blast+
+  - bio-linux-blixem
+  - bio-linux-fasta
+  - bio-linux-mspcrunch
+  - bio-linux-mview
+  - bio-linux-nrdb
+bio_alignment:
+  - clustalw
+  - exonerate
+  - mafft
   - muscle
+  - mummer
+  - probcons
+  - t-coffee
+  - seaview
+  - bio-linux-clustal
+  - bio-linux-dotter
+  - bio-linux-jalview
+  - bio-linux-pfaat
+  - bio-linux-prank
+  - bio-linux-squint
+  - bio-linux-wise2
+bio_nextgen:
+  - maq
+  - samtools
+bio_sequencing:
+  - bio-linux-assembly-conversion-tools
+  - bio-linux-cap3
+  - bio-linux-dust
+  - bio-linux-mira
+  - bio-linux-mira-3rd-party
+  - bio-linux-msatfinder
+  - bio-linux-staden
+  - bio-linux-stars
+  - bio-linux-trace2dbest
+bio_annotation:
+  - mcl
+  - tigr-glimmer
+  - bio-linux-act
+  - bio-linux-artemis
+  - bio-linux-big-blast
+  - bio-linux-cd-hit
+  - bio-linux-estscan
+  - bio-linux-glimmer3
+  - bio-linux-partigene
+  - bio-linux-priam
+  - bio-linux-prot4est
+  - bio-linux-rbs-finder
+  - bio-linux-transterm-hp
+  - bio-linux-trnascan
+  - bio-linux-yamap
+  - bio-linux-tetra
+bio_microarray:
+  - bio-linux-ocount
+  - bio-linux-oligoarray
+  - bio-linux-oligoarrayaux
+bio_visualization:
+  - rasmol
+  - bio-linux-clcworkbench
+  - bio-linux-maxd
+bio_utils:
+  - bio-linux-das-prep
+  - bio-linux-exchanger
+  - bio-linux-genquery
+  - bio-linux-handlebar
+  - bio-linux-keyring
+  - bio-linux-base-directories
+  - bio-linux-backups
+  - bio-linux-bldp-files
+  - bio-linux-pedro
+  - bio-linux-envbase-for-pedro
+  - bio-linux-sampledata
+  - bio-linux-sequin
+  - bio-linux-taxinspector
+  - bio-linux-themes
+  - bio-linux-themes-v5
+  - bio-linux-usb-maker
+phylogeny:
   - phylip
   - phyml
-  - primer3
-  - samtools
-  - tigr-glimmer
-# ToDo, from BioPerl max
-# bwa
-# hyphy
-# bioperl-db
-# more perl modules
-# Add Bio-linux packages
-# http://www.jcvi.org/cms/research/projects/jcvi-cloud-biolinux/included-software/
+  - mrbayes
+  - njplot
+  - tree-puzzle
+  - bio-linux-coalesce
+  - bio-linux-dendroscope
+  - bio-linux-fastDNAml
+  - bio-linux-fluctuate
+  - bio-linux-forester
+  - bio-linux-happy
+  - bio-linux-mesquite
+  - bio-linux-migrate
+  - bio-linux-mrbayes-multi
+  - bio-linux-mothur
+  - bio-linux-paml
+  - bio-linux-omegamap
+  - bio-linux-qtlcart
+  - bio-linux-recombine
+  - bio-linux-splitstree
+  - bio-linux-treeview
+# To Add
+# from bioperl-max:
+#   bwa
+#   hyphy
+#   bioperl-db
+#   more perl modules
+# from bio-linux:
+#   Celera Assembler
+#   arb
+#   ape
+#   genespring-2
+#   gsrint
+#   lamarc
+#   lucy
+#   peptidemapper
+#   pftools
+#   transterm

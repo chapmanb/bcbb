@@ -14,7 +14,7 @@ Amazon's command line tools.
 Initial set up
 --------------
 The first time using EC2, you'll need to install the toolkit and credentials
-for connecting. These basic directions follow: 
+for connecting. Follow these basic directions:
 http://docs.amazonwebservices.com/AWSEC2/latest/GettingStartedGuide/
 
 Login to Amazon EC2 account (http://aws.amazon.com/account/) and go to
@@ -59,7 +59,7 @@ http://docs.amazonwebservices.com/AWSEC2/latest/GettingStartedGuide/running-an-i
 The first step is to pick an AMI to use. For instance:
  
 * bioperl-max (http://fortinbras.us/bioperl-max/) -- ami-1ad03273
-* unbuntu (http://alestic.com/) -- ami-6743ae0e
+* unbuntu (http://alestic.com/) -- ami-714ba518
 
 Using this AMI, you begin an instance and ensure that it is running:
 

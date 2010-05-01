@@ -1,0 +1,29 @@
+---
+# Top level configuration file that specifies which groups of programs
+# should be installed. New sections that are added to individual config
+# files should go here. Comment out any groups you don't want to have 
+# installed.
+packages:
+  - programming
+  - amazon
+  - python
+  - ruby
+  - r
+  - perl
+  - java
+  - erlang
+  - haskell
+  - databases
+  - math
+  - viz
+  - web
+  - bio_general
+  - bio_search
+  - bio_alignment
+  - bio_nextgen
+  - bio_sequencing
+  - bio_annotation
+  - bio_microarray
+  - bio_visualization
+  - bio_utils
+  - phylogeny
