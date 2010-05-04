@@ -49,6 +49,7 @@ programming:
 amazon:
   - s3cmd
   - ec2-ami-tools
+  - euca2ools
 python:
   meta:
     - python
@@ -339,7 +340,7 @@ phylogeny:
   - bio-linux-recombine
   - bio-linux-splitstree
   - bio-linux-treeview
-# To Add
+# To Add -- need packages
 # from bioperl-max:
 #   bwa
 #   hyphy
@@ -355,3 +356,13 @@ phylogeny:
 #   peptidemapper
 #   pftools
 #   transterm
+# Others:
+#   bowtie
+#   mdust
+#   Picard
+#   GATK
+#   IGV
+#   trimpoly
+#   blast2go
+#   sputnik: microsattelites
+#   GenomeView

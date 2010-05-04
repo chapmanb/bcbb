@@ -92,3 +92,29 @@ From your machine:
 On the instance:
 
 # ec2-bundle-vol -d /mnt -k /mnt/pk-UBH43XTAWVNQMIZRAV3RP5IIBAPBIFVP.pem -c /mnt/cert-UBH43XTAWVNQMIZRAV3RP5IIBAPBIFVP.pem -u '6787-1165-7553' -r i386 -p sampleimage
+
+Eucalyptus Public Cloud Quickstart
+==================================
+
+- Sign up for an account at: https://mayhem9.cs.ucsb.edu:8443/#login
+
+- Image information: https://mayhem9.cs.ucsb.edu:8443/#images
+  Ubuntu Jaunty -- emi-AD9013E6
+
+- Download credentials from: https://mayhem9.cs.ucsb.edu:8443/#credentials.
+  Move all .pem files to ~/.ec2 directory
+
+- Set environmental variables in your .bashrc/.zshrc:
+  export S3_URL=http://128.111.45.118:8773/services/Walrus
+  export EC2_URL=http://128.111.45.118:8773/services/Eucalyptus
+  export EC2_PRIVATE_KEY=~/.ec2/euca2-chapmanb@50mail.com-7f9e55e6-pk.pem
+  export EC2_CERT=~/.ec2/euca2-chapmanb@50mail.com-7f9e55e6-cert.pem
+  export EUCALYPTUS_CERT=~/.ec2/cloud-cert.pem
+  export EC2_ACCESS_KEY='yourkey'
+  export EC2_SECRET_KEY='yourkey'
+  export EC2_USER_ID='yourid'
+
+- Follow the starting an instance directions above with euca2ools:
+
+  euca-add-keypair yourmachine-euca-keypair
+  euca-run-instances emi-AD9013E6 -k yourmachine-euca-keypair
