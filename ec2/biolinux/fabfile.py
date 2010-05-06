@@ -38,6 +38,7 @@ def ec2_ubuntu_environment():
       "deb http://us.archive.ubuntu.com/ubuntu/ lucid-updates multiverse",
       "deb-src http://us.archive.ubuntu.com/ubuntu/ lucid-updates multiverse",
       "deb http://archive.canonical.com/ lucid partner",
+      "deb http://downloads.mongodb.org/distros/ubuntu 10.4 10gen",
     ]
 
 def install_biolinux():
@@ -55,7 +56,7 @@ def _apt_packages(to_install):
     # Setup and update apt sources on the remote host
     # lastest R versions and Bio-Linux. debian-med should already be there.
     sources_add = [
-      "deb http://cran.stat.ucla.edu/bin/linux/ubuntu karmic/",
+      "deb http://cran.stat.ucla.edu/bin/linux/ubuntu lucid/",
       "deb http://nebc.nox.ac.uk/bio-linux/ unstable bio-linux",
       ]
     for source in sources_add + env.std_sources:

@@ -219,6 +219,8 @@ databases:
     - postgresql-client
     - postgresql-plpython-8.4
     - postgresql-plperl-8.4
+  document:
+    - mongodb-stable
 math:
   - prover9
   - octave3.0

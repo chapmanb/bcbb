@@ -9,6 +9,7 @@ pypi:
   - rpy2
   - rpy2-bioconductor-extensions
   - bx-python 
+  - pymongo
 # Pulls the wrong file and then can't install automatically
 #  - pygr
 # Should get into pypi
