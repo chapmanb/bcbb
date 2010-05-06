@@ -29,6 +29,8 @@ programming:
     - cvs
     - subversion
     - mercurial
+    - bzr
+    - darcs
   misc:
     - exuberant-ctags
   build:
@@ -49,7 +51,9 @@ programming:
 amazon:
   - s3cmd
   - ec2-ami-tools
+  - ec2-api-tools
   - euca2ools
+  - python-vm-builder-ec2
 python:
   meta:
     - python
@@ -219,8 +223,16 @@ databases:
     - postgresql-client
     - postgresql-plpython-8.4
     - postgresql-plperl-8.4
+  sqlite:
+    - libsqlite3-0
+    - libsqlite3-dev
+    - sqlite3
   document:
     - mongodb-stable
+    - couchdb
+    - tokyocabinet-bin
+    - libtokyocabinet8
+    - libtokyocabinet-dev
 math:
   - prover9
   - octave3.0

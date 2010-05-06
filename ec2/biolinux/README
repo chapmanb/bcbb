@@ -79,8 +79,20 @@ You're in and paying per hour. When done:
 
 % ec2-terminate-instances i-0ca39764
 
-Bundling an AMI
----------------
+Bundling an AMI on Amazon
+-------------------------
+Using EBS
+---------
+http://docs.amazonwebservices.com/AWSEC2/latest/UserGuide/creating-an-ami-ebs.html
+http://docs.amazonwebservices.com/AWSEC2/latest/UserGuide/sharingamis-public.html
+
+On the instance:
+% ec2-create-image -n "CloudBioLinux thedate" i-theinstanceid
+<gives back AMI ID>
+% ec2-modify-image-attribute <ami_id> --launch-permission -a all
+
+Using AMI on EC2
+----------------
 XXX This is incomplete. EBS snapshots could be worth looking at to replace this.
 
 http://docs.amazonwebservices.com/AWSEC2/latest/GettingStartedGuide/creating-an-image.html
@@ -92,6 +104,8 @@ From your machine:
 On the instance:
 
 # ec2-bundle-vol -d /mnt -k /mnt/pk-UBH43XTAWVNQMIZRAV3RP5IIBAPBIFVP.pem -c /mnt/cert-UBH43XTAWVNQMIZRAV3RP5IIBAPBIFVP.pem -u '6787-1165-7553' -r i386 -p sampleimage
+
+EBS instructions for ubuntu: http://alestic.com/2010/01/vmbuilder-ebs-boot-ami
 
 Eucalyptus Public Cloud Quickstart
 ==================================
