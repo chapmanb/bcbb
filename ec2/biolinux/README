@@ -6,6 +6,13 @@ ideally designed for Amazon EC2, where you start with a bare bones
 system. The script can be used to bootstrap from these to a fully ready to go
 instance that can be distributed as an AMI for other users.
 
+Fabric quickstart
+=================
+With fabric installed and a remote ubuntu server on EC2, you run the fabfile to install
+all of the libraries with:
+
+% fab -H hostname -i private_key_file install_biolinux
+
 EC2 quickstart
 ==============
 This provides a quick cheat sheet of commands for getting up and running on EC2 using
