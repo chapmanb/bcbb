@@ -81,19 +81,25 @@ You're in and paying per hour. When done:
 
 Bundling an AMI on Amazon
 -------------------------
-Using EBS
----------
+EBS
+---
 http://docs.amazonwebservices.com/AWSEC2/latest/UserGuide/creating-an-ami-ebs.html
 http://docs.amazonwebservices.com/AWSEC2/latest/UserGuide/sharingamis-public.html
 
-On the instance:
+On your local machine:
 % ec2-create-image -n "CloudBioLinux thedate" i-theinstanceid
 <gives back AMI ID>
+
+Check on the status of it with:
+% ec2-describe-images
+
+When finished, make it public with:
+
 % ec2-modify-image-attribute <ami_id> --launch-permission -a all
 
-Using AMI on EC2
-----------------
-XXX This is incomplete. EBS snapshots could be worth looking at to replace this.
+AMI on EC2
+----------
+XXX This is incomplete. Use EBS snapshots instead.
 
 http://docs.amazonwebservices.com/AWSEC2/latest/GettingStartedGuide/creating-an-image.html
 
@@ -109,6 +115,8 @@ EBS instructions for ubuntu: http://alestic.com/2010/01/vmbuilder-ebs-boot-ami
 
 Eucalyptus Public Cloud Quickstart
 ==================================
+
+XXX Public cloud is giving back XML parsing errors; it may be down.
 
 - Sign up for an account at: https://mayhem9.cs.ucsb.edu:8443/#login
 

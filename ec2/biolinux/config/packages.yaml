@@ -151,7 +151,6 @@ python:
     - python-testresources
     - python-visual
     - python-xlrd
-    - python-yaml
     - python-yapgvb
     - python-lxml
 ruby:

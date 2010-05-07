@@ -10,6 +10,9 @@ pypi:
   - rpy2-bioconductor-extensions
   - bx-python 
   - pymongo
+  - pyyaml
+  - fabric
+# ToDo:
 # Pulls the wrong file and then can't install automatically
 #  - pygr
 # Should get into pypi

@@ -28,6 +28,8 @@ def ec2_ubuntu_environment():
     """
     env.user = "ubuntu"
     env.sources_file = "/etc/apt/sources.list"
+    env.shell_config = "~/.bashrc"
+    env.shell = "/bin/bash -l -c"
     env.std_sources = [
       "deb http://us.archive.ubuntu.com/ubuntu/ lucid universe",
       "deb-src http://us.archive.ubuntu.com/ubuntu/ lucid universe",
@@ -70,21 +72,30 @@ def _apt_packages(to_install):
         sudo("apt-get -y --force-yes install %s" % package)
 
 def _setup_automation():
-    """Setup the environment to be fully automated for installs.
+    """Setup the environment to be fully automated for tricky installs.
 
     Sun Java license acceptance:
     http://www.davidpashley.com/blog/debian/java-license
 
-    MySQL root password questions:
+    MySQL root password questions; install with empty root password:
     http://snowulf.com/archives/540-Truly-non-interactive-unattended-apt-get-install.html
+
+    Postfix, setup for no configuration. See more on issues here:
+    http://www.uluga.ubuntuforums.org/showthread.php?p=9120196
     """
-    run("export DEBIAN_FRONTEND=noninteractive")
-    license_info = [
+    interactive_cmd = "export DEBIAN_FRONTEND=noninteractive"
+    if not contains(interactive_cmd, env.shell_config):
+        append(interactive_cmd, env.shell_config)
+    package_info = [
+            "postfix postfix/main_mailer_type select No configuration",
+            "postfix postfix/mailname string notusedexample.org",
+            "mysql-server-5.1 mysql-server/root_password string '(password omitted)'",
+            "mysql-server-5.1 mysql-server/root_password_again string '(password omitted)'",
             "sun-java6-jdk shared/accepted-sun-dlj-v1-1 select true",
             "sun-java6-jre shared/accepted-sun-dlj-v1-1 select true",
             "sun-java6-bin shared/accepted-sun-dlj-v1-1 select true",
             ]
-    for l in license_info:
+    for l in package_info:
         sudo("echo %s | /usr/bin/debconf-set-selections" % l)
 
 def _yaml_to_packages(yaml_file, to_install):
@@ -114,7 +125,11 @@ def _read_main_config():
     yaml_file = os.path.join(env.config_dir, "main.yaml")
     with open(yaml_file) as in_handle:
         full_data = yaml.load(in_handle)
-    return full_data['packages'], full_data['libraries']
+    packages = full_data['packages']
+    packages = packages if packages else []
+    libraries = full_data['libraries']
+    libraries = libraries if libraries else []
+    return packages, libraries
 
 # --- Library specific installation code
 
