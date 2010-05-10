@@ -8,6 +8,12 @@ instance that can be distributed as an AMI for other users.
 
 Fabric quickstart
 =================
+
+You must have python-setuptools installed on your local machine in order to
+easy_install the latest version of fabric, in ubuntu:
+
+% sudo apt-get install python-setuptools
+
 With fabric installed and a remote ubuntu server on EC2, you run the fabfile to install
 all of the libraries with:
 
