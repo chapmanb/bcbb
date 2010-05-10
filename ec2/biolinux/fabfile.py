@@ -2,7 +2,7 @@
 
 This installs a standard set of useful biological applications on a remote
 server. It is designed for bootstrapping a machine from scratch, as with new
-Amaxon EC2 instances.
+Amazon EC2 instances.
 
 Usage:
     fab -H hostname -i private_key_file install_biolinux
@@ -162,9 +162,16 @@ def _python_library_installer(config):
     for pname in config['pypi']:
         sudo("easy_install -U %s" % pname)
 
+def _ruby_library_installer(config):
+    """Install ruby specific gems using "gem install"
+    """
+    for gem in config['gems']:
+	sudo("gem install %s" % gem)
+
 lib_installers = {
         "r-libs" : _r_library_installer,
         "python-libs" : _python_library_installer,
+	"ruby-libs" : _ruby_library_installer,
         }
 
 def _do_library_installs(to_install):

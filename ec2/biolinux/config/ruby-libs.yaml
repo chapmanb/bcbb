@@ -1,0 +1,5 @@
+---
+# Configuration file defining python specific libraries on ruby to install
+# using gem install (avoiding the distribution package manager)
+gems:
+  - bioruby
