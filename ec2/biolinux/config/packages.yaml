@@ -160,16 +160,12 @@ ruby:
   - irb
   - ri
   - rdoc
+  - rake
   - libmysql-ruby
   - libxml-ruby
   - libsqlite3-ruby
   - libbio-ruby
   - libbio-ruby1.8
-  - libmysqlclient15-dev
-  - libsqlite3-0
-  - libsqlite3-dev
-  - libxml2
-  - libxml2-dev
 r:
   - r-base
   - r-base-core
@@ -217,6 +213,7 @@ databases:
     - mysql-client
     - mysql-common
     - mysql-server
+    - libmysqlclient15-dev
   postgres:
     - postgresql
     - postgresql-client
