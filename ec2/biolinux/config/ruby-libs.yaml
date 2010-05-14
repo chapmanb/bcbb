@@ -1,0 +1,49 @@
+---
+# Configuration file defining ruby libraries to install
+# using gem install (avoiding the distribution package manager)
+gems:
+  - bio
+  - fastercsv
+  - hpricot
+  - htmlentities
+  - json
+  - kwalify
+  - libxml-ruby
+  - uuidtools
+  - xml-simple
+  - sqlite3-ruby
+  - do_sqlite3
+  - data_objects
+  - do_mysql
+  - mysql  
+  - datamapper
+  - dm-adjust
+  - dm-aggregates
+  - dm-ar-finders
+  - dm-cli
+  - dm-constraints
+  - dm-core
+  - dm-couchdb-adapter
+  - dm-ferret-adapter
+  - dm-is-list
+  - dm-is-nested_set
+  - dm-is-remixable
+  - dm-is-searchable
+  - dm-is-state_machine
+  - dm-is-tree
+  - dm-is-versioned
+  - dm-is-viewable
+  - dm-migrations
+  - dm-more
+  - dm-observer
+  - dm-querizer
+  - dm-rest-adapter
+  - dm-serializer
+  - dm-shorthand
+  - dm-sweatshop
+  - dm-tags
+  - dm-timestamps
+  - dm-types
+  - dm-validations
+  - cheat
+  - addressable
