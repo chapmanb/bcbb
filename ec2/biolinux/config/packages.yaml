@@ -371,6 +371,7 @@ phylogeny:
 #   transterm
 # Others:
 #   bowtie
+#   fastx-toolkit
 #   mdust
 #   Picard
 #   GATK
@@ -379,3 +380,4 @@ phylogeny:
 #   blast2go
 #   sputnik: microsattelites
 #   GenomeView
+#   UCSC: liftOver, faToTwoBit
