@@ -21,8 +21,8 @@ def mothra():
     """
     env.user = 'chapman'
     env.hosts = ['mothra']
-    env.path = '/home/chapman/install/web/galaxy-central'
-    env.galaxy_files = '/store3/galaxy_files'
+    env.path = '/source/galaxy/web'
+    env.galaxy_files = '/source/galaxy'
     env.install_dir = '/source'
     env.shell = "/bin/zsh -l -i -c"
 
@@ -180,6 +180,7 @@ genomes = [
                ["NC_000962"])),
            ("Msmegmatis", "92", NCBIRest("92", ["NC_008596.1"])),
            ("Paeruginosa_UCBPP-PA14", "386", NCBIRest("386", ["CP000438.1"])),
+           ("Ecoli", "eschColi_K12", NCBIRest("eschColi_K12", ["U00096.2"])),
           ]
 
 lift_over_genomes = ['hg18', 'hg19', 'mm9', 'xenTro2', 'rn4']
