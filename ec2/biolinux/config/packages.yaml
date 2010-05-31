@@ -42,6 +42,15 @@ programming:
     - libgsl0-dev
     - libgsl0ldbl
     - gsl-bin
+    - xfsprogs
+    - libc6-dev-amd64
+    - libzip-dev
+  packaging:
+    - build-essential
+    - devscripts
+    - debhelper
+    - dh-make
+    - pbuilder
   util:
     - tree
   lang:
@@ -189,6 +198,9 @@ java:
   - ant
   - libbiojava-java
   - eclipse
+  - maven2
+  - libjline-java
+  - clojure
 erlang:
   - erlang
   - erlang-base
@@ -276,6 +288,7 @@ bio_alignment:
 bio_nextgen:
   - maq
   - samtools
+  - bwa
 bio_sequencing:
   - bio-linux-assembly-conversion-tools
   - bio-linux-cap3
@@ -352,7 +365,6 @@ phylogeny:
   - bio-linux-treeview
 # To Add -- need packages
 # from bioperl-max:
-#   bwa
 #   hyphy
 #   bioperl-db
 #   more perl modules
