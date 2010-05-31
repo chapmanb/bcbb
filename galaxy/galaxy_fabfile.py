@@ -14,7 +14,10 @@ from fabric.contrib.files import *
 
 # -- Host specific setup for various groups of servers.
 
+env.user = 'ubuntu'
+env.install_ucsc = True
 env.remove_old_genomes = False
+env.use_sudo = False
 
 def mothra():
     """Setup environment for mothra.
@@ -52,6 +55,20 @@ def localhost():
     env.hosts = ['localhost']
     env.shell = '/usr/local/bin/bash -l -c'
     env.path = '/home/chapmanb/tmp/galaxy-central'
+
+def amazon_ec2():
+    """Setup for a ubuntu amazon ec2 share.
+
+    Need to pass in host and private key file on commandline:
+        -H hostname -i private_key_file
+    """
+    env.user = 'ubuntu'
+    env.path = '/vol/galaxy/web'
+    env.install_dir = '/usr/local'
+    env.galaxy_files = '/vol/galaxy'
+    env.shell = "/bin/bash -l -c"
+    env.use_sudo = True
+    env.install_ucsc = False
 
 # -- Configuration for genomes to download and prepare
 
@@ -251,7 +268,8 @@ def _install_ngs_tools():
     _install_samtools()
     _install_fastx_toolkit()
     _install_maq()
-    _install_ucsc_tools()
+    if env.install_ucsc:
+        _install_ucsc_tools()
 
 @_if_not_installed("faToTwoBit")
 def _install_ucsc_tools():
@@ -263,25 +281,29 @@ def _install_ucsc_tools():
     for tool in tools:
         with cd(install_dir):
             if not exists(tool):
-                run("wget %s%s" % (url, tool))
-                run("chmod a+rwx %s" % tool)
+                install_cmd = sudo if env.use_sudo else run
+                install_cmd("wget %s%s" % (url, tool))
+                install_cmd("chmod a+rwx %s" % tool)
 
 @_if_not_installed("bowtie")
 def _install_bowtie():
     """Install the bowtie short read aligner.
     """
     version = "0.12.5"
+    architecture = "x86_64"
+    architecture = "i386"
     mirror_info = "?use_mirror=cdnetworks-us-1"
     url = "http://downloads.sourceforge.net/project/bowtie-bio/bowtie/%s/" \
-          "bowtie-%s-linux-x86_64.zip" % (version, version)
+          "bowtie-%s-linux-%s.zip" % (version, version, architecture)
     install_dir = os.path.join(env.install_dir, "bin")
     with _make_tmp_dir() as work_dir:
         with cd(work_dir):
             run("wget %s%s" % (url, mirror_info))
             run("unzip %s" % os.path.split(url)[-1])
+            install_cmd = sudo if env.use_sudo else run
             with cd("bowtie-%s" % version):
                 for fname in run("ls bowtie*").split("\n"):
-                    run("mv -f %s %s" % (fname, install_dir))
+                    install_cmd("mv -f %s %s" % (fname, install_dir))
 
 @_if_not_installed("bwa")
 def _install_bwa():
@@ -294,11 +316,12 @@ def _install_bwa():
         with cd(work_dir):
             run("wget %s%s" % (url, mirror_info))
             run("tar -xjvpf %s" % (os.path.split(url)[-1]))
+            install_cmd = sudo if env.use_sudo else run
             with cd("bwa-%s" % version):
                 run("make")
-                run("mv bwa %s" % install_dir)
-                run("mv solid2fastq.pl %s" % install_dir)
-                run("mv qualfa2fq.pl %s" % install_dir)
+                install_cmd("mv bwa %s" % install_dir)
+                install_cmd("mv solid2fastq.pl %s" % install_dir)
+                install_cmd("mv qualfa2fq.pl %s" % install_dir)
 
 @_if_not_installed("samtools")
 def _install_samtools():
@@ -316,8 +339,9 @@ def _install_samtools():
                 run("sed -i.bak -r -e 's/-lcurses/-lncurses/g' Makefile")
                 #sed("Makefile", "-lcurses", "-lncurses")
                 run("make")
+                install_cmd = sudo if env.use_sudo else run
                 for install in ["samtools", "misc/maq2sam-long"]:
-                    run("mv -f %s %s" % (install, install_dir))
+                    install_cmd("mv -f %s %s" % (install, install_dir))
 
 @_if_not_installed("fastq_quality_boxplot_graph.sh")
 def _install_fastx_toolkit():
@@ -330,16 +354,17 @@ def _install_fastx_toolkit():
         with cd(work_dir):
             run("wget %s" % gtext_url)
             run("tar -xjvpf %s" % (os.path.split(gtext_url)[-1]))
+            install_cmd = sudo if env.use_sudo else run
             with cd("libgtextutils-%s" % gtext_version):
                 run("./configure --prefix=%s" % (env.install_dir))
                 run("make")
-                run("make install")
+                install_cmd("make install")
             run("wget %s" % fastx_url)
             run("tar -xjvpf %s" % os.path.split(fastx_url)[-1])
             with cd("fastx_toolkit-%s" % version):
                 run("./configure --prefix=%s" % (env.install_dir))
                 run("make")
-                run("make install")
+                install_cmd("make install")
 
 @_if_not_installed("maq")
 def _install_maq():
@@ -351,10 +376,11 @@ def _install_maq():
         with cd(work_dir):
             run("wget %s%s" % (url, mirror_info))
             run("tar -xjvpf %s" % (os.path.split(url)[-1]))
+            install_cmd = sudo if env.use_sudo else run
             with cd("maq-%s" % version):
                 run("./configure --prefix=%s" % (env.install_dir))
                 run("make")
-                run("make install")
+                install_cmd("make install")
 
 def _setup_ngs_genomes():
     """Download and create index files for next generation genomes.
@@ -365,7 +391,7 @@ def _setup_ngs_genomes():
     for organism, genome, manager in genomes:
         cur_dir = os.path.join(genome_dir, organism, genome)
         if not exists(cur_dir):
-            run('mkdir %s' % cur_dir)
+            run('mkdir -p %s' % cur_dir)
         with cd(cur_dir):
             if env.remove_old_genomes:
                 _clean_genome_directory()
@@ -387,10 +413,11 @@ def _setup_ngs_genomes():
                 ("alignseq.loc", twobit_index, "seq"),
                 ("twobit.loc", twobit_index, ""),
                 ]:
-            str_parts = [genome, os.path.join(cur_dir, cur_index)]
-            if prefix:
-                str_parts.insert(0, prefix)
-            _update_loc_file(ref_index_file, str_parts)
+            if cur_index:
+                str_parts = [genome, os.path.join(cur_dir, cur_index)]
+                if prefix:
+                    str_parts.insert(0, prefix)
+                _update_loc_file(ref_index_file, str_parts)
 
 def _clean_genome_directory():
     """Remove any existing sequence information in the current directory.
@@ -423,6 +450,7 @@ def _update_loc_file(ref_file, line_parts):
             if not contains(add_str, ref_file):
                 append(add_str, ref_file)
 
+@_if_installed("faToTwoBit")
 def _index_twobit(ref_file):
     """Index reference files using 2bit for random access.
     """

@@ -110,6 +110,25 @@ When finished, make it public with:
 
 % ec2-modify-image-attribute <ami_id> --launch-permission -a all
 
+Creating EBS stores
+-------------------
+Create a 150Gb store:
+
+ec2-create-volume -z us-east-1c -s 200
+ec2-describe-volumes vol-7568e61c
+
+Attach it to a running instance:
+
+ec2-attach-volume -d /dev/sdh -i i-351d225e vol-7568e61c
+
+Now ssh to the machine and create a filesystem:
+
+grep -q xfs /proc/filesystems || sudo modprobe xf
+sudo mkfs.xfs /dev/sdh
+sudo mkdir /vol
+sudo mkdir /vol/galaxy
+sudo mount -t xfs -o noatime /dev/sdh /vol/galaxy/
+
 AMI on EC2
 ----------
 XXX This is incomplete. Use EBS snapshots instead.
