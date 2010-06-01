@@ -73,6 +73,7 @@ The first step is to pick an AMI to use. For instance:
  
 * bioperl-max (http://fortinbras.us/bioperl-max/) -- ami-1ad03273
 * unbuntu (http://alestic.com/) -- ami-714ba518
+* CloudBioLinux -- ami-879c75ee
 
 Using this AMI, you begin an instance and ensure that it is running:
 

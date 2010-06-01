@@ -57,6 +57,10 @@ programming:
     - aspell
     - dictionaries-common
     - libaspell-dev
+  mapreduce:
+    - hadoop-0.20
+    - hadoop-pig
+    - hadoop-hive
 amazon:
   - s3cmd
   - ec2-ami-tools

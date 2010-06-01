@@ -41,6 +41,7 @@ def ec2_ubuntu_environment():
       "deb-src http://us.archive.ubuntu.com/ubuntu/ lucid-updates multiverse",
       "deb http://archive.canonical.com/ lucid partner",
       "deb http://downloads.mongodb.org/distros/ubuntu 10.4 10gen",
+      "deb http://archive.cloudera.com/debian karmic-cdh3b1 contrib",
     ]
 
 def install_biolinux():
@@ -48,8 +49,18 @@ def install_biolinux():
     """
     ec2_ubuntu_environment()
     pkg_install, lib_install = _read_main_config()
+    _add_gpg_keys()
     _apt_packages(pkg_install)
     _do_library_installs(lib_install)
+
+def _add_gpg_keys():
+    """Adds GPG keys from all repositories
+       ToDo Cleanup/unify this
+    """
+    sudo("curl -s http://archive.cloudera.com/debian/archive.key | apt-key add -")
+    # mongodb & CRAN
+    sudo("apt-key adv --keyserver keyserver.ubuntu.com --recv 7F0CEB10")
+    sudo("gpg --keyserver subkeys.pgp.net --recv-key 381BA480")
 
 def _apt_packages(to_install):
     """Install packages available via apt-get.
@@ -167,6 +178,27 @@ def _ruby_library_installer(config):
     """
     for gem in config['gems']:
 	sudo("gem install %s" % gem)
+
+# Note that the following Cloudera hadoop installation is for test
+# purposes only, Amazon already provides Elastic MapReduce:
+# http://aws.amazon.com/elasticmapreduce/
+
+def _setup_hadoop(config):
+    """Sets up Cloudera's CDH Hadoop and friends
+	http://archive.cloudera.com/docs/ec2.html
+	http://archive.cloudera.com/cdh/3/
+    """
+
+    # ToDo setup config files according to simple node config
+    # ToDo packages for cloudera not available on lucid yet, using karmic for the moment (beta 1)
+
+    #for pkg in config['mapreduce']:
+    #	sudo("apt-get install %s" % pkg)
+
+    # ToDo setup mahout, must be checked out from repo ATM:
+    # https://cwiki.apache.org/MAHOUT/mahoutec2.html
+
+    pass
 
 lib_installers = {
         "r-libs" : _r_library_installer,
