@@ -42,6 +42,7 @@ def ec2_ubuntu_environment():
       "deb http://archive.canonical.com/ lucid partner",
       "deb http://downloads.mongodb.org/distros/ubuntu 10.4 10gen",
       "deb http://archive.cloudera.com/debian karmic-cdh3b1 contrib",
+      # ToDo packages for cloudera not available on lucid yet, using karmic for the moment (beta 1)
     ]
 
 def install_biolinux():
@@ -180,7 +181,8 @@ def _ruby_library_installer(config):
 	sudo("gem install %s" % gem)
 
 # Note that the following Cloudera hadoop installation is for test
-# purposes only, Amazon already provides Elastic MapReduce:
+# purposes "inside the instance" only, Amazon already provides a
+# production-ready Elastic MapReduce platform:
 # http://aws.amazon.com/elasticmapreduce/
 
 def _setup_hadoop(config):
@@ -190,15 +192,21 @@ def _setup_hadoop(config):
     """
 
     # ToDo setup config files according to simple node config
-    # ToDo packages for cloudera not available on lucid yet, using karmic for the moment (beta 1)
 
-    #for pkg in config['mapreduce']:
-    #	sudo("apt-get install %s" % pkg)
+    for pkg in config['mapreduce']:
+    	sudo("apt-get install %s" % pkg)
 
     # ToDo setup mahout, must be checked out from repo ATM:
     # https://cwiki.apache.org/MAHOUT/mahoutec2.html
 
+    #_checkout_repository()
+
     pass
+
+#def _checkout_repository(url):
+#     """ ToDo Checks out a repository
+#     """
+#    pass
 
 lib_installers = {
         "r-libs" : _r_library_installer,

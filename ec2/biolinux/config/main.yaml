@@ -4,7 +4,7 @@
 # files should go here. Comment out any groups you don't want to have 
 # installed.
 packages:
-#  - programming
+  - programming
 #  - amazon
 #  - python
 #  - r
@@ -30,4 +30,4 @@ packages:
 libraries:
 #  - r-libs
 #  - python-libs
-  - ruby-libs
+#  - ruby-libs
