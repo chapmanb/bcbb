@@ -57,10 +57,14 @@ programming:
     - aspell
     - dictionaries-common
     - libaspell-dev
-  mapreduce:
-    - hadoop-0.20
-    - hadoop-pig
-    - hadoop-hive
+# Note that the following Cloudera hadoop installation is for test
+# purposes "inside the instance" only, Amazon already provides a
+# production-ready Elastic MapReduce platform:
+# http://aws.amazon.com/elasticmapreduce/
+distributed:
+  - hadoop-0.20
+  - hadoop-pig
+  - hadoop-hive
 amazon:
   - s3cmd
   - ec2-ami-tools

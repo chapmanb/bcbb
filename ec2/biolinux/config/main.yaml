@@ -5,29 +5,30 @@
 # installed.
 packages:
   - programming
-#  - amazon
-#  - python
-#  - r
-#  - ruby
-#  - perl
-#  - java
-#  - erlang
-#  - haskell
-#  - databases
-#  - math
-#  - viz
-#  - web
-#  - bio_general
-#  - bio_search
-#  - bio_alignment
-#  - bio_nextgen
-#  - bio_sequencing
-#  - bio_annotation
-#  - bio_microarray
-#  - bio_visualization
-#  - bio_utils
-#  - phylogeny
+  - distributed
+  - amazon
+  - python
+  - r
+  - ruby
+  - perl
+  - java
+  - erlang
+  - haskell
+  - databases
+  - math
+  - viz
+  - web
+  - bio_general
+  - bio_search
+  - bio_alignment
+  - bio_nextgen
+  - bio_sequencing
+  - bio_annotation
+  - bio_microarray
+  - bio_visualization
+  - bio_utils
+  - phylogeny
 libraries:
-#  - r-libs
-#  - python-libs
-#  - ruby-libs
+  - r-libs
+  - python-libs
+  - ruby-libs

@@ -9,6 +9,8 @@ cran:
  - NMF
  - caTools
  - ape
+ - snowfall
+ - multicore
 biocrepo: http://bioconductor.org/biocLite.R
 bioc:
  - Biostrings

@@ -41,8 +41,12 @@ def ec2_ubuntu_environment():
       "deb-src http://us.archive.ubuntu.com/ubuntu/ lucid-updates multiverse",
       "deb http://archive.canonical.com/ lucid partner",
       "deb http://downloads.mongodb.org/distros/ubuntu 10.4 10gen",
-      "deb http://archive.cloudera.com/debian karmic-cdh3b1 contrib",
+      # lastest R versions
+      "deb http://cran.stat.ucla.edu/bin/linux/ubuntu lucid/",
+      # Bio-Linux
+      "deb http://nebc.nox.ac.uk/bio-linux/ unstable bio-linux",
       # ToDo packages for cloudera not available on lucid yet, using karmic for the moment (beta 1)
+      "deb http://archive.cloudera.com/debian karmic-cdh3b1 contrib",
     ]
 
 def install_biolinux():
@@ -54,26 +58,11 @@ def install_biolinux():
     _apt_packages(pkg_install)
     _do_library_installs(lib_install)
 
-def _add_gpg_keys():
-    """Adds GPG keys from all repositories
-       ToDo Cleanup/unify this
-    """
-    sudo("curl -s http://archive.cloudera.com/debian/archive.key | apt-key add -")
-    # mongodb & CRAN
-    sudo("apt-key adv --keyserver keyserver.ubuntu.com --recv 7F0CEB10")
-    sudo("gpg --keyserver subkeys.pgp.net --recv-key 381BA480")
-
 def _apt_packages(to_install):
     """Install packages available via apt-get.
     """
     pkg_config = os.path.join(env.config_dir, "packages.yaml")
-    # Setup and update apt sources on the remote host
-    # lastest R versions and Bio-Linux. debian-med should already be there.
-    sources_add = [
-      "deb http://cran.stat.ucla.edu/bin/linux/ubuntu lucid/",
-      "deb http://nebc.nox.ac.uk/bio-linux/ unstable bio-linux",
-      ]
-    for source in sources_add + env.std_sources:
+    for source env.std_sources:
         if not contains(source, env.sources_file):
             append(source, env.sources_file, use_sudo=True)
     sudo("apt-get update")
@@ -82,33 +71,6 @@ def _apt_packages(to_install):
     _setup_automation()
     for package in packages:
         sudo("apt-get -y --force-yes install %s" % package)
-
-def _setup_automation():
-    """Setup the environment to be fully automated for tricky installs.
-
-    Sun Java license acceptance:
-    http://www.davidpashley.com/blog/debian/java-license
-
-    MySQL root password questions; install with empty root password:
-    http://snowulf.com/archives/540-Truly-non-interactive-unattended-apt-get-install.html
-
-    Postfix, setup for no configuration. See more on issues here:
-    http://www.uluga.ubuntuforums.org/showthread.php?p=9120196
-    """
-    interactive_cmd = "export DEBIAN_FRONTEND=noninteractive"
-    if not contains(interactive_cmd, env.shell_config):
-        append(interactive_cmd, env.shell_config)
-    package_info = [
-            "postfix postfix/main_mailer_type select No configuration",
-            "postfix postfix/mailname string notusedexample.org",
-            "mysql-server-5.1 mysql-server/root_password string '(password omitted)'",
-            "mysql-server-5.1 mysql-server/root_password_again string '(password omitted)'",
-            "sun-java6-jdk shared/accepted-sun-dlj-v1-1 select true",
-            "sun-java6-jre shared/accepted-sun-dlj-v1-1 select true",
-            "sun-java6-bin shared/accepted-sun-dlj-v1-1 select true",
-            ]
-    for l in package_info:
-        sudo("echo %s | /usr/bin/debconf-set-selections" % l)
 
 def _yaml_to_packages(yaml_file, to_install):
     """Read a list of packages from a nested YAML configuration file.
@@ -180,34 +142,6 @@ def _ruby_library_installer(config):
     for gem in config['gems']:
 	sudo("gem install %s" % gem)
 
-# Note that the following Cloudera hadoop installation is for test
-# purposes "inside the instance" only, Amazon already provides a
-# production-ready Elastic MapReduce platform:
-# http://aws.amazon.com/elasticmapreduce/
-
-def _setup_hadoop(config):
-    """Sets up Cloudera's CDH Hadoop and friends
-	http://archive.cloudera.com/docs/ec2.html
-	http://archive.cloudera.com/cdh/3/
-    """
-
-    # ToDo setup config files according to simple node config
-
-    for pkg in config['mapreduce']:
-    	sudo("apt-get install %s" % pkg)
-
-    # ToDo setup mahout, must be checked out from repo ATM:
-    # https://cwiki.apache.org/MAHOUT/mahoutec2.html
-
-    #_checkout_repository()
-
-    pass
-
-#def _checkout_repository(url):
-#     """ ToDo Checks out a repository
-#     """
-#    pass
-
 lib_installers = {
         "r-libs" : _r_library_installer,
         "python-libs" : _python_library_installer,
@@ -220,3 +154,41 @@ def _do_library_installs(to_install):
         with open(yaml_file) as in_handle:
             config = yaml.load(in_handle)
         lib_installers[iname](config)
+
+# --- System hacks to support automation on apt systems
+
+def _add_gpg_keys():
+    """Adds GPG keys from all repositories
+       ToDo Cleanup/unify this
+    """
+    sudo("curl -s http://archive.cloudera.com/debian/archive.key | apt-key add -")
+    # mongodb & CRAN
+    sudo("apt-key adv --keyserver keyserver.ubuntu.com --recv 7F0CEB10")
+    sudo("gpg --keyserver subkeys.pgp.net --recv-key 381BA480")
+
+def _setup_automation():
+    """Setup the environment to be fully automated for tricky installs.
+
+    Sun Java license acceptance:
+    http://www.davidpashley.com/blog/debian/java-license
+
+    MySQL root password questions; install with empty root password:
+    http://snowulf.com/archives/540-Truly-non-interactive-unattended-apt-get-install.html
+
+    Postfix, setup for no configuration. See more on issues here:
+    http://www.uluga.ubuntuforums.org/showthread.php?p=9120196
+    """
+    interactive_cmd = "export DEBIAN_FRONTEND=noninteractive"
+    if not contains(interactive_cmd, env.shell_config):
+        append(interactive_cmd, env.shell_config)
+    package_info = [
+            "postfix postfix/main_mailer_type select No configuration",
+            "postfix postfix/mailname string notusedexample.org",
+            "mysql-server-5.1 mysql-server/root_password string '(password omitted)'",
+            "mysql-server-5.1 mysql-server/root_password_again string '(password omitted)'",
+            "sun-java6-jdk shared/accepted-sun-dlj-v1-1 select true",
+            "sun-java6-jre shared/accepted-sun-dlj-v1-1 select true",
+            "sun-java6-bin shared/accepted-sun-dlj-v1-1 select true",
+            ]
+    for l in package_info:
+        sudo("echo %s | /usr/bin/debconf-set-selections" % l)
