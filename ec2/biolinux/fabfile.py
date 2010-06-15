@@ -12,6 +12,7 @@ Requires:
     PyYAML http://pyyaml.org/wiki/PyYAMLDocumentation
 """
 import os
+import sys
 
 from fabric.api import *
 from fabric.contrib.files import *
@@ -29,6 +30,8 @@ def ec2_ubuntu_environment():
     env.user = "ubuntu"
     env.sources_file = "/etc/apt/sources.list"
     env.shell_config = "~/.bashrc"
+    env.system_install = "/usr"
+    env.local_install = "install"
     env.shell = "/bin/bash -l -c"
     env.std_sources = [
       "deb http://us.archive.ubuntu.com/ubuntu/ lucid universe",
@@ -54,23 +57,41 @@ def install_biolinux():
     """
     ec2_ubuntu_environment()
     pkg_install, lib_install = _read_main_config()
-    _add_gpg_keys()
-    _apt_packages(pkg_install)
+    #_setup_sources()
+    #_setup_automation()
+    #_add_gpg_keys()
+    #_apt_packages(pkg_install)
+    _custom_installs(pkg_install)
     _do_library_installs(lib_install)
 
 def _apt_packages(to_install):
     """Install packages available via apt-get.
     """
     pkg_config = os.path.join(env.config_dir, "packages.yaml")
-    for source env.std_sources:
-        if not contains(source, env.sources_file):
-            append(source, env.sources_file, use_sudo=True)
     sudo("apt-get update")
     # Retrieve packages to get and install each of them
-    packages = _yaml_to_packages(pkg_config, to_install)
-    _setup_automation()
+    (packages, _) = _yaml_to_packages(pkg_config, to_install)
     for package in packages:
         sudo("apt-get -y --force-yes install %s" % package)
+
+def _custom_installs(to_install):
+    pkg_config = os.path.join(env.config_dir, "custom.yaml")
+    if not exists(env.local_install):
+        run("mkdir %s" % env.local_install)
+    packages, pkg_to_group = _yaml_to_packages(pkg_config, to_install)
+    sys.path.append(os.path.split(__file__)[0])
+    for p in packages:
+        try:
+            mod = __import__("custom.%s" % pkg_to_group[p], fromlist=["custom"])
+        except ImportError:
+            raise ImportError("Need to write a %s module in custom." %
+                    pkg_to_group[p])
+        try:
+            fn = getattr(mod, "install_%s" % p)
+        except AttributeError:
+            raise ImportError("Need to write a install_%s function in custom.%s"
+                    % (p, pkg_to_group[p]))
+        fn(env)
 
 def _yaml_to_packages(yaml_file, to_install):
     """Read a list of packages from a nested YAML configuration file.
@@ -80,18 +101,21 @@ def _yaml_to_packages(yaml_file, to_install):
     # filter the data based on what we have configured to install
     data = [(k, v) for (k,v) in full_data.iteritems() if k in to_install]
     data.sort()
-    data = [v for (_, v) in data]
+#    data = [v for (_, v) in data]
     packages = []
+    pkg_to_group = dict()
     while len(data) > 0:
-        cur_info = data.pop(0)
+        cur_key, cur_info = data.pop(0)
         if cur_info:
             if isinstance(cur_info, (list, tuple)):
                 packages.extend(sorted(cur_info))
+                for p in cur_info:
+                    pkg_to_group[p] = cur_key
             elif isinstance(cur_info, dict):
-                data.extend(cur_info.values())
+                data.extend(cur_info.items())
             else:
                 raise ValueError(cur_info)
-    return packages
+    return packages, pkg_to_group
 
 def _read_main_config():
     """Pull a list of groups to install based on our main configuration YAML.
@@ -192,3 +216,10 @@ def _setup_automation():
             ]
     for l in package_info:
         sudo("echo %s | /usr/bin/debconf-set-selections" % l)
+
+def _setup_sources():
+    """Add sources for retrieving library packages.
+    """
+    for source in env.std_sources:
+        if not contains(source, env.sources_file):
+            append(source, env.sources_file, use_sudo=True)
