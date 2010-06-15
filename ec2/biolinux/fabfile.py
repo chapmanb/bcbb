@@ -57,10 +57,10 @@ def install_biolinux():
     """
     ec2_ubuntu_environment()
     pkg_install, lib_install = _read_main_config()
-    #_setup_sources()
-    #_setup_automation()
-    #_add_gpg_keys()
-    #_apt_packages(pkg_install)
+    _setup_sources()
+    _setup_automation()
+    _add_gpg_keys()
+    _apt_packages(pkg_install)
     _custom_installs(pkg_install)
     _do_library_installs(lib_install)
 
