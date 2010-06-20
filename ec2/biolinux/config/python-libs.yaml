@@ -8,12 +8,15 @@ pypi:
   - HTSeq
   - rpy2
   - rpy2-bioconductor-extensions
-  - bx-python 
   - pymongo
   - pyyaml
   - fabric
+  - gnuplot-py
 # ToDo:
 # Pulls the wrong file and then can't install automatically
 #  - pygr
 # Should get into pypi
 #  - pysam
+#  - rpy
+# Needs additional files
+#  - bx-python 

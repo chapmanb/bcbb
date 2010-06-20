@@ -43,8 +43,9 @@ programming:
     - libgsl0ldbl
     - gsl-bin
     - xfsprogs
-    - libc6-dev-amd64
+    - libc6-dev
     - libzip-dev
+    - libncurses5-dev
   packaging:
     - build-essential
     - devscripts
@@ -296,7 +297,7 @@ bio_alignment:
 bio_nextgen:
   - maq
   - samtools
-  - bwa
+# Package is old version, in custom: - bwa
 bio_sequencing:
   - bio-linux-assembly-conversion-tools
   - bio-linux-cap3
@@ -322,7 +323,7 @@ bio_annotation:
   - bio-linux-rbs-finder
   - bio-linux-transterm-hp
   - bio-linux-trnascan
-  - bio-linux-yamap
+# Package broken: - bio-linux-yamap
   - bio-linux-tetra
 bio_microarray:
   - bio-linux-ocount
@@ -330,7 +331,7 @@ bio_microarray:
   - bio-linux-oligoarrayaux
 bio_visualization:
   - rasmol
-  - bio-linux-clcworkbench
+  - bio-linux-clcsequenceviewer
   - bio-linux-maxd
 bio_utils:
   - bio-linux-das-prep

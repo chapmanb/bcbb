@@ -15,7 +15,8 @@ gems:
   - do_sqlite3
   - data_objects
   - do_mysql
-  - mysql  
+  - mysql
+  - couchdb-ruby
   - datamapper
   - dm-adjust
   - dm-aggregates
@@ -23,7 +24,6 @@ gems:
   - dm-cli
   - dm-constraints
   - dm-core
-  - dm-couchdb-adapter
   - dm-ferret-adapter
   - dm-is-list
   - dm-is-nested_set
@@ -32,7 +32,6 @@ gems:
   - dm-is-state_machine
   - dm-is-tree
   - dm-is-versioned
-  - dm-is-viewable
   - dm-migrations
   - dm-more
   - dm-observer
@@ -47,3 +46,4 @@ gems:
   - dm-validations
   - cheat
   - addressable
+#  - dm-is-viewable

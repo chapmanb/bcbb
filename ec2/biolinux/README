@@ -113,38 +113,29 @@ When finished, make it public with:
 
 Creating EBS stores
 -------------------
-Create a 150Gb store:
+Create a 200Gb store:
 
 ec2-create-volume -z us-east-1c -s 200
 ec2-describe-volumes vol-7568e61c
 
-Attach it to a running instance:
+Establish a store from an existing snapshot:
+
+ec2-create-volume --snapshot snap-10dbab78 -z us-east-1c
+
+Attach a store to a running instance:
 
 ec2-attach-volume -d /dev/sdh -i i-351d225e vol-7568e61c
 
-Now ssh to the machine and create a filesystem:
+On a new instance ssh to the machine and create a filesystem:
 
 grep -q xfs /proc/filesystems || sudo modprobe xf
 sudo mkfs.xfs /dev/sdh
+
+Mount the directory, need to do this every time:
+
 sudo mkdir /vol
 sudo mkdir /vol/galaxy
 sudo mount -t xfs -o noatime /dev/sdh /vol/galaxy/
-
-AMI on EC2
-----------
-XXX This is incomplete. Use EBS snapshots instead.
-
-http://docs.amazonwebservices.com/AWSEC2/latest/GettingStartedGuide/creating-an-image.html
-
-From your machine:
-
-% scp -i ~/.ec2/id-sobchak.keypair ~/.ec2/cert-UBH43XTAWVNQMIZRAV3RP5IIBAPBIFVP.pem ~/.ec2/pk-UBH43XTAWVNQMIZRAV3RP5IIBAPBIFVP.pem root@ec2-174-129-68-135.compute-1.amazonaws.com:/mnt
-
-On the instance:
-
-# ec2-bundle-vol -d /mnt -k /mnt/pk-UBH43XTAWVNQMIZRAV3RP5IIBAPBIFVP.pem -c /mnt/cert-UBH43XTAWVNQMIZRAV3RP5IIBAPBIFVP.pem -u '6787-1165-7553' -r i386 -p sampleimage
-
-EBS instructions for ubuntu: http://alestic.com/2010/01/vmbuilder-ebs-boot-ami
 
 Eucalyptus Public Cloud Quickstart
 ==================================

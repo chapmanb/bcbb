@@ -68,7 +68,6 @@ def amazon_ec2():
     env.galaxy_files = '/vol/galaxy'
     env.shell = "/bin/bash -l -c"
     env.use_sudo = True
-    env.install_ucsc = False
 
 # -- Configuration for genomes to download and prepare
 
@@ -236,7 +235,7 @@ def _if_installed(pname):
                     hide('warnings', 'running', 'stdout', 'stderr'),
                     warn_only=True):
                 result = run(pname)
-            if result.return_code in [0, 1]: 
+            if result.return_code not in [127]:
                 return func(*args, **kwargs)
         return decorator
     return argcatcher
@@ -285,16 +284,22 @@ def _install_ucsc_tools():
                 install_cmd("wget %s%s" % (url, tool))
                 install_cmd("chmod a+rwx %s" % tool)
 
+def _install_ucsc_tools_src():
+    """Install Jim Kent's executables from source.
+    """
+    url = "http://hgdownload.cse.ucsc.edu/admin/jksrc.zip"
+    with _make_tmp_dir() as work_dir:
+        with cd(work_dir):
+            run("wget %s" % url)
+
 @_if_not_installed("bowtie")
 def _install_bowtie():
     """Install the bowtie short read aligner.
     """
     version = "0.12.5"
-    architecture = "x86_64"
-    architecture = "i386"
     mirror_info = "?use_mirror=cdnetworks-us-1"
     url = "http://downloads.sourceforge.net/project/bowtie-bio/bowtie/%s/" \
-          "bowtie-%s-linux-%s.zip" % (version, version, architecture)
+          "bowtie-%s-src.zip" % (version, version)
     install_dir = os.path.join(env.install_dir, "bin")
     with _make_tmp_dir() as work_dir:
         with cd(work_dir):
@@ -302,7 +307,8 @@ def _install_bowtie():
             run("unzip %s" % os.path.split(url)[-1])
             install_cmd = sudo if env.use_sudo else run
             with cd("bowtie-%s" % version):
-                for fname in run("ls bowtie*").split("\n"):
+                run("make")
+                for fname in run("find -perm -100 -name 'bowtie*'").split("\n"):
                     install_cmd("mv -f %s %s" % (fname, install_dir))
 
 @_if_not_installed("bwa")
