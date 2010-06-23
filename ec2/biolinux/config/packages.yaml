@@ -303,12 +303,12 @@ bio_sequencing:
   - bio-linux-assembly-conversion-tools
   - bio-linux-cap3
   - bio-linux-dust
+  - bio-linux-lucy
   - bio-linux-mira
   - bio-linux-mira-3rd-party
   - bio-linux-msatfinder
   - bio-linux-staden
   - bio-linux-stars
-  - bio-linux-trace2dbest
 bio_annotation:
   - mcl
   - tigr-glimmer
@@ -338,25 +338,20 @@ bio_utils:
   - bio-linux-das-prep
   - bio-linux-exchanger
   - bio-linux-genquery
-  - bio-linux-handlebar
   - bio-linux-keyring
   - bio-linux-base-directories
-  - bio-linux-backups
   - bio-linux-bldp-files
-  - bio-linux-pedro
-  - bio-linux-envbase-for-pedro
   - bio-linux-sampledata
   - bio-linux-sequin
   - bio-linux-taxinspector
-  - bio-linux-themes
   - bio-linux-themes-v5
-  - bio-linux-usb-maker
 phylogeny:
   - phylip
   - phyml
   - mrbayes
   - njplot
   - tree-puzzle
+  - bio-linux-arb
   - bio-linux-coalesce
   - bio-linux-dendroscope
   - bio-linux-fastDNAml
@@ -380,11 +375,7 @@ phylogeny:
 #   more perl modules
 # from bio-linux:
 #   Celera Assembler
-#   arb
-#   genespring-2
-#   gsrint
-#   lamarc
-#   lucy
+#   lamarc - not available just now (22/6/10)
 #   peptidemapper
 #   pftools
 #   transterm
