@@ -33,12 +33,9 @@ gems:
   - dm-is-tree
   - dm-is-versioned
   - dm-migrations
-  - dm-more
   - dm-observer
-  - dm-querizer
   - dm-rest-adapter
   - dm-serializer
-  - dm-shorthand
   - dm-sweatshop
   - dm-tags
   - dm-timestamps
@@ -46,4 +43,3 @@ gems:
   - dm-validations
   - cheat
   - addressable
-#  - dm-is-viewable

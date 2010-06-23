@@ -23,9 +23,8 @@ env.config_dir = os.path.join(os.getcwd(), "config")
 def ec2_ubuntu_environment():
     """Setup default environmental variables for Ubuntu EC2 servers.
 
-    Works on a US EC2 server running Ubunutu 10.04 lucid. This should be pretty
-    general but should support system specific things for other platform
-    targets.
+    Works on a US EC2 server running Ubunutu 10.04 lucid. This is fairly
+    general but we will need to define similar functions for other targets.
     """
     env.user = "ubuntu"
     env.sources_file = "/etc/apt/sources.list"
@@ -133,23 +132,45 @@ def _read_main_config():
 
 def _r_library_installer(config):
     """Install R libraries using CRAN and Bioconductor.
-
-    ToDo: Can we check if a package is installed and only upgrade
-    it if it's old? install.packages blindly downloads away.
     """
-    # create an Rscript file which will be used to do the install
+    # Create an Rscript file with install details.
     out_file = "install_packages.R"
     run("touch %s" % out_file)
-    # CRAN
-    append(['repo <- getOption("repos")',
-            'repo["CRAN" ] <- "%s"' % config["cranrepo"],
-            'options(repos=repo)'], out_file)
-    for pname in config['cran']:
-        append('install.packages("%s")' % pname, out_file)
-    # Bioconductor
-    append('source("%s")' % config['biocrepo'], out_file)
-    for pname in config['bioc']:
-        append('biocLite("%s")' % pname, out_file)
+    repo_info = """
+    cran.repos <- getOption("repos")
+    cran.repos["CRAN" ] <- "%s"
+    options(repos=cran.repos)
+    source("%s")
+    """ % (config["cranrepo"], config["biocrepo"])
+    append(repo_info, out_file)
+    install_fn = """
+    repo.installer <- function(repos, install.fn) {
+      update.or.install <- function(pname) {
+        if (pname %in% installed.packages())
+          update.packages(lib.loc=c(pname), repos=repos, ask=FALSE)
+        else
+          install.fn(pname)
+      }
+    }
+    """
+    append(install_fn, out_file)
+    std_install = """
+    std.pkgs <- c(%s)
+    std.installer = repo.installer(cran.repos, install.packages)
+    lapply(std.pkgs, std.installer)
+    """ % (", ".join('"%s"' % p for p in config['cran']))
+    append(std_install, out_file)
+    bioc_install = """
+    bioc.pkgs <- c(%s)
+    bioc.installer = repo.installer(biocinstallRepos(), biocLite)
+    lapply(bioc.pkgs, bioc.installer)
+    """ % (", ".join('"%s"' % p for p in config['bioc']))
+    append(bioc_install, out_file)
+    final_update = """
+    update.packages(repos=biocinstallRepos(), ask=FALSE)
+    update.packages(ask=FALSE)
+    """
+    append(final_update, out_file)
     # run the script and then get rid of it
     sudo("Rscript %s" % out_file)
     run("rm -f %s" % out_file)
@@ -161,10 +182,17 @@ def _python_library_installer(config):
         sudo("easy_install -U %s" % pname)
 
 def _ruby_library_installer(config):
-    """Install ruby specific gems using "gem install"
+    """Install ruby specific gems.
     """
     for gem in config['gems']:
-	sudo("gem install %s" % gem)
+        with settings(
+                hide('warnings', 'running', 'stdout', 'stderr')):
+            gem_info = run("gem list --no-versions")
+        installed = [l for l in gem_info.split("\n") if l]
+        if gem in installed:
+            sudo("gem update %s" % gem)
+        else:
+            sudo("gem install %s" % gem)
 
 lib_installers = {
         "r-libs" : _r_library_installer,

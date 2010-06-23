@@ -22,7 +22,7 @@ def _if_not_installed(pname):
 
 @contextmanager
 def _make_tmp_dir():
-    home_dir = os.environ['HOME']
+    home_dir = run("echo $HOME")
     work_dir = os.path.join(home_dir, "tmp")
     if not exists(work_dir):
         run("mkdir %s" % work_dir)

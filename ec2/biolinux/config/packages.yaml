@@ -45,6 +45,7 @@ programming:
     - xfsprogs
     - libc6-dev
     - libzip-dev
+    - libgtk2.0-dev
     - libncurses5-dev
   packaging:
     - build-essential

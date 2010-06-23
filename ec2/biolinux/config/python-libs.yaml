@@ -18,5 +18,5 @@ pypi:
 # Should get into pypi
 #  - pysam
 #  - rpy
-# Needs additional files
+# Needs additional files to work correctly.
 #  - bx-python 

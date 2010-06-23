@@ -5,27 +5,34 @@
 # Run with:
 #   Rscript install_packages.R
 
-# Set mirror
-r <- getOption("repos")
-r["CRAN" ] <- "http://software.rc.fas.harvard.edu/mirrors/R/"
-options(repos=r)
+# Set mirrors
+cran.repos <- getOption("repos")
+cran.repos["CRAN" ] <- "http://software.rc.fas.harvard.edu/mirrors/R/"
+options(repos=cran.repos)
+source("http://bioconductor.org/biocLite.R")
+
+
+repo.installer <- function(repos, install.fn) {
+  update.or.install <- function(pname) {
+    if (pname %in% installed.packages())
+      update.packages(lib.loc=c(pname), repos=repos, ask=FALSE)
+    else
+      install.fn(pname)
+  }
+}
 
 # standard packages
-install.packages("ggplot2")
-install.packages("rjson")
-install.packages("sqldf")
-install.packages("NMF")
-install.packages("caTools")
-
+std.pkgs <- c("ggplot2", "rjson", "sqldf", "NMF", "caTools", "ape", "snowfall",
+	      "multicore")
+std.installer = repo.installer(cran.repos, install.packages)
+lapply(std.pkgs, std.installer)
 # bioconductor packages
-source("http://bioconductor.org/biocLite.R")
-biocLite("BSgenome")
-biocLite("edgeR")
-biocLite("GEOquery")
-biocLite("GOstats")
-biocLite("rtracklayer")
-biocLite("biomaRt")
-biocLite("GO.db")
-biocLite("KEGG.db")
-biocLite("org.Hs.eg.db")
-biocLite("org.Mm.eg.db")
+bioc.pkgs <- c("Biostrings", "ShortRead", "BSgenome", "edgeR", "GEOquery", 
+	       "GOstats", "rtracklayer", "biomaRt", "Rsamtools", "PICS", "MotIV", 
+	       "rGADEM", "GO.db", "KEGG.db", "org.Hs.eg.db", "org.Mm.eg.db")
+bioc.installer = repo.installer(biocinstallRepos(), biocLite)
+lapply(bioc.pkgs, bioc.installer)
+
+# update anything which was not explicitly specified
+update.packages(repos=biocinstallRepos(), ask=FALSE)
+update.packages(ask=FALSE)
