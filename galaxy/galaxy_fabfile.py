@@ -197,6 +197,13 @@ genomes = [
            ("Msmegmatis", "92", NCBIRest("92", ["NC_008596.1"])),
            ("Paeruginosa_UCBPP-PA14", "386", NCBIRest("386", ["CP000438.1"])),
            ("Ecoli", "eschColi_K12", NCBIRest("eschColi_K12", ["U00096.2"])),
+           ("Amellifera_Honeybee", "apiMel3", UCSCGenome("apiMel3")),
+           ("Cfamiliaris_Dog", "canFam2", UCSCGenome("canFam2")),
+           ("Drerio_Zebrafish", "danRer6", UCSCGenome("danRer6")),
+           ("Ecaballus_Horse", "equCab2", UCSCGenome("equCab2")),
+           ("Fcatus_Cat", "felCat3", UCSCGenome("felCat3")),
+           ("Ggallus_Chicken", "galGal3", UCSCGenome("galGal3")),
+           ("Tguttata_Zebra_finch", "taeGut1", UCSCGenome("taeGut1")),
           ]
 
 lift_over_genomes = ['hg18', 'hg19', 'mm9', 'xenTro2', 'rn4']
@@ -267,6 +274,7 @@ def _install_ngs_tools():
     _install_samtools()
     _install_fastx_toolkit()
     _install_maq()
+    _install_bfast()
     if env.install_ucsc:
         _install_ucsc_tools()
 
@@ -388,6 +396,22 @@ def _install_maq():
                 run("make")
                 install_cmd("make install")
 
+@_if_not_installed("bfast")
+def _install_bfast():
+    version = "0.6.4"
+    vext = "d"
+    url = "http://downloads.sourceforge.net/project/bfast/bfast/%s/bfast-%s%s.tar.gz"\
+            % (version, version, vext)
+    with _make_tmp_dir() as work_dir:
+        with cd(work_dir):
+            run("wget %s" % (url))
+            run("tar -xzvpf %s" % (os.path.split(url)[-1]))
+            install_cmd = sudo if env.use_sudo else run
+            with cd("bfast-%s%s" % (version, vext)):
+                run("./configure --prefix=%s" % (env.install_dir))
+                run("make")
+                install_cmd("make install")
+
 def _setup_ngs_genomes():
     """Download and create index files for next generation genomes.
     """
@@ -408,8 +432,10 @@ def _setup_ngs_genomes():
             bowtie_index = _index_bowtie(ref_file)
             maq_index = _index_maq(ref_file)
             twobit_index = _index_twobit(ref_file)
-            arachne_index = _index_arachne(ref_file)
-            _index_eland(ref_file)
+            #bfast_index = _index_bfast(ref_file)
+            if False:
+                arachne_index = _index_arachne(ref_file)
+                _index_eland(ref_file)
             with cd(seq_dir):
                 sam_index = _index_sam(ref_file)
         for ref_index_file, cur_index, prefix in [
@@ -514,6 +540,53 @@ def _index_sam(ref_file):
     if not exists("%s.fai" % local_file):
         run("samtools faidx %s" % local_file)
     return ref_file
+
+def _index_bfast(ref_file):
+    """Indexes bfast in color and nucleotide space for longer reads.
+
+    This preps for 40+bp sized reads, which is bfast's strength.
+    """
+    dir_name = "bfast"
+    window_size = 14
+    bfast_nt_masks = [
+   "1111111111111111111111",
+   "1111101110111010100101011011111",
+   "1011110101101001011000011010001111111",
+   "10111001101001100100111101010001011111",
+   "11111011011101111011111111",
+   "111111100101001000101111101110111",
+   "11110101110010100010101101010111111",
+   "111101101011011001100000101101001011101",
+   "1111011010001000110101100101100110100111",
+   "1111010010110110101110010110111011",
+    ]
+    bfast_color_masks = [
+    "1111111111111111111111",
+    "111110100111110011111111111",
+    "10111111011001100011111000111111",
+    "1111111100101111000001100011111011",
+    "111111110001111110011111111",
+    "11111011010011000011000110011111111",
+    "1111111111110011101111111",
+    "111011000011111111001111011111",
+    "1110110001011010011100101111101111",
+    "111111001000110001011100110001100011111",
+    ]
+    local_ref = os.path.split(ref_file)[-1]
+    if not exists(dir_name):
+        run("mkdir %s" % dir_name)
+        with cd(dir_name):
+            run("ln -s %s" % os.path.join(os.pardir, ref_file))
+            # nucleotide space
+            run("bfast fasta2brg -f %s -A 0" % local_ref)
+            for i, mask in enumerate(bfast_nt_masks):
+                run("bfast index -d 1 -n 4 -f %s -A 0 -m %s -w %s -i %s" %
+                        (local_ref, mask, window_size, i + 1))
+            # colorspace
+            run("bfast fasta2brg -f %s -A 1" % local_ref)
+            for i, mask in enumerate(bfast_color_masks):
+                run("bfast index -d 1 -n 4 -f %s -A 1 -m %s -w %s -i %s" %
+                        (local_ref, mask, window_size, i + 1))
 
 @_if_installed("MakeLookupTable")
 def _index_arachne(ref_file):
