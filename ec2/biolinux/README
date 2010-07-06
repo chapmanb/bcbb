@@ -140,12 +140,7 @@ sudo mount -t xfs -o noatime /dev/sdh /vol/galaxy/
 Eucalyptus Public Cloud Quickstart
 ==================================
 
-ToDo: Rebundle Amazon's AMI/EBS to Eucalyptus.
-
 - Sign up for an account at: https://ecc.eucalyptus.com
-
-- Image information: https://ecc.eucalyptus.com/#images
-  Ubuntu 9.04 -- emi-CBEA100C
 
 - Download credentials from: https://ecc.eucalyptus.com/#credentials.
   Unpack all files to ~/.euca directory
@@ -162,3 +157,19 @@ ToDo: Rebundle Amazon's AMI/EBS to Eucalyptus.
   euca-add-keypair biolinux 
   euca-run-instances emi-CBEA100C -k biolinux
   euca-authorize -P tcp -p 22 -s 0.0.0.0/0 default
+
+
+Bundling a new EMI in Eucalyptus
+--------------------------------
+
+XXX We use official ubuntu enterprise cloud (EC2-ready) images (AMIs) from:
+
+https://docs.cloudera.com/display/DOC/Installing+CDH3+on+Debian+Systems
+
+http://uec-images.ubuntu.com/releases
+
+The procedure to upload an EMI outlined in Eucalyptus documentation is:
+
+euca-bundle-image -i lucid-server-uec-i386.img --kernel lucid-server-uec-i386-vmlinuz-virtual -u $EC2_USER_ID 
+euca-upload-bundle -b biolinux -m /tmp/lucid-server-uec-i386.img.manifest.xml
+euca-register biolinux/lucid-server-uec-i386.img.manifest.xml
