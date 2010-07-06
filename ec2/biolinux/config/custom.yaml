@@ -8,3 +8,8 @@ distributed:
 java:
    - leinengin
    - incanter
+bio_nextgen:
+  - bwa
+  - ucsc_tools
+  - bowtie
+  - fastx_toolkit

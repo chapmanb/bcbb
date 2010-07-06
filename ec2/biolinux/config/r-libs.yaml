@@ -3,29 +3,29 @@
 # via CRAN and Bioconductor.
 cranrepo: http://software.rc.fas.harvard.edu/mirrors/R/
 cran:
- - ggplot2
- - rjson
- - sqldf
- - NMF
- - caTools
  - ape
- - snowfall
+ - caTools
+ - ggplot2
  - multicore
+ - NMF
+ - rjson
+ - snowfall
+ - sqldf
 biocrepo: http://bioconductor.org/biocLite.R
 bioc:
+ - biomaRt
  - Biostrings
- - ShortRead
  - BSgenome
  - edgeR
  - GEOquery
- - GOstats
- - rtracklayer
- - biomaRt
- - Rsamtools
- - PICS
- - MotIV
- - rGADEM
  - GO.db
+ - GOstats
  - KEGG.db
+ - MotIV
  - org.Hs.eg.db
  - org.Mm.eg.db
+ - PICS
+ - rGADEM
+ - Rsamtools
+ - rtracklayer
+ - ShortRead

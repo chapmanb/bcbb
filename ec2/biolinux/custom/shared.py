@@ -1,5 +1,8 @@
 """Reusable decorators and functions for custom installations.
 """
+import os
+from contextlib import contextmanager
+
 from fabric.api import *
 from fabric.contrib.files import *
 
@@ -16,3 +19,13 @@ def _if_not_installed(pname):
                 return func(*args, **kwargs)
         return decorator
     return argcatcher
+
+@contextmanager
+def _make_tmp_dir():
+    home_dir = run("echo $HOME")
+    work_dir = os.path.join(home_dir, "tmp")
+    if not exists(work_dir):
+        run("mkdir %s" % work_dir)
+    yield work_dir
+    if exists(work_dir):
+        run("rm -rf %s" % work_dir)
