@@ -47,18 +47,28 @@ programming:
     - libzip-dev
     - libgtk2.0-dev
     - libncurses5-dev
+    - zlib1g-dev
+    - libssl-dev
+    - libpcre3-dev
+    - libreadline5-dev
+    - gcc 
+    - g++
   packaging:
     - build-essential
     - devscripts
     - debhelper
     - dh-make
     - pbuilder
+    - unzip
   util:
+    - nfs-kernel-server
     - tree
   lang:
     - aspell
     - dictionaries-common
     - libaspell-dev
+  galaxy:
+    - rabbitmq-server
 # Note that the following Cloudera hadoop installation is for test
 # purposes "inside the instance" only, Amazon already provides a
 # production-ready Elastic MapReduce platform:

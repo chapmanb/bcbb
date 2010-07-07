@@ -28,6 +28,7 @@ packages:
   - bio_visualization
   - bio_utils
   - phylogeny
+  - galaxy
 libraries:
   - r-libs
   - python-libs
