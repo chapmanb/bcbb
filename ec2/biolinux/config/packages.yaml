@@ -53,6 +53,7 @@ programming:
     - libreadline5-dev
     - gcc 
     - g++
+    - stow
   packaging:
     - build-essential
     - devscripts
@@ -221,6 +222,10 @@ java:
   - maven2
   - libjline-java
   - clojure
+  - jruby
+  - jython
+  - scala
+  - scala-library
 erlang:
   - erlang
   - erlang-base

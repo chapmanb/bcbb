@@ -29,7 +29,10 @@ def ec2_ubuntu_environment():
     env.user = "ubuntu"
     env.sources_file = "/etc/apt/sources.list"
     env.shell_config = "~/.bashrc"
+    # Global installation directory for packages and standard programs
     env.system_install = "/usr"
+    # Local install directory for versioned software that will not
+    # be included in the path by default.
     env.local_install = "install"
     env.shell = "/bin/bash -l -c"
     env.std_sources = [
