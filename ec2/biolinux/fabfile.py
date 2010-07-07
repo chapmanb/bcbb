@@ -47,8 +47,8 @@ def ec2_ubuntu_environment():
       "deb http://cran.stat.ucla.edu/bin/linux/ubuntu lucid/",
       # Bio-Linux
       "deb http://nebc.nox.ac.uk/bio-linux/ unstable bio-linux",
-      # ToDo packages for cloudera not available on lucid yet, using karmic for the moment (beta 1)
-      "deb http://archive.cloudera.com/debian karmic-cdh3b1 contrib",
+      # Hadoop
+      "deb http://archive.cloudera.com/debian lucid-cdh3 contrib",
     ]
 
 def install_biolinux():
@@ -211,12 +211,20 @@ def _do_library_installs(to_install):
 
 def _add_gpg_keys():
     """Adds GPG keys from all repositories
-       ToDo Cleanup/unify this
     """
-    sudo("curl -s http://archive.cloudera.com/debian/archive.key | apt-key add -")
-    # mongodb & CRAN
-    sudo("apt-key adv --keyserver keyserver.ubuntu.com --recv 7F0CEB10")
-    sudo("gpg --keyserver subkeys.pgp.net --recv-key 381BA480")
+
+    standalone = [ 
+	"http://archive.cloudera.com/debian/archive.key" ]
+    keyserver = [
+	"7F0CEB10",
+	"381BA480",
+	]
+
+    for key in keyserver:
+    	    sudo("apt-key adv --keyserver subkeys.pgp.net --recv %s" % key)
+
+    for key in standalone:
+	    sudo("curl -s %s | apt-key add -" % key)	    
 
 def _setup_automation():
     """Setup the environment to be fully automated for tricky installs.
