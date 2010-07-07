@@ -238,6 +238,7 @@ r:
   - r-cran-zoo
 perl: 
   - perl
+  - libperl-dev
   - libmoose-perl
   - parrot
   - parrot-devel

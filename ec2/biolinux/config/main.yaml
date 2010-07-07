@@ -33,3 +33,4 @@ libraries:
   - r-libs
   - python-libs
   - ruby-libs
+  - perl-libs

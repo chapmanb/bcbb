@@ -197,10 +197,23 @@ def _ruby_library_installer(config):
         else:
             sudo("gem install %s" % gem)
 
+def _perl_library_installer(config):
+    """Install perl libraries from CPAN with cpanminus.
+    """
+    run("wget http://xrl.us/cpanm")
+    run("chmod a+rwx cpanm")
+    sudo("mv cpanm %s/bin" % env.system_install)
+    for lib in config['cpan']:
+        # Need to hack stdin because of some problem with cpanminus script that
+        # causes fabric to hang
+        # http://agiletesting.blogspot.com/2010/03/getting-past-hung-remote-processes-in.html
+        sudo("cpanm --skip-installed %s < /dev/null" % (lib))
+
 lib_installers = {
         "r-libs" : _r_library_installer,
         "python-libs" : _python_library_installer,
 	"ruby-libs" : _ruby_library_installer,
+        "perl-libs" : _perl_library_installer,
         }
 
 def _do_library_installs(to_install):
