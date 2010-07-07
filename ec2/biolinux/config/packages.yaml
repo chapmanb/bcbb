@@ -202,7 +202,40 @@ r:
   - r-base-core-ra
   - r-base-dev
   - r-base-html
+  - r-cran-abind
+  - r-cran-boot
+  - r-cran-car
+  - r-cran-chron
+  - r-cran-class
+  - r-cran-cluster
+  - r-cran-codetools
+  - r-cran-colorspace
   - r-cran-date
+  - r-cran-effects
+  - r-cran-foreign
+  - r-cran-hmisc
+  - r-cran-kernsmooth
+  - r-cran-lattice
+  - r-cran-lmtest
+  - r-cran-mass
+  - r-cran-matrix
+  - r-cran-mgcv
+  - r-cran-multcomp
+  - r-cran-mvtnorm
+  - r-cran-nlme
+  - r-cran-nnet
+  - r-cran-rcmdr
+  - r-cran-relimp
+  - r-cran-rgl
+  - r-cran-rpart
+  - r-cran-sandwich
+  - r-cran-sm
+  - r-cran-spatial
+  - r-cran-strucchange
+  - r-cran-survival
+  - r-cran-vgam
+  - r-cran-vr
+  - r-cran-zoo
 perl: 
   - perl
   - libmoose-perl
