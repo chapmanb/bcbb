@@ -3,9 +3,24 @@
 # via CRAN and Bioconductor.
 cranrepo: http://software.rc.fas.harvard.edu/mirrors/R/
 cran:
+ - abind
  - ape
+ - aplpack
+ - BiodiversityR
+ - bitops
+ - car
  - caTools
+ - chron
+ - coin
+ - colorspace
+ - DBI
+ - DynDoc
+ - effects
+ - gee
  - ggplot2
+ - HH
+ - Hmisc
+ - hwriter
  - multicore
  - NMF
  - rjson
@@ -13,12 +28,26 @@ cran:
  - sqldf
 biocrepo: http://bioconductor.org/biocLite.R
 bioc:
+ - affy
+ - affydata
+ - affyio
+ - affyPLM
+ - affyQCReport
+ - annaffy
+ - annotate
+ - AnnotationDbi
+ - Biobase
  - biomaRt
  - Biostrings
  - BSgenome
  - edgeR
+ - gcrma
+ - genefilter
+ - geneplotter
+ - GenomicRanges
  - GEOquery
  - GO.db
+ - hgu95av2.db
  - GOstats
  - KEGG.db
  - MotIV

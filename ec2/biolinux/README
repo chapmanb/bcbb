@@ -131,7 +131,7 @@ On a new instance ssh to the machine and create a filesystem:
 grep -q xfs /proc/filesystems || sudo modprobe xf
 sudo mkfs.xfs /dev/sdh
 
-Mount the directory, need to do this every time:
+Mount the directory, need to do this every time on the machine:
 
 sudo mkdir /vol
 sudo mkdir /vol/galaxy
