@@ -1,10 +1,13 @@
-"""Fabric deployment file to set up Galaxy plus associated data files.
+"""Fabric deployment file to install genomic data on remote instances.
+
+Designed to automatically download and manage biologically associated
+data on cloud instances like Amazon EC2.
 
 Fabric (http://docs.fabfile.org) is used to manage the automation of
 a remote server.
 
 Usage:
-    fab -f galaxy_fabfile.py servername deploy_galaxy
+    fab -i key_file -H servername -f data_fabfile.py install_data
 """
 import os
 from contextlib import contextmanager
@@ -14,47 +17,8 @@ from fabric.contrib.files import *
 
 # -- Host specific setup for various groups of servers.
 
-env.user = 'ubuntu'
-env.install_ucsc = True
 env.remove_old_genomes = False
 env.use_sudo = False
-
-def mothra():
-    """Setup environment for mothra.
-    """
-    env.user = 'chapman'
-    env.hosts = ['mothra']
-    env.path = '/source/galaxy/web'
-    env.galaxy_files = '/source/galaxy'
-    env.install_dir = '/source'
-    env.shell = "/bin/zsh -l -i -c"
-
-def galaga():
-    """Setup environment for galaga.
-    """
-    env.user = 'chapman'
-    env.hosts = ['galaga']
-    env.path = '/source/galaxy/web'
-    env.galaxy_files = '/source/galaxy'
-    env.install_dir = '/source'
-    env.shell = "/bin/zsh -l -i -c"
-
-def rcclu():
-    """Setup environment for rcclu cluster. Pass in hosts on commandline.
-    """
-    env.user = "chapmanb"
-    env.galaxy_files = "/solexa2/borowsky/tools/galaxy"
-    env.install_dir = "/solexa2/borowsky/tools"
-    env.shell = "/bin/bash -l -i -c"
-    env.path = None
-
-def localhost():
-    """Setup environment for local authentication.
-    """
-    env.user = 'chapmanb'
-    env.hosts = ['localhost']
-    env.shell = '/usr/local/bin/bash -l -c'
-    env.path = '/home/chapmanb/tmp/galaxy-central'
 
 def amazon_ec2():
     """Setup for a ubuntu amazon ec2 share.
@@ -63,9 +27,9 @@ def amazon_ec2():
         -H hostname -i private_key_file
     """
     env.user = 'ubuntu'
-    env.path = '/vol/galaxy/web'
+    env.galaxy_base = '/mnt/galaxy/web'
     env.install_dir = '/usr/local'
-    env.galaxy_files = '/vol/galaxy'
+    env.galaxy_files = '/mnt/genomedata'
     env.shell = "/bin/bash -l -c"
     env.use_sudo = True
 
@@ -210,28 +174,13 @@ lift_over_genomes = ['hg18', 'hg19', 'mm9', 'xenTro2', 'rn4']
 
 # -- Fabric instructions
 
-def deploy_galaxy():
-    """Deploy a Galaxy server along with associated data files.
+def install_data():
+    """Main entry point for installing useful biological data.
     """
-    _required_libraries()
-    _support_programs()
-    #latest_code()
-    _setup_ngs_tools()
-    _setup_liftover()
+    _data_ngs_genomes()
+    _data_liftover()
 
 # == Decorators and context managers
-
-def _if_not_installed(pname):
-    def argcatcher(func):
-        def decorator(*args, **kwargs):
-            with settings(
-                    hide('warnings', 'running', 'stdout', 'stderr'),
-                    warn_only=True):
-                result = run(pname)
-            if result.return_code == 127:
-                return func(*args, **kwargs)
-        return decorator
-    return argcatcher
 
 def _if_installed(pname):
     """Run if the given program name is installed.
@@ -258,161 +207,7 @@ def _make_tmp_dir():
 
 # == NGS
 
-def _setup_ngs_tools():
-    """Install next generation tools. Follows Galaxy docs at:
-
-    http://bitbucket.org/galaxy/galaxy-central/wiki/NGSLocalSetup
-    """
-    _install_ngs_tools()
-    _setup_ngs_genomes()
-
-def _install_ngs_tools():
-    """Install external next generation sequencing tools.
-    """
-    _install_bowtie()
-    _install_bwa()
-    _install_samtools()
-    _install_fastx_toolkit()
-    _install_maq()
-    _install_bfast()
-    if env.install_ucsc:
-        _install_ucsc_tools()
-
-@_if_not_installed("faToTwoBit")
-def _install_ucsc_tools():
-    """Install useful executables from UCSC.
-    """
-    tools = ["liftOver", "faToTwoBit"]
-    url = "http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/"
-    install_dir = os.path.join(env.install_dir, "bin")
-    for tool in tools:
-        with cd(install_dir):
-            if not exists(tool):
-                install_cmd = sudo if env.use_sudo else run
-                install_cmd("wget %s%s" % (url, tool))
-                install_cmd("chmod a+rwx %s" % tool)
-
-def _install_ucsc_tools_src():
-    """Install Jim Kent's executables from source.
-    """
-    url = "http://hgdownload.cse.ucsc.edu/admin/jksrc.zip"
-    with _make_tmp_dir() as work_dir:
-        with cd(work_dir):
-            run("wget %s" % url)
-
-@_if_not_installed("bowtie")
-def _install_bowtie():
-    """Install the bowtie short read aligner.
-    """
-    version = "0.12.5"
-    mirror_info = "?use_mirror=cdnetworks-us-1"
-    url = "http://downloads.sourceforge.net/project/bowtie-bio/bowtie/%s/" \
-          "bowtie-%s-src.zip" % (version, version)
-    install_dir = os.path.join(env.install_dir, "bin")
-    with _make_tmp_dir() as work_dir:
-        with cd(work_dir):
-            run("wget %s%s" % (url, mirror_info))
-            run("unzip %s" % os.path.split(url)[-1])
-            install_cmd = sudo if env.use_sudo else run
-            with cd("bowtie-%s" % version):
-                run("make")
-                for fname in run("find -perm -100 -name 'bowtie*'").split("\n"):
-                    install_cmd("mv -f %s %s" % (fname, install_dir))
-
-@_if_not_installed("bwa")
-def _install_bwa():
-    version = "0.5.7"
-    mirror_info = "?use_mirror=cdnetworks-us-1"
-    url = "http://downloads.sourceforge.net/project/bio-bwa/bwa-%s.tar.bz2" % (
-            version)
-    install_dir = os.path.join(env.install_dir, "bin")
-    with _make_tmp_dir() as work_dir:
-        with cd(work_dir):
-            run("wget %s%s" % (url, mirror_info))
-            run("tar -xjvpf %s" % (os.path.split(url)[-1]))
-            install_cmd = sudo if env.use_sudo else run
-            with cd("bwa-%s" % version):
-                run("make")
-                install_cmd("mv bwa %s" % install_dir)
-                install_cmd("mv solid2fastq.pl %s" % install_dir)
-                install_cmd("mv qualfa2fq.pl %s" % install_dir)
-
-@_if_not_installed("samtools")
-def _install_samtools():
-    version = "0.1.7"
-    vext = "a"
-    mirror_info = "?use_mirror=cdnetworks-us-1"
-    url = "http://downloads.sourceforge.net/project/samtools/samtools/%s/" \
-            "samtools-%s%s.tar.bz2" % (version, version, vext)
-    install_dir = os.path.join(env.install_dir, "bin")
-    with _make_tmp_dir() as work_dir:
-        with cd(work_dir):
-            run("wget %s%s" % (url, mirror_info))
-            run("tar -xjvpf %s" % (os.path.split(url)[-1]))
-            with cd("samtools-%s%s" % (version, vext)):
-                run("sed -i.bak -r -e 's/-lcurses/-lncurses/g' Makefile")
-                #sed("Makefile", "-lcurses", "-lncurses")
-                run("make")
-                install_cmd = sudo if env.use_sudo else run
-                for install in ["samtools", "misc/maq2sam-long"]:
-                    install_cmd("mv -f %s %s" % (install, install_dir))
-
-@_if_not_installed("fastq_quality_boxplot_graph.sh")
-def _install_fastx_toolkit():
-    version = "0.0.13"
-    gtext_version = "0.6"
-    url_base = "http://hannonlab.cshl.edu/fastx_toolkit/"
-    fastx_url = "%sfastx_toolkit-%s.tar.bz2" % (url_base, version)
-    gtext_url = "%slibgtextutils-%s.tar.bz2" % (url_base, gtext_version)
-    with _make_tmp_dir() as work_dir:
-        with cd(work_dir):
-            run("wget %s" % gtext_url)
-            run("tar -xjvpf %s" % (os.path.split(gtext_url)[-1]))
-            install_cmd = sudo if env.use_sudo else run
-            with cd("libgtextutils-%s" % gtext_version):
-                run("./configure --prefix=%s" % (env.install_dir))
-                run("make")
-                install_cmd("make install")
-            run("wget %s" % fastx_url)
-            run("tar -xjvpf %s" % os.path.split(fastx_url)[-1])
-            with cd("fastx_toolkit-%s" % version):
-                run("./configure --prefix=%s" % (env.install_dir))
-                run("make")
-                install_cmd("make install")
-
-@_if_not_installed("maq")
-def _install_maq():
-    version = "0.7.1"
-    mirror_info = "?use_mirror=cdnetworks-us-1"
-    url = "http://downloads.sourceforge.net/project/maq/maq/%s/maq-%s.tar.bz2" \
-            % (version, version)
-    with _make_tmp_dir() as work_dir:
-        with cd(work_dir):
-            run("wget %s%s" % (url, mirror_info))
-            run("tar -xjvpf %s" % (os.path.split(url)[-1]))
-            install_cmd = sudo if env.use_sudo else run
-            with cd("maq-%s" % version):
-                run("./configure --prefix=%s" % (env.install_dir))
-                run("make")
-                install_cmd("make install")
-
-@_if_not_installed("bfast")
-def _install_bfast():
-    version = "0.6.4"
-    vext = "d"
-    url = "http://downloads.sourceforge.net/project/bfast/bfast/%s/bfast-%s%s.tar.gz"\
-            % (version, version, vext)
-    with _make_tmp_dir() as work_dir:
-        with cd(work_dir):
-            run("wget %s" % (url))
-            run("tar -xzvpf %s" % (os.path.split(url)[-1]))
-            install_cmd = sudo if env.use_sudo else run
-            with cd("bfast-%s%s" % (version, vext)):
-                run("./configure --prefix=%s" % (env.install_dir))
-                run("make")
-                install_cmd("make install")
-
-def _setup_ngs_genomes():
+def _data_ngs_genomes():
     """Download and create index files for next generation genomes.
     """
     genome_dir = os.path.join(env.galaxy_files, "genomes")
@@ -432,8 +227,8 @@ def _setup_ngs_genomes():
             bowtie_index = _index_bowtie(ref_file)
             maq_index = _index_maq(ref_file)
             twobit_index = _index_twobit(ref_file)
-            #bfast_index = _index_bfast(ref_file)
             if False:
+                bfast_index = _index_bfast(ref_file)
                 arachne_index = _index_arachne(ref_file)
                 _index_eland(ref_file)
             with cd(seq_dir):
@@ -473,8 +268,8 @@ def _move_seq_files(ref_file, base_zips, seq_dir):
 def _update_loc_file(ref_file, line_parts):
     """Add a reference to the given genome to the base index file.
     """
-    if env.path is not None:
-        tools_dir = os.path.join(env.path, "tool-data")
+    if env.galaxy_base is not None:
+        tools_dir = os.path.join(env.galaxy_base, "tool-data")
         add_str = "\t".join(line_parts)
         with cd(tools_dir):
             if not exists(ref_file):
@@ -652,7 +447,7 @@ def _index_eland(ref_file):
 
 # == Liftover files
 
-def _setup_liftover():
+def _data_liftover():
     """Download chain files for running liftOver.
 
     Does not install liftOver binaries automatically.
@@ -681,47 +476,3 @@ def _setup_liftover():
                 ref_parts = [g1, g2, os.path.join(lo_dir, non_zip)]
                 _update_loc_file("liftOver.loc", ref_parts)
 
-def _required_libraries():
-    """Install galaxy libraries not included in the eggs.
-    """
-    # -- HDF5
-    # wget 'http://www.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.8.4-patch1.tar.bz2'
-    # tar -xjvpf hdf5-1.8.4-patch1.tar.bz2
-    # ./configure --prefix=/source
-    # make && make install
-    #
-    # -- PyTables http://www.pytables.org/moin
-    # wget 'http://www.pytables.org/download/preliminary/pytables-2.2b3/tables-2.2b3.tar.gz'
-    # tar -xzvpf tables-2.2b3.tar.gz
-    # cd tables-2.2b3
-    # python2.6 setup.py build --hdf5=/source
-    # python2.6 setup.py install --hdf5=/source
-    pass
-
-def _support_programs():
-    """Install programs used by galaxy.
-    """
-    pass
-    # gnuplot
-    # gcc44-fortran
-    # R
-    # rpy
-    # easy_install gnuplot-py
-    # emboss
-
-def latest_code():
-    """Pull the latest Galaxy code from bitbucket and update.
-    """
-    is_new = False
-    if env.path is not None:
-        if not exists(env.path):
-            is_new = True
-            with cd(os.path.split(env.path)[0]):
-                run('hg clone https://chapmanb@bitbucket.org/chapmanb/galaxy-central/')
-        with cd(env.path):
-            run('hg pull')
-            run('hg update')
-            if is_new:
-                run('sh setup.sh')
-            else:
-                run('sh manage_db.sh upgrade')

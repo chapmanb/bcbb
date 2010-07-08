@@ -18,6 +18,15 @@
 #
 # The package list is organized taxonomically so that parts of it can
 # be selectively installed/ignored. See main.yaml for top level configuration.
+desktop:
+  #Packages to support a remote desktop
+  - gnome-panel
+  - gnome-system-tools
+  - synaptic
+  - software-center
+  - freenx
+  - gnome-themes
+  - gnome-terminal
 programming:
   editors:
     - emacs
@@ -116,6 +125,8 @@ python:
     - python-boto
     - python-cjson
     - python-couchdb
+    - python-tables
+    - python-h5py
   math:
     - python-sympy
     - python-crypto
@@ -213,6 +224,7 @@ r:
   - r-cran-date
   - r-cran-effects
   - r-cran-foreign
+  - r-cran-hdf5
   - r-cran-hmisc
   - r-cran-kernsmooth
   - r-cran-lattice
@@ -424,9 +436,11 @@ java:
   - openjdk-6-jre
   - ant
   - libbiojava-java
+  - libbiojava-java-demos
   - eclipse
   - maven2
   - libjline-java
+  - libjhdf5-java
   - clojure
   - jruby
   - jython
@@ -472,6 +486,9 @@ databases:
     - tokyocabinet-bin
     - libtokyocabinet8
     - libtokyocabinet-dev
+  hdf:
+    - libhdf5-serial-1.8.4
+    - libhdf5-serial-dev
 math:
   - prover9
   - octave3.0

@@ -4,6 +4,7 @@
 # files should go here. Comment out any groups you don't want to have 
 # installed.
 packages:
+  - desktop
   - programming
   - distributed
   - amazon

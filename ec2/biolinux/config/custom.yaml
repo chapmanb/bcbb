@@ -4,12 +4,13 @@
 # define the steps for downloading, building, and installing the package.
 
 distributed:
-   - mahout
+  - mahout
 java:
-   - leinengin
-   - incanter
+  - leinengin
+  - incanter
 bio_nextgen:
   - bwa
   - ucsc_tools
   - bowtie
   - fastx_toolkit
+  - bfast

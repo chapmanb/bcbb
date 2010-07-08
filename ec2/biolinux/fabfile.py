@@ -52,6 +52,8 @@ def ec2_ubuntu_environment():
       "deb http://nebc.nox.ac.uk/bio-linux/ unstable bio-linux",
       # ToDo packages for cloudera not available on lucid yet, using karmic for the moment (beta 1)
       "deb http://archive.cloudera.com/debian karmic-cdh3b1 contrib",
+      # FreeNX PPA
+      "ppa:freenx-team/ppa",
     ]
 
 def install_biolinux():
@@ -263,7 +265,8 @@ def _setup_automation():
 
 def _setup_sources():
     """Add sources for retrieving library packages.
+       Using add-apt-repository allows processing PPAs
     """
+
     for source in env.std_sources:
-        if not contains(source, env.sources_file):
-            append(source, env.sources_file, use_sudo=True)
+	sudo("add-apt-repository '%s'" % source)
