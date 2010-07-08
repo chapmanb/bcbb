@@ -73,6 +73,7 @@ def _apt_packages(to_install):
     """
     pkg_config = os.path.join(env.config_dir, "packages.yaml")
     sudo("apt-get update")
+    sudo("apt-get -y --force-yes upgrade")
     # Retrieve packages to get and install each of them
     (packages, _) = _yaml_to_packages(pkg_config, to_install)
     for package in packages:
@@ -267,6 +268,8 @@ def _setup_sources():
     """Add sources for retrieving library packages.
        Using add-apt-repository allows processing PPAs
     """
-
     for source in env.std_sources:
-	sudo("add-apt-repository '%s'" % source)
+        if source.startswith("ppa:"):
+            sudo("add-apt-repository '%s'" % source)
+        elif not contains(source, env.sources_file):
+            append(source, env.sources_file, use_sudo=True)

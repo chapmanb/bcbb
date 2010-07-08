@@ -95,8 +95,7 @@ def install_bfast(env):
         with cd(work_dir):
             run("wget %s" % (url))
             run("tar -xzvpf %s" % (os.path.split(url)[-1]))
-            install_cmd = sudo if env.use_sudo else run
             with cd("bfast-%s%s" % (version, vext)):
                 run("./configure --prefix=%s" % (install_dir))
                 run("make")
-                install_cmd("make install")
+                sudo("make install")
