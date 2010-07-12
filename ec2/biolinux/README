@@ -164,9 +164,9 @@ Bundling a new EMI in Eucalyptus
 
 XXX We use official ubuntu enterprise cloud (EC2-ready) images (AMIs) from:
 
-https://docs.cloudera.com/display/DOC/Installing+CDH3+on+Debian+Systems
-
 http://uec-images.ubuntu.com/releases
+
+https://docs.cloudera.com/display/DOC/Installing+CDH3+on+Debian+Systems
 
 The procedure to upload an EMI outlined in Eucalyptus documentation is:
 
