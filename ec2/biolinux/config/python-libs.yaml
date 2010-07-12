@@ -12,6 +12,9 @@ pypi:
   - pyyaml
   - fabric
   - gnuplot-py
+  - simplejson
+  - amqplib
+  - boto
 # ToDo:
 # Pulls the wrong file and then can't install automatically
 #  - pygr

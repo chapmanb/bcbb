@@ -4,6 +4,7 @@
 # files should go here. Comment out any groups you don't want to have 
 # installed.
 packages:
+  - desktop
   - programming
   - distributed
   - amazon
@@ -28,7 +29,9 @@ packages:
   - bio_visualization
   - bio_utils
   - phylogeny
+  - galaxy
 libraries:
   - r-libs
   - python-libs
   - ruby-libs
+  - perl-libs

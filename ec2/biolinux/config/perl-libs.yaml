@@ -1,0 +1,4 @@
+---
+# Configuration file defining perl libraries to install via CPAN
+cpan:
+  - 'Bio::Graphics'

@@ -84,3 +84,18 @@ def install_fastx_toolkit(env):
                 run("make")
                 sudo("make install")
 
+@_if_not_installed("bfast")
+def install_bfast(env):
+    version = "0.6.4"
+    vext = "d"
+    url = "http://downloads.sourceforge.net/project/bfast/bfast/%s/bfast-%s%s.tar.gz"\
+            % (version, version, vext)
+    install_dir = os.path.join(env.system_install, "bin")
+    with _make_tmp_dir() as work_dir:
+        with cd(work_dir):
+            run("wget %s" % (url))
+            run("tar -xzvpf %s" % (os.path.split(url)[-1]))
+            with cd("bfast-%s%s" % (version, vext)):
+                run("./configure --prefix=%s" % (install_dir))
+                run("make")
+                sudo("make install")

@@ -18,6 +18,15 @@
 #
 # The package list is organized taxonomically so that parts of it can
 # be selectively installed/ignored. See main.yaml for top level configuration.
+desktop:
+  #Packages to support a remote desktop
+  - gnome-panel
+  - gnome-system-tools
+  - synaptic
+  - software-center
+  - freenx
+  - gnome-themes
+  - gnome-terminal
 programming:
   editors:
     - emacs
@@ -47,18 +56,29 @@ programming:
     - libzip-dev
     - libgtk2.0-dev
     - libncurses5-dev
+    - zlib1g-dev
+    - libssl-dev
+    - libpcre3-dev
+    - libreadline5-dev
+    - gcc 
+    - g++
+    - stow
   packaging:
     - build-essential
     - devscripts
     - debhelper
     - dh-make
     - pbuilder
+    - unzip
   util:
+    - nfs-kernel-server
     - tree
   lang:
     - aspell
     - dictionaries-common
     - libaspell-dev
+  galaxy:
+    - rabbitmq-server
 # Note that the following Cloudera hadoop installation is for test
 # purposes "inside the instance" only, Amazon already provides a
 # production-ready Elastic MapReduce platform:
@@ -105,6 +125,8 @@ python:
     - python-boto
     - python-cjson
     - python-couchdb
+    - python-tables
+    - python-h5py
   math:
     - python-sympy
     - python-crypto
@@ -191,14 +213,221 @@ r:
   - r-base-core-ra
   - r-base-dev
   - r-base-html
+  - r-cran-abind
+  - r-cran-boot
+  - r-cran-car
+  - r-cran-chron
+  - r-cran-class
+  - r-cran-cluster
+  - r-cran-codetools
+  - r-cran-colorspace
   - r-cran-date
+  - r-cran-effects
+  - r-cran-foreign
+  - r-cran-hdf5
+  - r-cran-hmisc
+  - r-cran-kernsmooth
+  - r-cran-lattice
+  - r-cran-lmtest
+  - r-cran-mass
+  - r-cran-matrix
+  - r-cran-mgcv
+  - r-cran-multcomp
+  - r-cran-mvtnorm
+  - r-cran-nlme
+  - r-cran-nnet
+  - r-cran-rcmdr
+  - r-cran-relimp
+  - r-cran-rgl
+  - r-cran-rpart
+  - r-cran-sandwich
+  - r-cran-sm
+  - r-cran-spatial
+  - r-cran-strucchange
+  - r-cran-survival
+  - r-cran-vgam
+  - r-cran-vr
+  - r-cran-zoo
 perl: 
+  - perl-base
   - perl
+  - perl-modules
+  - perl-tk
+  - libperl-dev
   - libmoose-perl
   - parrot
   - parrot-devel
   - bioperl
   - bioperl-run
+  - librpc-xml-perl
+  - libtext-iconv-perl
+  - libace-perl
+  - libalgorithm-c3-perl
+  - libalgorithm-diff-perl
+  - libalgorithm-munkres-perl
+  - libanydata-perl
+  - libapparmor-perl
+  - libarray-compare-perl
+  - libbio-asn1-entrezgene-perl
+  - libbit-vector-perl
+  - libcache-cache-perl
+  - libcairo-perl
+  - libcarp-assert-perl
+  - libcarp-clan-perl
+  - libcgi-application-basic-plugin-bundle-perl
+  - libcgi-application-perl
+  - libcgi-application-plugins-perl
+  - libcgi-session-perl
+  - libclass-accessor-perl
+  - libclass-c3-perl
+  - libclass-c3-xs-perl
+  - libclass-data-inheritable-perl
+  - libclass-inspector-perl
+  - libclass-mop-perl
+  - libclone-perl
+  - libconfig-auto-perl
+  - libconfig-inifiles-perl
+  - libconfig-simple-perl
+  - libconvert-binary-c-perl
+  - libconvert-binhex-perl
+  - libcrypt-ssleay-perl
+  - libdata-formvalidator-perl
+  - libdata-optlist-perl
+  - libdata-stag-perl
+  - libdate-calc-perl
+  - libdate-manip-perl
+  - libdbd-anydata-perl
+  - libdbd-csv-perl
+  - libdbd-mysql-perl
+  - libdbd-pg-perl
+  - libdbd-sqlite3-perl
+  - libdbi-perl
+  - libdevel-globaldestruction-perl
+  - libdevel-stacktrace-perl
+  - libdigest-hmac-perl
+  - libdigest-sha1-perl
+  - libemail-valid-perl
+  - liberror-perl
+  - libexception-class-perl
+  - libexception-class-trycatch-perl
+  - libfcgi-perl
+  - libfile-copy-recursive-perl
+  - libfile-mmagic-perl
+  - libfile-slurp-perl
+  - libfile-which-perl
+  - libfont-afm-perl
+  - libfreezethaw-perl
+  - libgd-gd2-noxpm-perl
+  - libgd-graph-perl
+  - libgd-text-perl
+  - libglib-perl
+  - libgnome2-canvas-perl
+  - libgnome2-perl
+  - libgnome2-vfs-perl
+  - libgraph-perl
+  - libgraphviz-perl
+  - libgtk2-perl
+  - libheap-perl
+  - libhtml-fillinform-perl
+  - libhtml-format-perl
+  - libhtml-parser-perl
+  - libhtml-tagset-perl
+  - libhtml-template-perl
+  - libhtml-tree-perl
+  - libimage-size-perl
+  - libio-pty-perl
+  - libio-socket-ssl-perl
+  - libio-string-perl
+  - libio-stringy-perl
+  - libipc-run-perl
+  - libipc-sharelite-perl
+  - libipc-signal-perl
+  - libjcode-pm-perl
+  - liblist-moreutils-perl
+  - liblocale-gettext-perl
+  - liblog-dispatch-perl
+  - libmailtools-perl
+  - libmath-derivative-perl
+  - libmath-spline-perl
+  - libmime-tools-perl
+  - libmime-types-perl
+  - libmldbm-perl
+  - libmoose-perl
+  - libmro-compat-perl
+  - libnet-daemon-perl
+  - libnet-dbus-perl
+  - libnet-dns-perl
+  - libnet-domain-tld-perl
+  - libnet-ip-perl
+  - libnet-libidn-perl
+  - libnet-ssleay-perl
+  - libole-storage-lite-perl
+  - libossp-uuid-perl
+  - libpango-perl
+  - libparams-util-perl
+  - libparams-validate-perl
+  - libparse-debianchangelog-perl
+  - libparse-recdescent-perl
+  - libperl5.10
+  - libperl6-junction-perl
+  - libplrpc-perl
+  - libpod-xhtml-perl
+  - libpostscript-perl
+  - libproc-invokeeditor-perl
+  - libproc-waitstat-perl
+  - libregexp-common-perl
+  - librpc-xml-perl
+  - libscope-guard-perl
+  - libset-scalar-perl
+  - libsoap-lite-perl
+  - libspreadsheet-parseexcel-perl
+  - libspreadsheet-parseexcel-simple-perl
+  - libspreadsheet-writeexcel-perl
+  - libsql-statement-perl
+  - libstatistics-descriptive-perl
+  - libsub-exporter-perl
+  - libsub-install-perl
+  - libsub-name-perl
+  - libsub-uplevel-perl
+  - libsvg-graph-perl
+  - libsvg-perl
+  - libsyntax-highlight-perl-improved-perl
+  - libtask-weaken-perl
+  - libterm-readkey-perl
+  - libtest-exception-perl
+  - libtext-charwidth-perl
+  - libtext-csv-perl
+  - libtext-csv-xs-perl
+  - libtext-iconv-perl
+  - libtext-wrapi18n-perl
+  - libtie-ixhash-perl
+  - libtimedate-perl
+  - libtree-dagnode-perl
+  - libtry-tiny-perl
+  - libunicode-map-perl
+  - libuniversal-require-perl
+  - liburi-perl
+  - libuuid-perl
+  - libwww-perl
+  - libxml-dom-perl
+  - libxml-dom-xpath-perl
+  - libxml-filter-buffertext-perl
+  - libxml-libxml-perl
+  - libxml-libxslt-perl
+  - libxml-namespacesupport-perl
+  - libxml-parser-perl
+  - libxml-perl
+  - libxml-regexp-perl
+  - libxml-sax-expat-perl
+  - libxml-sax-perl
+  - libxml-sax-writer-perl
+  - libxml-simple-perl
+  - libxml-twig-perl
+  - libxml-writer-perl
+  - libxml-xpathengine-perl
+  - libxml-xpath-perl
+  - libyaml-perl
+  - libyaml-syck-perl
 java:
   - sun-java6-bin
   - sun-java6-jre
@@ -207,10 +436,16 @@ java:
   - openjdk-6-jre
   - ant
   - libbiojava-java
+  - libbiojava-java-demos
   - eclipse
   - maven2
   - libjline-java
+  - libjhdf5-java
   - clojure
+  - jruby
+  - jython
+  - scala
+  - scala-library
 erlang:
   - erlang
   - erlang-base
@@ -251,6 +486,9 @@ databases:
     - tokyocabinet-bin
     - libtokyocabinet8
     - libtokyocabinet-dev
+  hdf:
+    - libhdf5-serial-1.8.4
+    - libhdf5-serial-dev
 math:
   - prover9
   - octave3.0
@@ -260,6 +498,11 @@ viz:
   - mtasc # for modest maps
   - graphviz
   - libgraphviz-dev
+  - libgl1-mesa-dev
+  - libgl1-mesa-dri
+  - libgl1-mesa-glx
+  - libglu1-mesa
+  - libglu1-mesa-dev
 web:
   - apache2
 bio_general:

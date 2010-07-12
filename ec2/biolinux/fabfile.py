@@ -29,7 +29,10 @@ def ec2_ubuntu_environment():
     env.user = "ubuntu"
     env.sources_file = "/etc/apt/sources.list"
     env.shell_config = "~/.bashrc"
+    # Global installation directory for packages and standard programs
     env.system_install = "/usr"
+    # Local install directory for versioned software that will not
+    # be included in the path by default.
     env.local_install = "install"
     env.shell = "/bin/bash -l -c"
     env.std_sources = [
@@ -49,6 +52,8 @@ def ec2_ubuntu_environment():
       "deb http://nebc.nox.ac.uk/bio-linux/ unstable bio-linux",
       # Hadoop
       "deb http://archive.cloudera.com/debian lucid-cdh3 contrib",
+      # FreeNX PPA
+      "ppa:freenx-team/ppa",
     ]
 
 def install_biolinux():
@@ -68,6 +73,7 @@ def _apt_packages(to_install):
     """
     pkg_config = os.path.join(env.config_dir, "packages.yaml")
     sudo("apt-get update")
+    sudo("apt-get -y --force-yes upgrade")
     # Retrieve packages to get and install each of them
     (packages, _) = _yaml_to_packages(pkg_config, to_install)
     for package in packages:
@@ -194,10 +200,23 @@ def _ruby_library_installer(config):
         else:
             sudo("gem install %s" % gem)
 
+def _perl_library_installer(config):
+    """Install perl libraries from CPAN with cpanminus.
+    """
+    run("wget http://xrl.us/cpanm")
+    run("chmod a+rwx cpanm")
+    sudo("mv cpanm %s/bin" % env.system_install)
+    for lib in config['cpan']:
+        # Need to hack stdin because of some problem with cpanminus script that
+        # causes fabric to hang
+        # http://agiletesting.blogspot.com/2010/03/getting-past-hung-remote-processes-in.html
+        sudo("cpanm --skip-installed %s < /dev/null" % (lib))
+
 lib_installers = {
         "r-libs" : _r_library_installer,
         "python-libs" : _python_library_installer,
 	"ruby-libs" : _ruby_library_installer,
+        "perl-libs" : _perl_library_installer,
         }
 
 def _do_library_installs(to_install):
@@ -255,7 +274,10 @@ def _setup_automation():
 
 def _setup_sources():
     """Add sources for retrieving library packages.
+       Using add-apt-repository allows processing PPAs
     """
     for source in env.std_sources:
-        if not contains(source, env.sources_file):
+        if source.startswith("ppa:"):
+            sudo("add-apt-repository '%s'" % source)
+        elif not contains(source, env.sources_file):
             append(source, env.sources_file, use_sudo=True)
