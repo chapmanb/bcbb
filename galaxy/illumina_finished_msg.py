@@ -16,6 +16,7 @@ The local config should have the following information:
 import os
 import sys
 import json
+import operator
 import ConfigParser
 import socket
 import glob
@@ -34,35 +35,47 @@ def search_for_new(config, amqp_config):
     """Search for any new directories that have not been reported.
     """
     reported = _read_reported(config["msg_db"])
-    for directory in config["dump_directories"]:
-        for dname in filter(lambda x: x.endswith("AAXX"),
-                os.listdir(directory)):
-            if os.path.isdir(dname) and dname not in reported:
-                if _is_finished_dumping(dname):
-                    finished_message(config["msg_tag"], dname,
-                            _files_to_copy(dname), amqp_config)
-                    _update_reported(config["msg_db"], dname)
+    for dname in _get_directories(config):
+        if os.path.isdir(dname) and dname not in reported:
+            if _is_finished_dumping(dname):
+                finished_message(config["msg_tag"], dname,
+                        _files_to_copy(dname), amqp_config)
+                _update_reported(config["msg_db"], dname)
 
 def _is_finished_dumping(directory):
     """Determine if the sequencing directory has all files.
+
+    The final checkpoint file will differ depending if we are a
+    single or paired end run.
     """
-    return os.path.exists(os.path.join(directory,
-        "Basecalling_Netcopy_complete.txt"))
+    to_check = ["Basecalling_Netcopy_complete_SINGLEREAD.txt",
+                "Basecalling_Netcopy_complete_READ2.txt"]
+    return reduce(operator.or_,
+            [os.path.exists(os.path.join(directory, f)) for f in to_check])
 
 def _files_to_copy(directory):
     """Retrieve files that should be remotely copied.
     """
-    param_file = glob.glob(directory, "*.params")[0]
-    return ["Data", "RunInfo.xml", param_file]
+    param_file = glob.glob(os.path.join(directory, "*.params"))[0]
+    return ["Data", "RunInfo.xml", os.path.basename(param_file)]
 
 def _read_reported(msg_db):
     """Retrieve a list of directories previous reported.
     """
     reported = []
-    with open(msg_db) as in_handle:
-        for line in in_handle:
-            reported.append(line.strip())
+    if os.path.exists(msg_db):
+        with open(msg_db) as in_handle:
+            for line in in_handle:
+                reported.append(line.strip())
     return reported
+
+def _get_directories(config):
+    for directory in config["dump_directories"]:
+        for dname in filter(lambda x: x.endswith("AAXX"),
+                sorted(os.listdir(directory))):
+            dname = os.path.join(directory, dname)
+            if os.path.isdir(dname):
+                yield dname
 
 def _update_reported(msg_db, new_dname):
     """Add a new directory to the database of reported messages.
