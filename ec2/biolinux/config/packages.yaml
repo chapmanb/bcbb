@@ -453,6 +453,7 @@ erlang:
   - erlang-examples
   - erlang-manpages
   - erlang-mode
+  - rabbitmq-server
 haskell:
   - ghc6
   - libghc6-mtl-dev

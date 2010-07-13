@@ -231,19 +231,16 @@ def _do_library_installs(to_install):
 def _add_gpg_keys():
     """Adds GPG keys from all repositories
     """
-
-    standalone = [ 
+    standalone = [
 	"http://archive.cloudera.com/debian/archive.key" ]
     keyserver = [
 	"7F0CEB10",
 	"381BA480",
 	]
-
     for key in keyserver:
-    	    sudo("apt-key adv --keyserver subkeys.pgp.net --recv %s" % key)
-
+        sudo("apt-key adv --keyserver subkeys.pgp.net --recv %s" % key)
     for key in standalone:
-	    sudo("curl -s %s | apt-key add -" % key)	    
+        sudo("curl -s %s | apt-key add -" % key)
 
 def _setup_automation():
     """Setup the environment to be fully automated for tricky installs.
