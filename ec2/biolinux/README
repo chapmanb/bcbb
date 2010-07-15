@@ -162,15 +162,26 @@ Eucalyptus Public Cloud Quickstart
 Bundling a new EMI in Eucalyptus
 --------------------------------
 
-XXX We use official ubuntu enterprise cloud (EC2-ready) images (AMIs) from:
-
+We use official ubuntu enterprise cloud (EC2-ready) images (AMIs) from the ubuntu public repository:
 
 http://uec-images.ubuntu.com/releases
 
-XXX https://docs.cloudera.com/display/DOC/Installing+CDH3+on+Debian+Systems
+The procedure to upload an EMI (Eucalyptus Machine Image) outlined in Eucalyptus documentation is:
 
-The procedure to upload an EMI outlined in Eucalyptus documentation is:
+% wget http://uec-images.ubuntu.com/releases/lucid/release/ubuntu-10.04-server-uec-i386.tar.gz
+% tar xvfz ubuntu-10.04-server-uec-i386.tar.gz
 
-euca-bundle-image -i lucid-server-uec-i386.img --kernel lucid-server-uec-i386-vmlinuz-virtual -u $EC2_USER_ID 
-euca-upload-bundle -b biolinux -m /tmp/lucid-server-uec-i386.img.manifest.xml
-euca-register biolinux/lucid-server-uec-i386.img.manifest.xml
+% euca-bundle-image -i lucid-server-uec-i386-vmlinuz-virtual --kernel true
+% euca-upload-bundle -b kernels -m /tmp/lucid-server-uec-i386-vmlinuz-virtual.manifest.xml
+% export EKI=`euca-register kernels/lucid-server-uec-i386-vmlinuz-virtual.manifest.xml`
+
+% euca-bundle-image -i lucid-server-uec-i386.img --kernel $EKI
+% euca-upload-bundle -b cloudbiolinux -m /tmp/lucid-server-uec-i386-vmlinuz-virtual.manifest.xml
+% euca-register cloudbiolinux/lucid-server-uec-i386-vmlinuz-virtual.manifest.xml
+
+
+In-instance Hadoop
+------------------
+
+ToDo
+https://docs.cloudera.com/display/DOC/Installing+CDH3+on+Debian+Systems
