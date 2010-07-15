@@ -212,11 +212,18 @@ def _perl_library_installer(config):
         # http://agiletesting.blogspot.com/2010/03/getting-past-hung-remote-processes-in.html
         sudo("cpanm --skip-installed %s < /dev/null" % (lib))
 
+def _clojure_library_installer(config):
+    """Install clojure libraries using cljr.
+    """
+    for lib in config['cljr']:
+        run("clrj install %s" % lib)
+
 lib_installers = {
         "r-libs" : _r_library_installer,
         "python-libs" : _python_library_installer,
 	"ruby-libs" : _ruby_library_installer,
         "perl-libs" : _perl_library_installer,
+        "clojure-libs": _clojure_library_installer,
         }
 
 def _do_library_installs(to_install):

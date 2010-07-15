@@ -7,7 +7,7 @@ distributed:
   - mahout
 java:
   - leinengin
-  - incanter
+  - cljr
 bio_nextgen:
   - bwa
   - ucsc_tools
