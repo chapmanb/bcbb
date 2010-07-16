@@ -35,6 +35,7 @@ def ec2_ubuntu_environment():
     # be included in the path by default.
     env.local_install = "install"
     env.shell = "/bin/bash -l -c"
+    env.boot_script_dir = "/etc/init.d"
     env.std_sources = [
       "deb http://us.archive.ubuntu.com/ubuntu/ lucid universe",
       "deb-src http://us.archive.ubuntu.com/ubuntu/ lucid universe",
@@ -67,6 +68,8 @@ def install_biolinux():
     _apt_packages(pkg_install)
     _custom_installs(pkg_install)
     _do_library_installs(lib_install)
+    _boot_scripts()
+    _cleanup()
 
 def _apt_packages(to_install):
     """Install packages available via apt-get.
@@ -101,12 +104,14 @@ def _custom_installs(to_install):
 def _yaml_to_packages(yaml_file, to_install):
     """Read a list of packages from a nested YAML configuration file.
     """
+    # allow us to check for packages only available on 64bit machines
+    machine = run("uname -m")
+    is_64bit = machine.find("_64") > 0
     with open(yaml_file) as in_handle:
         full_data = yaml.load(in_handle)
     # filter the data based on what we have configured to install
     data = [(k, v) for (k,v) in full_data.iteritems() if k in to_install]
     data.sort()
-#    data = [v for (_, v) in data]
     packages = []
     pkg_to_group = dict()
     while len(data) > 0:
@@ -117,7 +122,10 @@ def _yaml_to_packages(yaml_file, to_install):
                 for p in cur_info:
                     pkg_to_group[p] = cur_key
             elif isinstance(cur_info, dict):
-                data.extend(cur_info.items())
+                for key, val in cur_info.iteritems():
+                    # if we are okay, propagate with the top level key
+                    if key != 'needs_64bit' or is_64bit:
+                        data.append((cur_key, val))
             else:
                 raise ValueError(cur_info)
     return packages, pkg_to_group
@@ -132,7 +140,7 @@ def _read_main_config():
     packages = packages if packages else []
     libraries = full_data['libraries']
     libraries = libraries if libraries else []
-    return packages, libraries
+    return packages, sorted(libraries)
 
 # --- Library specific installation code
 
@@ -241,11 +249,12 @@ def _add_gpg_keys():
     standalone = [
 	"http://archive.cloudera.com/debian/archive.key" ]
     keyserver = [
-	"7F0CEB10",
-	"381BA480",
+	("subkeys.pgp.net", "7F0CEB10"),
+	("subkeys.pgp.net", "381BA480"),
+        ("keyserver.ubuntu.com", "D67FC6EAE2A11821"),
 	]
-    for key in keyserver:
-        sudo("apt-key adv --keyserver subkeys.pgp.net --recv %s" % key)
+    for url, key in keyserver:
+        sudo("apt-key adv --keyserver %s --recv %s" % (url, key))
     for key in standalone:
         sudo("curl -s %s | apt-key add -" % key)
 
@@ -272,6 +281,8 @@ def _setup_automation():
             "sun-java6-jdk shared/accepted-sun-dlj-v1-1 select true",
             "sun-java6-jre shared/accepted-sun-dlj-v1-1 select true",
             "sun-java6-bin shared/accepted-sun-dlj-v1-1 select true",
+            "grub-pc grub2/linux_cmdline string ''",
+            "grub-pc grub-pc/install_devices_empty boolean true",
             ]
     for l in package_info:
         sudo("echo %s | /usr/bin/debconf-set-selections" % l)
@@ -285,3 +296,20 @@ def _setup_sources():
             sudo("add-apt-repository '%s'" % source)
         elif not contains(source, env.sources_file):
             append(source, env.sources_file, use_sudo=True)
+
+def _boot_scripts():
+    """Provide scripts to configure behavior on booting.
+    """
+    # setup an optional password to allow FreeNX access to the desktop
+    user_script = 'biolinux_freenx_user'
+    final_file = env.boot_script_dir + "/" + user_script
+    if not exists(final_file):
+        put('scripts/create_freenx_user.sh', user_script, mode=0777)
+        sudo('mv %s %s' % (user_script, final_file))
+
+def _cleanup():
+    """Clean up any extra files after building.
+    """
+    run("rm -f $HOME/.bash_history")
+    sudo("rm -f /var/crash/*")
+    sudo("rm -f /var/log/firstboot.done")

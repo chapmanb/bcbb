@@ -10,7 +10,8 @@ java:
   - cljr
 bio_nextgen:
   - bwa
-  - ucsc_tools
   - bowtie
   - fastx_toolkit
-  - bfast
+  needs_64bit:
+    - ucsc_tools
+    - bfast
