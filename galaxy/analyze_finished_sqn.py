@@ -32,14 +32,14 @@ def copy_and_analyze(remote_info, config, config_file):
     print remote_info
     fc_dir = _remote_copy(remote_info, config["local_sqn_dir"])
     print fc_dir
-    analysis_dir = os.path.join(config["analysis_base_dir"],
+    analysis_dir = os.path.join(config["analysis"]["base_dir"],
                                 os.path.basename(remote_info["directory"]))
     if not config_file.startswith("/"):
         config_file = os.path.join(os.getcwd(), config_file)
     with _make_and_chdir(analysis_dir):
-        cl = ["automated_initial_analysis.py", config_file, fc_dir]
+        cl = [config["analysis"]["process_program"], config_file, fc_dir]
         subprocess.call(cl)
-    cl = ["upload_to_galaxy.py", config_file, fc_dir, analysis_dir]
+    cl = [config["analysis"]["upload_program"], config_file, fc_dir, analysis_dir]
     subprocess.call(cl)
 
 def _remote_copy(remote_info, local_sqn_dir):

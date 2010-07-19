@@ -155,6 +155,30 @@ def _get_storage_dir(cur_folder, lane, storage_base):
         os.makedirs(store_dir)
     return store_dir
 
+def add_sqn_results(config, analysis_dir):
+    """Add high level sequencing results to the Galaxy database.
+    """
+    galaxy_session = _get_galaxy_session(config)
+
+def _get_galaxy_session(config):
+    """Retrieve a session connecting us to the galaxy database.
+    """
+    # add galaxy libraries to your path
+    lib_dir = os.path.join(os.path.dirname(config["galaxy_config"]), "lib")
+    sys.path.append(lib_dir)
+    import galaxy.model.mapping
+    # parse the configuration and prepare a mapping context
+    galaxy_conf = ConfigParser.SafeConfigParser({'here' : ''})
+    galaxy_conf.read(config["galaxy_config"])
+    try:
+        db_con = galaxy_conf.get("app:main", "database_connection")
+    except KeyError:
+        db_con = "sqlite:///%s?isolation_level=IMMEDIATE" % \
+                galaxy_conf.get("app:main", "database_file")
+    model = galaxy.model.mapping.init(galaxy_conf.get("app:main", "file_path"),
+            db_con, engine_options={}, create_tables=False)
+    return model.context.current
+
 def get_galaxy_library(lab_association, galaxy_api):
     ret_info = None
     for lib_info in galaxy_api.get_libraries():
