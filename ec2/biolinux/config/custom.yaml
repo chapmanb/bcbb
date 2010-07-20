@@ -9,9 +9,10 @@ java:
   - leinengin
   - cljr
 bio_nextgen:
-  - bwa
-  - bowtie
-  - fastx_toolkit
+  all:
+    - bwa
+    - bowtie
+    - fastx_toolkit
   needs_64bit:
     - ucsc_tools
     - bfast

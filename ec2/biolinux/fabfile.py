@@ -224,7 +224,7 @@ def _clojure_library_installer(config):
     """Install clojure libraries using cljr.
     """
     for lib in config['cljr']:
-        run("clrj install %s" % lib)
+        run("cljr install %s" % lib)
 
 lib_installers = {
         "r-libs" : _r_library_installer,
