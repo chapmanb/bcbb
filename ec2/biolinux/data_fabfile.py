@@ -10,6 +10,7 @@ Usage:
     fab -i key_file -H servername -f data_fabfile.py install_data
 """
 import os
+import operator
 from contextlib import contextmanager
 
 from fabric.api import *
@@ -472,10 +473,11 @@ def _data_uniref():
 def _index_blast_db(work_dir, base_file, db_type):
     """Index a database using blast+ for similary searching.
     """
-    type_to_ext = dict(prot = "phr", nucl = "nhr")
+    type_to_ext = dict(prot = ("phr", "pal"), nucl = ("nhr", "nal"))
     db_name = os.path.splitext(base_file)[0]
     with cd(work_dir):
-        if not exists("%s.%s" % (db_name, type_to_ext[db_type])):
+        if not reduce(operator.or_,
+            (exists("%s.%s" % (db_name, ext)) for ext in type_to_ext[db_type])):
             run("makeblastdb -in %s -dbtype %s -out %s" %
                     (base_file, db_type, db_name))
 
