@@ -134,8 +134,7 @@ sudo mkfs.xfs /dev/sdh
 
 Mount the directory, need to do this every time on the machine:
 
-sudo mkdir /mnt
-sudo mkdir /mnt/biodata
+sudo mkdir -p /mnt/biodata
 sudo mount -t xfs -o noatime /dev/sdh /mnt/biodata/
 
 Eucalyptus Public Cloud Quickstart

@@ -99,3 +99,41 @@ def install_bfast(env):
                 run("./configure --prefix=%s" % (install_dir))
                 run("make")
                 sudo("make install")
+
+def _symlinked_java_version_dir(pname, version):
+    base_dir = os.path.join(env.system_install, "share", "java", pname)
+    install_dir = "%s-%s" % (install_dir, version)
+    if not exists(install_dir):
+        sudo("mkdir -p %s" % install_dir)
+        if exists(base_dir):
+            sudo("rm -f %s" % base_dir)
+        sudo("ln -s %s %s" % (install_dir, base_dir))
+        return install_dir
+    return None
+
+def install_picard(env):
+    version = "1.26"
+    url = "http://downloads.sourceforge.net/project/picard/" \
+          "picard-tools/%s/picard-tools-%s.zip" % (version, version)
+    install_dir = _symlinked_java_version_dir("picard", version)
+    if install_dir:
+        with _make_tmp_dir() as work_dir:
+            with cd(work_dir):
+                run("wget %s" % (url))
+                run("unzip %s" % os.path.basename(url))
+                with cd(os.path.splitext(os.path.basename(url))[0]):
+                    sudo("mv *.jar %s" % install_dir)
+
+def install_gatk(env):
+    version = "1.0.3857"
+    ext = ".tar.bz2"
+    url = "ftp://ftp.broadinstitute.org/pub/gsa/GenomeAnalysisTK/"\
+          "GenomeAnalysisTK-%s%s" % (version, ext)
+    install_dir = _symlinked_java_version_dir("gatk", version)
+    if install_dir:
+        with _make_tmp_dir() as work_dir:
+            with cd(work_dir):
+                run("wget %s" % (url))
+                run("tar -xjvpf %s" % os.path.basename(url))
+                with cd(os.path.basename(url).replace(ext, "")):
+                    sudo("mv *.jar %s" % install_dir)

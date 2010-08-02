@@ -27,12 +27,15 @@ def amazon_ec2():
     """
     env.user = 'ubuntu'
     env.data_files = '/mnt/biodata'
-    env.galaxy_base = env.data_base + '/galaxy'
+    env.galaxy_base = env.data_files + '/galaxy'
     env.shell = "/bin/bash -l -c"
 
 # -- Configuration for genomes to download and prepare
 
 class _DownloadHelper:
+    def ucsc_name(self):
+        return None
+
     def _exists(self, fname, seq_dir):
         """Check if a file exists in either download or final destination.
         """
@@ -43,6 +46,9 @@ class UCSCGenome(_DownloadHelper):
         self._name = genome_name
         self._url = "ftp://hgdownload.cse.ucsc.edu/goldenPath/%s/bigZips" % \
                 genome_name
+
+    def ucsc_name(self):
+        return self._name
 
     def download(self, seq_dir):
         for zipped_file in ["chromFa.tar.gz", "%s.fa.gz" % self._name,
@@ -167,13 +173,16 @@ genomes = [
            ("Tguttata_Zebra_finch", "taeGut1", UCSCGenome("taeGut1")),
           ]
 
-lift_over_genomes = ['hg18', 'hg19', 'mm9', 'xenTro2', 'rn4']
+lift_over_genomes = [g.ucsc_name() for (_, _, g) in genomes if g.ucsc_name()]
+#lift_over_genomes = ['hg18', 'hg19', 'mm9', 'xenTro2', 'rn4']
 
 # -- Fabric instructions
 
 def install_data():
     """Main entry point for installing useful biological data.
     """
+    amazon_ec2()
+    _data_uniref()
     _data_ngs_genomes()
     _data_liftover()
 
@@ -431,6 +440,44 @@ def _data_liftover():
             if worked:
                 ref_parts = [g1, g2, os.path.join(lo_dir, non_zip)]
                 _update_loc_file("liftOver.loc", ref_parts)
+
+# == UniRef
+def _data_uniref():
+    """Retrieve and index UniRef databases for protein searches.
+
+    http://www.ebi.ac.uk/uniref/
+
+    These are currently indexed for FASTA searches. Are other indexes desired?
+    Should this be separated out and organized by program like genome data?
+    This should also check the release note and automatically download and
+    replace older versions.
+    """
+    site = "ftp://ftp.uniprot.org"
+    base_url = site + "/pub/databases/uniprot/" \
+               "current_release/uniref/%s/%s"
+    for uniref_db in ["uniref50", "uniref90", "uniref100"]:
+        work_dir = os.path.join(env.data_files, "uniref", uniref_db)
+        if not exists(work_dir):
+            run("mkdir -p %s" % work_dir)
+        base_work_url = base_url % (uniref_db, uniref_db)
+        fasta_url = base_work_url + ".fasta.gz"
+        base_file = os.path.splitext(os.path.basename(fasta_url))[0]
+        with cd(work_dir):
+            if not exists(base_file):
+                run("wget -c %s" % fasta_url)
+                run("gunzip %s" % os.path.basename(fasta_url))
+                run("wget %s" % (base_work_url + ".release_note"))
+        _index_blast_db(work_dir, base_file, "prot")
+
+def _index_blast_db(work_dir, base_file, db_type):
+    """Index a database using blast+ for similary searching.
+    """
+    type_to_ext = dict(prot = "phr", nucl = "nhr")
+    db_name = os.path.splitext(base_file)[0]
+    with cd(work_dir):
+        if not exists("%s.%s" % (db_name, type_to_ext[db_type])):
+            run("makeblastdb -in %s -dbtype %s -out %s" %
+                    (base_file, db_type, db_name))
 
 # == Not used -- takes up too much space and time to index
 
