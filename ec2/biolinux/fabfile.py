@@ -304,7 +304,7 @@ def _boot_scripts():
     user_script = 'biolinux_freenx_user'
     final_file = env.boot_script_dir + "/" + user_script
     if not exists(final_file):
-        put('scripts/create_freenx_user.sh', user_script, mode=0777)
+        put('installed_files/create_freenx_user.sh', user_script, mode=0777)
         sudo('mv %s %s' % (user_script, final_file))
 
 def _cleanup():

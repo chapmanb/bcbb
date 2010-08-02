@@ -18,7 +18,6 @@ from fabric.contrib.files import *
 # -- Host specific setup for various groups of servers.
 
 env.remove_old_genomes = False
-env.use_sudo = False
 
 def amazon_ec2():
     """Setup for a ubuntu amazon ec2 share.
@@ -27,11 +26,9 @@ def amazon_ec2():
         -H hostname -i private_key_file
     """
     env.user = 'ubuntu'
-    env.galaxy_base = '/mnt/galaxy/web'
-    env.install_dir = '/usr/local'
-    env.galaxy_files = '/mnt/genomedata'
+    env.data_files = '/mnt/biodata'
+    env.galaxy_base = env.data_base + '/galaxy'
     env.shell = "/bin/bash -l -c"
-    env.use_sudo = True
 
 # -- Configuration for genomes to download and prepare
 
@@ -198,7 +195,7 @@ def _if_installed(pname):
 
 @contextmanager
 def _make_tmp_dir():
-    work_dir = os.path.join(env.galaxy_files, "tmp")
+    work_dir = os.path.join(env.data_files, "tmp")
     if not exists(work_dir):
         run("mkdir %s" % work_dir)
     yield work_dir
@@ -210,7 +207,7 @@ def _make_tmp_dir():
 def _data_ngs_genomes():
     """Download and create index files for next generation genomes.
     """
-    genome_dir = os.path.join(env.galaxy_files, "genomes")
+    genome_dir = os.path.join(env.data_files, "genomes")
     if not exists(genome_dir):
         run('mkdir %s' % genome_dir)
     for organism, genome, manager in genomes:
@@ -227,10 +224,11 @@ def _data_ngs_genomes():
             bowtie_index = _index_bowtie(ref_file)
             maq_index = _index_maq(ref_file)
             twobit_index = _index_twobit(ref_file)
+            _index_eland(ref_file)
+            # other indexers not supported by default
             if False:
                 bfast_index = _index_bfast(ref_file)
                 arachne_index = _index_arachne(ref_file)
-                _index_eland(ref_file)
             with cd(seq_dir):
                 sam_index = _index_sam(ref_file)
         for ref_index_file, cur_index, prefix in [
@@ -249,7 +247,7 @@ def _data_ngs_genomes():
 def _clean_genome_directory():
     """Remove any existing sequence information in the current directory.
     """
-    remove = ["arachne", "bowtie", "bwa", "maq", "seq", "ucsc"]
+    remove = ["arachne", "bowtie", "bwa", "eland", "maq", "seq", "ucsc"]
     for dirname in remove:
         if exists(dirname):
             run("rm -rf %s" % dirname)
@@ -270,10 +268,15 @@ def _update_loc_file(ref_file, line_parts):
     """
     if env.galaxy_base is not None:
         tools_dir = os.path.join(env.galaxy_base, "tool-data")
+        if not exists(tools_dir):
+            conf_file = "tool_data_table_conf.xml"
+            run("mkdir -p %s" % tools_dir)
+            put(os.path.join("installed_files", conf_file),
+                os.path.join(env.galaxy_base, conf_file))
         add_str = "\t".join(line_parts)
         with cd(tools_dir):
             if not exists(ref_file):
-                run("cp %s.sample %s" % (ref_file, ref_file))
+                run("touch %s" % ref_file)
             if not contains(add_str, ref_file):
                 append(add_str, ref_file)
 
@@ -335,53 +338,6 @@ def _index_sam(ref_file):
     if not exists("%s.fai" % local_file):
         run("samtools faidx %s" % local_file)
     return ref_file
-
-def _index_bfast(ref_file):
-    """Indexes bfast in color and nucleotide space for longer reads.
-
-    This preps for 40+bp sized reads, which is bfast's strength.
-    """
-    dir_name = "bfast"
-    window_size = 14
-    bfast_nt_masks = [
-   "1111111111111111111111",
-   "1111101110111010100101011011111",
-   "1011110101101001011000011010001111111",
-   "10111001101001100100111101010001011111",
-   "11111011011101111011111111",
-   "111111100101001000101111101110111",
-   "11110101110010100010101101010111111",
-   "111101101011011001100000101101001011101",
-   "1111011010001000110101100101100110100111",
-   "1111010010110110101110010110111011",
-    ]
-    bfast_color_masks = [
-    "1111111111111111111111",
-    "111110100111110011111111111",
-    "10111111011001100011111000111111",
-    "1111111100101111000001100011111011",
-    "111111110001111110011111111",
-    "11111011010011000011000110011111111",
-    "1111111111110011101111111",
-    "111011000011111111001111011111",
-    "1110110001011010011100101111101111",
-    "111111001000110001011100110001100011111",
-    ]
-    local_ref = os.path.split(ref_file)[-1]
-    if not exists(dir_name):
-        run("mkdir %s" % dir_name)
-        with cd(dir_name):
-            run("ln -s %s" % os.path.join(os.pardir, ref_file))
-            # nucleotide space
-            run("bfast fasta2brg -f %s -A 0" % local_ref)
-            for i, mask in enumerate(bfast_nt_masks):
-                run("bfast index -d 1 -n 4 -f %s -A 0 -m %s -w %s -i %s" %
-                        (local_ref, mask, window_size, i + 1))
-            # colorspace
-            run("bfast fasta2brg -f %s -A 1" % local_ref)
-            for i, mask in enumerate(bfast_color_masks):
-                run("bfast index -d 1 -n 4 -f %s -A 1 -m %s -w %s -i %s" %
-                        (local_ref, mask, window_size, i + 1))
 
 @_if_installed("MakeLookupTable")
 def _index_arachne(ref_file):
@@ -452,7 +408,7 @@ def _data_liftover():
 
     Does not install liftOver binaries automatically.
     """
-    lo_dir = os.path.join(env.galaxy_files, "liftOver")
+    lo_dir = os.path.join(env.data_files, "liftOver")
     if not exists(lo_dir):
         run("mkdir %s" % lo_dir)
     lo_base_url = "ftp://hgdownload.cse.ucsc.edu/goldenPath/%s/liftOver/%s"
@@ -476,3 +432,51 @@ def _data_liftover():
                 ref_parts = [g1, g2, os.path.join(lo_dir, non_zip)]
                 _update_loc_file("liftOver.loc", ref_parts)
 
+# == Not used -- takes up too much space and time to index
+
+def _index_bfast(ref_file):
+    """Indexes bfast in color and nucleotide space for longer reads.
+
+    This preps for 40+bp sized reads, which is bfast's strength.
+    """
+    dir_name = "bfast"
+    window_size = 14
+    bfast_nt_masks = [
+   "1111111111111111111111",
+   "1111101110111010100101011011111",
+   "1011110101101001011000011010001111111",
+   "10111001101001100100111101010001011111",
+   "11111011011101111011111111",
+   "111111100101001000101111101110111",
+   "11110101110010100010101101010111111",
+   "111101101011011001100000101101001011101",
+   "1111011010001000110101100101100110100111",
+   "1111010010110110101110010110111011",
+    ]
+    bfast_color_masks = [
+    "1111111111111111111111",
+    "111110100111110011111111111",
+    "10111111011001100011111000111111",
+    "1111111100101111000001100011111011",
+    "111111110001111110011111111",
+    "11111011010011000011000110011111111",
+    "1111111111110011101111111",
+    "111011000011111111001111011111",
+    "1110110001011010011100101111101111",
+    "111111001000110001011100110001100011111",
+    ]
+    local_ref = os.path.split(ref_file)[-1]
+    if not exists(dir_name):
+        run("mkdir %s" % dir_name)
+        with cd(dir_name):
+            run("ln -s %s" % os.path.join(os.pardir, ref_file))
+            # nucleotide space
+            run("bfast fasta2brg -f %s -A 0" % local_ref)
+            for i, mask in enumerate(bfast_nt_masks):
+                run("bfast index -d 1 -n 4 -f %s -A 0 -m %s -w %s -i %s" %
+                        (local_ref, mask, window_size, i + 1))
+            # colorspace
+            run("bfast fasta2brg -f %s -A 1" % local_ref)
+            for i, mask in enumerate(bfast_color_masks):
+                run("bfast index -d 1 -n 4 -f %s -A 1 -m %s -w %s -i %s" %
+                        (local_ref, mask, window_size, i + 1))
