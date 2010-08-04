@@ -34,31 +34,31 @@ def main(config_file):
     if not os.path.exists(config['work_dir']):
         os.makedirs(config['work_dir'])
     fasta_ref, db_refs = get_org_dbs(config['db_dir'], config['target_org'])
-    id_file, eval_file = setup_output_files(config['target_org'],
+    id_file, score_file = setup_output_files(config['target_org'],
             [r[0] for r in db_refs])
-    file_info = [id_file, eval_file]
+    file_info = [id_file, score_file]
     pool = multiprocessing.Pool(int(config['num_cores']))
     with open(fasta_ref) as in_handle:
         pool.map(_process_wrapper, ((config, i, rec, db_refs, file_info)
             for (i, rec) in enumerate(SeqIO.parse(in_handle, "fasta"))))
 
 def process_blast(config, i, rec, db_refs, file_info):
-    id_info = [rec.id]
-    eval_info = [rec.id]
+    cur_id = _normalize_id(rec.id)
+    id_info = [cur_id]
+    score_info = [cur_id]
     for xorg, xdb in db_refs:
         with _blast_filenames(config, xorg, i) as (in_file, out_file):
             SeqIO.write([rec], in_file, "fasta")
             out_id, out_eval = compare_by_blast(in_file, xdb, out_file)
             id_info.append(out_id)
-            eval_info.append(out_eval)
-            #print rec.id, out_id, out_eval
+            score_info.append(out_eval)
     with fupdate_lock:
-        id_file, eval_file = file_info
-        for fname, fvals in [(id_file, id_info), (eval_file, eval_info)]:
+        id_file, score_file = file_info
+        for fname, fvals in [(id_file, id_info), (score_file, score_info)]:
             with open(fname, "a") as out_handle:
                 writer = csv.writer(out_handle, dialect='excel-tab')
                 writer.writerow(fvals)
-        print rec.id
+        print cur_id
 
 def _process_wrapper(args):
     try:
@@ -78,9 +78,16 @@ def compare_by_blast(input_ref, xref_db, blast_out):
         except xml.parsers.expat.ExpatError:
             rec = None
         if rec and len(rec.descriptions) > 0:
-            return rec.descriptions[0].title.split()[1], rec.descriptions[0].e
+            id_info = _normalize_id(rec.descriptions[0].title.split()[1])
+            return id_info, rec.descriptions[0].bits
         else:
             return "", ""
+
+def _normalize_id(id_info):
+    if id_info.startswith("gi|"):
+        parts = [p for p in id_info.split("|") if p]
+        id_info = parts[-1]
+    return id_info
 
 def get_org_dbs(db_dir, target_org):
     """Retrieve references to fasta and BLAST databases for included organisms.
@@ -102,7 +109,7 @@ def get_org_dbs(db_dir, target_org):
 def setup_output_files(target_org, cmp_orgs):
     base = target_org.replace(" ", "_")
     id_file = "%s-ids.tsv" % base
-    eval_file = "%s-evals.tsv" % base
+    eval_file = "%s-scores.tsv" % base
     for fname in [id_file, eval_file]:
         with open(fname, "w") as out_handle:
             writer = csv.writer(out_handle, dialect="excel-tab")
