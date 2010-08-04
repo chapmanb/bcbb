@@ -126,16 +126,16 @@ Attach a store to a running instance:
 
 ec2-attach-volume -d /dev/sdh -i i-351d225e vol-7568e61c
 
-On a new instance ssh to the machine and create a filesystem:
+Only for a new instance -- ssh to the machine and create a 
+filesystem:
 
-grep -q xfs /proc/filesystems || sudo modprobe xf
+grep -q xfs /proc/filesystems || sudo modprobe xfs
 sudo mkfs.xfs /dev/sdh
 
 Mount the directory, need to do this every time on the machine:
 
-sudo mkdir /vol
-sudo mkdir /vol/galaxy
-sudo mount -t xfs -o noatime /dev/sdh /vol/galaxy/
+sudo mkdir -p /mnt/biodata
+sudo mount -t xfs -o noatime /dev/sdh /mnt/biodata/
 
 Eucalyptus Public Cloud Quickstart
 ==================================

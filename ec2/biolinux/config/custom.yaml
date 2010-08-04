@@ -13,6 +13,8 @@ bio_nextgen:
     - bwa
     - bowtie
     - fastx_toolkit
+    - gatk
+    - picard
   needs_64bit:
     - ucsc_tools
     - bfast
