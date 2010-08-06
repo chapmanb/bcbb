@@ -2,7 +2,7 @@
 """Perform genome wide BLAST comparisons of an organism against other genomes.
 
 Usage:
-    blast_cross_orgs.py <YAML config>
+    blast_cross_orgs.py <input_fasta> <YAML config>
 
 Where the configuration file looks like:
 
@@ -28,12 +28,12 @@ from Bio.Blast import NCBIXML
 
 fupdate_lock = multiprocessing.Lock()
 
-def main(config_file):
+def main(fasta_ref, config_file):
     with open(config_file) as in_handle:
         config = yaml.load(in_handle)
     if not os.path.exists(config['work_dir']):
         os.makedirs(config['work_dir'])
-    fasta_ref, db_refs = get_org_dbs(config['db_dir'], config['target_org'])
+    (_, db_refs) = get_org_dbs(config['db_dir'], config['target_org'])
     id_file, score_file = setup_output_files(config['target_org'],
             [r[0] for r in db_refs])
     file_info = [id_file, score_file]
@@ -81,7 +81,7 @@ def compare_by_blast(input_ref, xref_db, blast_out):
             id_info = _normalize_id(rec.descriptions[0].title.split()[1])
             return id_info, rec.descriptions[0].bits
         else:
-            return "", ""
+            return "", 0
 
 def _normalize_id(id_info):
     if id_info.startswith("gi|"):
@@ -101,8 +101,7 @@ def get_org_dbs(db_dir, target_org):
                 if org == target_org:
                     assert fasta_ref is None
                     fasta_ref = os.path.join(db_dir, "%s.fa" % db)
-                else:
-                    db_refs.append((org, os.path.join(db_dir, db)))
+                db_refs.append((org, os.path.join(db_dir, db)))
     assert fasta_ref is not None, "Did not find base organism database"
     return fasta_ref, db_refs
 
