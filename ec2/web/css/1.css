@@ -84,12 +84,12 @@ body {
 
 #container {
 	clear:both;
-	padding:20px 0 0 0;
+	padding:10px 0 0 0;
 }
 
 p.description {
 	background:url(../images/description.jpg) right bottom no-repeat #005A97;
-	padding:10px 10px 40px 10px;
+	padding:10px 10px 10px 10px;
 	color:#fff;
 	font-size:1.5em;
 	line-height:25px;
@@ -106,15 +106,15 @@ p.description a:hover {
 }
 
 #sidebar {	
-	width:230px;
+	width:120px;
 	float:right;
 	background:url(../images/sidebar.jpg) top right no-repeat #fff;
 	padding:10px 20px 10px 10px;
-	margin:-30px 0 0 0;
+	margin:30px 0 0 0;
 }
 
 #content {
-	margin:0 260px 0 5px;
+	margin:0 160px 0 5px;
 	padding:10px 20px 0 0;
 	background:url(../images/content.jpg) top right no-repeat;
 }
@@ -133,7 +133,7 @@ p.description a:hover {
 	text-decoration:none;
 }
 #content p {
-	margin:15px 0;
+	margin:10px 0;
 	font-size:110%;
 	line-height:21px;
 }
@@ -221,7 +221,7 @@ blockquote {
 	border-left:5px solid #eee;
 }
 
-ul {	
+ul.fancy {	
 	margin:10px 10px 10px 0;
 	padding:0 0 0 15px;
 	border:1px solid #eee;
@@ -229,6 +229,10 @@ ul {
 li {
 	margin:0 0 0 10px;
 	padding:5px;
+}
+li.inner {
+	margin:0 0 0 40px;
+	padding:1px;
 }
 #content img {
 	padding:5px;

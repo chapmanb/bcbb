@@ -1,0 +1,17 @@
+## Contributors
+
+An open source project is nothing without the great people who generously
+contribute time and expertise to the project.
+
+Enis Afgan
+Tim Booth
+Brad Chapman
+Michael Heuer
+Richard Holland
+Mark Jensen
+Justin Johnson
+Ntino Krampis
+Dave Messina
+Steffen Möller
+Bela Tiwari
+Roman Valls

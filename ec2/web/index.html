@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
-<title>Cloud Bio-Linux</title>
+<title>CloudBioLinux</title>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <link rel="stylesheet" href="css/1.css" type="text/css" media="screen,projection" />
 </head>
@@ -9,16 +9,20 @@
 <div id="wrapper1">
   <div id="wrapper2">
     <div id="header">
-      <h1><a href="#">Cloud Bio-Linux</a> </h1>
+      <h1><a href="#">CloudBioLinux</a> </h1>
+      <!--
       <ul id="nav">
         <li><a href="http://www.cloudbiolinux.com">Home</a></li>
         <li><a href="https://sourceforge.net/apps/mediawiki/jcvicloud/index.php" target="_blank">Wiki</a></li>
         <li><a href="http://sourceforge.net/projects/jcvicloud/" target="_blank">SourceForge</a></li>
       </ul>
+      -->
     </div>
     <div id="container">
-      <p class="description">The vision for  Cloud BioLinux is to offer a base image of genome  analysis resources for cloud computing platforms, such as Amazon EC2.   This Science as a Service model (ScaaS) will allow us to  incorporate, develop and optimize life science software as well as  supporting data sets on compute clouds.  This project is driven by the  observation that commonly-used bioinformatics tools are hard to build  and maintain, require high amounts of resources, or just too numerous  to choose from.</p>
-      <div id="sidebar">
+      <p class="description">CloudBioLinux offers genome analysis resources for cloud computing platforms such as Amazon EC2. We develop freely available, community maintained software images and data repositories for biological analysis.</p>
+    </div>
+<div id="sidebar">
+<!--
         <h2>Latest News</h2>
         <script src="http://widgets.twimg.com/j/2/widget.js"></script>
 <script>
@@ -51,21 +55,42 @@ new TWTR.Widget({
   }
 }).render().start();
 </script>
-<br />
+-->
         <ul>
-          <li><a href="http://www.cloudbiolinux.com">Home</a></li>
-          <li><a href="https://sourceforge.net/apps/mediawiki/jcvicloud/index.php?title=Community_members">Community Members</a></li>
-          <li><b>Contact Us:</b> community (at) cloudbiolinux (dot) com </li>
+          <!--<li><a href="http://www.cloudbiolinux.com">Home</a></li>-->
+          <li><a href="http://lists.cloudbiolinux.com/mailman/listinfo/community">Discussion List</a></li>
+          <li><a href="http://thecloudmarket.com/search?search_term=cloudbiolinux&order=updated_at%20desc">Machine Images</a></li>
+          <li><a href="http://github.com/chapmanb/bcbb/tree/master/ec2/biolinux/">Code framework</a></li>
+          <li><a href="http://github.com/chapmanb/bcbb/tree/master/ec2/biolinux/contributors.mkd">Contributors</a></li>
         </ul>
-        <h2>Search</h2>
-        <input name="search" type="text" value="Coming Soon" />
+<!--        <h2>Search</h2>
+<input name="search" type="text" value="Coming Soon" />
+-->
       </div>
       <div id="content">
-        <h2 style="padding:20px 0 0 0;">Overview</h2>
-        <p> Cloud BioLinux image enables scientists to  quickly provision computation infrastructures supporting bioinformatics  using cloud computing platforms such as <a href="http://aws.amazon.com/ec2/" target="_blank">Amazon EC2</a> and <a href="http://www.eucalyptus.com/" target="_blank">Eucalyptus</a>.    Upon deployment users will have instant access to a host of software  including BLAST, glimmer, hmmer, phylip, rasmol, genespring, clustalw,  the Celera Assembler, and the EMBOSS collection of utilities.  Cloud BioLinux is built on a 64-bit instance of Ubuntu virtual server  customized with bioinformatics packages from the BioLinux repository,  and will be updated periodically. </p>
-        <p>This image is meant to be a community resource. As  such, we look to the community for suggestions on tools and software  for incorporation, as well as general feedback or ideas that will  enhance the value of the image to the entire community.  To maximize  this effort, we will be crowd sourcing and using forums to gather  feedback, respond, and implement features. </p>
         <h2>Motivation</h2>
-        <p>Many bioinformatics workflows involve large datasets in which high  performance computing is needed. This moves the burden to the  individual scientist for provisioning the computational infrastructure  and technical expertise in order to setup and use the software for  their research and storage needs. Cloud computing can provide  researchers with the ability to perform computations using a  practically unlimited pool of virtual machines, without facing the  burden of owning or maintaining any hardware infrastructure. One of the  major vendors of compute clouds is Amazon Web Services, which is based  on the same infrastructure that powers the Amazon.com e-commerce  website and executes millions of customer transactions monthly. </p>
+        <p>Many bioinformatics workflows involve large datasets in which high performance computing is needed. Cloud computing provides researchers with the ability to perform computations using a practically unlimited pool of virtual machines, using platforms such as <a href="http://aws.amazon.com/ec2/" target="_blank">Amazon EC2</a> and <a href="http://www.eucalyptus.com/" target="_blank">Eucalyptus</a>. CloudBioLinux utilizes these resources to enable instant access to biological software, programming libraries and data.</p>
+        
+        <p>CloudBioLinux is a community project and we welcome contributors and feedback. Software and data are built off of a <a href="http://alestic.com/">Ubuntu base image</a> using <a href="http://fabfile.org/">Fabric</a> for fully automated installation and deployment. Packages are specified in simple <a href="http://github.com/chapmanb/bcbb/blob/master/ec2/biolinux/config/packages.yaml">configuration files</a> for both Linux packages and programming language libraries. Please fork <a href="http://github.com/chapmanb/bcbb/tree/master/ec2/biolinux/">our code on GitHub</a> and suggest improvements and additions.
+        </p>
+
+        <p>We hope these resources will be useful for biologists as well as programmers. With the help of the <a href="http://nebc.nerc.ac.uk/tools/bio-linux">Bio-Linux</a> development team, the images include a <a href="https://help.ubuntu.com/community/FreeNX">FreeNX</a> desktop environment designed to ease the transition to remote computational analysis.</p>
+        <h2>Amazon EC2 Resources</h2>
+        <ul class="fancy">
+          <li><i>ami-f4cc279d</i> -- 64 bit image (20 July 2010)</li>
+          <li><i>ami-0af91263</i> -- 32 bit image (16 July 2010)</li>
+          <li><i>snap-18548b73</i> -- Data volume (2 Aug 2010)</li>
+          <ul>
+            <li class="inner">Genomes indexed for next-gen sequencing analysis, <a href="http://www.ebi.ac.uk/uniref/">UniRef</a> and <a href="http://genome.ucsc.edu/cgi-bin/hgLiftOver">LiftOver</a> coordinate conversion</li>
+          </ul>
+        </ul>
+        <h2>Documentation</h2>
+        <ul class="fancy">
+          <li><a href="http://bazaar.launchpad.net/%7Ebt27uk/cloud-bl-tutorials/trunk/download/head%3A/gettingstarted_cloud-20100728161408-72oaqmezuohz4zwd-1/gettingStarted_Cloud-Bio-Linux.pdf">Getting Started with CloudBioLinux</a> -- a gentle guide for new users.</li>
+          <li><a href="http://bcbio.wordpress.com/2010/05/08/automated-build-environment-for-bioinformatics-cloud-images/">Build framework</a> -- a high level overview of the automated build environment.
+          <li><a href="http://blog.eaglegenomics.com/?p=17">Getting started for developers</a> -- logging into Amazon and making AMIs with the command line tools.</li>
+          <li><a href="http://github.com/chapmanb/bcbb/blob/master/ec2/biolinux/README">Developer build documentation</a> -- details on using and contributing to the framework.</li>
+        </ul>
       </div>
     </div>
   </div>
