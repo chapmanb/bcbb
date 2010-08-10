@@ -1,7 +1,7 @@
 ## Contributors
 
 An open source project is nothing without the great people who generously
-contribute time and expertise to the project.
+contribute time and expertise.
 
 - Enis Afgan
 - Tim Booth
