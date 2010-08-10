@@ -108,7 +108,7 @@ p.description a:hover {
 #sidebar {	
 	width:120px;
 	float:right;
-	background:url(../images/sidebar.jpg) top right no-repeat #fff;
+/*	background:url(../images/sidebar.jpg) top right no-repeat #fff; */
 	padding:10px 20px 10px 10px;
 	margin:30px 0 0 0;
 }
