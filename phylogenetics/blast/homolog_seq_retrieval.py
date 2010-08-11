@@ -7,6 +7,7 @@ Usage:
 import sys
 import csv
 import os
+import re
 
 import yaml
 from Bio import SeqIO
@@ -21,20 +22,26 @@ def main(base_file, org_file, result_file):
     if not os.path.exists(out_dir):
         os.makedirs(out_dir)
     id_list = read_gene_list(org_config['gene_list'])
+    id_list = _build_alt_tx_res(id_list)
     with open(result_file) as in_handle:
         reader = csv.reader(in_handle, dialect='excel-tab')
         org_list = reader.next()[1:]
         id_indexes = prepare_indexes(org_config['search_file'],
                 base_config['db_dir'], org_list)
         print "Retrieving sequences from list"
+        all_matches = dict()
         for cur_id, org_ids in ((l[0], l[1:]) for l in reader):
-            if _id_matches(cur_id, id_list):
+            match_index = _transcript_matches(cur_id, id_list)
+            if match_index > -1:
                 print cur_id
                 out_file = os.path.join(out_dir, "%s.fa" %
                         cur_id.replace(".", "_"))
                 output_seqs([cur_id] + org_ids,
                     [org_config['target_org']] + org_list,
                     id_indexes, out_file)
+                all_matches[match_index] = ""
+    print "Not found", [id_list[i][0] for i in set(range(len(id_list))) -
+            set(all_matches.keys())]
 
 def output_seqs(ids, orgs, indexes, out_file):
     """Output the sequences we are interested in retrieving.
@@ -52,11 +59,27 @@ def _all_seqs(ids, orgs, indexes):
             rec.description = orgs[i]
             yield rec
 
-def _id_matches(cur_id, id_list):
-    for test_id in id_list:
-        if cur_id.startswith(test_id):
-            return True
-    return False
+def _build_alt_tx_res(id_list):
+    """Create regular expressions to find alternative transcripts.
+
+    Matches alternative transcripts of base.1 of the form:
+        base.1a
+        base.1.1
+        base.1a.1
+    """
+    final_list = []
+    for cur_id in id_list:
+        match_re = re.compile(r"^" + cur_id + r"([a-z]+|\.\d+)(\.\d+)?$")
+        final_list.append((cur_id, match_re))
+    return final_list
+
+def _transcript_matches(cur_id, id_list):
+    """Check if a transcript matches one of the alternatively spliced names.
+    """
+    for index, (test_id, test_re) in enumerate(id_list):
+        if cur_id == test_id or test_re.search(cur_id):
+            return index
+    return  -1
 
 def prepare_indexes(base_file, db_dir, orgs):
     """Prepare easy to retrieve Biopython indexes from Fasta inputs.
