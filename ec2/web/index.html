@@ -1,0 +1,105 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<title>CloudBioLinux</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" href="css/1.css" type="text/css" media="screen,projection" />
+</head>
+<body>
+<div id="wrapper1">
+  <div id="wrapper2">
+    <div id="header">
+      <h1><a href="#">CloudBioLinux</a> </h1>
+      <!--
+      <ul id="nav">
+        <li><a href="http://www.cloudbiolinux.com">Home</a></li>
+        <li><a href="https://sourceforge.net/apps/mediawiki/jcvicloud/index.php" target="_blank">Wiki</a></li>
+        <li><a href="http://sourceforge.net/projects/jcvicloud/" target="_blank">SourceForge</a></li>
+      </ul>
+      -->
+    </div>
+    <div id="container">
+      <p class="description">CloudBioLinux offers genome analysis resources for cloud computing platforms such as Amazon EC2. We develop freely available, community maintained software images and data repositories for biological analysis.</p>
+    </div>
+<div id="sidebar">
+<!--
+        <h2>Latest News</h2>
+        <script src="http://widgets.twimg.com/j/2/widget.js"></script>
+<script>
+new TWTR.Widget({
+  version: 2,
+  type: 'search',
+  search: 'biolinux',
+  interval: 6000,
+  width: 'auto',
+  height: 300,
+  theme: {
+    shell: {
+      background: '#005b97',
+      color: '#ffffff'
+    },
+    tweets: {
+      background: '#ffffff',
+      color: '#444444',
+      links: '#1985b5'
+    }
+  },
+  features: {
+    scrollbar: false,
+    loop: true,
+    live: true,
+    hashtags: true,
+    timestamp: true,
+    avatars: true,
+    behavior: 'default'
+  }
+}).render().start();
+</script>
+-->
+        <ul>
+          <!--<li><a href="http://www.cloudbiolinux.com">Home</a></li>-->
+          <li><a href="http://lists.cloudbiolinux.com/mailman/listinfo/community">Discussion List</a></li>
+          <li><a href="http://thecloudmarket.com/search?search_term=cloudbiolinux&order=updated_at%20desc">Machine Images</a></li>
+          <li><a href="http://github.com/chapmanb/bcbb/tree/master/ec2/biolinux/">Code framework</a></li>
+          <li><a href="http://github.com/chapmanb/bcbb/tree/master/ec2/biolinux/contributors.mkd">Contributors</a></li>
+        </ul>
+<!--        <h2>Search</h2>
+<input name="search" type="text" value="Coming Soon" />
+-->
+      </div>
+      <div id="content">
+        <h2>Motivation</h2>
+        <p>Many bioinformatics workflows involve large datasets in which high performance computing is needed. Cloud computing provides researchers with the ability to perform computations using a practically unlimited pool of virtual machines, using platforms such as <a href="http://aws.amazon.com/ec2/" target="_blank">Amazon EC2</a> and <a href="http://www.eucalyptus.com/" target="_blank">Eucalyptus</a>. CloudBioLinux utilizes these resources to enable instant access to biological software, programming libraries and data.</p>
+        
+        <p>CloudBioLinux is a community project and we welcome contributors and feedback. Software and data are built off of a <a href="http://alestic.com/">Ubuntu base image</a> using <a href="http://fabfile.org/">Fabric</a> for fully automated installation and deployment. Packages are specified in simple <a href="http://github.com/chapmanb/bcbb/blob/master/ec2/biolinux/config/packages.yaml">configuration files</a> for both Linux packages and programming language libraries. Please fork <a href="http://github.com/chapmanb/bcbb/tree/master/ec2/biolinux/">our code on GitHub</a> and suggest improvements and additions.
+        </p>
+
+        <p>We hope these resources will be useful for biologists as well as programmers. With the help of the <a href="http://nebc.nerc.ac.uk/tools/bio-linux">Bio-Linux</a> development team, the images include a <a href="https://help.ubuntu.com/community/FreeNX">FreeNX</a> desktop environment designed to ease the transition to remote computational analysis.</p>
+        <h2>Amazon EC2 Resources</h2>
+        <ul class="fancy">
+          <li><i>ami-f4cc279d</i> -- 64 bit image (20 July 2010)</li>
+          <li><i>ami-0af91263</i> -- 32 bit image (16 July 2010)</li>
+          <li><i>snap-18548b73</i> -- Data volume (2 Aug 2010)</li>
+          <ul>
+            <li class="inner">Genomes indexed for next-gen sequencing analysis, <a href="http://www.ebi.ac.uk/uniref/">UniRef</a> and <a href="http://genome.ucsc.edu/cgi-bin/hgLiftOver">LiftOver</a> coordinate conversion</li>
+          </ul>
+        </ul>
+        <h2>Documentation</h2>
+        <ul class="fancy">
+          <li><a href="http://bazaar.launchpad.net/%7Ebt27uk/cloud-bl-tutorials/trunk/download/head%3A/gettingstarted_cloud-20100728161408-72oaqmezuohz4zwd-1/gettingStarted_Cloud-Bio-Linux.pdf">Getting Started with CloudBioLinux</a> -- a gentle guide for new users.</li>
+          <li><a href="http://bcbio.wordpress.com/2010/05/08/automated-build-environment-for-bioinformatics-cloud-images/">Build framework</a> -- a high level overview of the automated build environment.
+          <li><a href="http://blog.eaglegenomics.com/?p=17">Getting started for developers</a> -- logging into Amazon and making AMIs with the command line tools.</li>
+          <li><a href="http://github.com/chapmanb/bcbb/blob/master/ec2/biolinux/README">Developer build documentation</a> -- details on using and contributing to the framework.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="footer">
+  <p>Template design by <a href="http://www.sixshootermedia.com">Six Shooter Media</a>.<br />
+    </p>
+</div>
+
+
+</body>
+</html>
