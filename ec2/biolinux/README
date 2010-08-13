@@ -177,22 +177,27 @@ export PREFIX="/scratch/euca-fedora-11-i386"
 
 export IMAGE=${PREFIX}/fedora.11.x86.img
 export KERNEL="${PREFIX}/kvm-kernel/vmlinuz-2.6.28-11-server"
-export KERNEL_B="vmlinuz-2.6.28-11-server"
+export KERNEL_B=`basename ${KERNEL}`
 
 export INITRD="${PREFIX}/kvm-kernel/initrd.img-2.6.28-11-server"
 export INITRD_B="initrd.img-2.6.28-11-server"
 
 euca-bundle-image -i $KERNEL --kernel true
-euca-upload-bundle -b kernels -m /tmp/${KERNEL_B}.manifest.xml
-export EKI=`euca-register kernels/${KERNEL_B}.manifest.xml | cut -f1 -d" "`
+euca-upload-bundle -b kernels -m /tmp/`basename ${KERNEL}`.manifest.xml
+EKI=`euca-register kernels/${KERNEL_B}.manifest.xml`
+export EKI=`echo $EKI | cut -f2 -d" "`
 
 euca-bundle-image -i $INITRD --ramdisk true
 euca-upload-bundle -b ramdisks -m /tmp/`basename ${INITRD}`.manifest.xml
-export ERI=`euca-register ramdisks/${INITRD_B}.manifest.xml | cut -f1 -d" "`
+export ERI=`euca-register ramdisks/${INITRD_B}.manifest.xml`
+export ERI=`echo $ERI | cut -f2 -d" "`
+
+echo $EKI
+echo $ERI
 
 euca-bundle-image -i $IMAGE --kernel $EKI --ramdisk $ERI
-euca-upload-bundle -b cloudbiolinux -m /tmp/`basename ${KERNEL}`.manifest.xml
-euca-register cloudbiolinux/`basename ${KERNEL}`.manifest.xml
+euca-upload-bundle -b cloudbiolinux -m /tmp/`basename ${IMAGE}`.manifest.xml
+euca-register cloudbiolinux/`basename ${IMAGE}`.manifest.xml
 
 
 In-instance Hadoop
