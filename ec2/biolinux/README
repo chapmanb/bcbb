@@ -168,16 +168,26 @@ http://uec-images.ubuntu.com/releases
 
 The procedure to upload an EMI (Eucalyptus Machine Image) outlined in Eucalyptus documentation is:
 
-% wget http://uec-images.ubuntu.com/releases/lucid/release/ubuntu-10.04-server-uec-i386.tar.gz
-% tar xvfz ubuntu-10.04-server-uec-i386.tar.gz
+export BUNDLE="http://uec-images.ubuntu.com/releases/lucid/release/ubuntu-10.04-server-uec-i386.tar.gz"
 
-% euca-bundle-image -i lucid-server-uec-i386-vmlinuz-virtual --kernel true
-% euca-upload-bundle -b kernels -m /tmp/lucid-server-uec-i386-vmlinuz-virtual.manifest.xml
-% export EKI=`euca-register kernels/lucid-server-uec-i386-vmlinuz-virtual.manifest.xml`
+export IMAGE="lucid-server-uec-i386.img"
+export KERNEL="lucid-server-uec-i386-vmlinuz-virtual"
+export INITRD="initrd.img-2.6.28-11-generic"
 
-% euca-bundle-image -i lucid-server-uec-i386.img --kernel $EKI
-% euca-upload-bundle -b cloudbiolinux -m /tmp/lucid-server-uec-i386-vmlinuz-virtual.manifest.xml
-% euca-register cloudbiolinux/lucid-server-uec-i386-vmlinuz-virtual.manifest.xml
+; wget $BUNDLE
+; tar xvfz ubuntu-10.04-server-uec-i386.tar.gz
+
+; euca-bundle-image -i $KERNEL --kernel true
+; euca-upload-bundle -b kernels -m /tmp/${KERNEL}.manifest.xml
+; export EKI=`euca-register kernels/${KERNEL}.manifest.xml | cut -f1 -d" "`
+
+; euca-bundle-image -i $INITRD --ramdisk true
+; euca-upload-bundle -b ramdisks -m /tmp/${INITRD}.manifest.xml
+; export ERI=`euca-register ramdisks/${INITRD}.manifest.xml | cut -f1 -d" "`
+
+; euca-bundle-image -i $IMAGE --kernel $EKI --ramdisk $ERI
+; euca-upload-bundle -b cloudbiolinux -m /tmp/${KERNEL}.manifest.xml
+; euca-register cloudbiolinux/${KERNEL}.manifest.xml
 
 
 In-instance Hadoop
