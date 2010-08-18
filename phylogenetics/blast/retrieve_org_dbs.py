@@ -7,6 +7,7 @@ Usage:
 Requires:
     - NCBI's blast+ -- for preparing the organism databases
       ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/
+    - Biopython libraries
 """
 import os
 import sys

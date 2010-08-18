@@ -2,16 +2,13 @@
 """Perform genome wide BLAST comparisons of an organism against other genomes.
 
 Usage:
-    blast_cross_orgs.py <input_fasta> <YAML config>
-
-Where the configuration file looks like:
-
-org_file: 'orgs/organizm list.csv'
-db_dir: 'dbs'
-target_org: 'Caenorhabditis elegans'
-work_dir: 'tmp'
+    blast_cross_orgs.py <organism config> <YAML config>
 
 This requires a set of BLAST databases setup by 'retrieve_org_dbs.py'.
+
+Requires:
+    - NCBI's blast+
+    - Biopython libraries
 """
 import os
 import sys
@@ -28,26 +25,29 @@ from Bio.Blast import NCBIXML
 
 fupdate_lock = multiprocessing.Lock()
 
-def main(fasta_ref, config_file):
+def main(org_config_file, config_file):
+    # fasta_ref
     with open(config_file) as in_handle:
         config = yaml.load(in_handle)
+    with open(org_config_file) as in_handle:
+        org_config = yaml.load(in_handle)
     if not os.path.exists(config['work_dir']):
         os.makedirs(config['work_dir'])
-    (_, db_refs) = get_org_dbs(config['db_dir'], config['target_org'])
-    id_file, score_file = setup_output_files(config['target_org'],
+    (_, db_refs) = get_org_dbs(config['db_dir'], org_config['target_org'])
+    id_file, score_file = setup_output_files(org_config['target_org'],
             [r[0] for r in db_refs])
     file_info = [id_file, score_file]
     pool = multiprocessing.Pool(int(config['num_cores']))
-    with open(fasta_ref) as in_handle:
-        pool.map(_process_wrapper, ((config, i, rec, db_refs, file_info)
+    with open(org_config['search_file']) as in_handle:
+        pool.map(_process_wrapper, ((config, org_config, i, rec, db_refs, file_info)
             for (i, rec) in enumerate(SeqIO.parse(in_handle, "fasta"))))
 
-def process_blast(config, i, rec, db_refs, file_info):
+def process_blast(config, org_config, i, rec, db_refs, file_info):
     cur_id = _normalize_id(rec.id)
     id_info = [cur_id]
     score_info = [cur_id]
     for xorg, xdb in db_refs:
-        with _blast_filenames(config, xorg, i) as (in_file, out_file):
+        with _blast_filenames(config, org_config, xorg, i) as (in_file, out_file):
             SeqIO.write([rec], in_file, "fasta")
             out_id, out_eval = compare_by_blast(in_file, xdb, out_file)
             id_info.append(out_id)
@@ -117,10 +117,10 @@ def setup_output_files(target_org, cmp_orgs):
     return id_file, eval_file
 
 @contextlib.contextmanager
-def _blast_filenames(config, xorg, i):
+def _blast_filenames(config, org_config, xorg, i):
     """Create files needed for blast and cleanup on closing.
     """
-    base_name = "%s_%s_%s" % (config['target_org'].replace(" ", "_"),
+    base_name = "%s_%s_%s" % (org_config['target_org'].replace(" ", "_"),
                               xorg.replace(" ", "_"), i)
     in_file = os.path.join(config['work_dir'], "%s-in.fa" % base_name)
     out_file = os.path.join(config['work_dir'], "%s-out.blast" % base_name)
