@@ -11,14 +11,35 @@ fastq to a fasta output file, trimming with the passed adaptor:
 Usage:
 
     adaptor_trim.py <in fastq file> <out fasta file> <adaptor seq> <number of errors>
+
+This can filter the trimmed product by minimum and maximum size with --min_size
+and --max_size options.
 """
 from __future__ import with_statement
 import sys
 import os
+from optparse import OptionParser
 
 from Bio import pairwise2
 from Bio.Seq import Seq
 from Bio import SeqIO
+
+def main(in_file, out_file, adaptor_seq, num_errors, min_size=1, max_size=None):
+    num_errors = int(num_errors)
+    min_size = int(min_size)
+    max_size = int(max_size) if max_size else None
+
+    with open(in_file) as in_handle:
+        with open(out_file, "w") as out_handle:
+            for rec in SeqIO.parse(in_handle, "fastq"):
+                cur_adaptor = (adaptor_seq[:(len(rec) - max_size)] if max_size
+                        else adaptor_seq)
+                trim = trim_adaptor(rec.seq, cur_adaptor, num_errors)
+                cur_max = max_size if max_size else len(rec) - 1
+                if len(trim) >= min_size and len(trim) <= cur_max:
+                    rec.letter_annotations = {}
+                    rec.seq = trim
+                    SeqIO.write([rec], out_handle, "fasta")
 
 def _remove_adaptor(seq, region, right_side=True):
     """Remove an adaptor region and all sequence to the right or left.
@@ -62,8 +83,8 @@ def trim_adaptor(seq, adaptor, num_errors, right_side=True):
         seq_region = str(seq[exact_pos:exact_pos+len(adaptor)])
         adapt_region = adaptor
     else:
-        aligns = pairwise2.align.localms(str(seq), str(adaptor), 
-                5.0, -4.0, -9.0, -0.5, one_alignment_only=True, 
+        aligns = pairwise2.align.localms(str(seq), str(adaptor),
+                5.0, -4.0, -9.0, -0.5, one_alignment_only=True,
                 gap_char=gap_char)
         if len(aligns) == 0:
             adapt_region, seq_region = ("", "")
@@ -204,21 +225,14 @@ def testing_suite():
         test_suite.addTest(cur_suite)
     return test_suite
 
-def main(in_file, out_file, adaptor_seq, num_errors):
-    num_errors = int(num_errors)
-   
-    with open(in_file) as in_handle:
-        with open(out_file, "w") as out_handle:
-            for rec in SeqIO.parse(in_handle, "fastq"):
-                trim = trim_adaptor(rec.seq, adaptor_seq, num_errors)
-                if len(trim) > 0 and len(trim) < len(rec):
-                    rec.letter_annotations = {}
-                    rec.seq = trim
-                    SeqIO.write([rec], out_handle, "fasta")
-
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
+    parser = OptionParser()
+    parser.add_option("-m", "--min_size", dest="min_size", default=1)
+    parser.add_option("-x", "--max_size", dest="max_size")
+    options, args = parser.parse_args()
+    if len(args) == 0:
         sys.exit(run_tests(sys.argv))
     else:
-        main(*sys.argv[1:])
-        
+        kwd = dict(min_size = options.min_size,
+                   max_size = options.max_size)
+        main(*args, **kwd)
