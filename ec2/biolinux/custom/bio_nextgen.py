@@ -14,7 +14,10 @@ def install_ucsc_tools(env):
     todo: install from source to handle 32bit and get more programs
     http://hgdownload.cse.ucsc.edu/admin/jksrc.zip
     """
-    tools = ["liftOver", "faToTwoBit"]
+    tools = ["liftOver", "faToTwoBit", "bedToBigBed",
+             "bigBedInfo", "bigBedSummary", "bigBedToBed",
+             "bigWigInfo", "bigWigSummary", "bigWigToBedGraph", "bigWigToWig",
+             "fetchChromSizes", "wigToBigWig"]
     url = "http://hgdownload.cse.ucsc.edu/admin/exe/linux.x86_64/"
     install_dir = os.path.join(env.system_install, "bin")
     for tool in tools:
