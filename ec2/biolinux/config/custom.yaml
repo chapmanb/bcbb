@@ -18,3 +18,4 @@ bio_nextgen:
   needs_64bit:
     - ucsc_tools
     - bfast
+    - novoalign
