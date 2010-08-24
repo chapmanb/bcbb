@@ -233,6 +233,7 @@ def _data_ngs_genomes():
             bwa_index = _index_bwa(ref_file)
             bowtie_index = _index_bowtie(ref_file)
             maq_index = _index_maq(ref_file)
+            _index_novoalign(ref_file)
             twobit_index = _index_twobit(ref_file)
             _index_eland(ref_file)
             # other indexers not supported by default
@@ -342,6 +343,22 @@ def _index_maq(ref_file):
             run("maq fasta2bfa %s %s" % (local_ref,
                 binary_out))
     return os.path.join(dir_name, binary_out)
+
+@_if_installed("novoindex")
+def _index_novoalign(ref_file):
+    dir_name = "novoalign"
+    index_name = os.path.splitext(os.path.basename(ref_file))[0]
+    ref_file = os.path.join(os.pardir, ref_file)
+    if not exists(dir_name):
+        run("mkdir %s" % dir_name)
+        with cd(dir_name):
+            run("novoindex %s %s" % (index_name, ref_file))
+    color_dir = os.path.join(dir_name, "colorspace")
+    ref_file = os.path.join(os.pardir, ref_file)
+    if not exists(color_dir):
+        run("mkdir %s" % color_dir)
+        with cd(color_dir):
+            run("novoindex -c %s %s" % (index_name, ref_file))
 
 def _index_sam(ref_file):
     (_, local_file) = os.path.split(ref_file)
