@@ -17,7 +17,7 @@
 #  runurl cloudbiolinux.com/bootstrap
 
 #  Now the URL given would actually be a redirect to:
-#  http://github.com/chapmanb/bcbb/raw/master/ec2/biolinux/bootstrap.sh
+#  http://github.com/chapmanb/bcbb/raw/master/ec2/biolinux/utils/bootstrap.sh
 
 if [ `id -un` != root ] ; then
 	echo "This script needs to be run as root."
@@ -44,10 +44,6 @@ if [ ! -e "$tmpdir" ] ; then
 
 	#Some fixups to the fabfile - these can probably be changed in the upstream but
         #I want my script to work now...
-	if ! which curl ; then
-		echo "Removing use of curl from fabfile"
-		sed -i -e 's/curl -s /wget -q -O- /' ec2/biolinux/fabfile.py
-	fi
 	if ! id -un ubuntu ; then
 		echo "Removing env.user=ubuntu from fabfile"
 		sed -i -e '/env.user = "ubuntu"/d' ec2/biolinux/fabfile.py
