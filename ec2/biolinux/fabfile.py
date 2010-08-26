@@ -256,7 +256,7 @@ def _add_gpg_keys():
     for url, key in keyserver:
         sudo("apt-key adv --keyserver %s --recv %s" % (url, key))
     for key in standalone:
-        sudo("curl -s %s | apt-key add -" % key)
+        sudo("wget -q -O- %s | apt-key add -" % key)
 
 def _setup_automation():
     """Setup the environment to be fully automated for tricky installs.
