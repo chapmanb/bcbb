@@ -181,6 +181,7 @@ genomes = [
            ("phiX174", "phix", NCBIRest("phix", ["NC_001422.1"])),
            ("Scerevisiae", "sacCer2", UCSCGenome("sacCer2")),
            ("Mmusculus", "mm9", UCSCGenome("mm9")),
+           ("Mmusculus", "mm8", UCSCGenome("mm8")),
            ("Hsapiens", "hg18", UCSCGenome("hg18")),
            ("Hsapiens", "hg19", UCSCGenome("hg19")),
            ("Rnorvegicus", "rn4", UCSCGenome("rn4")),
@@ -274,7 +275,7 @@ def _install_ngs_tools():
     _install_samtools()
     _install_fastx_toolkit()
     _install_maq()
-    _install_bfast()
+    #_install_bfast()
     if env.install_ucsc:
         _install_ucsc_tools()
 

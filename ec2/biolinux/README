@@ -126,16 +126,16 @@ Attach a store to a running instance:
 
 ec2-attach-volume -d /dev/sdh -i i-351d225e vol-7568e61c
 
-On a new instance ssh to the machine and create a filesystem:
+Only for a new instance -- ssh to the machine and create a 
+filesystem:
 
-grep -q xfs /proc/filesystems || sudo modprobe xf
+grep -q xfs /proc/filesystems || sudo modprobe xfs
 sudo mkfs.xfs /dev/sdh
 
 Mount the directory, need to do this every time on the machine:
 
-sudo mkdir /vol
-sudo mkdir /vol/galaxy
-sudo mount -t xfs -o noatime /dev/sdh /vol/galaxy/
+sudo mkdir -p /mnt/biodata
+sudo mount -t xfs -o noatime /dev/sdh /mnt/biodata/
 
 Eucalyptus Public Cloud Quickstart
 ==================================
@@ -162,16 +162,8 @@ Eucalyptus Public Cloud Quickstart
 Bundling a new EMI in Eucalyptus
 --------------------------------
 
-We use official ubuntu enterprise cloud (EC2-ready) images (AMIs) from the ubuntu public repository:
-
-http://uec-images.ubuntu.com/releases
-
-The procedure to upload an EMI (Eucalyptus Machine Image) outlined in Eucalyptus documentation is:
-
-export BUNDLE="http://uec-images.ubuntu.com/releases/lucid/release/ubuntu-10.04-server-uec-i386.tar.gz"
-; wget $BUNDLE
-; tar xvfz ubuntu-10.04-server-uec-i386.tar.gz
-
+Eucalyptus provides some prebuilt images under the "Extra" panel on the default installation. Those
+images should be packaged and uploaded to the Eucalyptus cloud you're working on.
 
 export PREFIX="/scratch/euca-fedora-11-i386"
 
@@ -193,7 +185,6 @@ export ERI=`euca-register ramdisks/${INITRD_B}.manifest.xml | cut -f1 -d" "`
 euca-bundle-image -i $IMAGE --kernel $EKI --ramdisk $ERI
 euca-upload-bundle -b cloudbiolinux -m /tmp/`basename ${KERNEL}`.manifest.xml
 euca-register cloudbiolinux/`basename ${KERNEL}`.manifest.xml
-
 
 In-instance Hadoop
 ------------------

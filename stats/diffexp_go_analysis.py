@@ -21,6 +21,9 @@ def main(input_csv, gene_to_go_file):
         genes_w_pvals = parse_input_csv(in_handle)
     with open(gene_to_go_file) as in_handle:
         gene_to_go, go_to_gene = parse_go_map_file(in_handle, genes_w_pvals)
+    if len(gene_to_go) == 0:
+        raise ValueError("No GO terms match to input genes. "
+              "Check that the identifiers between the input and GO file match.")
     go_terms = run_topGO(genes_w_pvals, gene_to_go, go_term_type,
             gene_pval, go_pval, topgo_method)
     print_go_info(go_terms, go_term_type, go_to_gene)
@@ -82,8 +85,7 @@ def run_topGO(gene_vals, gene_to_go, go_term_type, gene_pval, go_pval,
     results = robjects.r.runTest(go_data, algorithm=topgo_method,
             statistic="fisher")
     scores = robjects.r.score(results)
-    score_names = scores.getnames()
-    num_summarize = min(100, len(score_names))
+    num_summarize = min(100, len(scores.names))
     # extract term names from the topGO summary dataframe
     results_table = robjects.r.GenTable(go_data, elimFisher=results,
             orderBy="elimFisher", topNodes=num_summarize)
@@ -97,7 +99,7 @@ def run_topGO(gene_vals, gene_to_go, go_term_type, gene_pval, go_pval,
     # convert the scores and results information info terms to return
     for index, item in enumerate(scores):
         if item < go_pval:
-            go_id = score_names[index]
+            go_id = scores.names[index]
             go_terms.append((item, go_id, ids_to_terms.get(go_id, "")))
     go_terms.sort()
     return go_terms

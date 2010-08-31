@@ -7,10 +7,15 @@ distributed:
   - mahout
 java:
   - leinengin
-  - incanter
+  - cljr
 bio_nextgen:
-  - bwa
-  - ucsc_tools
-  - bowtie
-  - fastx_toolkit
-  - bfast
+  all:
+    - bwa
+    - bowtie
+    - fastx_toolkit
+    - gatk
+    - picard
+  needs_64bit:
+    - ucsc_tools
+    - bfast
+    - novoalign

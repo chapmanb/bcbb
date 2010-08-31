@@ -1,0 +1,10 @@
+---
+# Configuration file defining java libraries to install 
+# First up, clojure libraries via cljr
+cljr:
+  - aleph
+  - 'cascading1.1'
+  - cascalog
+  - compojure
+  - incanter
+  - 'org.apache.hadoop/hadoop-core'

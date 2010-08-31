@@ -26,7 +26,10 @@ desktop:
   - software-center
   - freenx
   - gnome-themes
+  - gnome-backgrounds
   - gnome-terminal
+  - firefox
+  - cloudbl-desktop
 programming:
   editors:
     - emacs
@@ -453,6 +456,7 @@ erlang:
   - erlang-examples
   - erlang-manpages
   - erlang-mode
+  - rabbitmq-server
 haskell:
   - ghc6
   - libghc6-mtl-dev
@@ -512,6 +516,7 @@ bio_general:
   - primer3
   - readseq
   - bio-linux-taverna
+  - bio-linux-xcut
 bio_search:
   - blast2
   - hmmer
@@ -589,28 +594,33 @@ bio_utils:
   - bio-linux-taxinspector
   - bio-linux-themes-v5
 phylogeny:
-  - phylip
-  - phyml
-  - mrbayes
-  - njplot
-  - tree-puzzle
-  - bio-linux-arb
-  - bio-linux-coalesce
-  - bio-linux-dendroscope
-  - bio-linux-fastDNAml
-  - bio-linux-fluctuate
-  - bio-linux-forester
-  - bio-linux-happy
-  - bio-linux-mesquite
-  - bio-linux-migrate
-  - bio-linux-mrbayes-multi
-  - bio-linux-mothur
-  - bio-linux-paml
-  - bio-linux-omegamap
-  - bio-linux-qtlcart
-  - bio-linux-recombine
-  - bio-linux-splitstree
-  - bio-linux-treeview
+  all:
+    - phylip
+    - phyml
+    - mrbayes
+    - njplot
+    - tree-puzzle
+    - bio-linux-arb
+    - bio-linux-coalesce
+    - bio-linux-dendroscope
+    - bio-linux-fastDNAml
+    - bio-linux-fluctuate
+    - bio-linux-forester
+    - bio-linux-happy
+    - bio-linux-mesquite
+    - bio-linux-migrate
+    - bio-linux-mrbayes-multi
+    - bio-linux-mothur
+    - bio-linux-paml
+    - bio-linux-omegamap
+    - bio-linux-qtlcart
+    - bio-linux-recombine
+    - bio-linux-splitstree
+    - bio-linux-treeview
+  needs_64bit:
+    - bio-linux-fasttree
+#
+#
 # To Add -- need packages
 # from bioperl-max:
 #   hyphy
@@ -623,8 +633,6 @@ phylogeny:
 #   pftools
 #   transterm
 # Others:
-#   bowtie
-#   fastx-toolkit
 #   mdust
 #   Picard
 #   GATK
@@ -633,4 +641,3 @@ phylogeny:
 #   blast2go
 #   sputnik: microsattelites
 #   GenomeView
-#   UCSC: liftOver, faToTwoBit
