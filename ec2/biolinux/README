@@ -163,7 +163,8 @@ Bundling a new EMI in Eucalyptus
 --------------------------------
 
 Eucalyptus provides some prebuilt images under the "Extra" panel on the default installation. Those
-images should be packaged and uploaded to the Eucalyptus cloud you're working on.
+images should be packaged and uploaded to the Eucalyptus cloud you're working on. The following
+is just a packaging example with one of the images, further automation should be done here.
 
 export PREFIX="/scratch/euca-fedora-11-i386"
 
