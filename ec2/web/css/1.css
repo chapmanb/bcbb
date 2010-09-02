@@ -14,12 +14,12 @@ body {
 #wrapper1 {
 	background:#1e1e1e;
 	padding:0 10px 10px 10px;
-	width:760px;
+	width:800px;
 	margin:0 auto;
 }
 
 #wrapper2 {
-	width:740px;
+	width:780px;
 	background:url(../images/wrapper2.jpg) bottom repeat-x #fff;
 	border-left:1px solid #000;
 	border-right:1px solid #000;
@@ -58,15 +58,19 @@ body {
 	color:#000;
 	
 }
+img.logo {
+  border: 0;
+  align: left;
+}
 
 #header h1 {
 	font:2.7em Arial;
 	letter-spacing:-1px;
 	color:#222;
 	float:left;
+        /*
 	padding:30px 20px 14px 45px;
-
-	background:url(../images/h1.gif) left bottom no-repeat;
+	background:url(../images/h1.gif) left bottom no-repeat;*/
 }
 #header h1 a {
 	color:#222;
