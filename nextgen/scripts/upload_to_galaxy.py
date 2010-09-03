@@ -22,7 +22,8 @@ import json
 
 import yaml
 
-from Mgh.Solexa.Flowcell import get_flowcell_info, get_fastq_dir
+from bcbio.solexa.flowcell import get_flowcell_info, get_fastq_dir
+from bcbio.galaxy.api import GalaxyApiAccess
 
 def main(config_file, fc_dir, analysis_dir):
     with open(config_file) as in_handle:
@@ -47,6 +48,7 @@ def main(config_file, fc_dir, analysis_dir):
             print "Uploading directory of files to Galaxy"
             print galaxy_api.upload_directory(library_id, folder['id'],
                                               store_dir, dbkey, access_role)
+    add_run_summary_metrics(analysis_dir, galaxy_api)
 
 # LIMS specific code for retrieving information on what to upload from
 # the Galaxy NGLIMs.
@@ -86,15 +88,45 @@ def _get_galaxy_libname(private_libs, lab_association):
 def select_upload_files(lane, fc_dir, analysis_dir):
     """Select fastq, bam alignment and summary files for upload to Galaxy.
     """
+    # fastq, summary and alignment file
     for fname in glob.glob(os.path.join(get_fastq_dir(fc_dir),
             "%s_*_fastq.txt" % lane)):
-        yield fname
+        yield (fname, os.path.basename(fname))
     for summary_file in glob.glob(os.path.join(analysis_dir,
             "%s_*-summary.pdf" % lane)):
-        yield summary_file
+        yield (summary_file, _name_with_ext(summary_file, "-summary.pdf"))
     for bam_file in glob.glob(os.path.join(analysis_dir,
             "%s_*-sort-dup.bam" % lane)):
-        yield bam_file
+        yield (bam_file, _name_with_ext(bam_file, ".bam"))
+    # upload any recalibrated BAM files used for SNP calling
+    found_recal = False
+    for bam_file in glob.glob(os.path.join(analysis_dir,
+            "%s_*-gatkrecal-realign-sort.bam" % lane)):
+        found_recal = True
+        yield (bam_file, _name_with_ext(bam_file, "-gatkrecal-realign.bam"))
+    if not found_recal:
+        for bam_file in glob.glob(os.path.join(analysis_dir,
+                "%s_*-gatkrecal.bam" % lane)):
+            yield (bam_file, _name_with_ext(bam_file, "-gatkrecal.bam"))
+    # Genotype files produced by SNP calling
+    for snp_file in glob.glob(os.path.join(analysis_dir,
+            "%s_*-snp-filter.vcf" % lane)):
+        yield (snp_file, _name_with_ext(bam_file, "-snp-filter.vcf"))
+
+def _name_with_ext(orig_file, ext):
+    """Return a normalized filename without internal processing names.
+    """
+    base = os.path.basename(orig_file).split("-")[0]
+    return "%s%s" % (base, ext)
+
+def add_run_summary_metrics(analysis_dir, galaxy_api):
+    """Upload YAML file of run information to Galaxy though the NGLims API.
+    """
+    run_file = os.path.join(analysis_dir, "run_summary.yaml")
+    if os.path.exists(run_file):
+        with open(run_file) as in_handle:
+            run_summary = yaml.load(in_handle)
+        galaxy_api.sqn_run_summary(run_summary)
 
 # General functionality for interacting with Galaxy via the Library API
 
@@ -137,17 +169,17 @@ def move_to_storage(lane, fc_dir, select_files, cur_galaxy_files, config):
     storage_dir = _get_storage_dir(fc_dir, lane, os.path.join(lib_import_dir,
                                    "storage"))
     existing_files = [os.path.basename(f['name']) for f in cur_galaxy_files]
-    upload_files = []
-    for to_upload in select_files:
-        if os.path.basename(to_upload) in existing_files:
-            upload_files = []
+    need_upload = False
+    for orig_file, new_file in select_files:
+        if new_file in existing_files:
+            need_upload = False
             break
         else:
-            if not os.path.exists(os.path.join(storage_dir,
-                                               os.path.basename(to_upload))):
-                shutil.copy(to_upload, storage_dir)
-            upload_files.append(to_upload)
-    return (storage_dir if len(upload_files) > 0 else None)
+            new_file = os.path.join(storage_dir, new_file)
+            if not os.path.exists(new_file):
+                shutil.copy(orig_file, new_file)
+            need_upload = True
+    return (storage_dir if need_upload else None)
 
 def _get_storage_dir(cur_folder, lane, storage_base):
     store_dir = os.path.join(storage_base, cur_folder, str(lane))
@@ -165,70 +197,6 @@ def get_galaxy_library(lab_association, galaxy_api):
     if ret_info is None:
         ret_info = galaxy_api.create_library(lab_association)[0]
     return ret_info["id"]
-
-class GalaxyApiAccess:
-    """Simple front end for accessing Galaxy's REST API.
-    """
-    def __init__(self, galaxy_url, api_key):
-        self._base_url = galaxy_url
-        self._key = api_key
-
-    def _make_url(self, rel_url, params=None):
-        if not params:
-            params = dict()
-        params['key'] = self._key
-        vals = urllib.urlencode(params)
-        return ("%s%s" % (self._base_url, rel_url), vals)
-
-    def _get(self, url, params=None):
-        url, params = self._make_url(url, params)
-        response = urllib2.urlopen("%s?%s" % (url, params))
-        return json.loads(response.read())
-
-    def _post(self, url, data, params=None):
-        url, params = self._make_url(url, params)
-        request = urllib2.Request("%s?%s" % (url, params),
-                headers = {'Content-Type' : 'application/json'},
-                data = json.dumps(data))
-        response = urllib2.urlopen(request)
-        return json.loads(response.read())
-
-    def get_libraries(self):
-        return self._get("/api/libraries")
-
-    def show_library(self, library_id):
-        return self._get("/api/libraries/%s" % library_id)
-
-    def create_library(self, name, descr="", synopsis=""):
-        return self._post("/api/libraries", data = dict(name=name,
-            description=descr, synopsis=synopsis))
-
-    def library_contents(self, library_id):
-        return self._get("/api/libraries/%s/contents" % library_id)
-
-    def create_folder(self, library_id, parent_folder_id, name, descr=""):
-        return self._post("/api/libraries/%s/contents" % library_id,
-                data=dict(create_type="folder", folder_id=parent_folder_id,
-                          name=name, description=descr))
-
-    def show_folder(self, library_id, folder_id):
-        return self._get("/api/libraries/%s/contents/%s" % (library_id,
-            folder_id))
-
-    def upload_directory(self, library_id, folder_id, directory, dbkey,
-            access_role='', file_type='auto', link_data_only=True):
-        """Upload a directory of files with a specific type to Galaxy.
-        """
-        return self._post("/api/libraries/%s/contents" % library_id,
-                data=dict(create_type='file', upload_option='upload_directory',
-                    folder_id=folder_id, server_dir=directory,
-                    dbkey=dbkey, roles=str(access_role),
-                    file_type=file_type, link_data_only=str(link_data_only)))
-
-    def run_details(self, run):
-        """Next Gen LIMS specific API functionality.
-        """
-        return self._get("/nglims/api_run_details", dict(run=run))
 
 if __name__ == "__main__":
     main(*sys.argv[1:])
