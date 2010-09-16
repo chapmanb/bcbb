@@ -23,13 +23,14 @@ repo.installer <- function(repos, install.fn) {
 
 # standard packages
 std.pkgs <- c("ggplot2", "rjson", "sqldf", "NMF", "caTools", "ape", "snowfall",
-	      "multicore")
+	      "multicore", "mclust")
 std.installer = repo.installer(cran.repos, install.packages)
 lapply(std.pkgs, std.installer)
 # bioconductor packages
-bioc.pkgs <- c("Biostrings", "ShortRead", "BSgenome", "edgeR", "GEOquery", 
+bioc.pkgs <- c("Biostrings", "ShortRead", "BSgenome", "edgeR", "GEOquery",
 	       "GOstats", "rtracklayer", "biomaRt", "Rsamtools", "PICS", "MotIV", 
 	       "rGADEM", "GO.db", "KEGG.db", "org.Hs.eg.db", "org.Mm.eg.db")
+bioc.pkgs <- c("biomaRt", "GEOquery", "GOstats")
 bioc.installer = repo.installer(biocinstallRepos(), biocLite)
 lapply(bioc.pkgs, bioc.installer)
 
