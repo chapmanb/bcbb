@@ -5,6 +5,7 @@
 
 distributed:
   - mahout
+  - pydoop
 java:
   - leinengin
   - cljr

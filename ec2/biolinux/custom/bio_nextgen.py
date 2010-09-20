@@ -93,13 +93,12 @@ def install_bfast(env):
     vext = "e"
     url = "http://downloads.sourceforge.net/project/bfast/bfast/%s/bfast-%s%s.tar.gz"\
             % (version, version, vext)
-    install_dir = os.path.join(env.system_install, "bin")
     with _make_tmp_dir() as work_dir:
         with cd(work_dir):
             run("wget %s" % (url))
             run("tar -xzvpf %s" % (os.path.split(url)[-1]))
             with cd("bfast-%s%s" % (version, vext)):
-                run("./configure --prefix=%s" % (install_dir))
+                run("./configure --prefix=%s" % (env.system_install))
                 run("make")
                 sudo("make install")
 

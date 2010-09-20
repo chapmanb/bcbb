@@ -35,7 +35,8 @@ def ec2_ubuntu_environment():
     # be included in the path by default.
     env.local_install = "install"
     env.shell = "/bin/bash -l -c"
-    env.boot_script_dir = "/etc/init.d"
+    # XXX look for a way to find JAVA_HOME automatically
+    env.java_home = "/usr/lib/jvm/java-6-openjdk"
     env.std_sources = [
       "deb http://us.archive.ubuntu.com/ubuntu/ lucid universe",
       "deb-src http://us.archive.ubuntu.com/ubuntu/ lucid universe",
@@ -303,8 +304,9 @@ def _freenx_scripts():
     setup_script = "setupnx.sh"
     remote_setup = "%s/bin/%s" % (env.system_install, setup_script)
     if not exists(remote_setup):
-        put(os.path.join('installed_files', setup_script), remote_setup,
+        put(os.path.join('installed_files', setup_script), setup_script,
                 mode=0777)
+        sudo("mv %s %s" % (setup_script, remote_setup))
     remote_login = "~/.bash_login"
     if not exists(remote_login):
         put(os.path.join('installed_files', 'bash_login'), remote_login,
