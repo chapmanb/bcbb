@@ -5,7 +5,7 @@
 # want to enable NX functionality.
 
 flagfile=~/.nx_setup_done
-setupscript=~/setupnx.sh
+setupscript=setupnx.sh
 cont=yes
 
 # Do I go ahead?

@@ -68,7 +68,7 @@ def install_biolinux():
     _apt_packages(pkg_install)
     _custom_installs(pkg_install)
     _do_library_installs(lib_install)
-    _boot_scripts()
+    _freenx_scripts()
     _cleanup()
 
 def _apt_packages(to_install):
@@ -297,15 +297,18 @@ def _setup_sources():
         elif not contains(source, env.sources_file):
             append(source, env.sources_file, use_sudo=True)
 
-def _boot_scripts():
-    """Provide scripts to configure behavior on booting.
+def _freenx_scripts():
+    """Provide graphical access to clients via FreeNX.
     """
-    # setup an optional password to allow FreeNX access to the desktop
-    user_script = 'biolinux_freenx_user'
-    final_file = env.boot_script_dir + "/" + user_script
-    if not exists(final_file):
-        put('installed_files/create_freenx_user.sh', user_script, mode=0777)
-        sudo('mv %s %s' % (user_script, final_file))
+    setup_script = "setupnx.sh"
+    remote_setup = "%s/bin/%s" % (env.system_install, setup_script)
+    if not exists(remote_setup):
+        put(os.path.join('installed_files', setup_script), remote_setup,
+                mode=0777)
+    remote_login = "~/.bash_login"
+    if not exists(remote_login):
+        put(os.path.join('installed_files', 'bash_login'), remote_login,
+                mode=0777)
 
 def _cleanup():
     """Clean up any extra files after building.
@@ -313,3 +316,4 @@ def _cleanup():
     run("rm -f $HOME/.bash_history")
     sudo("rm -f /var/crash/*")
     sudo("rm -f /var/log/firstboot.done")
+    sudo("rm -f $HOME/.nx_setup_done")

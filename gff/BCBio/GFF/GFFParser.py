@@ -444,6 +444,7 @@ class _AbstractMapReduceGFF:
             for rec_id, cur_child in cur_children:
                 cur_child, children = self._add_children_to_parent(cur_child,
                         children)
+                cur_parent.location_operator = "join"
                 cur_parent.sub_features.append(cur_child)
             del children[cur_parent.id]
         return cur_parent, children
