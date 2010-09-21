@@ -16,6 +16,7 @@ import csv
 import subprocess
 import contextlib
 import multiprocessing
+import tempfile
 import xml.parsers.expat
 
 import yaml
@@ -33,25 +34,28 @@ def main(org_config_file, config_file):
         org_config = yaml.load(in_handle)
     if not os.path.exists(config['work_dir']):
         os.makedirs(config['work_dir'])
-    (_, db_refs) = get_org_dbs(config['db_dir'], org_config['target_org'])
+    (_, org_names, db_refs) = get_org_dbs(config['db_dir'],
+            org_config['target_org'])
     id_file, score_file = setup_output_files(org_config['target_org'],
-            [r[0] for r in db_refs])
+            org_names)
     file_info = [id_file, score_file]
     pool = multiprocessing.Pool(int(config['num_cores']))
     with open(org_config['search_file']) as in_handle:
-        pool.map(_process_wrapper, ((config, org_config, i, rec, db_refs, file_info)
-            for (i, rec) in enumerate(SeqIO.parse(in_handle, "fasta"))))
+        pool.map(_process_wrapper,
+                ((rec, db_refs, file_info, config['work_dir'])
+                    for rec in SeqIO.parse(in_handle, "fasta")))
 
-def process_blast(config, org_config, i, rec, db_refs, file_info):
-    cur_id = _normalize_id(rec.id)
-    id_info = [cur_id]
-    score_info = [cur_id]
-    for xorg, xdb in db_refs:
-        with _blast_filenames(config, org_config, xorg, i) as (in_file, out_file):
-            SeqIO.write([rec], in_file, "fasta")
-            out_id, out_eval = compare_by_blast(in_file, xdb, out_file)
-            id_info.append(out_id)
-            score_info.append(out_eval)
+def _process_wrapper(args):
+    try:
+        return process_blast(*args)
+    except KeyboardInterrupt:
+        raise Exception
+
+def process_blast(rec, db_refs, file_info, tmp_dir):
+    """Run a BLAST writing results to shared files.
+    """
+    id_info, score_file = blast_to_databases(rec.id, rec.format("fasta"),
+            db_refs, tmp_dir)
     with fupdate_lock:
         id_file, score_file = file_info
         for fname, fvals in [(id_file, id_info), (score_file, score_info)]:
@@ -60,11 +64,20 @@ def process_blast(config, org_config, i, rec, db_refs, file_info):
                 writer.writerow(fvals)
         print cur_id
 
-def _process_wrapper(args):
-    try:
-        return process_blast(*args)
-    except KeyboardInterrupt:
-        raise Exception
+def blast_to_databases(key, rec, db_refs, tmp_dir):
+    """BLAST a fasta record against multiple DBs, returning top IDs and scores.
+    """
+    cur_id = _normalize_id(key, )
+    id_info = [cur_id]
+    score_info = [cur_id]
+    for xref_db in db_refs:
+        with _blast_filenames(tmp_dir) as (in_file, out_file):
+            with open(in_file, "w") as out_handle:
+                out_handle.write(rec)
+            out_id, out_eval = compare_by_blast(in_file, xref_db, out_file)
+            id_info.append(out_id)
+            score_info.append(out_eval)
+    return id_info, score_info
 
 def compare_by_blast(input_ref, xref_db, blast_out):
     """Compare all genes in an input file to the output database.
@@ -93,6 +106,7 @@ def get_org_dbs(db_dir, target_org):
     """Retrieve references to fasta and BLAST databases for included organisms.
     """
     fasta_ref = None
+    org_names = []
     db_refs = []
     with open(os.path.join(db_dir, "organism_dbs.txt")) as org_handle:
         for line in org_handle:
@@ -101,9 +115,10 @@ def get_org_dbs(db_dir, target_org):
                 if org == target_org:
                     assert fasta_ref is None
                     fasta_ref = os.path.join(db_dir, "%s.fa" % db)
-                db_refs.append((org, os.path.join(db_dir, db)))
+                org_names.append(org)
+                db_refs.append(os.path.join(db_dir, db))
     assert fasta_ref is not None, "Did not find base organism database"
-    return fasta_ref, db_refs
+    return fasta_ref, org_names, db_refs
 
 def setup_output_files(target_org, cmp_orgs):
     base = target_org.replace(" ", "_")
@@ -117,16 +132,16 @@ def setup_output_files(target_org, cmp_orgs):
     return id_file, eval_file
 
 @contextlib.contextmanager
-def _blast_filenames(config, org_config, xorg, i):
+def _blast_filenames(tmp_dir):
     """Create files needed for blast and cleanup on closing.
     """
-    base_name = "%s_%s_%s" % (org_config['target_org'].replace(" ", "_"),
-                              xorg.replace(" ", "_"), i)
-    in_file = os.path.join(config['work_dir'], "%s-in.fa" % base_name)
-    out_file = os.path.join(config['work_dir'], "%s-out.blast" % base_name)
+    (fd1, in_file) = tempfile.mkstemp(prefix="in", dir=tmp_dir)
+    (fd2, out_file) = tempfile.mkstemp(prefix="out", dir=tmp_dir)
     try:
         yield (in_file, out_file)
     finally:
+        os.close(fd1)
+        os.close(fd2)
         for fname in [in_file, out_file]:
             if os.path.exists(fname):
                 os.remove(fname)

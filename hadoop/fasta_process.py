@@ -9,7 +9,6 @@ logging.basicConfig(level=logging.DEBUG)
 
 from pydoop.pipes import Mapper, Reducer, Factory, runTask
 from pydoop.pipes import RecordReader, InputSplit, RecordWriter
-
 from pydoop.hdfs import hdfs
 from pydoop.utils import split_hdfs_path
 
