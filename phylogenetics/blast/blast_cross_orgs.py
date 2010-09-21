@@ -54,7 +54,7 @@ def _process_wrapper(args):
 def process_blast(rec, db_refs, file_info, tmp_dir):
     """Run a BLAST writing results to shared files.
     """
-    id_info, score_file = blast_to_databases(rec.id, rec.format("fasta"),
+    id_info, score_info = blast_to_databases(rec.id, rec.format("fasta"),
             db_refs, tmp_dir)
     with fupdate_lock:
         id_file, score_file = file_info
@@ -62,7 +62,7 @@ def process_blast(rec, db_refs, file_info, tmp_dir):
             with open(fname, "a") as out_handle:
                 writer = csv.writer(out_handle, dialect='excel-tab')
                 writer.writerow(fvals)
-        print cur_id
+        print id_info[0]
 
 def blast_to_databases(key, rec, db_refs, tmp_dir):
     """BLAST a fasta record against multiple DBs, returning top IDs and scores.
