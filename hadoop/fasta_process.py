@@ -2,8 +2,9 @@
 """Process a fasta file through Hadoop one record at a time.
 """
 import sys, os, logging, struct
+import tempfile
 import subprocess
-import StringIO
+import contextlib
 logging.basicConfig(level=logging.DEBUG)
 
 from pydoop.pipes import Mapper, Reducer, Factory, runTask
@@ -15,29 +16,36 @@ from pydoop.utils import split_hdfs_path
 from Bio import SeqIO
 from Bio.Blast.Applications import NcbiblastnCommandline
 from Bio.Blast import NCBIXML
-from Bio import SeqUtils
+
+def top_blast_result(fasta_str, config):
+    """Retrieve the top BLAST hit for a fasta record.
+    """
+    tmp_dir = config.get("job.local.dir")
+    xref_db = config.get("fasta.blastdb")
+    with tmpfile(prefix="in", dir=tmp_dir) as input_ref:
+        with tmpfile(prefix="out", dir=tmp_dir) as blast_out:
+            with open(input_ref, "w") as out_handle:
+                out_handle.write(fasta_str)
+
+            cl = NcbiblastnCommandline(query=input_ref, db=xref_db,
+                    out=blast_out, outfmt=5, num_descriptions=1,
+                    num_alignments=0)
+            subprocess.check_call(str(cl).split())
+            with open(blast_out) as blast_handle:
+                rec = NCBIXML.read(blast_handle)
+            xref = (rec.descriptions[0].title if len(rec.descriptions) > 0
+                    else "nohit")
+    return str(xref)
 
 class FastaMapper(Mapper):
     def map(self, context):
-        k = context.getInputKey()
-        #record = SeqIO.read(StringIO.StringIO(context.getInputValue()), "fasta")
-        #context.emit(k, "%.1f" % SeqUtils.GC(record.seq))
         jc = context.getJobConf()
-        tmp_dir = jc.get("job.local.dir")
-        input_ref = os.path.join(tmp_dir, "input.fa")
-        blast_out = os.path.join(tmp_dir, "blast-out.xml")
-        with open(input_ref, "w") as out_handle:
-            out_handle.write(context.getInputValue())
-        xref_db = jc.get("fasta.blastdb")
-        cl = NcbiblastnCommandline(query=input_ref, db=xref_db, out=blast_out,
-                outfmt=5, num_descriptions=1, num_alignments=0)
-        subprocess.check_call(str(cl).split())
-        with open(blast_out) as blast_handle:
-            rec = NCBIXML.read(blast_handle)
-        xref = rec.descriptions[0].title if len(rec.descriptions) > 0 else "nohit"
-        context.emit(k, str(xref))
+        result = top_blast_result(context.getInputValue(), jc)
+        context.emit(context.getInputKey(), result)
 
 class FastaReducer(Reducer):
+    """Simple reducer that returns a value per input record identifier.
+    """
     def reduce(self, context):
         key = context.getInputKey()
         vals = []
@@ -47,6 +55,8 @@ class FastaReducer(Reducer):
             context.emit(key, vals[0])
 
 class FastaReader(RecordReader):
+    """Return one text FASTA record at a time using Biopython SeqIO iterators.
+    """
     def __init__(self, context):
         super(FastaReader, self).__init__()
         self.logger = logging.getLogger(self.__class__.__name__)
@@ -72,6 +82,17 @@ class FastaReader(RecordReader):
 
     def getProgress(self):
         return 0
+
+@contextlib.contextmanager
+def tmpfile(*args, **kwargs):
+    """Make a tempfile, safely cleaning up file descriptors on completion.
+    """
+    (fd, fname) = tempfile.mkstemp(*args, **kwargs)
+    try:
+        yield fname
+    finally:
+        os.close(fd)
+        os.unlink(fname)
 
 def main(argv):
     runTask(Factory(FastaMapper, FastaReducer,

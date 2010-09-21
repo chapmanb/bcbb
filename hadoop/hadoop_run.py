@@ -41,7 +41,7 @@ def process_output(fs, lfs, out_dir):
         if os.path.basename(fname).startswith('part-'):
             in_handle = fs.open_file(fname)
             for line in in_handle:
-                print line
+                print line,
             in_handle.close()
 
 def setup_hdfs(work_dir, script, in_dir, out_dir, fs, lfs):
