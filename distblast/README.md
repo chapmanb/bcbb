@@ -18,23 +18,25 @@ scripts and publicly available data volumes.
 
 ### Initializing a Hadoop cluster with EC2
 
-Follow [Cloudera script documentation]:
+Follow [Cloudera script documentation][1]:
 
 1. Install script hadoop-ec2
 
-   wget http://archive.cloudera.com/cdh/3/hadoop-0.20.2+320.tar.gz
-   cd hadoop-0.20.2+320/src/contrib/cloud/src/py
-   python setup.py install
+    wget http://archive.cloudera.com/cdh/3/hadoop-0.20.2+320.tar.gz
+    cd hadoop-0.20.2+320/src/contrib/cloud/src/py
+    python setup.py install
 
 2. Create ~/.hadoop-cloud/clusters.cfg describing connection information.
    Use a Amazon machine image (AMI) with the necessary software to
    run your application; for instance CloudBioLinux.
 
 3. Start up the cluster and login:
-   hadoop-ec2 launch-cluster small-cluster 1
-   hadoop-ec2 login small-cluster
+
+    hadoop-ec2 launch-cluster small-cluster 1
+    hadoop-ec2 login small-cluster
 
 4. In AWS console (https://console.aws.amazon.com/ec2/):
+
      - Create data volume from snapshot
      - Attach data volume to head node as /dev/sdf
      In terminal on head node:
@@ -53,18 +55,21 @@ Follow [Cloudera script documentation]:
 [1]: https://wiki.cloudera.com/display/DOC/CDH+Cloud+Scripts
 
 5. Finished, terminate the nodes and remove the cluster:
-   hadoop-ec2 terminate-cluster small-cluster
-   hadoop-ec2 delete-cluster small-cluster
+
+     hadoop-ec2 terminate-cluster small-cluster
+     hadoop-ec2 delete-cluster small-cluster
 
 ### Local hadoop cluster on ubuntu
 
 Follow [installation documentation][2]:
 
 1. Start hadoop
-   sudo -u hadoop bash
-   /usr/lib/hadoop/bin/start-all.sh
 
-2. Running pydoop:
-   `export HADOOP_HOME=/usr/lib/hadoop`
+     sudo -u hadoop bash
+    /usr/lib/hadoop/bin/start-all.sh
+
+2. Running pydoop
+
+    export HADOOP_HOME=/usr/lib/hadoop
 
 [2]: http://www.michael-noll.com/wiki/Running_Hadoop_On_Ubuntu_Linux_(Single-Node_Cluster)
