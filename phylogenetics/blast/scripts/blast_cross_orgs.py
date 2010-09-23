@@ -49,15 +49,15 @@ def _process_wrapper(args):
 def process_blast(rec, db_refs, file_info, tmp_dir):
     """Run a BLAST writing results to shared files.
     """
-    id_info, score_info = blast.blast_top_hits(rec.id, rec.format("fasta"),
+    cur_id, id_info, score_info = blast.blast_top_hits(rec.id, rec.format("fasta"),
             db_refs, tmp_dir)
     with fupdate_lock:
         id_file, score_file = file_info
         for fname, fvals in [(id_file, id_info), (score_file, score_info)]:
             with open(fname, "a") as out_handle:
                 writer = csv.writer(out_handle, dialect='excel-tab')
-                writer.writerow(fvals)
-        print id_info[0]
+                writer.writerow([cur_id] + fvals)
+        print cur_id
 
 def setup_output_files(target_org, cmp_orgs):
     base = target_org.replace(" ", "_")

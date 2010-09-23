@@ -19,41 +19,14 @@ from Bio import SeqIO
 
 from bcbio.phylo import blast
 
-
-from Bio.Blast.Applications import NcbiblastnCommandline
-from Bio.Blast import NCBIXML
-
-def top_blast_result(cur_id, fasta_str, xref_dbs, tmp_dir):
-    """Retrieve the top BLAST hit for a fasta record.
-    """
-    xrefs = [cur_id]
-    scores = [cur_id]
-    with tmpfile(prefix="in", dir=tmp_dir) as input_ref:
-        for xref_db in xref_dbs:
-            with tmpfile(prefix="out", dir=tmp_dir) as blast_out:
-                with open(input_ref, "w") as out_handle:
-                    out_handle.write(fasta_str)
-
-                cl = NcbiblastnCommandline(query=input_ref, db=xref_db,
-                        out=blast_out, outfmt=5, num_descriptions=1,
-                        num_alignments=0)
-                subprocess.check_call(str(cl).split())
-                with open(blast_out) as blast_handle:
-                    rec = NCBIXML.read(blast_handle)
-                xref = (rec.descriptions[0].title if len(rec.descriptions) > 0
-                        else "nohit")
-                xrefs.append(str(xref))
-    return xrefs, scores
-
 class FastaMapper(Mapper):
     def map(self, context):
-        jc = context.getJobConf()
+        config = context.getJobConf()
         tmp_dir = config.get("job.local.dir")
         xref_dbs = config.get("fasta.blastdb").split(",")
-        ids, scores = blast.blast_top_hits(context.getInputKey(),
+        cur_key, ids, scores = blast.blast_top_hits(context.getInputKey(),
                 context.getInputValue(), xref_dbs, tmp_dir)
-        cur_key = ids[0]
-        cur_val = dict(ids=ids[1:], scores=scores[1:])
+        cur_val = dict(ids=ids, scores=scores)
         context.emit(cur_key, json.dumps(cur_val))
 
 class FastaReducer(Reducer):

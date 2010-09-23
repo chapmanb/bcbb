@@ -34,16 +34,17 @@ def blast_top_hits(key, rec, db_refs, tmp_dir):
     """BLAST a fasta record against multiple DBs, returning top IDs and scores.
     """
     cur_id = _normalize_id(key)
-    id_info = [cur_id]
-    score_info = [cur_id]
-    for xref_db in db_refs:
-        with _blast_filenames(tmp_dir) as (in_file, out_file):
-            with open(in_file, "w") as out_handle:
-                out_handle.write(rec)
-            out_id, out_eval = _compare_by_blast(in_file, xref_db, out_file)
-            id_info.append(out_id)
-            score_info.append(out_eval)
-    return id_info, score_info
+    id_info = []
+    score_info = []
+    with _tmpfile(prefix="in", dir=tmp_dir) as ref_in:
+        with open(ref_in, "w") as out_handle:
+            out_handle.write(rec)
+        for xref_db in db_refs:
+            with _tmpfile(prefix="out", dir=tmp_dir) as blast_out:
+                out_id, out_eval = _compare_by_blast(ref_in, xref_db, blast_out)
+                id_info.append(out_id)
+                score_info.append(out_eval)
+    return cur_id, id_info, score_info
 
 def _compare_by_blast(input_ref, xref_db, blast_out):
     """Compare all genes in an input file to the output database.
@@ -69,16 +70,13 @@ def _normalize_id(id_info):
     return id_info
 
 @contextlib.contextmanager
-def _blast_filenames(tmp_dir):
-    """Create files needed for blast and cleanup on closing.
+def _tmpfile(*args, **kwargs):
+    """Make a tempfile, safely cleaning up file descriptors on completion.
     """
-    (fd1, in_file) = tempfile.mkstemp(prefix="in", dir=tmp_dir)
-    (fd2, out_file) = tempfile.mkstemp(prefix="out", dir=tmp_dir)
+    (fd, fname) = tempfile.mkstemp(*args, **kwargs)
     try:
-        yield (in_file, out_file)
+        yield fname
     finally:
-        os.close(fd1)
-        os.close(fd2)
-        for fname in [in_file, out_file]:
-            if os.path.exists(fname):
-                os.remove(fname)
+        os.close(fd)
+        if os.path.exists(fname):
+            os.remove(fname)

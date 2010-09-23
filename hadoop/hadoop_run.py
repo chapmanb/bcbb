@@ -5,19 +5,36 @@ Uses pydoop to manage interaction with the hadoop HDFS system.
 """
 import os
 import sys
+import csv
+import glob
+import json
+import shutil
 import optparse
 import subprocess
 import contextlib
 
+import yaml
 import pydoop.utils as pu
 from pydoop.hdfs import hdfs
 
-def main(script, in_dir, db_dir, out_dir):
+from bcbio.phylo import blast
+
+def main(script, org_config_file, config_file, in_dir, local_out_dir):
+    with open(config_file) as in_handle:
+        config = yaml.load(in_handle)
+    with open(org_config_file) as in_handle:
+        org_config = yaml.load(in_handle)
+    if os.path.exists(in_dir):
+        shutil.rmtree(in_dir)
+    os.makedirs(in_dir)
+    shutil.copy(org_config["search_file"], in_dir)
+
     job_name = os.path.splitext(os.path.basename(script))[0]
     with _hdfs_filesystem() as (fs, lfs):
         script, in_dir, out_dir = setup_hdfs(job_name, script, in_dir,
-                out_dir, fs, lfs)
-        db_files_str, dbname = setup_db(job_name, db_dir, fs, lfs)
+                local_out_dir, fs, lfs)
+        db_files_str, dbnames, org_names = setup_db(job_name,
+                config['db_dir'], org_config['target_org'], fs, lfs)
         hadoop_opts = {
           "mapred.job.name" : job_name,
           "hadoop.pipes.executable": script,
@@ -27,22 +44,43 @@ def main(script, in_dir, db_dir, out_dir):
           "hadoop.pipes.java.recordwriter": "true",
           "mapred.map.tasks": "2",
           "mapred.reduce.tasks": "2",
-          "fasta.blastdb": dbname
+          "fasta.blastdb": ",".join(dbnames)
           }
 
         cl = ["hadoop", "pipes"] + _cl_opts(hadoop_opts) + [
               "-program", script,
               "-input", in_dir, "-output", out_dir]
         subprocess.check_call(cl)
-        process_output(fs, lfs, out_dir)
+        process_output(fs, lfs, out_dir, local_out_dir,
+                org_config['target_org'], org_names)
 
-def process_output(fs, lfs, out_dir):
-    for fname in (f['name'] for f in fs.list_directory(out_dir)):
-        if os.path.basename(fname).startswith('part-'):
-            in_handle = fs.open_file(fname)
-            for line in in_handle:
-                print line,
-            in_handle.close()
+def process_output(fs, lfs, out_dir, local_out_dir, target_org, org_names):
+    """Convert JSON output into tab delimited score and ID files.
+    """
+    # setup the output files
+    if not os.path.exists(local_out_dir):
+        os.makedirs(local_out_dir)
+    base = target_org.replace(" ", "_")
+    id_file = os.path.join(local_out_dir, "%s-ids.tsv" % base)
+    score_file = os.path.join(local_out_dir, "%s-scores.tsv" % base)
+    with open(id_file, "w") as id_handle:
+        with open(score_file, "w") as score_handle:
+            id_writer = csv.writer(id_handle, dialect="excel-tab")
+            score_writer = csv.writer(score_handle, dialect="excel-tab")
+            header = [""] + org_names
+            id_writer.writerow(header)
+            score_writer.writerow(header)
+            # loop through the hadoop files and reformat each
+            # into tab delimited output
+            for fname in (f['name'] for f in fs.list_directory(out_dir)):
+                if os.path.basename(fname).startswith('part-'):
+                    in_handle = fs.open_file(fname)
+                    for line in in_handle:
+                        cur_id, info = line.split("\t")
+                        data = json.loads(info)
+                        id_writer.writerow([cur_id] + data['ids'])
+                        score_writer.writerow([cur_id] + data['scores'])
+                    in_handle.close()
 
 def setup_hdfs(work_dir, script, in_dir, out_dir, fs, lfs):
     """Add input output and script directories to hdfs.
@@ -60,19 +98,22 @@ def setup_hdfs(work_dir, script, in_dir, out_dir, fs, lfs):
     out_info.append(hdfs_out)
     return out_info
 
-def setup_db(work_dir, db_dir, fs, lfs):
+def setup_db(work_dir, db_dir, target_org, fs, lfs):
     """Copy over BLAST database files, prepping them for map availability.
     """
+    (_, org_names, db_refs) = blast.get_org_dbs(db_dir, target_org)
     work_dir = os.path.join(work_dir, db_dir)
     fs.create_directory(work_dir)
+    db_refs = db_refs
     ref_info = []
     blast_dbs = []
-    for fname in os.listdir(db_dir):
-        blast_dbs.append(os.path.splitext(fname)[0])
-        hdfs_ref = _hdfs_ref(work_dir, fname)
-        lfs.copy(os.path.join(db_dir, fname), fs, hdfs_ref)
-        ref_info.append("%s#%s" % (hdfs_ref, fname))
-    return ",".join(ref_info), list(set(blast_dbs))[0]
+    for db_path in db_refs:
+        blast_dbs.append(os.path.basename(db_path))
+        for fname in glob.glob(db_path + ".[p|n]*"):
+            hdfs_ref = _hdfs_ref(work_dir, fname)
+            lfs.copy(fname, fs, hdfs_ref)
+            ref_info.append("%s#%s" % (hdfs_ref, os.path.basename(hdfs_ref)))
+    return ",".join(ref_info), blast_dbs, org_names
 
 @contextlib.contextmanager
 def _hdfs_filesystem():
