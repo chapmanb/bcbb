@@ -91,6 +91,10 @@ distributed:
   - hadoop-0.20
   - hadoop-pig
   - hadoop-hive
+  - libhdfs0-dev
+  - hadoop-0.20-native
+  - hadoop-0.20-pipes
+  - hadoop-0.20-source
 amazon:
   - s3cmd
   - ec2-ami-tools

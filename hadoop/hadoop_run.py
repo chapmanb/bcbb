@@ -44,6 +44,7 @@ def main(script, org_config_file, config_file, in_dir, local_out_dir):
           "hadoop.pipes.java.recordwriter": "true",
           "mapred.map.tasks": "2",
           "mapred.reduce.tasks": "2",
+          #"mapred.task.timeout": "60000", # useful for debugging
           "fasta.blastdb": ",".join(dbnames)
           }
 
