@@ -5,17 +5,14 @@ import os
 from fabric.api import *
 from fabric.contrib.files import *
 
-from shared import _if_not_installed, _make_tmp_dir
+from shared import _if_not_installed, _make_tmp_dir, _if_not_python_lib
 
+@_if_not_python_lib("pydoop")
 def install_pydoop(env):
     """Install pydoop; provides Hadoop access for Python.
 
     http://pydoop.sourceforge.net/docs/installation.html
     """
-    with settings(warn_only=True):
-        result = run("python -c 'import pydoop'")
-    if not result.failed:
-        return
     hadoop_version = "0.20.2"
     pydoop_version = "0.3.6"
     hadoop_url = "http://apache.thelorne.com/hadoop/core/" \

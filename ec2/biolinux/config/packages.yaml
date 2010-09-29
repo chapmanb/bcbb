@@ -30,6 +30,7 @@ desktop:
   - gnome-terminal
   - firefox
   - cloudbl-desktop
+  - bio-linux-tutorials
 programming:
   editors:
     - emacs

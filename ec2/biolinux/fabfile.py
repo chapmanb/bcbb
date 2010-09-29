@@ -67,8 +67,8 @@ def install_biolinux():
     _setup_automation()
     _add_gpg_keys()
     _apt_packages(pkg_install)
-    _custom_installs(pkg_install)
     _do_library_installs(lib_install)
+    _custom_installs(pkg_install)
     _freenx_scripts()
     _cleanup()
 
@@ -319,3 +319,10 @@ def _cleanup():
     sudo("rm -f /var/crash/*")
     sudo("rm -f /var/log/firstboot.done")
     sudo("rm -f $HOME/.nx_setup_done")
+    # RabbitMQ fails to start if its database is embedded into the image
+    # because it saves the current IP address or host name so delete it now.
+    # When starting up, RabbitMQ will recreate that directory.
+    sudo('/etc/init.d/rabbitmq-server stop')
+    for db_location in ['/var/lib/rabbitmq/mnesia', '/mnesia']:
+        if exists(db_location):
+            sudo('rm -rf %s' % db_location)
