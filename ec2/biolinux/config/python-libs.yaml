@@ -2,6 +2,7 @@
 # Configuration file defining python specific libraries on pypi to install
 # using easy install
 pypi:
+  - cython
   - biopython
   - cogent
   - DendroPy
@@ -19,7 +20,4 @@ pypi:
 # Pulls the wrong file and then can't install automatically
 #  - pygr
 # Should get into pypi
-#  - pysam
 #  - rpy
-# Needs additional files to work correctly.
-#  - bx-python 

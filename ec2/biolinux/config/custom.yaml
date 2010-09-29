@@ -20,3 +20,6 @@ bio_nextgen:
     - ucsc_tools
     - bfast
     - novoalign
+python:
+  - pysam
+  - bx_python

@@ -30,14 +30,13 @@ def install_ucsc_tools(env):
 def install_bowtie(env):
     """Install the bowtie short read aligner.
     """
-    version = "0.12.5"
-    mirror_info = "?use_mirror=cdnetworks-us-1"
+    version = "0.12.7"
     url = "http://downloads.sourceforge.net/project/bowtie-bio/bowtie/%s/" \
           "bowtie-%s-src.zip" % (version, version)
     install_dir = os.path.join(env.system_install, "bin")
     with _make_tmp_dir() as work_dir:
         with cd(work_dir):
-            run("wget %s%s" % (url, mirror_info))
+            run("wget %s" % (url))
             run("unzip %s" % os.path.split(url)[-1])
             with cd("bowtie-%s" % version):
                 run("make")
@@ -46,14 +45,13 @@ def install_bowtie(env):
 
 @_if_not_installed("bwa")
 def install_bwa(env):
-    version = "0.5.7"
-    mirror_info = "?use_mirror=cdnetworks-us-1"
+    version = "0.5.8a"
     url = "http://downloads.sourceforge.net/project/bio-bwa/bwa-%s.tar.bz2" % (
             version)
     install_dir = os.path.join(env.system_install, "bin")
     with _make_tmp_dir() as work_dir:
         with cd(work_dir):
-            run("wget %s%s" % (url, mirror_info))
+            run("wget %s" % (url))
             run("tar -xjvpf %s" % (os.path.split(url)[-1]))
             with cd("bwa-%s" % version):
                 arch = run("uname -m")
@@ -148,7 +146,7 @@ def _symlinked_java_version_dir(pname, version):
     return None
 
 def install_picard(env):
-    version = "1.29"
+    version = "1.31"
     url = "http://downloads.sourceforge.net/project/picard/" \
           "picard-tools/%s/picard-tools-%s.zip" % (version, version)
     install_dir = _symlinked_java_version_dir("picard", version)
@@ -161,7 +159,7 @@ def install_picard(env):
                     sudo("mv *.jar %s" % install_dir)
 
 def install_gatk(env):
-    version = "1.0.4013"
+    version = "1.0.4168"
     ext = ".tar.bz2"
     url = "ftp://ftp.broadinstitute.org/pub/gsa/GenomeAnalysisTK/"\
           "GenomeAnalysisTK-%s%s" % (version, ext)
