@@ -30,6 +30,7 @@ desktop:
   - gnome-terminal
   - firefox
   - cloudbl-desktop
+  - bio-linux-tutorials
 programming:
   editors:
     - emacs
@@ -57,6 +58,7 @@ programming:
     - xfsprogs
     - libc6-dev
     - libzip-dev
+    - libbz2-dev
     - libgtk2.0-dev
     - libncurses5-dev
     - zlib1g-dev
@@ -90,6 +92,10 @@ distributed:
   - hadoop-0.20
   - hadoop-pig
   - hadoop-hive
+  - libhdfs0-dev
+  - hadoop-0.20-native
+  - hadoop-0.20-pipes
+  - hadoop-0.20-source
 amazon:
   - s3cmd
   - ec2-ami-tools

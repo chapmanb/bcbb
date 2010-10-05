@@ -20,6 +20,18 @@ def _if_not_installed(pname):
         return decorator
     return argcatcher
 
+def _if_not_python_lib(library):
+    """Decorator that checks if a python library is installed.
+    """
+    def argcatcher(func):
+        def decorator(*args, **kwargs):
+            with settings(warn_only=True):
+                result = run("python -c 'import %s'" % library)
+            if result.failed:
+                return func(*args, **kwargs)
+        return decorator
+    return argcatcher
+
 @contextmanager
 def _make_tmp_dir():
     home_dir = run("echo $HOME")

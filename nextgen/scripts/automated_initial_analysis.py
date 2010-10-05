@@ -51,6 +51,7 @@ import yaml
 from bcbio.solexa.flowcell import (get_flowcell_info, get_fastq_dir)
 from bcbio.galaxy.api import GalaxyApiAccess
 from bcbio.picard.metrics import PicardMetricsParser
+from bcbio.picard import utils
 
 def main(config_file, fc_dir):
     work_dir = os.getcwd()
@@ -59,10 +60,11 @@ def main(config_file, fc_dir):
     galaxy_api = GalaxyApiAccess(config['galaxy_url'], config['galaxy_api_key'])
     fc_name, fc_date = get_flowcell_info(fc_dir)
     run_info = galaxy_api.run_details(fc_name)
-    all_lanes = [i['lane'] for i in run_info["details"]]
-    print "Generating fastq files"
-    short_fc_name = "%s_%s" % (fc_date, fc_name)
-    fastq_dir = generate_fastq(fc_dir, short_fc_name, all_lanes)
+    fastq_dir = get_fastq_dir(fc_dir)
+    #print "Generating fastq files"
+    #all_lanes = [i['lane'] for i in run_info["details"]]
+    #short_fc_name = "%s_%s" % (fc_date, fc_name)
+    #fastq_dir = generate_fastq(fc_dir, short_fc_name, all_lanes)
     if config["algorithm"]["num_cores"] > 1:
         pool = Pool(config["algorithm"]["num_cores"])
         try:
@@ -105,6 +107,7 @@ def process_lane(info, fastq_dir, fc_name, fc_date, config, config_file):
     print info['lane'], "Converting to sorted BAM file"
     base_bam, sort_bam = sam_to_sort_bam(sam_file, sam_ref, fastq1, fastq2,
             sample_name, config_file)
+    bam_to_wig(sort_bam, config, config_file)
     if config["algorithm"]["recalibrate"]:
         print info['lane'], "Recalibrating with GATK"
         dbsnp_file = get_dbsnp_file(sam_ref)
@@ -129,14 +132,14 @@ def _process_wrapper(args):
     except KeyboardInterrupt:
         raise Exception
 
-def generate_fastq(fc_dir, fc_name, all_lanes):
-    fastq_dir = get_fastq_dir(fc_dir)
-    if not fastq_dir == fc_dir and not os.path.exists(fastq_dir):
-        with _chdir(os.path.split(fastq_dir)[0]):
-            cl = ["solexa_qseq_to_fastq.py", fc_name,
-                    ",".join(str(l) for l in all_lanes)]
-            subprocess.call(cl)
-    return fastq_dir
+#def generate_fastq(fc_dir, fc_name, all_lanes):
+#    fastq_dir = get_fastq_dir(fc_dir)
+#    if not fastq_dir == fc_dir and not os.path.exists(fastq_dir):
+#        with utils.chdir(os.path.split(fastq_dir)[0]):
+#            cl = ["solexa_qseq_to_fastq.py", fc_name,
+#                    ",".join(str(l) for l in all_lanes)]
+#            subprocess.check_call(cl)
+#    return fastq_dir
 
 def bowtie_to_sam(fastq_file, pair_file, ref_file, out_base, config):
     """Before a standard or paired end alignment with bowtie.
@@ -222,9 +225,17 @@ def sam_to_sort_bam(sam_file, ref_file, fastq1, fastq2, sample_name,
             config_file, sam_file, ref_file, fastq1]
     if fastq2:
         cl.append(fastq2)
-    child = subprocess.Popen(cl)
-    child.wait()
+    subprocess.check_call(cl)
     return bam_file, sort_bam_file
+
+def bam_to_wig(bam_file, config, config_file):
+    """Provide a BigWig coverage file of the sorted alignments.
+    """
+    wig_file = "%s.bigwig" % os.path.splitext(bam_file)[0]
+    if not os.path.exists(wig_file):
+        cl = [config["analysis"]["towig_script"], bam_file, config_file]
+        subprocess.check_call(cl)
+    return wig_file
 
 def generate_align_summary(bam_file, fastq1, fastq2, sam_ref, config,
         sample_name, do_sort=False):
@@ -242,7 +253,7 @@ def generate_align_summary(bam_file, fastq1, fastq2, sam_ref, config,
         cl.append("--target=%s" % os.path.join(base_dir, target))
     if do_sort:
         cl.append("--sort")
-    subprocess.call(cl)
+    subprocess.check_call(cl)
 
 def recalibrate_quality(bam_file, sam_ref, dbsnp_file, picard_dir):
     """Recalibrate alignments with GATK and provide pdf summary.
@@ -250,7 +261,7 @@ def recalibrate_quality(bam_file, sam_ref, dbsnp_file, picard_dir):
     cl = ["picard_gatk_recalibrate.py", picard_dir, sam_ref, bam_file]
     if dbsnp_file:
         cl.append(dbsnp_file)
-    subprocess.call(cl)
+    subprocess.check_call(cl)
     out_file = glob.glob("%s*gatkrecal.bam" % os.path.splitext(bam_file)[0])[0]
     return out_file
 
@@ -260,7 +271,7 @@ def run_genotyper(bam_file, ref_file, dbsnp_file, config_file):
     cl = ["gatk_genotyper.py", config_file, ref_file, bam_file]
     if dbsnp_file:
         cl.append(dbsnp_file)
-    subprocess.call(cl)
+    subprocess.check_call(cl)
 
 def get_dbsnp_file(sam_ref):
     snp_file = None
@@ -275,7 +286,7 @@ def analyze_recalibration(recal_file, fastq1, fastq2):
     cl = ["analyze_quality_recal.py", recal_file, fastq1]
     if fastq2:
         cl.append(fastq2)
-    subprocess.call(cl)
+    subprocess.check_call(cl)
 
 def get_fastq_files(directory, lane, fc_name):
     """Retrieve fastq files for the given lane, ready to process.
@@ -289,7 +300,7 @@ def get_fastq_files(directory, lane, fc_name):
     for fname in files:
         if fname.endswith(".gz"):
             cl = ["gunzip", fname]
-            subprocess.call(cl)
+            subprocess.check_call(cl)
             ready_files.append(os.path.splitext(fname)[0])
         else:
             ready_files.append(fname)
@@ -428,19 +439,6 @@ def _update_config_w_custom(config, lane_info):
         for key, val in custom.iteritems():
             config["algorithm"][key] = val
     return config
-
-@contextlib.contextmanager
-def _chdir(new_dir):
-    """Context manager to temporarily change to a new directory.
-
-    http://lucentbeing.com/blog/context-managers-and-the-with-statement-in-python/
-    """
-    cur_dir = os.getcwd()
-    os.chdir(new_dir)
-    try :
-        yield
-    finally :
-        os.chdir(cur_dir)
 
 if __name__ == "__main__":
     parser = OptionParser()
