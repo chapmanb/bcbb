@@ -31,6 +31,14 @@ def amazon_ec2():
     env.galaxy_base = env.data_files + '/galaxy'
     env.shell = "/bin/bash -l -c"
 
+def local_server():
+    """Example setup for a local (non-cloud) server.
+    """
+    env.user = 'chapman'
+    env.data_files = '/source/galaxy'
+    env.galaxy_base = os.path.join(env.data_files, 'web')
+    env.shell = "/usr/bin/zsh -l -i -c"
+
 # -- Configuration for genomes to download and prepare
 
 class _DownloadHelper:
@@ -145,11 +153,31 @@ class EnsemblGenome(_DownloadHelper):
             raise NotImplementedError("Replace with chr")
         return genome_file, [self._get_file]
 
+class BroadGenome(_DownloadHelper):
+    """Retrieve genomes organized and sorted by Broad for use with GATK.
+    """
+    def __init__(self, target_fasta):
+        self._target = target_fasta
+        self._resource_url = "ftp://ftp.broadinstitute.org/pub/gsa/gatk_resources.tgz"
+        self._resource_dir = "resources"
+
+    def download(self, seq_dir):
+        base_gzip = os.path.basename(self._resource_url)
+        if not self._exists(base_gzip, seq_dir):
+            run("wget %s" % self._resource_url)
+        if not self._exists(self._target, seq_dir):
+            run("tar -xzvpf %s" % base_gzip)
+            run("mv %s/%s ." % (self._resource_dir, self._target))
+            run("rm -rf %s" % (self._resource_dir))
+        return self._target, [base_gzip]
+
 genomes = [
            ("phiX174", "phix", NCBIRest("phix", ["NC_001422.1"])),
            ("Scerevisiae", "sacCer2", UCSCGenome("sacCer2")),
            ("Mmusculus", "mm9", UCSCGenome("mm9")),
+           ("Mmusculus", "mm8", UCSCGenome("mm8")),
            ("Hsapiens", "hg18", UCSCGenome("hg18")),
+           ("Hsapiens", "hg18-broad", BroadGenome("Homo_sapiens_assembly18.fasta")),
            ("Hsapiens", "hg19", UCSCGenome("hg19")),
            ("Rnorvegicus", "rn4", UCSCGenome("rn4")),
            ("Xtropicalis", "xenTro2", UCSCGenome("xenTro2")),
@@ -183,6 +211,7 @@ def install_data():
     """Main entry point for installing useful biological data.
     """
     amazon_ec2()
+    #local_server()
     _data_uniref()
     _data_ngs_genomes()
     _data_liftover()
@@ -353,6 +382,10 @@ def _index_novoalign(ref_file):
         run("mkdir %s" % dir_name)
         with cd(dir_name):
             run("novoindex %s %s" % (index_name, ref_file))
+    _index_novoalign_cs(ref_file, dir_name)
+
+@_if_installed("novoalignCS")
+def _index_novoalign_cs(ref_file, dir_name):
     color_dir = os.path.join(dir_name, "colorspace")
     ref_file = os.path.join(os.pardir, ref_file)
     if not exists(color_dir):
