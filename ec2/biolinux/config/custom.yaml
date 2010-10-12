@@ -5,6 +5,7 @@
 
 distributed:
   - mahout
+  - pydoop
 java:
   - leinengin
   - cljr
@@ -19,3 +20,6 @@ bio_nextgen:
     - ucsc_tools
     - bfast
     - novoalign
+python:
+  - pysam
+  - bx_python
