@@ -63,11 +63,13 @@ img.logo {
   align: left;
 }
 
-#header h1 {
+#container h1 {
 	font:2.7em Arial;
 	letter-spacing:-1px;
 	color:#222;
 	float:left;
+        width: 150px;
+        padding-left: 20px;
         /*
 	padding:30px 20px 14px 45px;
 	background:url(../images/h1.gif) left bottom no-repeat;*/
@@ -88,16 +90,19 @@ img.logo {
 
 #container {
 	clear:both;
-	padding:10px 0 0 0;
+	padding:25px 0 0 0;
 }
 
 p.description {
-	background:url(../images/description.jpg) right bottom no-repeat #005A97;
+	/*background:url(../images/description.jpg) right bottom no-repeat #005A97;#*/
+	background: #005A97;
 	padding:10px 10px 10px 10px;
 	color:#fff;
 	font-size:1.5em;
 	line-height:25px;
 	border-top:4px solid #003C64;
+        float: left;
+        width: 580px;
 }
 p.description a {
 	color:#fff;
@@ -114,13 +119,13 @@ p.description a:hover {
 	float:right;
 /*	background:url(../images/sidebar.jpg) top right no-repeat #fff; */
 	padding:10px 20px 10px 10px;
-	margin:30px 0 0 0;
+	margin:15px 0 0 0;
 }
 
 #content {
 	margin:0 160px 0 5px;
-	padding:10px 20px 0 0;
-	background:url(../images/content.jpg) top right no-repeat;
+	padding:30px 20px 0 0;
+	/*background:url(../images/content.jpg) top right no-repeat;*/
 }
 
 #content h2 {
