@@ -23,6 +23,7 @@ import socket
 import glob
 import getpass
 import subprocess
+from optparse import OptionParser
 
 import yaml
 from amqplib import client_0_8 as amqp
@@ -30,13 +31,13 @@ from amqplib import client_0_8 as amqp
 from bcbio.picard import utils
 from bcbio.solexa.flowcell import (get_flowcell_info, get_fastq_dir)
 
-def main(galaxy_config, local_config):
+def main(galaxy_config, local_config, process_msg=True, store_msg=True):
     amqp_config = _read_amqp_config(galaxy_config)
     with open(local_config) as in_handle:
         config = yaml.load(in_handle)
-    search_for_new(config, amqp_config)
+    search_for_new(config, amqp_config, process_msg, store_msg)
 
-def search_for_new(config, amqp_config):
+def search_for_new(config, amqp_config, process_msg, store_msg):
     """Search for any new directories that have not been reported.
     """
     reported = _read_reported(config["msg_db"])
@@ -44,27 +45,52 @@ def search_for_new(config, amqp_config):
         if os.path.isdir(dname) and dname not in reported:
             if _is_finished_dumping(dname):
                 _update_reported(config["msg_db"], dname)
-                _generate_fastq(dname)
+                _generate_fastq(dname, config)
                 store_files, process_files = _files_to_copy(dname)
-                finished_message(config["msg_process_tag"], dname,
-                        process_files, amqp_config)
-                finished_message(config["msg_store_tag"], dname,
-                        store_files, amqp_config)
+                if process_msg:
+                    finished_message(config["msg_process_tag"], dname,
+                            process_files, amqp_config)
+                if store_msg:
+                    finished_message(config["msg_store_tag"], dname,
+                            store_files, amqp_config)
 
-def _generate_fastq(fc_dir):
+def _generate_fastq(fc_dir, config):
     """Generate fastq files for the current flowcell.
     """
     fc_name, fc_date = get_flowcell_info(fc_dir)
     short_fc_name = "%s_%s" % (fc_date, fc_name)
     fastq_dir = get_fastq_dir(fc_dir)
+    basecall_dir = os.path.split(fastq_dir)[0]
     if not fastq_dir == fc_dir and not os.path.exists(fastq_dir):
-        with utils.chdir(os.path.split(fastq_dir)[0]):
+        _generate_qseq(basecall_dir, config)
+        with utils.chdir(basecall_dir):
             lanes = sorted(list(set([f.split("_")[1] for f in
                 glob.glob("*qseq.txt")])))
             cl = ["solexa_qseq_to_fastq.py", short_fc_name,
                     ",".join(lanes)]
             subprocess.check_call(cl)
     return fastq_dir
+
+def _generate_qseq(bc_dir, config):
+    """Generate qseq files from illumina bcl files if not present.
+
+    More recent Illumina updates do not produce qseq files. These can be
+    generated from bcl, intensity and filter files with tools from
+    the offline base caller OLB.
+    """
+    qseqs = glob.glob(os.path.join(bc_dir, "*qseq.txt"))
+    if len(qseqs) == 0:
+        cmd = os.path.join(config["program"]["olb"], "bin", "setupBclToQseq.py")
+        cl = [cmd, "-i", bc_dir, "-o", bc_dir, "-p", os.path.split(bc_dir)[0],
+             "--in-place", "--overwrite"]
+        subprocess.check_call(cl)
+        with utils.chdir(bc_dir):
+            try:
+                processors = config["algorithm"]["num_cores"]
+            except KeyError:
+                processors = 8
+            cl = ["make", "-j", str(processors)]
+            subprocess.check_call(cl)
 
 def _is_finished_dumping(directory):
     """Determine if the sequencing directory has all files.
@@ -155,4 +181,11 @@ def _read_amqp_config(galaxy_config):
     return amqp_config
 
 if __name__ == "__main__":
-    main(*sys.argv[1:])
+    parser = OptionParser()
+    parser.add_option("-p", "--noprocess", dest="process_msg",
+            action="store_false", default=True)
+    parser.add_option("-s", "--nostore", dest="store_msg",
+            action="store_false", default=True)
+    (options, args) = parser.parse_args()
+    kwargs = dict(process_msg=options.process_msg, store_msg=options.store_msg)
+    main(*args, **kwargs)
