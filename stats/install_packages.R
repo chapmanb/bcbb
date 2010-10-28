@@ -29,8 +29,9 @@ lapply(std.pkgs, std.installer)
 # bioconductor packages
 bioc.pkgs <- c("Biostrings", "ShortRead", "BSgenome", "edgeR", "GEOquery",
 	       "GOstats", "rtracklayer", "biomaRt", "Rsamtools", "PICS", "MotIV", 
-	       "rGADEM", "GO.db", "KEGG.db", "org.Hs.eg.db", "org.Mm.eg.db")
-bioc.pkgs <- c("biomaRt", "GEOquery", "GOstats")
+	       "rGADEM", "GO.db", "KEGG.db", "org.Hs.eg.db", "org.Mm.eg.db",
+	       "affy", "affydata", "affyio", "celeganscdf", "hgu95av2cdf",
+	       "preprocessCore")
 bioc.installer = repo.installer(biocinstallRepos(), biocLite)
 lapply(bioc.pkgs, bioc.installer)
 

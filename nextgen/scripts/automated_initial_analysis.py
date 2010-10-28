@@ -10,29 +10,9 @@ Usage:
 
 Workflow:
     - Retrieve details on a run.
-    - Generate fastq files.
     - Align fastq files to reference genome.
+    - Perform secondary analyses like SNP calling.
     - Generate summary report.
-
-Other items to potentially add:
-    - Remap quality scores with GATK.
-    - Generate plots of remapped details.
-
-The required elements in the YAML config file are:
-
-galaxy_url: http://galaga/galaxy
-galaxy_api_key: your_api_key
-galaxy_config: /opt/source/galaxy/web/universe_wsgi.ini
-program:
-  bowtie: bowtie
-  samtools: samtools
-  bwa: bwa
-  picard: /source/Picard
-algorithm:
-  aligner: bowtie
-  max_errors: 2
-  num_cores: 8
-  recalibrate: false
 """
 import os
 import sys
@@ -61,10 +41,6 @@ def main(config_file, fc_dir):
     fc_name, fc_date = get_flowcell_info(fc_dir)
     run_info = galaxy_api.run_details(fc_name)
     fastq_dir = get_fastq_dir(fc_dir)
-    #print "Generating fastq files"
-    #all_lanes = [i['lane'] for i in run_info["details"]]
-    #short_fc_name = "%s_%s" % (fc_date, fc_name)
-    #fastq_dir = generate_fastq(fc_dir, short_fc_name, all_lanes)
     if config["algorithm"]["num_cores"] > 1:
         pool = Pool(config["algorithm"]["num_cores"])
         try:
@@ -82,17 +58,90 @@ def main(config_file, fc_dir):
 
 def process_lane(info, fastq_dir, fc_name, fc_date, config, config_file):
     config = _update_config_w_custom(config, info)
-    sample_name = "%s: %s" % (info.get("name", ""),
-                              info.get("description", ""))
-    print "Processing", info["lane"], info["genome_build"], \
+    sample_name = info.get("description", "")
+    if config["algorithm"].get("include_short_name", True):
+        sample_name = "%s : %s" % (info.get("name", ""), sample_name)
+    genome_build = "%s%s" % (info["genome_build"],
+                             config["algorithm"].get("ref_ext", ""))
+    multiplex = info.get("multiplex", None)
+    print "Processing", info["lane"], genome_build, \
             sample_name, info.get("researcher", ""), \
-            info.get("analysis", "")
+            info.get("analysis", ""), multiplex
+    align_ref, sam_ref = get_genome_ref(genome_build,
+            config["algorithm"]["aligner"],
+            os.path.dirname(config["galaxy_config"]))
+    full_fastq1, full_fastq2 = get_fastq_files(fastq_dir, info['lane'], fc_name)
     lane_name = "%s_%s_%s" % (info['lane'], fc_date, fc_name)
+    for mname, msample, fastq1, fastq2 in split_by_barcode(full_fastq1,
+            full_fastq2, multiplex, config):
+        mlane_name = "%s_%s" % (lane_name, mname) if mname else lane_name
+        msample_name = ("%s : %s" % (sample_name, msample) if msample
+                        else sample_name)
+        base_bam, sort_bam = do_alignment(fastq1, fastq2, align_ref, sam_ref,
+                mlane_name, msample_name, config, config_file)
+        bam_to_wig(sort_bam, config, config_file)
+        if config["algorithm"]["recalibrate"]:
+            print info['lane'], "Recalibrating with GATK"
+            dbsnp_file = get_dbsnp_file(config, sam_ref)
+            gatk_bam = recalibrate_quality(base_bam, sam_ref,
+                    dbsnp_file, config["program"]["picard"])
+            print info['lane'], "Analyzing recalibration"
+            analyze_recalibration(gatk_bam, fastq1, fastq2)
+            if config["algorithm"]["snpcall"]:
+                print info['lane'], "Providing SNP genotyping with GATK"
+                run_genotyper(gatk_bam, sam_ref, dbsnp_file, config_file)
+        print info['lane'], "Generating summary files"
+        generate_align_summary(sort_bam, fastq1, fastq2, sam_ref,
+                config, msample_name, config_file)
+
+def _process_wrapper(args):
+    try:
+        return process_lane(*args)
+    except KeyboardInterrupt:
+        raise Exception
+
+def split_by_barcode(fastq1, fastq2, multiplex, config):
+    """Split a fastq file into multiplex pieces using barcode details.
+    """
+    if not multiplex:
+        return ["", "", fastq1, fastq2]
+    bc_dir = os.path.splitext(os.path.basename(fastq1))[0]
+    with utils.chdir(bc_dir):
+        tag_file, tag_size = _make_tag_file(fastq1, multiplex, config)
+        format_map = dict(Illumina="ILMFQ", Sanger="STDFQ")
+        fastq1_local = os.path.basename(fastq1)
+        if not os.path.exists(fastq1_local):
+            os.symlink(fastq1, fastq1_local)
+        cl = [config["program"]["novobarcode"], "-b", tag_file,
+              "-F", format_map[config["algorithm"]["quality_format"]],
+              "-l", str(tag_size),
+              "-f", fastq1_local]
+        if fastq2:
+            fastq2_local = os.path.basename(fastq2)
+            if not os.path.exists(fastq2_local):
+                os.symlink(fastq2, fastq2_local)
+            cl.append(fastq2_local)
+        subprocess.check_call(cl)
+    raise NotImplementedError
+
+def _make_tag_file(fastq1, barcodes, config):
+    """Create NovoBarCode tag input file.
+    """
+    tag_file = "%s-tags.cfg" % os.path.splitext(os.path.basename(fastq1))[0]
+    with open(tag_file, "w") as out_handle:
+        out_handle.write("Distance %s N\n" % config["algorithm"]["bc_distance"])
+        out_handle.write("Format %s\n" % config["algorithm"]["bc_position"])
+        for bc in barcodes:
+            out_handle.write("%s %s\n" % (bc["barcode_id"], bc["sequence"]))
+            tag_size = len(bc["sequence"])
+    return tag_file, tag_size
+
+def do_alignment(fastq1, fastq2, align_ref, sam_ref, lane_name,
+        sample_name, config, config_file):
+    """Align to the provided reference genome, generating a sorted BAM file.
+    """
     aligner_to_use = config["algorithm"]["aligner"]
-    align_ref, sam_ref = get_genome_ref(info['genome_build'],
-            aligner_to_use, os.path.dirname(config["galaxy_config"]))
-    fastq1, fastq2 = get_fastq_files(fastq_dir, info['lane'], fc_name)
-    print info['lane'], "Aligning with", config["algorithm"]["aligner"]
+    print lane_name, "Aligning with", aligner_to_use
     if aligner_to_use == "bowtie":
         sam_file = bowtie_to_sam(fastq1, fastq2, align_ref, lane_name,
                 config)
@@ -104,42 +153,9 @@ def process_lane(info, fastq_dir, fc_name, fc_date, config, config_file):
                 sample_name, config_file)
     else:
         raise ValueError("Do not recognize aligner: %s" % aligner_to_use)
-    print info['lane'], "Converting to sorted BAM file"
-    base_bam, sort_bam = sam_to_sort_bam(sam_file, sam_ref, fastq1, fastq2,
+    print lane_name, "Converting to sorted BAM file"
+    return sam_to_sort_bam(sam_file, sam_ref, fastq1, fastq2,
             sample_name, config_file)
-    bam_to_wig(sort_bam, config, config_file)
-    if config["algorithm"]["recalibrate"]:
-        print info['lane'], "Recalibrating with GATK"
-        dbsnp_file = get_dbsnp_file(sam_ref)
-        gatk_bam = recalibrate_quality(base_bam, sam_ref,
-                dbsnp_file, config["program"]["picard"])
-        print info['lane'], "Analyzing recalibration"
-        analyze_recalibration(gatk_bam, fastq1, fastq2)
-        if config["algorithm"]["snpcall"]:
-            print info['lane'], "Providing SNP genotyping with GATK"
-            run_genotyper(gatk_bam, sam_ref, dbsnp_file, config_file)
-
-    print info['lane'], "Generating summary files"
-    generate_align_summary(sort_bam, fastq1, fastq2, sam_ref,
-            config, sample_name)
-    # Cleanup ToDo: 
-    # gzip fastq file for storage
-    # Remove SAM files
-
-def _process_wrapper(args):
-    try:
-        return process_lane(*args)
-    except KeyboardInterrupt:
-        raise Exception
-
-#def generate_fastq(fc_dir, fc_name, all_lanes):
-#    fastq_dir = get_fastq_dir(fc_dir)
-#    if not fastq_dir == fc_dir and not os.path.exists(fastq_dir):
-#        with utils.chdir(os.path.split(fastq_dir)[0]):
-#            cl = ["solexa_qseq_to_fastq.py", fc_name,
-#                    ",".join(str(l) for l in all_lanes)]
-#            subprocess.check_call(cl)
-#    return fastq_dir
 
 def bowtie_to_sam(fastq_file, pair_file, ref_file, out_base, config):
     """Before a standard or paired end alignment with bowtie.
@@ -238,7 +254,7 @@ def bam_to_wig(bam_file, config, config_file):
     return wig_file
 
 def generate_align_summary(bam_file, fastq1, fastq2, sam_ref, config,
-        sample_name, do_sort=False):
+        sample_name, config_file, do_sort=False):
     """Run alignment summarizing script to produce a pdf with align details.
     """
     cl = ["align_summary_report.py", "--name=%s" % sample_name,
@@ -253,6 +269,7 @@ def generate_align_summary(bam_file, fastq1, fastq2, sam_ref, config,
         cl.append("--target=%s" % os.path.join(base_dir, target))
     if do_sort:
         cl.append("--sort")
+    cl.append("--config=%s" % config_file)
     subprocess.check_call(cl)
 
 def recalibrate_quality(bam_file, sam_ref, dbsnp_file, picard_dir):
@@ -273,11 +290,11 @@ def run_genotyper(bam_file, ref_file, dbsnp_file, config_file):
         cl.append(dbsnp_file)
     subprocess.check_call(cl)
 
-def get_dbsnp_file(sam_ref):
-    snp_file = None
-    snp_dir = os.path.join(os.path.split(sam_ref)[0], os.pardir, "snps")
-    if os.path.exists(snp_dir):
-        snp_file = glob.glob(os.path.join(snp_dir, "snp*.vcf"))[0]
+def get_dbsnp_file(config, sam_ref):
+    snp_file = config["algorithm"].get("dbsnp", None)
+    if snp_file:
+        base_dir = os.path.dirname(os.path.dirname(sam_ref))
+        snp_file = os.path.join(base_dir, snp_file)
     return snp_file
 
 def analyze_recalibration(recal_file, fastq1, fastq2):
@@ -309,7 +326,11 @@ def get_fastq_files(directory, lane, fc_name):
 def _remap_to_maq(ref_file):
     base_dir = os.path.dirname(os.path.dirname(ref_file))
     name = os.path.basename(ref_file)
-    return os.path.join(base_dir, "maq", "%s.fa" % name)
+    for ext in ["fa", "fasta"]:
+        test_file = os.path.join(base_dir, "maq", "%s.%s" % (name, ext))
+        if os.path.exists(test_file):
+            return test_file
+    raise ValueError("Did not find maq file %s" % ref_file)
 
 def get_genome_ref(genome_build, aligner, galaxy_base):
     """Retrieve the reference genome file location from galaxy configuration.
@@ -338,6 +359,9 @@ def get_genome_ref(genome_build, aligner, galaxy_base):
             out_info[-1] = remap_fns[ref_get](out_info[-1])
         except KeyError:
             pass
+        except IndexError:
+            raise IndexError("Genome %s not found in %s" % (genome_build,
+                ref_file))
 
     if len(out_info) != 2:
         raise ValueError("Did not find genome reference for %s %s" %
