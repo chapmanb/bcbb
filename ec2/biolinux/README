@@ -166,39 +166,26 @@ Eucalyptus provides some prebuilt images under the "Extra" panel on the default 
 images should be packaged and uploaded to the Eucalyptus cloud you're working on. The following
 is just a packaging example with one of the images, further automation should be done here.
 
-=======
-NOTE: The following (alpha) mini-howto will not work properly on Eucalyptus open cloud because:
+export PREFIX="/scratch/euca-fedora-11-i386"
 
-"Image: Only administrators can register ramdisk images."
-=======
+export IMAGE=${PREFIX}/fedora.11.x86.img
+export KERNEL="${PREFIX}/kvm-kernel/vmlinuz-2.6.28-11-server"
+export KERNEL_B="vmlinuz-2.6.28-11-server"
 
-wget http://uec-images.ubuntu.com/releases/10.04/release/ubuntu-10.04-server-uec-amd64.tar.gz
-
-export PREFIX="/scratch"
-export IMAGE=${PREFIX}/lucid-server-uec-amd64.img
-
-export KERNEL="${PREFIX}/vmlinuz-2.6.32-305-ec2"
-export KERNEL_B=`basename ${KERNEL}`
-
-export INITRD="${PREFIX}/initrd.img-2.6.32-305-ec2"
-export INITRD_B="initrd.img-2.6.32-305-ec2"
+export INITRD="${PREFIX}/kvm-kernel/initrd.img-2.6.28-11-server"
+export INITRD_B="initrd.img-2.6.28-11-server"
 
 euca-bundle-image -i $KERNEL --kernel true
-euca-upload-bundle -b kernels -m /tmp/`basename ${KERNEL}`.manifest.xml
-EKI=`euca-register kernels/${KERNEL_B}.manifest.xml`
-export EKI=`echo $EKI | cut -f2 -d" "`
+euca-upload-bundle -b kernels -m /tmp/${KERNEL_B}.manifest.xml
+export EKI=`euca-register kernels/${KERNEL_B}.manifest.xml | cut -f1 -d" "`
 
 euca-bundle-image -i $INITRD --ramdisk true
 euca-upload-bundle -b ramdisks -m /tmp/`basename ${INITRD}`.manifest.xml
-export ERI=`euca-register ramdisks/${INITRD_B}.manifest.xml`
-export ERI=`echo $ERI | cut -f2 -d" "`
-
-echo $EKI
-echo $ERI
+export ERI=`euca-register ramdisks/${INITRD_B}.manifest.xml | cut -f1 -d" "`
 
 euca-bundle-image -i $IMAGE --kernel $EKI --ramdisk $ERI
-euca-upload-bundle -b cloudbiolinux -m /tmp/`basename ${IMAGE}`.manifest.xml
-euca-register cloudbiolinux/`basename ${IMAGE}`.manifest.xml
+euca-upload-bundle -b cloudbiolinux -m /tmp/`basename ${KERNEL}`.manifest.xml
+euca-register cloudbiolinux/`basename ${KERNEL}`.manifest.xml
 
 In-instance Hadoop
 ------------------
