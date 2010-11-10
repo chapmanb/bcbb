@@ -20,44 +20,79 @@ scripts and publicly available data volumes.
 
 Follow [Cloudera script documentation][1]:
 
-1. Install script hadoop-ec2
+1. Install Cloudera's Hadoop distribution, following [Cloudera's instructions][3].
 
-        wget http://archive.cloudera.com/cdh/3/hadoop-0.20.2+320.tar.gz
-        cd hadoop-0.20.2+320/src/contrib/cloud/src/py
-        python setup.py install
+2. Install whirr:
 
-2. Create ~/.hadoop-cloud/clusters.cfg describing connection information.
+	sudo apt-get install whirr
+
+3. Create ~/.hadoop-cloud/distblast.properties describing connection information.
    Use a Amazon machine image (AMI) with the necessary software to
    run your application; for instance CloudBioLinux.
 
-3. Start up the cluster and login:
+	whirr.service-name=hadoop
+	whirr.cluster-name=distblast
+	whirr.instance-templates=1 jt+nn,1 dn+tt
+	whirr.provider=ec2
+	whirr.identity=yyy
+	whirr.credential=yyy
+	whirr.private-key-file=/home/chapmanb/.ec2/id-sobchak.keypair
+	whirr.hardware-id=t1.micro
+	whirr.location-id=us-east-1c
+	whirr.hadoop-install-runurl=cloudera/cdh/install
+	whirr.image-id=us-east-1/ami-4e57a227
+	jclouds.ec2.ami-owners=678711657553
 
-        hadoop-ec2 launch-cluster small-cluster 1
-        hadoop-ec2 login small-cluster
+4. Start up the cluster and login:
 
-4. In AWS console (https://console.aws.amazon.com/ec2/):
+	whirr launch-cluster --config ~/.hadoop-cloud/distblast.properties
+
+5. Install distblast on each node:
+
+	python2.6 bcbb/distblast/ec2/cluster_install_distblast.py  ~/.hadoop-cloud/distblast.properties
+
+6. In AWS console (https://console.aws.amazon.com/ec2/):
 
          - Create data volume from snapshot
          - Attach data volume to head node as /dev/sdf
-         In terminal on head node:
-         - Get data
-         # mkdir /mnt/phyloblast
-         # mount /dev/sdf /mnt/phyloblast
-         - Install required scripts
-         # git clone git://github.com/chapmanb/bcbb.git
-         - XXX need to do this on every node or put in image:
-           # cd bcbb/phylogenetics/blast/
-           # python2.6 setup.py install
-         - Run:
-         # cd /mnt/phyloblast/
-         # python2.6 ~/bcbb/hadoop/hadoop_run.py ~/bcbb/hadoop/fasta_process.py org_configs/test.yaml base_config.yaml input output
 
-[1]: https://wiki.cloudera.com/display/DOC/CDH+Cloud+Scripts
+7. Login to the cluster and mount the data volume containing the organism data:
 
-5. Finished, terminate the nodes and remove the cluster:
+	whirr list-cluster --config ~/.hadoop-cloud/distblast.properties
+	ssh -i ~/.ec2/id-sobchak.keypair ubuntu@first-ip-address
+        # sudo mkdir /mnt/phyloblast
+        # sudo mount /dev/sdf /mnt/distblast
 
-         hadoop-ec2 terminate-cluster small-cluster
-         hadoop-ec2 delete-cluster small-cluster
+8. Run the cluster
+
+	# cd /mnt/distblast/
+        # python2.6 ~/install/bcbb/distblast/hadoop/hadoop_run.py ~/install/bcbb/distblast/hadoop/fasta_process.py \
+           org_configs/test.yaml base_config.yaml input output
+
+[1]: https://wiki.cloudera.com/display/DOC/Whirr+Installation
+[3]: https://wiki.cloudera.com/display/DOC/Hadoop+Installation+(CDH3)
+
+9. Finished: logout, terminate the nodes and remove the cluster:
+
+	whirr destroy-cluster --config ~/.hadoop-cloud/distblast.properties
+
+#### Old way -- using deprecated python script
+
+1. Install from whirr-trunk/contrib/python
+
+2. Create ~/.hadoop-cloud/clusters.cfg with configuration called distblast
+
+3. Start up cluster:
+
+	hadoop-ec2 launch-cluster --user-data-file bcbb/distblast/ec2/hadoop-ec2-init-remote.sh \
+			          distblast 1 nn,snn,jt 1 dn,tt
+	hadoop-ec2 login distblast
+	ssh -i ~/.ec2/id-sobchak.keypair root@ec2-50-16-13-181.compute-1.amazonaws.com
+
+4. Finished, remove cluster:
+
+        hadoop-ec2 terminate-cluster distblast
+        hadoop-ec2 delete-cluster distblast
 
 ### Local hadoop cluster on ubuntu
 
