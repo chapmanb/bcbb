@@ -29,19 +29,26 @@ def main(config_file):
     Entrez.email = config['email']
     socket.setdefaulttimeout(config['url_timeout'])
     ncbi_get = NcbiEntrezRetrieval()
-    #ensembl_get = EnsemblFtpRetrieval()
+    ensembl_get = EnsemblFtpRetrieval()
     organisms = read_org_list(config['org_file'])
     db_dir = config['db_dir']
-    if not os.path.exists(db_dir):
-        os.makedirs(db_dir)
+    ensembl_db_dir = os.path.join(db_dir, "ensembl")
+    for check_dir in [db_dir, ensembl_db_dir]:
+        if not os.path.exists(check_dir):
+            os.makedirs(check_dir)
     org_files = []
     for org in organisms:
         print "Preparing organism:", org
-        if org in config['problem_orgs']:
+        if org in config.get('problem_orgs', []):
             db_file = ''
         else:
-            db_file = ncbi_get.retrieve_db(org, db_dir)
-        #db_file = ensembl_get.retrieve_db(org, db_dir)
+            db_file = ensembl_get.retrieve_db(org, ensembl_db_dir)
+            if db_file:
+                print "Ensembl"
+                db_file = os.path.join(os.path.basename(ensembl_db_dir), db_file)
+            else:
+                print "NCBI"
+                db_file = ncbi_get.retrieve_db(org, db_dir)
         org_files.append((org, db_file))
     with open(os.path.join(db_dir, "organism_dbs.txt"), "w") as out_handle:
         for org, fname in org_files:
@@ -56,11 +63,12 @@ def read_org_list(in_file):
 class _BaseRetrieval:
     def _make_blast_db(self, db_dir, final_file, db_name, organism):
         with _chdir(db_dir):
-            cl = ["makeblastdb", "-in", os.path.basename(final_file),
-                  "-dbtype", "prot",
-                  "-out", db_name,
-                  "-title", organism]
-            subprocess.check_call(cl)
+            if not os.path.exists("%s.pin" % db_name):
+                cl = ["makeblastdb", "-in", os.path.basename(final_file),
+                      "-dbtype", "prot",
+                      "-out", db_name,
+                      "-title", organism]
+                subprocess.check_call(cl)
 
 class NcbiEntrezRetrieval(_BaseRetrieval):
     """Pull down fasta protein genome sequences using NCBI Entrez.
@@ -86,8 +94,8 @@ class NcbiEntrezRetrieval(_BaseRetrieval):
                         raise
                     else:
                         num_tries += 1
-            self._make_blast_db(db_dir, os.path.basename(out_file), db_name,
-                    organism)
+        self._make_blast_db(db_dir, os.path.basename(out_file), db_name,
+                organism)
         return db_name
 
     def _download_and_error_out(self, out_file, genome_ids):
@@ -95,7 +103,7 @@ class NcbiEntrezRetrieval(_BaseRetrieval):
         """
         with open(out_file, "w") as out_handle:
             for genome_id in genome_ids:
-                print genome_id
+                print "Downloading", genome_id
                 self._download_to_file(genome_id, out_handle)
 
     def _download_to_file(self, genome_id, out_handle):
@@ -130,13 +138,18 @@ class EnsemblFtpRetrieval(_BaseRetrieval):
         self._genome_ftp = "ftp://ftp.ensemblgenomes.org/pub/%s/current/fasta/"
         self._genome_dbs = ["bacteria", "protists", "metazoa", "fungi",
                 "plants"]
-        urls = [self._genome_ftp % d for d in self._genome_dbs] + \
-               [self._main_ftp]
-        self._org_to_urls = dict()
-        for url in urls:
-            orgs = self._files_at_url(url)
-            for org in orgs:
-                self._org_to_urls[org] = url
+        self._initialized = False
+
+    def _initialize(self):
+        if not self._initialized:
+            urls = [self._genome_ftp % d for d in self._genome_dbs] + \
+                   [self._main_ftp]
+            self._org_to_urls = dict()
+            for url in urls:
+                orgs = self._files_at_url(url)
+                for org in orgs:
+                    self._org_to_urls[org] = url
+            self._initialized = True
 
     def _files_at_url(self, url):
         """Add organisms available at the provided FTP url.
@@ -148,6 +161,7 @@ class EnsemblFtpRetrieval(_BaseRetrieval):
         return [o.split("/")[-1] for o in orgs]
 
     def retrieve_db(self, organism, db_dir):
+        self._initialize()
         ftp_url = self._get_ftp_url(organism)
         if ftp_url is None:
             return ""
@@ -160,7 +174,7 @@ class EnsemblFtpRetrieval(_BaseRetrieval):
                 subprocess.check_call(cl)
                 cl = ["gunzip", file_name]
                 subprocess.check_call(cl)
-            self._make_blast_db(db_dir, final_file, db_name, organism)
+        self._make_blast_db(db_dir, final_file, db_name, organism)
         return db_name
 
     def _get_ftp_url(self, organism):
