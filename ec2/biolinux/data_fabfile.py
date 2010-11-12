@@ -137,7 +137,8 @@ class EnsemblGenome(_DownloadHelper):
             url = "ftp://ftp.ensemblgenomes.org/pub/%s/" % ensembl_section
         url += "release-%s/fasta/%s/dna/" % (release_number, organism.lower())
         self._url = url
-        self._get_file = "%s.%s.%s.dna.toplevel.fa.gz" % (organism, name,
+        release2 = ".%s" % release2 if release2 else ""
+        self._get_file = "%s.%s%s.dna.toplevel.fa.gz" % (organism, name,
                 release2)
         self._name = name
         self._convert_to_ucsc = convert_to_ucsc
@@ -176,13 +177,13 @@ genomes = [
            ("Hsapiens", "hg19", UCSCGenome("hg19")),
            ("Rnorvegicus", "rn4", UCSCGenome("rn4")),
            ("Xtropicalis", "xenTro2", UCSCGenome("xenTro2")),
-           ("Athaliana", "araTha_tair9", EnsemblGenome("plants", "3", "55",
+           ("Athaliana", "araTha_tair9", EnsemblGenome("plants", "6", "",
                "Arabidopsis_thaliana", "TAIR9")),
            ("Dmelanogaster", "dm3", UCSCGenome("dm3")),
            #("Dmelanogaster", "BDGP5.13", EnsemblGenome("metazoa", "4", "55",
            #    "Drosophila_melanogaster", "BDGP5.13", convert_to_ucsc=True),
-           ("Celegans", "WS200", EnsemblGenome("standard", "56", "56",
-               "Caenorhabditis_elegans", "WS200")),
+           ("Celegans", "WS210", EnsemblGenome("standard", "60", "60",
+               "Caenorhabditis_elegans", "WS210")),
            ("Mtuberculosis_H37Rv", "mycoTube_H37RV", NCBIRest("mycoTube_H37RV",
                ["NC_000962"])),
            ("Msmegmatis", "92", NCBIRest("92", ["NC_008596.1"])),
