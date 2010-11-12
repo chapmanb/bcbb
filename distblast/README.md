@@ -84,8 +84,7 @@ Follow [Cloudera script documentation][1]:
 
 3. Start up cluster:
 
-	hadoop-ec2 launch-cluster --user-data-file bcbb/distblast/ec2/hadoop-ec2-init-remote.sh \
-			          distblast 1 nn,snn,jt 1 dn,tt
+	hadoop-ec2 launch-cluster distblast 1 nn,snn,jt 1 dn,tt
 	hadoop-ec2 login distblast
 	ssh -i ~/.ec2/id-sobchak.keypair root@ec2-50-16-13-181.compute-1.amazonaws.com
 
