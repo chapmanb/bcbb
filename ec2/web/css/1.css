@@ -134,7 +134,7 @@ p.description a:hover {
 	letter-spacing:-1px;
 	margin:10px 0;
 	border-bottom:2px solid #eee;
-	background:url(../images/h2.jpg) bottom left no-repeat;
+	/*background:url(../images/h2.jpg) bottom left no-repeat;*/
 	clear:left;
 }
 #content h2 a {
@@ -172,10 +172,16 @@ ol.subnav a:hover {
 	border-bottom:none;
 }
 
+#sidebar img {
+  border: 0;
+  width:130px;
+  margin-bottom: 10px;
+}
+
 #sidebar h2 {
 	color:#333;
-	margin:10px 0;
-	font-size:1.3em;
+	margin:30px 0 20px 0;
+	font-size:1.2em;
 }
 
 p.news {
@@ -248,12 +254,15 @@ li.inner {
 	border:1px solid #eee;
 }
  a {
-	color:#222;
-	border-bottom:1px dotted #ccc;
+	/*color:#222;*/
+	color:#0066dd;
+	/*border-bottom:1px dotted #ccc;*/
 	text-decoration:none;
 }
+}
  a:hover {
-	border-bottom:1px solid #ccc;
+	color:#0033aa;
+	/*border-bottom:1px solid #ccc;*/
 }
 #footer {
 	text-align:center;
