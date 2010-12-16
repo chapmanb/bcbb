@@ -10,7 +10,7 @@ fastq to a fasta output file, trimming with the passed adaptor:
 
 Usage:
 
-    adaptor_trim.py <in fastq file> <out fasta file> <adaptor seq> <number of errors>
+    adaptor_trim.py <in fastq file> <out fastq file> <adaptor seq> <number of errors>
 
 This can filter the trimmed product by minimum and maximum size with --min_size
 and --max_size options.
@@ -37,9 +37,17 @@ def main(in_file, out_file, adaptor_seq, num_errors, min_size=1, max_size=None):
                 trim = trim_adaptor(rec.seq, cur_adaptor, num_errors)
                 cur_max = max_size if max_size else len(rec) - 1
                 if len(trim) >= min_size and len(trim) <= cur_max:
+                    new_anns = _trim_quality(rec, trim)
                     rec.letter_annotations = {}
                     rec.seq = trim
-                    SeqIO.write([rec], out_handle, "fasta")
+                    rec.letter_annotations = new_anns
+                    SeqIO.write([rec], out_handle, "fastq")
+
+def _trim_quality(rec, trim):
+    pos = rec.seq.find(str(trim))
+    assert pos >= 0
+    return dict(phred_quality =
+            rec.letter_annotations["phred_quality"][pos:pos+len(trim)])
 
 def _remove_adaptor(seq, region, right_side=True):
     """Remove an adaptor region and all sequence to the right or left.
