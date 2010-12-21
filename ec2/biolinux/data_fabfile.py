@@ -272,15 +272,17 @@ def _data_ngs_genomes():
                 arachne_index = _index_arachne(ref_file)
             with cd(seq_dir):
                 sam_index = _index_sam(ref_file)
-        for ref_index_file, cur_index, prefix in [
-                ("sam_fa_indices.loc", sam_index, "index"),
-                ("bowtie_indices.loc", bowtie_index, ""),
-                ("bwa_index.loc", bwa_index, ""),
-                ("alignseq.loc", twobit_index, "seq"),
-                ("twobit.loc", twobit_index, ""),
+        for ref_index_file, cur_index, prefix, new_style in [
+                ("sam_fa_indices.loc", sam_index, "index", False),
+                ("alignseq.loc", twobit_index, "seq", False),
+                ("twobit.loc", twobit_index, "", False),
+                ("bowtie_indices.loc", bowtie_index, "", True),
+                ("bwa_index.loc", bwa_index, "", True),
                 ]:
             if cur_index:
                 str_parts = [genome, os.path.join(cur_dir, cur_index)]
+                if new_style:
+                    str_parts = [genome, genome] + str_parts
                 if prefix:
                     str_parts.insert(0, prefix)
                 _update_loc_file(ref_index_file, str_parts)
