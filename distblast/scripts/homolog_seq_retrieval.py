@@ -111,7 +111,8 @@ def read_gene_list(in_file):
     with open(in_file) as in_handle:
         reader = csv.reader(in_handle)
         reader.next() # header
-        for (_, tid) in reader:
+        for parts in reader:
+            tid = parts[-1]
             genes.append(tid.strip())
     return genes
 

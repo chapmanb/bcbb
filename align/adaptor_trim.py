@@ -10,7 +10,7 @@ fastq to a fasta output file, trimming with the passed adaptor:
 
 Usage:
 
-    adaptor_trim.py <in fastq file> <out fasta file> <adaptor seq> <number of errors>
+    adaptor_trim.py <in fastq file> <out fastq file> <adaptor seq> <number of errors>
 
 This can filter the trimmed product by minimum and maximum size with --min_size
 and --max_size options.
@@ -23,6 +23,7 @@ from optparse import OptionParser
 from Bio import pairwise2
 from Bio.Seq import Seq
 from Bio import SeqIO
+from Bio.SeqIO.QualityIO import FastqGeneralIterator
 
 def main(in_file, out_file, adaptor_seq, num_errors, min_size=1, max_size=None):
     num_errors = int(num_errors)
@@ -31,15 +32,17 @@ def main(in_file, out_file, adaptor_seq, num_errors, min_size=1, max_size=None):
 
     with open(in_file) as in_handle:
         with open(out_file, "w") as out_handle:
-            for rec in SeqIO.parse(in_handle, "fastq"):
+            for title, seq, qual in FastqGeneralIterator(in_handle):
                 cur_adaptor = (adaptor_seq[:(len(rec) - max_size)] if max_size
                         else adaptor_seq)
-                trim = trim_adaptor(rec.seq, cur_adaptor, num_errors)
-                cur_max = max_size if max_size else len(rec) - 1
+                trim = trim_adaptor(seq, cur_adaptor, num_errors)
+                cur_max = max_size if max_size else len(seq) - 1
                 if len(trim) >= min_size and len(trim) <= cur_max:
-                    rec.letter_annotations = {}
-                    rec.seq = trim
-                    SeqIO.write([rec], out_handle, "fasta")
+                    pos = seq.find(trim)
+                    assert pos >= 0
+                    trim_qual = qual[pos:pos+len(trim)]
+                    out_handle.write("@%s\n%s\n+\n%s\n" % (title, trim,
+                        trim_qual))
 
 def _remove_adaptor(seq, region, right_side=True):
     """Remove an adaptor region and all sequence to the right or left.
