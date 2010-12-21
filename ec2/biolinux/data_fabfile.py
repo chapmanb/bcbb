@@ -159,18 +159,12 @@ class BroadGenome(_DownloadHelper):
     """
     def __init__(self, target_fasta):
         self._target = target_fasta
-        self._resource_url = "ftp://ftp.broadinstitute.org/pub/gsa/gatk_resources.tgz"
-        self._resource_dir = "resources"
+        self._ftp_url = "ftp://ftp.broadinstitute.org/pub/seq/references/"
 
     def download(self, seq_dir):
-        base_gzip = os.path.basename(self._resource_url)
-        if not self._exists(base_gzip, seq_dir):
-            run("wget %s" % self._resource_url)
         if not self._exists(self._target, seq_dir):
-            run("tar -xzvpf %s" % base_gzip)
-            run("mv %s/%s ." % (self._resource_dir, self._target))
-            run("rm -rf %s" % (self._resource_dir))
-        return self._target, [base_gzip]
+            run("wget %s/%s" % (self._ftp_url, self._target))
+        return self._target, []
 
 genomes = [
            ("phiX174", "phix", NCBIRest("phix", ["NC_001422.1"])),
@@ -179,6 +173,7 @@ genomes = [
            ("Mmusculus", "mm8", UCSCGenome("mm8")),
            ("Hsapiens", "hg18", UCSCGenome("hg18")),
            ("Hsapiens", "hg18-broad", BroadGenome("Homo_sapiens_assembly18.fasta")),
+           ("Hsapiens", "GRCh37", BroadGenome("Homo_sapiens_assembly19.fasta")),
            ("Hsapiens", "hg19", UCSCGenome("hg19")),
            ("Rnorvegicus", "rn4", UCSCGenome("rn4")),
            ("Xtropicalis", "xenTro2", UCSCGenome("xenTro2")),
