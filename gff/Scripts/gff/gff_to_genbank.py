@@ -27,6 +27,7 @@ def _fix_ncbi_id(fasta_iter):
         if len(rec.name) > 16 and rec.name.find("|") > 0:
             new_id = [x for x in rec.name.split("|") if x][-1]
             print "Warning: shortening NCBI name %s to %s" % (rec.id, new_id)
+            rec.id = new_id
             rec.name = new_id
             yield rec
 
