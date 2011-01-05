@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 """Filter an output file, removing alternative transcripts based on names.
 
-This will filter a file either based on removing alternative transcripts of the
-same size or on condensing all alternative transcripts to the longest.
+Filter ID and score output files from a distributed BLAST, returning
+the longest transcript for a gene as an evolutionary transcript sample for
+that gene.
 
 Usage:
-    filter_by_transcript.py <org config file> <file to filter> [--condense]
+    filter_by_transcript.py <org config file>
 """
 import sys
 import os
@@ -17,12 +18,16 @@ from optparse import OptionParser
 import yaml
 from Bio import SeqIO
 
-def main(config_file, to_filter, condense):
+def main(config_file):
     with open(config_file) as in_handle:
         config = yaml.load(in_handle)
-    names_to_include = get_representative_txs(config['search_file'],
-            condense)
-    new_ext = "onetx" if condense else "nodups"
+    target_files = files_to_filter(config["target_org"])
+    names_to_include = get_representative_txs(config['search_file'])
+    for f in target_files:
+        filter_file(f, names_to_include)
+
+def filter_file(to_filter, names_to_include):
+    new_ext = "longtxs"
     base, ext = os.path.splitext(to_filter)
     out_file = "%s-%s%s" % (base, new_ext, ext)
     with open(to_filter) as in_handle:
@@ -34,53 +39,43 @@ def main(config_file, to_filter, condense):
                 if parts[0] in names_to_include:
                     writer.writerow(parts)
 
-def get_representative_txs(in_file, condense):
-    """Organize transcripts based on base names and extensions.
+def get_representative_txs(in_file):
+    """Retrieve the largest transcript for each gene, using Ensembl headers.
 
-    Splits items (abc.1a.2) into base names (abc.1) and extensions (a.2) and
-    then picks out representative transcripts to use. If condense is True,
-    then the largest item is chosen. Otherwise, any duplicates of the same size
-    are eliminated.
+    This relies on Ensembl header structure in FASTA files. For all genes,
+    the largest of potentially many alternative transcripts is chosen as
+    the representative sample.
     """
-    pat = re.compile("^(?P<base>\w+\.\d+)(?P<ext>([a-z]+|\.\d+)?(\.\d+)?)$")
-    txs_by_size = collections.defaultdict(list)
+    txs_by_gene = collections.defaultdict(list)
     with open(in_file) as in_handle:
         for rec in SeqIO.parse(in_handle, "fasta"):
-            match = pat.match(rec.id)
-            txs_by_size[match.group("base")].append(
-                    (match.group("ext"), len(rec.seq)))
+            protein_id = rec.id
+            header_gene = [p for p in rec.description.split()
+                           if p.startswith("gene:")]
+            assert len(header_gene) == 1, \
+                   "Ensembl gene name not found in header: %s" % rec.description
+            (_, gene) = header_gene[0].split(":")
+            txs_by_gene[gene].append((len(rec.seq), protein_id))
     final_list = []
-    for tx, choices in txs_by_size.iteritems():
-        final_list.extend(_pick_representative(tx, choices, condense))
+    for choices in txs_by_gene.values():
+        choices.sort(reverse=True)
+        final_list.append(choices[0][1])
     print final_list[:10]
-    return final_list
+    return set(final_list)
 
-def _pick_representative(base, choices, condense):
-    """Choose representative items from the list of choices based on size.
-    """
-    if len(choices) == 1:
-        return ["".join([base, choices[0][0]])]
-    else:
-        cur_sizes = [-1]
-        cur_choices = []
-        choices.sort()
-        for c, size in choices:
-            # if we are condensing, we want the biggest one
-            if condense:
-                if size > max(cur_sizes):
-                    cur_choices = [c]
-            # otherwise we want non duplicates
-            elif size not in cur_sizes:
-                cur_choices.append(c)
-            cur_sizes.append(size)
-        return ["".join([base, e]) for e in cur_choices]
+def files_to_filter(base_name):
+    base_name = base_name.replace(" ", "_")
+    exts = ["ids.tsv", "scores.tsv"]
+    fnames_find = ["%s-%s" % (base_name, e) for e in exts]
+    fnames = [f for f in fnames_find if os.path.exists(f)]
+    if len(fnames) == 0:
+        raise ValueError("Did not find files to filter: %s" % fnames_find)
+    return fnames
 
 if __name__ == "__main__":
     parser = OptionParser()
-    parser.add_option("-c", "--condense", dest="condense", action="store_true",
-            default=False)
     options, args = parser.parse_args()
-    if len(args) != 2:
+    if len(args) != 1:
         print __doc__
         sys.exit()
-    main(args[0], args[1], options.condense)
+    main(args[0])
