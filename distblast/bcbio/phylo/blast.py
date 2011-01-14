@@ -4,10 +4,12 @@ Uses best e-value as a threshold to identify best cross-species hits in a number
 of organism databases.
 """
 import os
+import codecs
 import subprocess
 import contextlib
 import tempfile
 import xml.parsers.expat
+import StringIO
 
 from Bio.Blast.Applications import NcbiblastpCommandline
 from Bio.Blast import NCBIXML
@@ -52,9 +54,12 @@ def _compare_by_blast(input_ref, xref_db, blast_out):
     cl = NcbiblastpCommandline(query=input_ref, db=xref_db, out=blast_out,
             outfmt=5, num_descriptions=1, num_alignments=0)
     subprocess.check_call(str(cl).split())
-    with open(blast_out) as blast_handle:
+    with codecs.open(blast_out, encoding="utf-8", errors="replace") as blast_handle:
+        result = blast_handle.read()
+        for problem in [u"\ufffd"]:
+            result = result.replace(problem, " ")
         try:
-            rec = NCBIXML.read(blast_handle)
+            rec = NCBIXML.read(StringIO.StringIO(result))
         except xml.parsers.expat.ExpatError:
             rec = None
         if rec and len(rec.descriptions) > 0:
