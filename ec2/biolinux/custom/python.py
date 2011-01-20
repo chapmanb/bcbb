@@ -11,7 +11,7 @@ from shared import _if_not_installed, _make_tmp_dir, _if_not_python_lib
 def install_pysam(env):
     """Install pysam for Python access to BAM files.
     """
-    version = "0.3"
+    version = "0.3.1"
     url = "http://pysam.googlecode.com/files/pysam-%s.tar.gz" % version
     with _make_tmp_dir() as work_dir:
         with cd(work_dir):

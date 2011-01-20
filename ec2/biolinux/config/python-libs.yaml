@@ -16,8 +16,12 @@ pypi:
   - simplejson
   - amqplib
   - boto
-# ToDo:
-# Pulls the wrong file and then can't install automatically
-#  - pygr
-# Should get into pypi
-#  - rpy
+  - Logbook
+  - PyYAML
+  - pygr
+  - mako
+  - paste
+  - routes
+  - webhelpers
+  - pastescript
+  - webob

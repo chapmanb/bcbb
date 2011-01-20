@@ -45,7 +45,8 @@ def install_bowtie(env):
 
 @_if_not_installed("bwa")
 def install_bwa(env):
-    version = "0.5.8a"
+    http://downloads.sourceforge.net/project/bio-bwa/bwa-0.5.9rc1.tar.bz2
+    version = "0.5.9rc1"
     url = "http://downloads.sourceforge.net/project/bio-bwa/bwa-%s.tar.bz2" % (
             version)
     install_dir = os.path.join(env.system_install, "bin")
@@ -109,8 +110,8 @@ def _wget_with_cookies(ref_url, dl_url):
 
 @_if_not_installed("novoalign")
 def install_novoalign(env):
-    base_version = "V2.07.00"
-    cs_version = "V1.01.00"
+    base_version = "V2.07.06"
+    cs_version = "V1.01.06"
     _url = "http://www.novocraft.com/downloads/%s/" % base_version
     ref_url = "http://www.novocraft.com/main/downloadpage.php"
     base_url = "%s/novocraft%s.gcc.tar.gz" % (_url, base_version)
@@ -146,7 +147,7 @@ def _symlinked_java_version_dir(pname, version):
     return None
 
 def install_picard(env):
-    version = "1.31"
+    version = "1.38"
     url = "http://downloads.sourceforge.net/project/picard/" \
           "picard-tools/%s/picard-tools-%s.zip" % (version, version)
     install_dir = _symlinked_java_version_dir("picard", version)
@@ -159,7 +160,7 @@ def install_picard(env):
                     sudo("mv *.jar %s" % install_dir)
 
 def install_gatk(env):
-    version = "1.0.4168"
+    version = "1.0.4905"
     ext = ".tar.bz2"
     url = "ftp://ftp.broadinstitute.org/pub/gsa/GenomeAnalysisTK/"\
           "GenomeAnalysisTK-%s%s" % (version, ext)

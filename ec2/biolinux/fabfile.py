@@ -23,7 +23,7 @@ env.config_dir = os.path.join(os.getcwd(), "config")
 def ec2_ubuntu_environment():
     """Setup default environmental variables for Ubuntu EC2 servers.
 
-    Works on a US EC2 server running Ubunutu 10.04 lucid. This is fairly
+    Works on a US EC2 server running Ubunutu 10.10 maverick. This is fairly
     general but we will need to define similar functions for other targets.
     """
     env.user = "ubuntu"
@@ -38,24 +38,27 @@ def ec2_ubuntu_environment():
     # XXX look for a way to find JAVA_HOME automatically
     env.java_home = "/usr/lib/jvm/java-6-openjdk"
     env.std_sources = [
-      "deb http://us.archive.ubuntu.com/ubuntu/ lucid universe",
-      "deb-src http://us.archive.ubuntu.com/ubuntu/ lucid universe",
-      "deb http://us.archive.ubuntu.com/ubuntu/ lucid-updates universe",
-      "deb-src http://us.archive.ubuntu.com/ubuntu/ lucid-updates universe",
-      "deb http://us.archive.ubuntu.com/ubuntu/ lucid multiverse",
-      "deb-src http://us.archive.ubuntu.com/ubuntu/ lucid multiverse",
-      "deb http://us.archive.ubuntu.com/ubuntu/ lucid-updates multiverse",
-      "deb-src http://us.archive.ubuntu.com/ubuntu/ lucid-updates multiverse",
-      "deb http://archive.canonical.com/ lucid partner",
+      "deb http://us.archive.ubuntu.com/ubuntu/ maverick universe",
+      "deb-src http://us.archive.ubuntu.com/ubuntu/ maverick universe",
+      "deb http://us.archive.ubuntu.com/ubuntu/ maverick-updates universe",
+      "deb-src http://us.archive.ubuntu.com/ubuntu/ maverick-updates universe",
+      "deb http://us.archive.ubuntu.com/ubuntu/ maverick multiverse",
+      "deb-src http://us.archive.ubuntu.com/ubuntu/ maverick multiverse",
+      "deb http://us.archive.ubuntu.com/ubuntu/ maverick-updates multiverse",
+      "deb-src http://us.archive.ubuntu.com/ubuntu/ maverick-updates multiverse",
+      "deb http://archive.canonical.com/ maverick partner",
       "deb http://downloads.mongodb.org/distros/ubuntu 10.4 10gen",
+      "deb http://watson.nci.nih.gov/cran_mirror/bin/linux/ubuntu maverick/",
       # lastest R versions
-      "deb http://cran.stat.ucla.edu/bin/linux/ubuntu lucid/",
+      "deb http://cran.stat.ucla.edu/bin/linux/ubuntu maverick/",
       # Bio-Linux
       "deb http://nebc.nox.ac.uk/bio-linux/ unstable bio-linux",
       # Hadoop
-      "deb http://archive.cloudera.com/debian lucid-cdh3 contrib",
+      "deb http://archive.cloudera.com/debian maverick-cdh3 contrib",
       # FreeNX PPA
       "ppa:freenx-team/ppa",
+      # virtualbox
+      "deb http://download.virtualbox.org/virtualbox/debian maverick contrib",
     ]
 
 def install_biolinux():
@@ -230,7 +233,7 @@ def _clojure_library_installer(config):
 lib_installers = {
         "r-libs" : _r_library_installer,
         "python-libs" : _python_library_installer,
-	"ruby-libs" : _ruby_library_installer,
+        "ruby-libs" : _ruby_library_installer,
         "perl-libs" : _perl_library_installer,
         "clojure-libs": _clojure_library_installer,
         }
@@ -248,12 +251,13 @@ def _add_gpg_keys():
     """Adds GPG keys from all repositories
     """
     standalone = [
-	"http://archive.cloudera.com/debian/archive.key" ]
+        "http://archive.cloudera.com/debian/archive.key",
+        "http://download.virtualbox.org/virtualbox/debian/oracle_vbox.asc"]
     keyserver = [
-	("subkeys.pgp.net", "7F0CEB10"),
-	("subkeys.pgp.net", "381BA480"),
+        ("subkeys.pgp.net", "7F0CEB10"),
+        ("subkeys.pgp.net", "381BA480"),
         ("keyserver.ubuntu.com", "D67FC6EAE2A11821"),
-	]
+    ]
     for url, key in keyserver:
         sudo("apt-key adv --keyserver %s --recv %s" % (url, key))
     for key in standalone:

@@ -22,7 +22,7 @@ def install_cljr(env):
 def install_leinengin(env):
     """Standard clojure build tool: http://github.com/technomancy/leiningen
     """
-    run("wget http://github.com/technomancy/leiningen/raw/stable/bin/lein")
+    run("wget --no-check-certificate https://github.com/technomancy/leiningen/raw/stable/bin/lein")
     run("chmod a+rwx lein")
     sudo("mv lein %s" % os.path.join(env.system_install, "bin"))
     run("lein self-install")

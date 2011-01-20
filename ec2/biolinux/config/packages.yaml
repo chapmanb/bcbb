@@ -37,6 +37,7 @@ programming:
     - emacs-goodies-el
     - emacsen-common
     - vim
+    - exuberant-ctags
   version_control:
     - git-core
     - cvs
@@ -44,8 +45,6 @@ programming:
     - mercurial
     - bzr
     - darcs
-  misc:
-    - exuberant-ctags
   build:
     - swig
     - curl
@@ -67,7 +66,16 @@ programming:
     - libreadline5-dev
     - gcc 
     - g++
+    - gfortran
     - stow
+  libraries:
+    - tcl-dev
+    - tk-dev
+    - imagemagick
+    - pdfjam
+    - libsparsehash-dev
+    - xvfb
+    - rabbitmq-server
   packaging:
     - build-essential
     - devscripts
@@ -75,6 +83,9 @@ programming:
     - dh-make
     - pbuilder
     - unzip
+  virtual:
+    - virtualbox-4.0
+    - dkms
   util:
     - nfs-kernel-server
     - tree
@@ -82,8 +93,6 @@ programming:
     - aspell
     - dictionaries-common
     - libaspell-dev
-  galaxy:
-    - rabbitmq-server
 # Note that the following Cloudera hadoop installation is for test
 # purposes "inside the instance" only, Amazon already provides a
 # production-ready Elastic MapReduce platform:
@@ -136,6 +145,7 @@ python:
     - python-couchdb
     - python-tables
     - python-h5py
+    - python-rpy
   math:
     - python-sympy
     - python-crypto
@@ -222,6 +232,7 @@ r:
   - r-base-core-ra
   - r-base-dev
   - r-base-html
+  - r-bioc-hilbertvis
   - r-cran-abind
   - r-cran-boot
   - r-cran-car
@@ -245,6 +256,7 @@ r:
   - r-cran-mvtnorm
   - r-cran-nlme
   - r-cran-nnet
+  - r-cran-qvalue
   - r-cran-rcmdr
   - r-cran-relimp
   - r-cran-rgl

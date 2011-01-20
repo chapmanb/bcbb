@@ -13,12 +13,12 @@ def install_pydoop(env):
 
     http://pydoop.sourceforge.net/docs/installation.html
     """
-    hadoop_version = "0.20.2"
-    pydoop_version = "0.3.6"
-    hadoop_url = "http://apache.thelorne.com/hadoop/core/" \
+    hadoop_version = "0.21.0"
+    pydoop_version = "0.3.7_rc1"
+    hadoop_url = "http://apache.mirrors.hoobly.com/hadoop/core/" \
             "hadoop-%s/hadoop-%s.tar.gz" % (hadoop_version, hadoop_version)
     pydoop_url ="http://downloads.sourceforge.net/project/pydoop/" \
-            "Pydoop/pydoop-%s.tar.gz" % (pydoop_version)
+                "Pydoop-%s/pydoop-%s.tar.gz" % (pydoop_version, pydoop_version)
 
     with _make_tmp_dir() as work_dir:
         with cd(work_dir):

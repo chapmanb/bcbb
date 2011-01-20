@@ -5,30 +5,44 @@ cranrepo: http://software.rc.fas.harvard.edu/mirrors/R/
 cran:
  - ape
  - aplpack
+ - biglm
  - BiodiversityR
  - bitops
  - caTools
  - chron
  - coin
  - DBI
+ - digest
  - gee
+ - graph
  - ggplot2
+ - hexbin
  - HH
  - hwriter
+ - kernlab
+ - latticeExtra
  - leaps
  - mclust
  - modeltools
  - multicore
  - NMF
+ - pamr
  - plotrix
+ - plyr
+ - proto
+ - qvalue
+ - reshape
  - RColorBrewer
  - RCurl
  - rjson
  - RSQLite
  - snowfall
  - sqldf
+ - statmod
  - vegan
+ - XML
  - xtable
+ - yacca
 biocrepo: http://bioconductor.org/biocLite.R
 bioc:
  - affy
@@ -39,21 +53,33 @@ bioc:
  - annaffy
  - annotate
  - AnnotationDbi
+ - ArrayExpress
+ - arrayQualityMetrics
+ - ArrayTools
+ - beadarray
  - Biobase
  - biomaRt
  - Biostrings
  - BSgenome
+ - DynDoc
  - edgeR
  - gcrma
  - genefilter
  - geneplotter
  - GenomicRanges
  - GEOquery
+ - GGBase
+ - GGtools
+ - globaltest
  - GO.db
  - GOstats
+ - GSEABase
  - hgu95av2.db
+ - IRanges
  - KEGG.db
  - limma
+ - lumi
+ - makecdfenv
  - marray
  - multtest
  - MotIV
@@ -65,6 +91,8 @@ bioc:
  - Rolexa
  - Rsamtools
  - rtracklayer
- - simpleaffy
  - ShortRead
+ - siggenes
+ - simpleaffy
+ - snpMatrix
  - vsn

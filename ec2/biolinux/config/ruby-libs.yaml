@@ -43,3 +43,4 @@ gems:
   - dm-validations
   - cheat
   - addressable
+  - vagrant
