@@ -1,8 +1,9 @@
-CloudBioLinux provides a [Fabric build file][3] which will install a large selection of
-Bioinformatics and machine learning libraries on a bare machine. This is
-ideally designed for Amazon EC2 or VirtualBox, where you start with a bare bones
-system. The script can be used to bootstrap from these to a fully ready to go
-instance that can be distributed to other users.
+CloudBioLinux provides a [Fabric build file][3] which will install a
+large selection of Bioinformatics and machine learning libraries on a
+bare machine. This is ideally designed for Amazon EC2 or VirtualBox,
+where you start with a bare bones system and bootstrap to a ready to
+go instance. Packages to install are fully customizable, and by
+default include a large suite of bioinformatics tools and libraries.
 
 # Using an instance
 
@@ -82,14 +83,14 @@ Amazon's command line tools.
 
 The first time using EC2, you'll need to install the toolkit and credentials
 for connecting. Follow these basic directions:
-http://docs.amazonwebservices.com/AWSEC2/latest/GettingStartedGuide/
+<http://docs.amazonwebservices.com/AWSEC2/latest/GettingStartedGuide/>
 
-Login to Amazon EC2 account (http://aws.amazon.com/account/) and go to
+Login to your Amazon EC2 account (<http://aws.amazon.com/account/>) and go to
 Security Credentials/X.509. Create a new certificate and download the public
-cert-*.pem and private pk-*.pem files. Put these in home directory: ~.ec2.
+`cert-*.pem` and `private pk-*.pem` files. Put these in `~.ec2`.
 
 Download and unzip the ec2 api tools, which require java:
-http://developer.amazonwebservices.com/connect/entry.jspa?externalID=351&categoryID=88
+<http://developer.amazonwebservices.com/connect/entry.jspa?externalID=351&categoryID=88>
 
 Set up .zshrc/.bashrc:
 
@@ -121,8 +122,8 @@ Allow ssh and web access to your instances:
 
 Each time you'd like to use EC2, you need to create a remote instance to work
 with. This can be done nicely via the AWS console, but if you'd like
-to use the commandline, these quick start docs follow:
-http://docs.amazonwebservices.com/AWSEC2/latest/GettingStartedGuide/running-an-instance.html
+to use the commandline, these quick start docs follow
+<http://docs.amazonwebservices.com/AWSEC2/latest/GettingStartedGuide/running-an-instance.html>.
 
 Pick an AMI, start an instance and ensure that it is running:
 
@@ -170,9 +171,9 @@ Mount the directory, need to do this every time on the machine:
 
 ## Eucalyptus Public Cloud Quickstart
 
-* Sign up for an account at: https://ecc.eucalyptus.com
+* Sign up for an account at: <https://ecc.eucalyptus.com>
 
-* Download credentials from: https://ecc.eucalyptus.com/#credentials.
+* Download credentials from: <https://ecc.eucalyptus.com/#credentials>.
   Unpack all files to ~/.euca directory
 
 * Include on your .bashrc file so that the environment variables are
