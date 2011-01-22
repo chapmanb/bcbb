@@ -7,6 +7,7 @@ pypi:
   - cogent
   - DendroPy
   - HTSeq
+  - pysam
   - rpy2
   - rpy2-bioconductor-extensions
   - pymongo

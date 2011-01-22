@@ -56,7 +56,6 @@ cpan:
   # Database drivers
   - 'DBI'
   - 'DBD::SQLite'
-  - 'DB_File'
   - 'DBD::mysql'
   # Biome : these will definitely be added to over time
   - 'Modern::Perl'
@@ -69,6 +68,7 @@ cpan:
   # Lincoln's, not BioPerl 
   - 'Bio::Graphics'
 # Currently have problems building
+#  - 'DB_File'
 #  - 'DBD::Pg'
 #  These need samtools and Jim Kent's source trees so need to be done by hand
 #  - 'Bio::DB::Sam'

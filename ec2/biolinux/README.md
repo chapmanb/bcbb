@@ -25,7 +25,7 @@ version for users familiar with Amazon is:
 Install [VirtualBox 4.0][v2] and [vagrant][v1]. Then add the pre-built
 VirtualBox and start it up:
 
-        vagrant box add biolinux_version http://xxx/biolinux_version
+        vagrant box add biolinux_version https://s3.amazonaws.com/chapmanb/biolinux_version.box
         mkdir tmp/biolinux
         cd tmp/biolinux
         vagrant init biolinux_version
@@ -65,6 +65,14 @@ Vagrant and VirtualBox:
 Run the fabfile, building CloudBioLinux:
 
         fab -H vagrant -f /path/to/bcbb/ec2/biolinux/fabfile.py install_biolinux
+
+Then build the box. Renaming package.box to cloudbiolinux_date and
+move it to a public webserver, like Amazon S3:
+
+        vagrant package
+        mv package.box biolinux_20110122.box
+        s3cmd put --acl-public --guess-mime-type biolinux_20110122.box
+              s3://chapmanb/biolinux_20110122.box
 
 [1]: http://cloudbiolinux.com/
 [2]: https://console.aws.amazon.com/ec2/home

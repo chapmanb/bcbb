@@ -13,20 +13,24 @@ Requires:
 """
 import os
 import sys
+import subprocess
 
 from fabric.api import *
 from fabric.contrib.files import *
 import yaml
 
-env.config_dir = os.path.join(os.getcwd(), "config")
+env.config_dir = os.path.join(os.path.dirname(__file__), "config")
 
 def ec2_ubuntu_environment():
     """Setup default environmental variables for Ubuntu EC2 servers.
 
-    Works on a US EC2 server running Ubunutu 10.10 maverick. This is fairly
-    general but we will need to define similar functions for other targets.
+    Works on a US EC2 server running Ubuntu. This is fairly general but
+    we will need to define similar functions for other targets.
     """
-    env.user = "ubuntu"
+    if env.hosts == ["vagrant"]:
+        _setup_vagrant_environment()
+    else:
+        env.user = "ubuntu"
     env.sources_file = "/etc/apt/sources.list"
     env.shell_config = "~/.bashrc"
     # Global installation directory for packages and standard programs
@@ -37,29 +41,51 @@ def ec2_ubuntu_environment():
     env.shell = "/bin/bash -l -c"
     # XXX look for a way to find JAVA_HOME automatically
     env.java_home = "/usr/lib/jvm/java-6-openjdk"
-    env.std_sources = [
-      "deb http://us.archive.ubuntu.com/ubuntu/ maverick universe",
-      "deb-src http://us.archive.ubuntu.com/ubuntu/ maverick universe",
-      "deb http://us.archive.ubuntu.com/ubuntu/ maverick-updates universe",
-      "deb-src http://us.archive.ubuntu.com/ubuntu/ maverick-updates universe",
-      "deb http://us.archive.ubuntu.com/ubuntu/ maverick multiverse",
-      "deb-src http://us.archive.ubuntu.com/ubuntu/ maverick multiverse",
-      "deb http://us.archive.ubuntu.com/ubuntu/ maverick-updates multiverse",
-      "deb-src http://us.archive.ubuntu.com/ubuntu/ maverick-updates multiverse",
-      "deb http://archive.canonical.com/ maverick partner",
-      "deb http://downloads.mongodb.org/distros/ubuntu 10.4 10gen",
-      "deb http://watson.nci.nih.gov/cran_mirror/bin/linux/ubuntu maverick/",
-      # lastest R versions
-      "deb http://cran.stat.ucla.edu/bin/linux/ubuntu maverick/",
-      # Bio-Linux
-      "deb http://nebc.nox.ac.uk/bio-linux/ unstable bio-linux",
-      # Hadoop
-      "deb http://archive.cloudera.com/debian maverick-cdh3 contrib",
-      # FreeNX PPA
-      "ppa:freenx-team/ppa",
-      # virtualbox
-      "deb http://download.virtualbox.org/virtualbox/debian maverick contrib",
+    version = ("lucid", "10.4")
+    #version = ("maverick", "10.10")
+    sources = [
+      "deb http://us.archive.ubuntu.com/ubuntu/ %s universe",
+      "deb-src http://us.archive.ubuntu.com/ubuntu/ %s universe",
+      "deb http://us.archive.ubuntu.com/ubuntu/ %s-updates universe",
+      "deb-src http://us.archive.ubuntu.com/ubuntu/ %s-updates universe",
+      "deb http://us.archive.ubuntu.com/ubuntu/ %s multiverse",
+      "deb-src http://us.archive.ubuntu.com/ubuntu/ %s multiverse",
+      "deb http://us.archive.ubuntu.com/ubuntu/ %s-updates multiverse",
+      "deb-src http://us.archive.ubuntu.com/ubuntu/ %s-updates multiverse",
+      "deb http://archive.canonical.com/ %s partner",
+      "deb http://downloads.mongodb.org/distros/ubuntu % s 10gen",
+      "deb http://watson.nci.nih.gov/cran_mirror/bin/linux/ubuntu %s/",
+      "deb http://cran.stat.ucla.edu/bin/linux/ubuntu %s/", # lastest R versions
+      "deb http://nebc.nox.ac.uk/bio-linux/ unstable bio-linux", # Bio-Linux
+      "deb http://archive.cloudera.com/debian %s-cdh3 contrib", # Hadoop
+      "ppa:freenx-team/ppa", # FreeNX PPA
+      "deb http://download.virtualbox.org/virtualbox/debian %s contrib", # virtualbox
     ]
+    env.std_sources = _add_source_versions(version, sources)
+
+def _setup_vagrant_environment():
+    """Use vagrant commands to get connection information.
+    https://gist.github.com/1d4f7c3e98efdf860b7e
+    """
+    raw_ssh_config = subprocess.Popen(["vagrant", "ssh-config"],
+                                      stdout=subprocess.PIPE).communicate()[0]
+    ssh_config = dict([l.strip().split() for l in raw_ssh_config.split("\n") if l])
+    env.user = ssh_config["User"]
+    env.hosts = [ssh_config["HostName"]]
+    env.port = ssh_config["Port"]
+    env.host_string = "%s@%s:%s" % (env.user, env.hosts[0], env.port)
+    env.key_filename = ssh_config["IdentityFile"]
+
+def _add_source_versions(version, sources):
+    name, num = version
+    final = []
+    for s in sources:
+        if s.find("%s") > 0:
+            s = s % name
+        elif s.find("% s") > 0:
+            s = s % num
+        final.append(s)
+    return final
 
 def install_biolinux():
     """Main entry point for installing Biolinux on a remote server.
@@ -70,8 +96,8 @@ def install_biolinux():
     _setup_automation()
     _add_gpg_keys()
     _apt_packages(pkg_install)
-    _do_library_installs(lib_install)
     _custom_installs(pkg_install)
+    _do_library_installs(lib_install)
     _freenx_scripts()
     _cleanup()
 
@@ -215,7 +241,7 @@ def _ruby_library_installer(config):
 def _perl_library_installer(config):
     """Install perl libraries from CPAN with cpanminus.
     """
-    run("wget http://xrl.us/cpanm")
+    run("wget --no-check-certificate http://xrl.us/cpanm")
     run("chmod a+rwx cpanm")
     sudo("mv cpanm %s/bin" % env.system_install)
     for lib in config['cpan']:
@@ -288,6 +314,7 @@ def _setup_automation():
             "sun-java6-bin shared/accepted-sun-dlj-v1-1 select true",
             "grub-pc grub2/linux_cmdline string ''",
             "grub-pc grub-pc/install_devices_empty boolean true",
+            "acroread acroread/default-viewer boolean false",
             ]
     for l in package_info:
         sudo("echo %s | /usr/bin/debconf-set-selections" % l)
@@ -296,6 +323,7 @@ def _setup_sources():
     """Add sources for retrieving library packages.
        Using add-apt-repository allows processing PPAs
     """
+    sudo("apt-get install -y --force-yes python-software-properties")
     for source in env.std_sources:
         if source.startswith("ppa:"):
             sudo("add-apt-repository '%s'" % source)
@@ -307,13 +335,14 @@ def _freenx_scripts():
     """
     setup_script = "setupnx.sh"
     remote_setup = "%s/bin/%s" % (env.system_install, setup_script)
+    install_file_dir = os.path.join(env.config_dir, os.pardir, "installed_files")
     if not exists(remote_setup):
-        put(os.path.join('installed_files', setup_script), setup_script,
+        put(os.path.join(install_file_dir, setup_script), setup_script,
                 mode=0777)
         sudo("mv %s %s" % (setup_script, remote_setup))
     remote_login = "~/.bash_login"
     if not exists(remote_login):
-        put(os.path.join('installed_files', 'bash_login'), remote_login,
+        put(os.path.join(install_file_dir, 'bash_login'), remote_login,
                 mode=0777)
 
 def _cleanup():

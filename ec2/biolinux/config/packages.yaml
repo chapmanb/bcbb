@@ -564,7 +564,6 @@ bio_alignment:
 bio_nextgen:
   - maq
   - samtools
-# Package is old version, in custom: - bwa
 bio_sequencing:
   - bio-linux-assembly-conversion-tools
   - bio-linux-cap3
@@ -652,8 +651,6 @@ phylogeny:
 #   transterm
 # Others:
 #   mdust
-#   Picard
-#   GATK
 #   IGV
 #   trimpoly
 #   blast2go

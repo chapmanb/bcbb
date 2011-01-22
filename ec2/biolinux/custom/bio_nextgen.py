@@ -5,7 +5,8 @@ import os
 from fabric.api import *
 from fabric.contrib.files import *
 
-from shared import _if_not_installed, _make_tmp_dir
+from shared import (_if_not_installed, _make_tmp_dir, _unzip_install, _make_copy,
+                    _configure_make, _symlinked_java_version_dir)
 
 @_if_not_installed("faToTwoBit")
 def install_ucsc_tools(env):
@@ -26,6 +27,8 @@ def install_ucsc_tools(env):
                 sudo("wget %s%s" % (url, tool))
                 sudo("chmod a+rwx %s" % tool)
 
+# --- Alignment tools
+
 @_if_not_installed("bowtie")
 def install_bowtie(env):
     """Install the bowtie short read aligner.
@@ -33,58 +36,20 @@ def install_bowtie(env):
     version = "0.12.7"
     url = "http://downloads.sourceforge.net/project/bowtie-bio/bowtie/%s/" \
           "bowtie-%s-src.zip" % (version, version)
-    install_dir = os.path.join(env.system_install, "bin")
-    with _make_tmp_dir() as work_dir:
-        with cd(work_dir):
-            run("wget %s" % (url))
-            run("unzip %s" % os.path.split(url)[-1])
-            with cd("bowtie-%s" % version):
-                run("make")
-                for fname in run("find -perm -100 -name 'bowtie*'").split("\n"):
-                    sudo("mv -f %s %s" % (fname, install_dir))
+    _unzip_install(url, env, _make_copy("find -perm -100 -name 'bowtie*'"))
 
 @_if_not_installed("bwa")
 def install_bwa(env):
-    http://downloads.sourceforge.net/project/bio-bwa/bwa-0.5.9rc1.tar.bz2
     version = "0.5.9rc1"
     url = "http://downloads.sourceforge.net/project/bio-bwa/bwa-%s.tar.bz2" % (
             version)
-    install_dir = os.path.join(env.system_install, "bin")
-    with _make_tmp_dir() as work_dir:
-        with cd(work_dir):
-            run("wget %s" % (url))
-            run("tar -xjvpf %s" % (os.path.split(url)[-1]))
-            with cd("bwa-%s" % version):
-                arch = run("uname -m")
-                # if not 64bit, remove the appropriate flag
-                if arch.find("x86_64") == -1:
-                    run("sed -i.bak -r -e 's/-O2 -m64/-O2/g' Makefile")
-                run("make")
-                sudo("mv bwa %s" % install_dir)
-                sudo("mv solid2fastq.pl %s" % install_dir)
-                sudo("mv qualfa2fq.pl %s" % install_dir)
-
-@_if_not_installed("fastq_quality_boxplot_graph.sh")
-def install_fastx_toolkit(env):
-    version = "0.0.13"
-    gtext_version = "0.6"
-    url_base = "http://hannonlab.cshl.edu/fastx_toolkit/"
-    fastx_url = "%sfastx_toolkit-%s.tar.bz2" % (url_base, version)
-    gtext_url = "%slibgtextutils-%s.tar.bz2" % (url_base, gtext_version)
-    with _make_tmp_dir() as work_dir:
-        with cd(work_dir):
-            run("wget %s" % gtext_url)
-            run("tar -xjvpf %s" % (os.path.split(gtext_url)[-1]))
-            with cd("libgtextutils-%s" % gtext_version):
-                run("./configure --prefix=%s" % (env.system_install))
-                run("make")
-                sudo("make install")
-            run("wget %s" % fastx_url)
-            run("tar -xjvpf %s" % os.path.split(fastx_url)[-1])
-            with cd("fastx_toolkit-%s" % version):
-                run("./configure --prefix=%s" % (env.system_install))
-                run("make")
-                sudo("make install")
+    def _fix_makefile():
+        arch = run("uname -m")
+        # if not 64bit, remove the appropriate flag
+        if arch.find("x86_64") == -1:
+            run("sed -i.bak -r -e 's/-O2 -m64/-O2/g' Makefile")
+    _unzip_install(url, env, _make_copy("ls -1 bwa solid2fastq.pl qualfa2fq.pl",
+                                        _fix_makefile))
 
 @_if_not_installed("bfast")
 def install_bfast(env):
@@ -92,14 +57,13 @@ def install_bfast(env):
     vext = "e"
     url = "http://downloads.sourceforge.net/project/bfast/bfast/%s/bfast-%s%s.tar.gz"\
             % (version, version, vext)
-    with _make_tmp_dir() as work_dir:
-        with cd(work_dir):
-            run("wget %s" % (url))
-            run("tar -xzvpf %s" % (os.path.split(url)[-1]))
-            with cd("bfast-%s%s" % (version, vext)):
-                run("./configure --prefix=%s" % (env.system_install))
-                run("make")
-                sudo("make install")
+    _unzip_install(url, env, _configure_make)
+
+@_if_not_installed("perm")
+def install_perm(env):
+    version = "3.2"
+    url = "http://perm.googlecode.com/files/PerM%sSource.zip" % version
+    _unzip_install(url, env, _make_copy("ls -1 perm"))
 
 def _wget_with_cookies(ref_url, dl_url):
     run("wget --cookies=on --keep-session-cookies --save-cookies=cookie.txt %s"
@@ -135,16 +99,17 @@ def install_novoalign(env):
                 for fname in ["novoalignCS"]:
                     sudo("mv %s %s" % (fname, install_dir))
 
-def _symlinked_java_version_dir(pname, version):
-    base_dir = os.path.join(env.system_install, "share", "java", pname)
-    install_dir = "%s-%s" % (base_dir, version)
-    if not exists(install_dir):
-        sudo("mkdir -p %s" % install_dir)
-        if exists(base_dir):
-            sudo("rm -f %s" % base_dir)
-        sudo("ln -s %s %s" % (install_dir, base_dir))
-        return install_dir
-    return None
+# --- Analysis
+
+@_if_not_installed("fastq_quality_boxplot_graph.sh")
+def install_fastx_toolkit(env):
+    version = "0.0.13"
+    gtext_version = "0.6"
+    url_base = "http://hannonlab.cshl.edu/fastx_toolkit/"
+    fastx_url = "%sfastx_toolkit-%s.tar.bz2" % (url_base, version)
+    gtext_url = "%slibgtextutils-%s.tar.bz2" % (url_base, gtext_version)
+    _unzip_install(gtext_url, env, _configure_make)
+    _unzip_install(fastx_url, env, _configure_make)
 
 def install_picard(env):
     version = "1.38"
@@ -172,3 +137,17 @@ def install_gatk(env):
                 run("tar -xjvpf %s" % os.path.basename(url))
                 with cd(os.path.basename(url).replace(ext, "")):
                     sudo("mv *.jar %s" % install_dir)
+
+# --- Assembly
+
+@_if_not_installed("ABYSS")
+def install_abyss(env):
+    version = "1.2.5"
+    url = "http://www.bcgsc.ca/downloads/abyss/abyss-%s.tar.gz" % version
+    _unzip_install(url, env, _configure_make)
+
+@_if_not_installed("velvetg")
+def install_velvet(env):
+    version = "1.0.13"
+    url = "http://www.ebi.ac.uk/~zerbino/velvet/velvet_%s.tgz" % version
+    _unzip_install(url, env, _make_copy("find -perm -100 -name 'velvet*'"))

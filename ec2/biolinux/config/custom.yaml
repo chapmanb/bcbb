@@ -3,23 +3,27 @@
 # a install_name function in the appropriate place in the 'custom' directory to
 # define the steps for downloading, building, and installing the package.
 
+bio_nextgen:
+  alignment:
+    - bwa
+    - bowtie
+    - perm
+  analysis:
+    - fastx_toolkit
+    - gatk
+    - picard
+  assembly:
+    - abyss
+    - velvet
+  needs_64bit:
+    - ucsc_tools
+    - bfast
+    - novoalign
 distributed:
   - mahout
   - pydoop
 java:
   - leinengin
   - cljr
-bio_nextgen:
-  all:
-    - bwa
-    - bowtie
-    - fastx_toolkit
-    - gatk
-    - picard
-  needs_64bit:
-    - ucsc_tools
-    - bfast
-    - novoalign
 python:
-  - pysam
   - bx_python
