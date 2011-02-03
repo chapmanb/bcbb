@@ -5,7 +5,7 @@ import os
 from fabric.api import *
 from fabric.contrib.files import *
 
-from shared import (_if_not_installed, _make_tmp_dir, _unzip_install, _make_copy,
+from shared import (_if_not_installed, _make_tmp_dir, _get_install, _make_copy,
                     _configure_make, _symlinked_java_version_dir)
 
 @_if_not_installed("faToTwoBit")
@@ -36,7 +36,7 @@ def install_bowtie(env):
     version = "0.12.7"
     url = "http://downloads.sourceforge.net/project/bowtie-bio/bowtie/%s/" \
           "bowtie-%s-src.zip" % (version, version)
-    _unzip_install(url, env, _make_copy("find -perm -100 -name 'bowtie*'"))
+    _get_install(url, env, _make_copy("find -perm -100 -name 'bowtie*'"))
 
 @_if_not_installed("bwa")
 def install_bwa(env):
@@ -48,7 +48,7 @@ def install_bwa(env):
         # if not 64bit, remove the appropriate flag
         if arch.find("x86_64") == -1:
             run("sed -i.bak -r -e 's/-O2 -m64/-O2/g' Makefile")
-    _unzip_install(url, env, _make_copy("ls -1 bwa solid2fastq.pl qualfa2fq.pl",
+    _get_install(url, env, _make_copy("ls -1 bwa solid2fastq.pl qualfa2fq.pl",
                                         _fix_makefile))
 
 @_if_not_installed("bfast")
@@ -57,13 +57,19 @@ def install_bfast(env):
     vext = "e"
     url = "http://downloads.sourceforge.net/project/bfast/bfast/%s/bfast-%s%s.tar.gz"\
             % (version, version, vext)
-    _unzip_install(url, env, _configure_make)
+    _get_install(url, env, _configure_make)
 
 @_if_not_installed("perm")
 def install_perm(env):
     version = "3.2"
     url = "http://perm.googlecode.com/files/PerM%sSource.zip" % version
-    _unzip_install(url, env, _make_copy("ls -1 perm"))
+    _get_install(url, env, _make_copy("ls -1 perm"))
+
+@_if_not_installed("gmap")
+def install_gmap(env):
+    version = "2010-07-27"
+    url = "http://research-pub.gene.com/gmap/src/gmap-gsnap-%s.tar.gz" % version
+    _get_install(url, env, _configure_make)
 
 def _wget_with_cookies(ref_url, dl_url):
     run("wget --cookies=on --keep-session-cookies --save-cookies=cookie.txt %s"
@@ -108,8 +114,8 @@ def install_fastx_toolkit(env):
     url_base = "http://hannonlab.cshl.edu/fastx_toolkit/"
     fastx_url = "%sfastx_toolkit-%s.tar.bz2" % (url_base, version)
     gtext_url = "%slibgtextutils-%s.tar.bz2" % (url_base, gtext_version)
-    _unzip_install(gtext_url, env, _configure_make)
-    _unzip_install(fastx_url, env, _configure_make)
+    _get_install(gtext_url, env, _configure_make)
+    _get_install(fastx_url, env, _configure_make)
 
 def install_picard(env):
     version = "1.38"
@@ -138,16 +144,66 @@ def install_gatk(env):
                 with cd(os.path.basename(url).replace(ext, "")):
                     sudo("mv *.jar %s" % install_dir)
 
+@_if_not_installed("freebayes")
+def install_freebayes(env):
+    repository = "git clone git://github.com/ekg/freebayes.git"
+    _get_install(repository, env, _make_copy("ls -1 bin/*"))
+
+@_if_not_installed("intersectBed")
+def install_bedtools(env):
+    repository = "git clone git://github.com/arq5x/bedtools.git"
+    _get_install(repository, env, _make_copy("ls -1 bin/*"))
+
+def _install_samtools_libs(env):
+    repository = "svn co  --non-interactive --trust-server-cert " \
+                 "https://samtools.svn.sourceforge.net/svnroot/samtools/trunk/samtools"
+    def _samtools_lib_install(env):
+        lib_dir = os.path.join(env.system_install, "lib")
+        include_dir = os.path.join(env.system_install, "include", "bam")
+        run("make")
+        sudo("mv -f libbam* %s" % lib_dir)
+        sudo("mkdir -p %s" % include_dir)
+        sudo("mv -f *.h %s" % include_dir)
+    check_dir = os.path.join(env.system_install, "include", "bam")
+    if not exists(check_dir):
+        _get_install(repository, env, _samtools_lib_install)
+
+@_if_not_installed("tophat")
+def install_tophat(env):
+    _install_samtools_libs(env)
+    version = "1.2.0"
+    def _fixseqan_configure_make(env):
+        """Upgrade local copy of SeqAn before compiling to fix errors.
+
+        http://seqanswers.com/forums/showthread.php?t=9082
+        """
+        with cd("src/SeqAn-1.1"):
+            run("wget http://www.seqan.de/uploads/media/Seqan_Release_1.2.zip")
+            run("rm -rf seqan")
+            run("unzip Seqan_Release_1.2.zip")
+        run("./configure --prefix=%s " % env.system_install)
+        run("make")
+        sudo("make install")
+    url = "http://tophat.cbcb.umd.edu/downloads/tophat-%s.tar.gz" % version
+    _get_install(url, env, _fixseqan_configure_make)
+
+@_if_not_installed("cufflinks")
+def install_cufflinks(env):
+    _install_samtools_libs(env)
+    version = "0.9.3"
+    url = "http://cufflinks.cbcb.umd.edu/downloads/cufflinks-%s.tar.gz" % version
+    _get_install(url, env, _configure_make)
+
 # --- Assembly
 
 @_if_not_installed("ABYSS")
 def install_abyss(env):
     version = "1.2.5"
     url = "http://www.bcgsc.ca/downloads/abyss/abyss-%s.tar.gz" % version
-    _unzip_install(url, env, _configure_make)
+    _get_install(url, env, _configure_make)
 
 @_if_not_installed("velvetg")
 def install_velvet(env):
     version = "1.0.13"
     url = "http://www.ebi.ac.uk/~zerbino/velvet/velvet_%s.tgz" % version
-    _unzip_install(url, env, _make_copy("find -perm -100 -name 'velvet*'"))
+    _get_install(url, env, _make_copy("find -perm -100 -name 'velvet*'"))
