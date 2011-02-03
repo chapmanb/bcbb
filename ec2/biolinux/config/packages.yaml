@@ -76,6 +76,10 @@ programming:
     - libsparsehash-dev
     - xvfb
     - rabbitmq-server
+    - libboost-dev
+    - libboost-python-dev
+    - libboost-thread-dev
+    - boost-build
   packaging:
     - build-essential
     - devscripts
@@ -125,14 +129,11 @@ python:
   utils:
     - python-dateutil
   wrappers:
-    - libboost-dev
-    - libboost-python-dev
     - python-libxslt1
     - python-libccc
     - python-libsvm
     - python-libxml2
     - bjam
-    - boost-build
     - python-cairo
     - python-cairo-dev
     - python-mysqldb

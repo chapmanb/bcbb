@@ -63,7 +63,24 @@ def _safe_dir_name(dir_name):
         check = dir_name.replace(replace, "")
         if exists(check):
             return check
+    # still couldn't find it, it's a nasty one
+    first_part = dir_name.split("-")[0].split("_")[0]
+    with settings(warn_only=True):
+        dirs = run("ls -d1 *%s*/" % first_part).split("\n")
+    if len(dirs) == 1:
+        return dirs[0]
     raise ValueError("Could not find directory %s" % dir_name)
+
+def _fetch_and_unpack(url):
+    if url.startswith(("git", "svn", "hg", "cvs")):
+        run(url)
+        base = os.path.basename(url.split()[-1])
+        return os.path.splitext(base)[0]
+    else:
+        run("wget %s" % url)
+        tar_file, dir_name, tar_cmd = _get_expected_file(url)
+        run("%s %s" % (tar_cmd, tar_file))
+        return _safe_dir_name(dir_name)
 
 def _configure_make(env):
     run("./configure --prefix=%s " % env.system_install)
@@ -81,13 +98,10 @@ def _make_copy(find_cmd, premake_cmd=None, do_make=True):
             sudo("mv -f %s %s" % (fname, install_dir))
     return _do_work
 
-def _unzip_install(url, env, make_commands):
+def _get_install(url, env, make_commands):
     with _make_tmp_dir() as work_dir:
         with cd(work_dir):
-            run("wget %s" % url)
-            tar_file, dir_name, tar_cmd = _get_expected_file(url)
-            run("%s %s" % (tar_cmd, tar_file))
-            dir_name = _safe_dir_name(dir_name)
+            dir_name = _fetch_and_unpack(url)
             with cd(dir_name):
                 make_commands(env)
 
