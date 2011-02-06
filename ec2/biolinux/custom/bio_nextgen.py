@@ -144,6 +144,24 @@ def install_gatk(env):
                 with cd(os.path.basename(url).replace(ext, "")):
                     sudo("mv *.jar %s" % install_dir)
 
+def install_snpeff(env):
+    version = "1.8"
+    url = "http://surfnet.dl.sourceforge.net/project/snpeff/snpEff_v%s.zip" % version
+    install_dir = _symlinked_java_version_dir("snpeff", version)
+    if install_dir:
+        with _make_tmp_dir() as work_dir:
+            with cd(work_dir):
+                run("wget %s" % url)
+                run("unzip %s" % os.path.basename(url))
+                with cd(os.path.splitext(os.path.basename(url))[0]):
+                    sudo("mv *.jar %s" % install_dir)
+                    sed("snpEff.config", "data_dir = \./data/",
+                        "data_dir = %s/data" % install_dir)
+                    sudo("mv *.config %s" % install_dir)
+                    sudo("mkdir %s/data" % install_dir)
+                    for org in ["hg37.60", "mm37.60"]:
+                        sudo("mv data/%s %s/data" % (org, install_dir))
+
 @_if_not_installed("freebayes")
 def install_freebayes(env):
     repository = "git clone git://github.com/ekg/freebayes.git"

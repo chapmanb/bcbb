@@ -17,6 +17,7 @@ bio_nextgen:
     - gatk
     - picard
     - tophat
+    - snpeff
   assembly:
     - abyss
     - velvet
