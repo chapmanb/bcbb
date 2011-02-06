@@ -16,8 +16,9 @@ bio_nextgen:
     - freebayes
     - gatk
     - picard
-    - tophat
     - snpeff
+    - solexaqa
+    - tophat
   assembly:
     - abyss
     - velvet

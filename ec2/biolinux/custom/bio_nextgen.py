@@ -117,6 +117,17 @@ def install_fastx_toolkit(env):
     _get_install(gtext_url, env, _configure_make)
     _get_install(fastx_url, env, _configure_make)
 
+@_if_not_installed("SolexaQA.pl")
+def install_solexaqa(env):
+    version = "1.4"
+    url = "http://downloads.sourceforge.net/project/solexaqa/src/" \
+            "SolexaQA_v.%s.pl.zip" % version
+    with _make_tmp_dir() as work_dir:
+        with cd(work_dir):
+            run("wget %s" % url)
+            run("unzip %s" % os.path.basename(url))
+            sudo("mv SolexaQA.pl %s" % os.path.join(env.system_install, "bin"))
+
 def install_picard(env):
     version = "1.38"
     url = "http://downloads.sourceforge.net/project/picard/" \
