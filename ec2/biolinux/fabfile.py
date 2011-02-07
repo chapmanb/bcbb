@@ -113,23 +113,35 @@ def _apt_packages(to_install):
         sudo("apt-get -y --force-yes install %s" % package)
 
 def _custom_installs(to_install):
-    pkg_config = os.path.join(env.config_dir, "custom.yaml")
     if not exists(env.local_install):
         run("mkdir %s" % env.local_install)
+    pkg_config = os.path.join(env.config_dir, "custom.yaml")
     packages, pkg_to_group = _yaml_to_packages(pkg_config, to_install)
     sys.path.append(os.path.split(__file__)[0])
     for p in packages:
-        try:
-            mod = __import__("custom.%s" % pkg_to_group[p], fromlist=["custom"])
-        except ImportError:
-            raise ImportError("Need to write a %s module in custom." %
-                    pkg_to_group[p])
-        try:
-            fn = getattr(mod, "install_%s" % p)
-        except AttributeError:
-            raise ImportError("Need to write a install_%s function in custom.%s"
-                    % (p, pkg_to_group[p]))
-        fn(env)
+        install_custom(p, True)
+
+def install_custom(p, automated=False):
+    """Install a single custom package by name.
+
+    fab install_custom_package:package_name
+    """
+    if not automated:
+        pkg_config = os.path.join(env.config_dir, "custom.yaml")
+        packages, pkg_to_group = _yaml_to_packages(pkg_config, None)
+        sys.path.append(os.path.split(__file__)[0])
+        env.system_install = "/usr"
+    try:
+        mod = __import__("custom.%s" % pkg_to_group[p], fromlist=["custom"])
+    except ImportError:
+        raise ImportError("Need to write a %s module in custom." %
+                pkg_to_group[p])
+    try:
+        fn = getattr(mod, "install_%s" % p)
+    except AttributeError:
+        raise ImportError("Need to write a install_%s function in custom.%s"
+                % (p, pkg_to_group[p]))
+    fn(env)
 
 def _yaml_to_packages(yaml_file, to_install):
     """Read a list of packages from a nested YAML configuration file.
@@ -140,7 +152,8 @@ def _yaml_to_packages(yaml_file, to_install):
     with open(yaml_file) as in_handle:
         full_data = yaml.load(in_handle)
     # filter the data based on what we have configured to install
-    data = [(k, v) for (k,v) in full_data.iteritems() if k in to_install]
+    data = [(k, v) for (k,v) in full_data.iteritems()
+            if to_install is None or k in to_install]
     data.sort()
     packages = []
     pkg_to_group = dict()

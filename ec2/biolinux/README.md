@@ -66,7 +66,7 @@ Run the fabfile, building CloudBioLinux:
 
         fab -H vagrant -f /path/to/bcbb/ec2/biolinux/fabfile.py install_biolinux
 
-Then build the box. Renaming package.box to cloudbiolinux_date and
+Then build the box, renaming package.box to `cloudbiolinux_date` and
 move it to a public webserver, like Amazon S3:
 
         vagrant package
@@ -82,6 +82,20 @@ move it to a public webserver, like Amazon S3:
 [v2]: http://digitizor.com/2011/01/07/virtualbox-4-0-install-ubuntu/
 
 # Technical details for hacking on CloudBioLinux
+
+## Custom packages
+
+The custom directory contains installation instructions for programs that are
+not available from standard package repositories. These instructions are written
+in Python using the [Fabric][3] remote deployment tool and can also be used for
+installing individual packages locally on your machine. To do this, run:
+
+      fab -f fabfile.py install_custom:your_package_name -H localhost
+
+To build and install `your_package_name` on the local machine. We welcome
+additional custom bioinformatics package definitions for inclusion in
+CloudBioLinux. `custom/shared.py` contains a number of higher level functions
+which make it easier to write installation instructions.
 
 ## EC2 quickstart
 This provides a quick cheat sheet of commands for getting up and running on EC2 using
