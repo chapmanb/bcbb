@@ -4,6 +4,7 @@ Uses best e-value as a threshold to identify best cross-species hits in a number
 of organism databases.
 """
 import os
+import csv
 import codecs
 import subprocess
 import contextlib
@@ -13,6 +14,7 @@ import StringIO
 
 from Bio.Blast.Applications import NcbiblastpCommandline
 from Bio.Blast import NCBIXML
+from Bio import SeqIO
 
 def get_org_dbs(db_dir, target_org):
     """Retrieve references to fasta and BLAST databases for included organisms.
@@ -48,7 +50,34 @@ def blast_top_hits(key, rec, db_refs, tmp_dir):
                 score_info.append(out_eval)
     return cur_id, id_info, score_info
 
-def _compare_by_blast(input_ref, xref_db, blast_out):
+def blast_two_seqs(rec1, rec2, tmp_dir):
+    """Blast two sequences returning score and identify information.
+    """
+    with _tmpfile(prefix="in-21", dir=tmp_dir) as rec1_in:
+        with _tmpfile(prefix="in-22", dir=tmp_dir) as rec2_in:
+            with open(rec1_in, "w") as out_handle:
+                SeqIO.write([rec1], out_handle, "fasta")
+            with open(rec2_in, "w") as out_handle:
+                SeqIO.write([rec2], out_handle, "fasta")
+            with _tmpfile(prefix="out-2", dir=tmp_dir) as blast_out:
+                return _compare_by_blast_2seq(rec1_in, rec2_in, blast_out)
+
+def _compare_by_blast_2seq(query, subject, blast_out):
+    """Compare two sequences by BLAST without output database.
+    """
+    cl = NcbiblastpCommandline(query=query, subject=subject, out=blast_out,
+            outfmt=6, num_descriptions=1, num_alignments=1)
+    subprocess.check_call(str(cl).split())
+    with open(blast_out) as blast_handle:
+        try:
+            parts = blast_handle.next().strip().split("\t")
+        except StopIteration:
+            parts = [""] * 10
+        identity = parts[2]
+        score = parts[-1]
+    return identity, score
+
+def _compare_by_blast(input_ref, xref_db, blast_out, subject_blast=False):
     """Compare all genes in an input file to the output database.
     """
     cl = NcbiblastpCommandline(query=input_ref, db=xref_db, out=blast_out,
