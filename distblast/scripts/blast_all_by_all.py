@@ -40,7 +40,7 @@ def write_out_matrices(ids, data_out):
     with open(data_out) as in_handle:
         score_matrix, ident_matrix = get_matrices(in_handle, ids)
     io.savemat(mat_file, {"human_scores" : score_matrix,
-                          "human_identities" : identity_matrix})
+                          "human_identities" : ident_matrix})
     with open(id_file, "w") as out_handle:
         for i in ids:
             out_handle.write("%s\n" % i)
@@ -52,11 +52,12 @@ def get_matrices(in_handle, ids):
     scores = sparse.lil_matrix((len(ids), len(ids)))
     idents = sparse.lil_matrix((len(ids), len(ids)))
     reader = csv.reader(in_handle, dialect="excel-tab")
+    reader.next() # header
     for id1, id2, score, ident in reader:
         pos1 = pos_lookup[id1]
         pos2 = pos_lookup[id2]
         scores[pos1,pos2] = float(score)
-        idents[pos1,pos2] = float(idents)
+        idents[pos1,pos2] = float(ident)
     return scores, idents
 
 def prepare_data_file(out_handle, ids, org_config, config):
