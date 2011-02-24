@@ -35,15 +35,16 @@ def main(base_config_file, org_config_file, id_file):
 
 def write_out_matrices(ids, data_out):
     base = os.path.splitext(data_out)[0].replace("-data", "")
-    id_file = "%s-ids.txt" % base
     mat_file = "%s-scores.mat" % base
     with open(data_out) as in_handle:
         score_matrix, ident_matrix = get_matrices(in_handle, ids)
     io.savemat(mat_file, {"human_scores" : score_matrix,
-                          "human_identities" : ident_matrix})
-    with open(id_file, "w") as out_handle:
-        for i in ids:
-            out_handle.write("%s\n" % i)
+                          "human_identities" : ident_matrix,
+                          "human_ids" : ids})
+    #id_file = "%s-ids.txt" % base
+    #with open(id_file, "w") as out_handle:
+    #    for i in ids:
+    #        out_handle.write("%s\n" % i)
 
 def get_matrices(in_handle, ids):
     pos_lookup = {}
