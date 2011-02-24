@@ -50,6 +50,15 @@ def blast_top_hits(key, rec, db_refs, tmp_dir):
                 score_info.append(out_eval)
     return cur_id, id_info, score_info
 
+def blast_hit_list(key, rec, xref_db, thresh, tmp_dir):
+    """BLAST a record against a single database, returning hits above e-value threshold.
+    """
+    with _tmpfile(prefix="in-h", dir=tmp_dir) as ref_in:
+        with open(ref_in, "w") as out_handle:
+            SeqIO.write([rec], out_handle, "fasta")
+        with _tmpfile(prefix="out-h", dir=tmp_dir) as blast_out:
+            return _compare_by_blast_hitlist(ref_in, xref_db, blast_out, thresh)
+
 def blast_two_seqs(rec1, rec2, tmp_dir):
     """Blast two sequences returning score and identify information.
     """
@@ -61,6 +70,17 @@ def blast_two_seqs(rec1, rec2, tmp_dir):
                 SeqIO.write([rec2], out_handle, "fasta")
             with _tmpfile(prefix="out-2", dir=tmp_dir) as blast_out:
                 return _compare_by_blast_2seq(rec1_in, rec2_in, blast_out)
+
+def _compare_by_blast_hitlist(query, xref_db, blast_out, thresh):
+    cl = NcbiblastpCommandline(query=query, db=xref_db, out=blast_out,
+            outfmt=6, num_descriptions=10000, num_alignments=0, evalue=thresh)
+    subprocess.check_call(str(cl).split())
+    hits = []
+    with open(blast_out) as blast_handle:
+        for line in blast_handle:
+            parts = line.rstrip("\r\n").split("\t")
+            hits.append((parts[0], parts[1], parts[2], parts[-1]))
+    return hits
 
 def _compare_by_blast_2seq(query, subject, blast_out):
     """Compare two sequences by BLAST without output database.
