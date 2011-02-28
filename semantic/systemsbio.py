@@ -107,6 +107,7 @@ class Biogateway:
                     attr_name, all_terms, "\n", "}\n")
         stmt += self._get_sparql_piece("", "to_filter", all_terms, "\n")
         stmt += "\n}"
+        print stmt
         results = self._do_query(stmt)
         term_names = [t.select[1:] for t in all_terms if t.select]
         vals = []
