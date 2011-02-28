@@ -76,10 +76,13 @@ def _compare_by_blast_hitlist(query, xref_db, blast_out, thresh):
             outfmt=6, num_descriptions=10000, num_alignments=0, evalue=thresh)
     subprocess.check_call(str(cl).split())
     hits = []
+    seen = set()
     with open(blast_out) as blast_handle:
         for line in blast_handle:
             parts = line.rstrip("\r\n").split("\t")
-            hits.append((parts[0], parts[1], parts[2], parts[-1]))
+            if parts[1] not in seen:
+                hits.append((parts[0], parts[1], parts[2], parts[-1]))
+                seen.add(parts[1])
     return hits
 
 def _compare_by_blast_2seq(query, subject, blast_out):
