@@ -21,6 +21,7 @@ bio_nextgen:
     - tophat
   assembly:
     - abyss
+    - inchworm
     - velvet
   needs_64bit:
     - ucsc_tools

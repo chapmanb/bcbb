@@ -77,8 +77,9 @@ def _fetch_and_unpack(url):
         base = os.path.basename(url.split()[-1])
         return os.path.splitext(base)[0]
     else:
-        run("wget %s" % url)
         tar_file, dir_name, tar_cmd = _get_expected_file(url)
+        if not exists(tar_file):
+            run("wget %s" % url)
         run("%s %s" % (tar_cmd, tar_file))
         return _safe_dir_name(dir_name)
 

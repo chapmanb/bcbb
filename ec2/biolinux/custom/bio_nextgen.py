@@ -236,3 +236,9 @@ def install_velvet(env):
     version = "1.0.13"
     url = "http://www.ebi.ac.uk/~zerbino/velvet/velvet_%s.tgz" % version
     _get_install(url, env, _make_copy("find -perm -100 -name 'velvet*'"))
+
+@_if_not_installed("inchworm")
+def install_inchworm(env):
+    version = "r02-21-2011"
+    url = "http://downloads.sourceforge.net/project/inchworm/inchworm_%s.tgz" % version
+    _get_install(url, env, _configure_make)
