@@ -156,7 +156,7 @@ def install_gatk(env):
                     sudo("mv *.jar %s" % install_dir)
 
 def install_snpeff(env):
-    version = "1.8"
+    version = "1_8"
     url = "http://downloads.sourceforge.net/project/snpeff/snpEff_v%s.zip" % version
     install_dir = _symlinked_java_version_dir("snpeff", version)
     if install_dir:
