@@ -45,6 +45,10 @@ programming:
     - mercurial
     - bzr
     - darcs
+  documentation:
+    - texlive-latex-base
+    - texlive-latex-recommended
+    - texlive-latex-extra
   build:
     - swig
     - curl
