@@ -21,28 +21,24 @@ import yaml
 
 env.config_dir = os.path.join(os.path.dirname(__file__), "config")
 
-def ec2_ubuntu_environment():
-    """Setup default environmental variables for Ubuntu EC2 servers.
-
-    Works on a US EC2 server running Ubuntu. This is fairly general but
-    we will need to define similar functions for other targets.
-    """
+def setup_environment():
     if env.hosts == ["vagrant"]:
         _setup_vagrant_environment()
+    elif env.hosts == ["localhost"]:
+        _setup_local_environment()
     else:
-        env.user = "ubuntu"
-    env.sources_file = "/etc/apt/sources.list"
+        _setup_ec2_environment()
     env.shell_config = "~/.bashrc"
+    env.shell = "/bin/bash -l -c"
     # Global installation directory for packages and standard programs
     env.system_install = "/usr"
     # Local install directory for versioned software that will not
     # be included in the path by default.
     env.local_install = "install"
-    env.shell = "/bin/bash -l -c"
-    # XXX look for a way to find JAVA_HOME automatically
-    env.java_home = "/usr/lib/jvm/java-6-openjdk"
-    version = ("lucid", "10.4")
-    #version = ("maverick", "10.10")
+    # package information. This is ubuntu/debian based and could be generalized.
+    env.sources_file = "/etc/apt/sources.list"
+    #version = ("lucid", "10.4")
+    version = ("maverick", "10.10")
     sources = [
       "deb http://us.archive.ubuntu.com/ubuntu/ %s universe",
       "deb-src http://us.archive.ubuntu.com/ubuntu/ %s universe",
@@ -52,16 +48,31 @@ def ec2_ubuntu_environment():
       "deb-src http://us.archive.ubuntu.com/ubuntu/ %s multiverse",
       "deb http://us.archive.ubuntu.com/ubuntu/ %s-updates multiverse",
       "deb-src http://us.archive.ubuntu.com/ubuntu/ %s-updates multiverse",
-      "deb http://archive.canonical.com/ %s partner",
-      "deb http://downloads.mongodb.org/distros/ubuntu % s 10gen",
-      "deb http://watson.nci.nih.gov/cran_mirror/bin/linux/ubuntu %s/",
+      "ppa:sun-java-community-team/sun-java6", # sun-java
+      "deb http://downloads.mongodb.org/distros/ubuntu % s 10gen", # mongodb
       "deb http://cran.stat.ucla.edu/bin/linux/ubuntu %s/", # lastest R versions
       "deb http://nebc.nox.ac.uk/bio-linux/ unstable bio-linux", # Bio-Linux
       "deb http://archive.cloudera.com/debian %s-cdh3 contrib", # Hadoop
-      "ppa:freenx-team/ppa", # FreeNX PPA
+      "deb http://ppa.launchpad.net/freenx-team/ppa/ubuntu lucid main", # FreeNX PPA
       "deb http://download.virtualbox.org/virtualbox/debian %s contrib", # virtualbox
     ]
     env.std_sources = _add_source_versions(version, sources)
+
+def _setup_ec2_environment():
+    """Setup default environmental variables for Ubuntu EC2 servers.
+
+    Works on a US EC2 server running Ubuntu. This is fairly general but
+    we will need to define similar functions for other targets.
+    """
+    env.user = "ubuntu"
+    # XXX look for a way to find JAVA_HOME automatically
+    env.java_home = "/usr/lib/jvm/java-6-openjdk"
+
+def _setup_local_environment():
+    """Setup a localhost environment based on system variables.
+    """
+    env.user = os.environ["USER"]
+    env.java_home = os.environ.get("JAVA_HOME", "/usr/lib/jvm/java-6-openjdk")
 
 def _setup_vagrant_environment():
     """Use vagrant commands to get connection information.
@@ -90,12 +101,12 @@ def _add_source_versions(version, sources):
 def install_biolinux():
     """Main entry point for installing Biolinux on a remote server.
     """
-    ec2_ubuntu_environment()
+    setup_environment()
     pkg_install, lib_install = _read_main_config()
-    _setup_sources()
-    _setup_automation()
-    _add_gpg_keys()
-    _apt_packages(pkg_install)
+    #_setup_sources()
+    #_setup_automation()
+    #_add_gpg_keys()
+    #_apt_packages(pkg_install)
     _custom_installs(pkg_install)
     _do_library_installs(lib_install)
     _freenx_scripts()
@@ -119,9 +130,9 @@ def _custom_installs(to_install):
     packages, pkg_to_group = _yaml_to_packages(pkg_config, to_install)
     sys.path.append(os.path.split(__file__)[0])
     for p in packages:
-        install_custom(p, True)
+        install_custom(p, True, pkg_to_group)
 
-def install_custom(p, automated=False):
+def install_custom(p, automated=False, pkg_to_group=None):
     """Install a single custom package by name.
 
     fab install_custom_package:package_name
@@ -294,7 +305,7 @@ def _add_gpg_keys():
         "http://download.virtualbox.org/virtualbox/debian/oracle_vbox.asc"]
     keyserver = [
         ("subkeys.pgp.net", "7F0CEB10"),
-        ("subkeys.pgp.net", "381BA480"),
+        ("keyserver.ubuntu.com", "E084DAB9"),
         ("keyserver.ubuntu.com", "D67FC6EAE2A11821"),
     ]
     for url, key in keyserver:

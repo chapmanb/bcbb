@@ -19,4 +19,4 @@ def install_bx_python(env):
                 run("python setup.py build")
                 sudo("python setup.py install --skip-build")
                 sudo("rm -rf dist")
-                sudo("rm -rf bx_python.egg-info")
+                sudo("rm -rf lib/bx_python.egg-info")

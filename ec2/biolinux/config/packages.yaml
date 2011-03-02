@@ -154,7 +154,6 @@ python:
     - python-numpy
   viz:
     - python-reportlab
-    - python-biggles
   # FIXME please organize this huge list better!
   misc:
     - python-beautifulsoup
@@ -173,7 +172,6 @@ python:
     - python-ipy
     - python-irclib
     - python-jaxml
-    - python-json
     - python-matplotlib
     - python-matplotlib-data
     - python-mode
@@ -514,7 +512,7 @@ databases:
     - libhdf5-serial-dev
 math:
   - prover9
-  - octave3.0
+  - octave3.2
 viz:
   - x11-apps
   - mayavi2
