@@ -6,7 +6,7 @@ from fabric.api import *
 from fabric.contrib.files import *
 
 from shared import (_if_not_installed, _make_tmp_dir, _get_install, _make_copy,
-                    _configure_make, _symlinked_java_version_dir)
+                    _configure_make, _symlinked_java_version_dir, _fetch_and_unpack)
 
 @_if_not_installed("faToTwoBit")
 def install_ucsc_tools(env):
@@ -162,12 +162,11 @@ def install_snpeff(env):
     if install_dir:
         with _make_tmp_dir() as work_dir:
             with cd(work_dir):
-                run("wget %s" % url)
-                run("unzip %s" % os.path.basename(url))
-                with cd(os.path.splitext(os.path.basename(url))[0]):
+                dir_name = _fetch_and_unpack(url)
+                with cd(dir_name):
                     sudo("mv *.jar %s" % install_dir)
-                    sed("snpEff.config", "data_dir = \./data/",
-                        "data_dir = %s/data" % install_dir)
+                    run("sed -i.bak -r -e 's/data_dir = \.\/data\//data_dir = %s\/data/' %s" %
+                        (install_dir.replace("/", "\/"), "snpEff.config"))
                     sudo("mv *.config %s" % install_dir)
                     sudo("mkdir %s/data" % install_dir)
                     for org in ["hg37.60", "mm37.60"]:
