@@ -13,6 +13,7 @@ import os
 import operator
 from contextlib import contextmanager
 
+import fabric.version
 from fabric.api import *
 from fabric.contrib.files import *
 
@@ -206,11 +207,17 @@ lift_over_genomes = [g.ucsc_name() for (_, _, g) in genomes if g.ucsc_name()]
 def install_data():
     """Main entry point for installing useful biological data.
     """
+    _check_version()
     amazon_ec2()
     #local_server()
     _data_uniref()
     _data_ngs_genomes()
     _data_liftover()
+
+def _check_version():
+    version = fabric.version.VERSION
+    if version[0] < 1:
+        raise NotImplementedError("Please install fabric version 1 or better")
 
 # == Decorators and context managers
 
@@ -315,8 +322,8 @@ def _update_loc_file(ref_file, line_parts):
         with cd(tools_dir):
             if not exists(ref_file):
                 run("touch %s" % ref_file)
-            if not contains(add_str, ref_file):
-                append(add_str, ref_file)
+            if not contains(ref_file, add_str):
+                append(ref_file, add_str)
 
 @_if_installed("faToTwoBit")
 def _index_twobit(ref_file):

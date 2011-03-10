@@ -15,6 +15,7 @@ import os
 import sys
 import subprocess
 
+import fabric.version
 from fabric.api import *
 from fabric.contrib.files import *
 import yaml
@@ -101,6 +102,7 @@ def _add_source_versions(version, sources):
 def install_biolinux():
     """Main entry point for installing Biolinux on a remote server.
     """
+    _check_version()
     setup_environment()
     pkg_install, lib_install = _read_main_config()
     #_setup_sources()
@@ -111,6 +113,11 @@ def install_biolinux():
     _do_library_installs(lib_install)
     _freenx_scripts()
     _cleanup()
+
+def _check_version():
+    version = fabric.version.VERSION
+    if version[0] < 1:
+        raise NotImplementedError("Please install fabric version 1 or better")
 
 def _apt_packages(to_install):
     """Install packages available via apt-get.
@@ -210,7 +217,7 @@ def _r_library_installer(config):
     options(repos=cran.repos)
     source("%s")
     """ % (config["cranrepo"], config["biocrepo"])
-    append(repo_info, out_file)
+    append(out_file, repo_info)
     install_fn = """
     repo.installer <- function(repos, install.fn) {
       update.or.install <- function(pname) {
@@ -221,24 +228,24 @@ def _r_library_installer(config):
       }
     }
     """
-    append(install_fn, out_file)
+    append(out_file, install_fn)
     std_install = """
     std.pkgs <- c(%s)
     std.installer = repo.installer(cran.repos, install.packages)
     lapply(std.pkgs, std.installer)
     """ % (", ".join('"%s"' % p for p in config['cran']))
-    append(std_install, out_file)
+    append(out_file, std_install)
     bioc_install = """
     bioc.pkgs <- c(%s)
     bioc.installer = repo.installer(biocinstallRepos(), biocLite)
     lapply(bioc.pkgs, bioc.installer)
     """ % (", ".join('"%s"' % p for p in config['bioc']))
-    append(bioc_install, out_file)
+    append(out_file, bioc_install)
     final_update = """
     update.packages(repos=biocinstallRepos(), ask=FALSE)
     update.packages(ask=FALSE)
     """
-    append(final_update, out_file)
+    append(out_file, final_update)
     # run the script and then get rid of it
     sudo("Rscript %s" % out_file)
     run("rm -f %s" % out_file)
@@ -326,8 +333,8 @@ def _setup_automation():
     http://www.uluga.ubuntuforums.org/showthread.php?p=9120196
     """
     interactive_cmd = "export DEBIAN_FRONTEND=noninteractive"
-    if not contains(interactive_cmd, env.shell_config):
-        append(interactive_cmd, env.shell_config)
+    if not contains(env.shell_config, interactive_cmd):
+        append(env.shell_config, interactive_cmd)
     package_info = [
             "postfix postfix/main_mailer_type select No configuration",
             "postfix postfix/mailname string notusedexample.org",
@@ -351,8 +358,8 @@ def _setup_sources():
     for source in env.std_sources:
         if source.startswith("ppa:"):
             sudo("add-apt-repository '%s'" % source)
-        elif not contains(source, env.sources_file):
-            append(source, env.sources_file, use_sudo=True)
+        elif not contains(env.sources_file, source):
+            append(env.sources_file, source, use_sudo=True)
 
 def _freenx_scripts():
     """Provide graphical access to clients via FreeNX.
