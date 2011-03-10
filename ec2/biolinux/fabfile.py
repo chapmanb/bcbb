@@ -15,7 +15,7 @@ import os
 import sys
 import subprocess
 
-import fabric.version
+from fabric.main import load_settings
 from fabric.api import *
 from fabric.contrib.files import *
 import yaml
@@ -23,23 +23,22 @@ import yaml
 env.config_dir = os.path.join(os.path.dirname(__file__), "config")
 
 def setup_environment():
+    _add_defaults()
     if env.hosts == ["vagrant"]:
         _setup_vagrant_environment()
     elif env.hosts == ["localhost"]:
         _setup_local_environment()
     else:
         _setup_ec2_environment()
-    env.shell_config = "~/.bashrc"
-    env.shell = "/bin/bash -l -c"
-    # Global installation directory for packages and standard programs
-    env.system_install = "/usr"
-    # Local install directory for versioned software that will not
-    # be included in the path by default.
-    env.local_install = "install"
+    if env.distribution == "ubuntu":
+        _setup_ubuntu()
+    else:
+        raise ValueError("Unexpected distribution %s" % env.distribution)
+
+def _setup_ubuntu():
     # package information. This is ubuntu/debian based and could be generalized.
     env.sources_file = "/etc/apt/sources.list"
-    #version = ("lucid", "10.4")
-    version = ("maverick", "10.10")
+    version = (env.dist_name, env.dist_version)
     sources = [
       "deb http://us.archive.ubuntu.com/ubuntu/ %s universe",
       "deb-src http://us.archive.ubuntu.com/ubuntu/ %s universe",
@@ -59,21 +58,33 @@ def setup_environment():
     ]
     env.std_sources = _add_source_versions(version, sources)
 
+def _add_defaults():
+    """Defaults from fabricrc.txt file; loaded if not specified at commandline.
+    """
+    if not env.has_key("distribution"):
+        config_file = os.path.join(env.config_dir, "fabricrc.txt")
+        if os.path.exists(config_file):
+            env.update(load_settings(config_file))
+
 def _setup_ec2_environment():
     """Setup default environmental variables for Ubuntu EC2 servers.
 
     Works on a US EC2 server running Ubuntu. This is fairly general but
     we will need to define similar functions for other targets.
     """
-    env.user = "ubuntu"
-    # XXX look for a way to find JAVA_HOME automatically
-    env.java_home = "/usr/lib/jvm/java-6-openjdk"
+    if not env.has_key("user"):
+        env.user = "ubuntu"
+    if not env.has_key("java_home"):
+        # XXX look for a way to find JAVA_HOME automatically
+        env.java_home = "/usr/lib/jvm/java-6-openjdk"
 
 def _setup_local_environment():
     """Setup a localhost environment based on system variables.
     """
-    env.user = os.environ["USER"]
-    env.java_home = os.environ.get("JAVA_HOME", "/usr/lib/jvm/java-6-openjdk")
+    if not env.has_key("user"):
+        env.user = os.environ["USER"]
+    if not env.has_key("java_home"):
+        env.java_home = os.environ.get("JAVA_HOME", "/usr/lib/jvm/java-6-openjdk")
 
 def _setup_vagrant_environment():
     """Use vagrant commands to get connection information.
@@ -115,8 +126,8 @@ def install_biolinux():
     _cleanup()
 
 def _check_version():
-    version = fabric.version.VERSION
-    if version[0] < 1:
+    version = env.version
+    if int(version.split(".")[0]) < 1:
         raise NotImplementedError("Please install fabric version 1 or better")
 
 def _apt_packages(to_install):
@@ -148,7 +159,8 @@ def install_custom(p, automated=False, pkg_to_group=None):
         pkg_config = os.path.join(env.config_dir, "custom.yaml")
         packages, pkg_to_group = _yaml_to_packages(pkg_config, None)
         sys.path.append(os.path.split(__file__)[0])
-        env.system_install = "/usr"
+        if not env.has_key("system_install"):
+            _add_defaults()
     try:
         mod = __import__("custom.%s" % pkg_to_group[p], fromlist=["custom"])
     except ImportError:
