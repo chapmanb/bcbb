@@ -29,6 +29,7 @@ desktop:
   - gnome-backgrounds
   - gnome-terminal
   - firefox
+  - evince
   - cloudbl-desktop
   - bio-linux-tutorials
 programming:
@@ -73,13 +74,15 @@ programming:
     - gfortran
     - stow
   libraries:
+    - libatlas-dev
+    - libblas-dev
+    - liblapack-dev
     - tcl-dev
     - tk-dev
     - imagemagick
     - pdfjam
     - libsparsehash-dev
     - xvfb
-    - rabbitmq-server
     - libboost-dev
     - libboost-python-dev
     - libboost-thread-dev
@@ -106,6 +109,7 @@ programming:
 # production-ready Elastic MapReduce platform:
 # http://aws.amazon.com/elasticmapreduce/
 distributed:
+  - rabbitmq-server
   - hadoop-0.20
   - hadoop-pig
   - hadoop-hive
@@ -219,7 +223,8 @@ python:
 ruby:
   # ruby gems are installed by components/ruby.rb
   - rubygems
-  - ruby1.8-dev
+  - ruby1.9.1
+  - ruby1.9.1-dev
   - irb
   - ri
   - rdoc
@@ -477,7 +482,6 @@ erlang:
   - erlang-examples
   - erlang-manpages
   - erlang-mode
-  - rabbitmq-server
 haskell:
   - ghc6
   - libghc6-mtl-dev
@@ -530,6 +534,7 @@ viz:
   - libglu1-mesa-dev
 web:
   - apache2
+  - nginx
 bio_general:
   - emboss
   - emboss-data

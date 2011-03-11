@@ -5,10 +5,16 @@ desktop:
   - freenx
   - gnome-terminal
   - firefox
+  - evince
 programming:
   editors:
     - emacs
+    - emacs-common
+    - emacs-el
+    - vim-X11
+    - ctags
   version_control:
+    - git
     - cvs
     - subversion
     - mercurial
@@ -17,10 +23,45 @@ programming:
   build:
     - swig
     - curl
+    - curl-devel
     - libxml2
+    - libxml2-devel
+    - gsl
+    - gsl-devel
     - xfsprogs
+    - glibc
+    - glibc-devel
+    - zip
+    - zlib
+    - zlib-devel
+    - zziplib-devel
+    - bzip2
+    - bzip2-devel
+    - gtk2
+    - gtk2-devel
+    - ncurses-devel
+    - globus-openss
+    - globus-openssl-devel
+    - pcre
+    - pcre-devel
+    - readline
+    - readline-devel
     - gcc
+    - gcc-gfortran
+    - gcc-c++
   libraries:
+    - lapack
+    - lapack-devel
+    - libgfortran
+    - atlas
+    - atlas-devel
+    - blas
+    - blas-devel
+    - tcl-devel
+    - tk-devel
+    - ImageMagick
+    - boost
+    - boost-devel
   packaging:
     - unzip
   virtual:
@@ -29,45 +70,70 @@ programming:
   lang:
     - aspell
 distributed:
+  - rabbitmq-server
 amazon:
 python:
   meta:
-    - python
+    - python26
+    - python26-devel
+    - python26-distribute
   utils:
   wrappers:
-    - python-cjson
   math:
-    - python-crypto
-    - python-numeric
   viz:
   misc:
-    - python-matplotlib
-    - python-psycopg2
-    - python-sqlite
-    - python-lxml
 ruby:
+  - ruby
+  - rubygems
+  - ruby-irb
+  - rubygem-rake
 r:
+  - R
+  - R-core
+  - libRmath
+  - libRmath-devel
 perl: 
   - perl
 java:
+  - java-1.6.0-openjdk
+  - java-1.6.0-openjdk-devel
   - ant
 erlang:
   - erlang
+  - erlang-devel
 haskell:
+  - ghc
 databases:
   mysql:
+    - mysql
+    - mysql-devel
     - mysql-server
   postgres:
     - postgresql
+    - postgresql-devel
+    - postgresql-server
   sqlite:
+    - sqlite
+    - sqlite-devel
   document:
+    - mongodb
+    - mongodb-devel
     - couchdb
+    - tokyocabinet
+    - tokyocabinet-devel
   hdf:
+    - hdf5
+    - hdf5-devel
 math:
   - prover9
+  - octave
+  - octave-devel
 viz:
   - graphviz
 web:
+  - httpd
+  - httpd-devel
+  - nginx
 bio_general:
 bio_search:
 bio_alignment:

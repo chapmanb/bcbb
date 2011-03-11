@@ -22,6 +22,8 @@ import yaml
 
 env.config_dir = os.path.join(os.path.dirname(__file__), "config")
 
+# ### Configuration details for different server types
+
 def setup_environment():
     _add_defaults()
     if env.hosts == ["vagrant"]:
@@ -32,6 +34,8 @@ def setup_environment():
         _setup_ec2_environment()
     if env.distribution == "ubuntu":
         _setup_ubuntu()
+    elif env.distribution == "centos":
+        _setup_centos()
     else:
         raise ValueError("Unexpected distribution %s" % env.distribution)
 
@@ -57,6 +61,9 @@ def _setup_ubuntu():
       "deb http://download.virtualbox.org/virtualbox/debian %s contrib", # virtualbox
     ]
     env.std_sources = _add_source_versions(version, sources)
+
+def _setup_centos():
+    pass
 
 def _add_defaults():
     """Defaults from fabricrc.txt file; loaded if not specified at commandline.
@@ -110,16 +117,21 @@ def _add_source_versions(version, sources):
         final.append(s)
     return final
 
+# ### Shared installation targets for all platforms
+
 def install_biolinux():
     """Main entry point for installing Biolinux on a remote server.
     """
     _check_version()
     setup_environment()
     pkg_install, lib_install = _read_main_config()
-    _setup_sources()
-    _setup_automation()
-    _add_gpg_keys()
-    _apt_packages(pkg_install)
+    if env.distribution in ["ubuntu"]:
+        _setup_apt_sources()
+        _setup_apt_automation()
+        _add_apt_gpg_keys()
+        _apt_packages(pkg_install)
+    elif env.distribution in ["centos"]:
+        _yum_packages(pkg_install)
     _custom_installs(pkg_install)
     _do_library_installs(lib_install)
     _freenx_scripts()
@@ -129,17 +141,6 @@ def _check_version():
     version = env.version
     if int(version.split(".")[0]) < 1:
         raise NotImplementedError("Please install fabric version 1 or better")
-
-def _apt_packages(to_install):
-    """Install packages available via apt-get.
-    """
-    pkg_config = os.path.join(env.config_dir, "packages.yaml")
-    sudo("apt-get update")
-    sudo("apt-get -y --force-yes upgrade")
-    # Retrieve packages to get and install each of them
-    (packages, _) = _yaml_to_packages(pkg_config, to_install)
-    for package in packages:
-        sudo("apt-get -y --force-yes install %s" % package)
 
 def _custom_installs(to_install):
     if not exists(env.local_install):
@@ -215,7 +216,7 @@ def _read_main_config():
     libraries = libraries if libraries else []
     return packages, sorted(libraries)
 
-# --- Library specific installation code
+# ### Library specific installation code
 
 def _r_library_installer(config):
     """Install R libraries using CRAN and Bioconductor.
@@ -314,9 +315,20 @@ def _do_library_installs(to_install):
             config = yaml.load(in_handle)
         lib_installers[iname](config)
 
-# --- System hacks to support automation on apt systems
+# ### Automated installation on apt systems
 
-def _add_gpg_keys():
+def _apt_packages(to_install):
+    """Install packages available via apt-get.
+    """
+    pkg_config = os.path.join(env.config_dir, "packages.yaml")
+    sudo("apt-get update")
+    sudo("apt-get -y --force-yes upgrade")
+    # Retrieve packages to get and install each of them
+    (packages, _) = _yaml_to_packages(pkg_config, to_install)
+    for package in packages:
+        sudo("apt-get -y --force-yes install %s" % package)
+
+def _add_apt_gpg_keys():
     """Adds GPG keys from all repositories
     """
     standalone = [
@@ -332,7 +344,7 @@ def _add_gpg_keys():
     for key in standalone:
         sudo("wget -q -O- %s | apt-key add -" % key)
 
-def _setup_automation():
+def _setup_apt_automation():
     """Setup the environment to be fully automated for tricky installs.
 
     Sun Java license acceptance:
@@ -362,7 +374,7 @@ def _setup_automation():
     for l in package_info:
         sudo("echo %s | /usr/bin/debconf-set-selections" % l)
 
-def _setup_sources():
+def _setup_apt_sources():
     """Add sources for retrieving library packages.
        Using add-apt-repository allows processing PPAs
     """
@@ -372,6 +384,21 @@ def _setup_sources():
             sudo("add-apt-repository '%s'" % source)
         elif not contains(env.sources_file, source):
             append(env.sources_file, source, use_sudo=True)
+
+# ### Automated installation on systems with yum package manager
+
+def _yum_packages():
+    """Install rpm packages available via yum.
+    """
+    pkg_config = os.path.join(env.config_dir, "packages-yum.yaml")
+    sudo("yum check-update")
+    sudo("yum -y upgrade")
+    # Retrieve packages to get and install each of them
+    (packages, _) = _yaml_to_packages(pkg_config, to_install)
+    for package in packages:
+        sudo("yum -y install %s" % package)
+
+# ### CloudBioLinux specific scripts
 
 def _freenx_scripts():
     """Provide graphical access to clients via FreeNX.
