@@ -387,7 +387,7 @@ def _setup_apt_sources():
 
 # ### Automated installation on systems with yum package manager
 
-def _yum_packages():
+def _yum_packages(to_install):
     """Install rpm packages available via yum.
     """
     pkg_config = os.path.join(env.config_dir, "packages-yum.yaml")

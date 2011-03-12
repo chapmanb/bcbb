@@ -12,6 +12,8 @@ shell = /bin/bash -l -c
 distribution = ubuntu
 dist_name = maverick
 dist_version = 10.10
+#distribution = centos
+
 # will try to guess user based on system if not specified
 # user = ""
 # details for biological data files and Galaxy
