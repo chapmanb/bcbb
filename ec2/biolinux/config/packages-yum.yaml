@@ -124,7 +124,7 @@ databases:
     - tokyocabinet-devel
   hdf:
     - hdf5
-    - hdf5-devel
+    #- hdf5-devel
 math:
   - prover9
   - octave

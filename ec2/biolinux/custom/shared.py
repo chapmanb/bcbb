@@ -28,7 +28,7 @@ def _if_not_python_lib(library):
     def argcatcher(func):
         def decorator(*args, **kwargs):
             with settings(warn_only=True):
-                result = run("python -c 'import %s'" % library)
+                result = run("python%s -c 'import %s'" % (env.python_version_ext, library))
             if result.failed:
                 return func(*args, **kwargs)
         return decorator

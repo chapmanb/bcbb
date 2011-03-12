@@ -16,6 +16,7 @@ dist_version = 10.10
 
 # will try to guess user based on system if not specified
 # user = ""
+
 # details for biological data files and Galaxy
 data_files = /mnt/biodata
 galaxy_base = /mnt/biodata/galaxy

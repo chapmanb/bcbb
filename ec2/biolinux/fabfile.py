@@ -61,9 +61,10 @@ def _setup_ubuntu():
       "deb http://download.virtualbox.org/virtualbox/debian %s contrib", # virtualbox
     ]
     env.std_sources = _add_source_versions(version, sources)
+    env.python_version_ext = ""
 
 def _setup_centos():
-    pass
+    env.python_version_ext = "-2.6"
 
 def _add_defaults():
     """Defaults from fabricrc.txt file; loaded if not specified at commandline.
@@ -267,7 +268,7 @@ def _python_library_installer(config):
     """Install python specific libraries using easy_install.
     """
     for pname in config['pypi']:
-        sudo("easy_install -U %s" % pname)
+        sudo("easy_install%s -U %s" % (env.python_version_ext,  pname))
 
 def _ruby_library_installer(config):
     """Install ruby specific gems.
