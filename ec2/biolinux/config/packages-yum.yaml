@@ -1,0 +1,83 @@
+---
+# List of packages to be installed via the yum package manager.
+desktop:
+  - gnome-panel
+  - freenx
+  - gnome-terminal
+  - firefox
+programming:
+  editors:
+    - emacs
+  version_control:
+    - cvs
+    - subversion
+    - mercurial
+    - bzr
+  documentation:
+  build:
+    - swig
+    - curl
+    - libxml2
+    - xfsprogs
+    - gcc
+  libraries:
+  packaging:
+    - unzip
+  virtual:
+  util:
+    - tree
+  lang:
+    - aspell
+distributed:
+amazon:
+python:
+  meta:
+    - python
+  utils:
+  wrappers:
+    - python-cjson
+  math:
+    - python-crypto
+    - python-numeric
+  viz:
+  misc:
+    - python-matplotlib
+    - python-psycopg2
+    - python-sqlite
+    - python-lxml
+ruby:
+r:
+perl: 
+  - perl
+java:
+  - ant
+erlang:
+  - erlang
+haskell:
+databases:
+  mysql:
+    - mysql-server
+  postgres:
+    - postgresql
+  sqlite:
+  document:
+    - couchdb
+  hdf:
+math:
+  - prover9
+viz:
+  - graphviz
+web:
+bio_general:
+bio_search:
+bio_alignment:
+bio_nextgen:
+  - samtools
+bio_sequencing:
+bio_annotation:
+bio_microarray:
+bio_visualization:
+bio_utils:
+phylogeny:
+  all:
+  needs_64bit:
