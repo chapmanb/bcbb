@@ -67,6 +67,7 @@ programming:
   virtual:
   util:
     - tree
+    - screen
   lang:
     - aspell
 distributed:
