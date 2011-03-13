@@ -78,11 +78,6 @@ python:
     - python26
     - python26-devel
     - python26-distribute
-  utils:
-  wrappers:
-  math:
-  viz:
-  misc:
 ruby:
   - ruby
   - rubygems

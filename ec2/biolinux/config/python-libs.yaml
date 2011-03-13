@@ -2,27 +2,61 @@
 # Configuration file defining python specific libraries on pypi to install
 # using easy install
 pypi:
-  - cython
+  # science
   - biopython
   - cogent
   - DendroPy
   - HTSeq
+  - networkx
+  - numpy
+  - pygr
   - pysam
+  - pysparse
   - rpy2
   - rpy2-bioconductor-extensions
+  - ScientificPython
+  - scipy
+  - sympy
+  # databases
+  - CouchDB
+  - h5py
+  - MySQL-python
   - pymongo
-  - pyyaml
-  - fabric
+  - pymssql
+  - pysqlite
+  - psycopg2
+  - SQLAlchemy
+  - tables
+  # visualization
   - gnuplot-py
-  - simplejson
+  - matplotlib
+  - pycairo
+  - pydot
+  - pygooglechart
+  - pygraphviz
+  - reportlab
+  # infrastructure
   - amqplib
+  - BeautifulSoup
   - boto
+  - fabric
+  - ipython
   - Logbook
-  - PyYAML
-  - pygr
+  - lxml
   - mako
+  - nose
   - paste
-  - routes
-  - webhelpers
   - pastescript
+  - pycrypto
+  - python-cjson
+  - pyOpenSSL
+  - pyyaml
+  - routes
+  - simplejson
+  - webhelpers
   - webob
+  - xlrd
+  # build
+  - cython
+  - Pyrex
+  - virtualenv

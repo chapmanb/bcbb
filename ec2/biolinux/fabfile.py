@@ -267,8 +267,9 @@ def _r_library_installer(config):
 def _python_library_installer(config):
     """Install python specific libraries using easy_install.
     """
+    sudo("easy_install%s -U pip" % (env.python_version_ext, pname))
     for pname in config['pypi']:
-        sudo("easy_install%s -U %s" % (env.python_version_ext,  pname))
+        sudo("pip%s -U %s" % (env.python_version_ext,  pname))
 
 def _ruby_library_installer(config):
     """Install ruby specific gems.

@@ -2,6 +2,7 @@
 # Configuration file defining ruby libraries to install
 # using gem install (avoiding the distribution package manager)
 gems:
+  - addressable
   - bio
   - fastercsv
   - hpricot
@@ -11,12 +12,11 @@ gems:
   - libxml-ruby
   - uuidtools
   - xml-simple
-  - sqlite3-ruby
-  - do_sqlite3
-  - data_objects
-  - do_mysql
-  - mysql
+  - cheat
+  - vagrant
+  # databases
   - couchdb-ruby
+  - data_objects
   - datamapper
   - dm-adjust
   - dm-aggregates
@@ -41,6 +41,7 @@ gems:
   - dm-timestamps
   - dm-types
   - dm-validations
-  - cheat
-  - addressable
-  - vagrant
+  - do_mysql
+  - do_sqlite3
+  - mysql
+  - sqlite3-ruby
