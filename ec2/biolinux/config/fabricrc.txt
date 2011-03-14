@@ -20,4 +20,3 @@ dist_version = 10.10
 # details for biological data files and Galaxy
 data_files = /mnt/biodata
 galaxy_base = /mnt/biodata/galaxy
-

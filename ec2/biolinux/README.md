@@ -81,16 +81,44 @@ move it to a public webserver, like Amazon S3:
 [v1]: http://vagrantup.com/
 [v2]: http://digitizor.com/2011/01/07/virtualbox-4-0-install-ubuntu/
 
-# Technical details for hacking on CloudBioLinux
+# Technical details for using build scripts
 
-## Custom packages
+## Targets for local builds
+
+The Fabric build files are useful for automating installation of
+scientific software on local systems as well as Amazon cloud
+servers. There are a number of build targets that can be used to
+install a subset of the total available packages.
+
+The main build command is used as described above, but the host
+can point to a local machine or any server on your network:
+
+      fab -f fabfile.py -H localhost -c config/fabricrc.txt install_biolinux
+
+The `config/fabricrc.txt` configuration file specifies install
+directories and other server specific details.
+
+With this basic command, you can substitute `install_biolinux` with
+serveral more specific targets:
+
+* `install_biolinux:packages` -- Install all of the defined system
+  packages.
+* `install_biolinux:libraries` -- Install all libraries for various
+  programming languages.
+* `install_libraries:language` -- Install libraries for a specific
+  language.
+* `install_biolinux:custom` -- Install all custom programs.
+* `install_custom:your_package_name` -- Install a specific custom
+   program.
+
+### Custom package installs
 
 The custom directory contains installation instructions for programs that are
 not available from standard package repositories. These instructions are written
 in Python using the [Fabric][3] remote deployment tool and can also be used for
 installing individual packages locally on your machine. To do this, run:
 
-      fab -f fabfile.py install_custom:your_package_name -H localhost
+      fab -f fabfile.py -H localhost install_custom:your_package_name
 
 To build and install `your_package_name` on the local machine. We welcome
 additional custom bioinformatics package definitions for inclusion in

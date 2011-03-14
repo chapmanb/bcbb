@@ -3,7 +3,7 @@
 # using gem install (avoiding the distribution package manager)
 gems:
   - addressable
-  - bio
+  - cheat
   - fastercsv
   - hpricot
   - htmlentities
@@ -12,8 +12,8 @@ gems:
   - libxml-ruby
   - uuidtools
   - xml-simple
-  - cheat
-  - vagrant
+  # science
+  - bio
   # databases
   - couchdb-ruby
   - data_objects
@@ -41,7 +41,10 @@ gems:
   - dm-timestamps
   - dm-types
   - dm-validations
-  - do_mysql
   - do_sqlite3
+  # Require up to date ruby. Fail on Centos default
+  - vagrant
+  - ruby-ensembl-api
   - mysql
+  - do_mysql
   - sqlite3-ruby

@@ -5,8 +5,9 @@ import os
 from fabric.api import *
 from fabric.contrib.files import *
 
-from shared import (_if_not_installed, _make_tmp_dir, _get_install, _make_copy,
-                    _configure_make, _symlinked_java_version_dir, _fetch_and_unpack)
+from shared import (_if_not_installed, _make_tmp_dir,
+                    _get_install, _get_install_local, _make_copy, _configure_make,
+                    _symlinked_java_version_dir, _fetch_and_unpack)
 
 @_if_not_installed("faToTwoBit")
 def install_ucsc_tools(env):
@@ -61,9 +62,17 @@ def install_bfast(env):
 
 @_if_not_installed("perm")
 def install_perm(env):
-    version = "3.2"
+    version = "0.3.3"
     url = "http://perm.googlecode.com/files/PerM%sSource.zip" % version
-    _get_install(url, env, _make_copy("ls -1 perm"))
+    def gcc44_makefile_patch():
+        gcc_cmd = "g++44"
+        with settings(hide('warnings', 'running', 'stdout', 'stderr'),
+                      warn_only=True):
+            result = run("%s -v" % gcc_cmd)
+        print result.return_code
+        if result.return_code == 0:
+            sed("makefile", "g\+\+", gcc_cmd)
+    _get_install(url, env, _make_copy("ls -1 perm", gcc44_makefile_patch))
 
 @_if_not_installed("gmap")
 def install_gmap(env):
@@ -156,8 +165,12 @@ def install_gatk(env):
                     sudo("mv *.jar %s" % install_dir)
 
 def install_snpeff(env):
-    version = "1_8"
-    url = "http://downloads.sourceforge.net/project/snpeff/snpEff_v%s.zip" % version
+    version = "1_9"
+    genomes = ["hg37.61", "mm37.61"]
+    url = "http://downloads.sourceforge.net/project/snpeff/" \
+          "snpEff_v%s_core.zip" % version
+    genome_url_base = "http://downloads.sourceforge.net/project/snpeff/"\
+                      "databases/v%s/snpEff_v%s_%s.zip"
     install_dir = _symlinked_java_version_dir("snpeff", version)
     if install_dir:
         with _make_tmp_dir() as work_dir:
@@ -168,9 +181,13 @@ def install_snpeff(env):
                     run("sed -i.bak -r -e 's/data_dir = \.\/data\//data_dir = %s\/data/' %s" %
                         (install_dir.replace("/", "\/"), "snpEff.config"))
                     sudo("mv *.config %s" % install_dir)
-                    sudo("mkdir %s/data" % install_dir)
-                    for org in ["hg37.60", "mm37.60"]:
-                        sudo("mv data/%s %s/data" % (org, install_dir))
+                    data_dir = os.path.join(install_dir, "data")
+                    sudo("mkdir %s" % data_dir)
+                    for org in genomes:
+                        if not exists(os.path.join(data_dir, org)):
+                            gurl = genome_url_base % (version, version, org)
+                            _fetch_and_unpack(gurl, need_dir=False)
+                            sudo("mv data/%s %s" % (org, data_dir))
 
 @_if_not_installed("freebayes")
 def install_freebayes(env):
@@ -183,7 +200,7 @@ def install_bedtools(env):
     _get_install(repository, env, _make_copy("ls -1 bin/*"))
 
 def _install_samtools_libs(env):
-    repository = "svn co  --non-interactive --trust-server-cert " \
+    repository = "svn co --non-interactive " \
                  "https://samtools.svn.sourceforge.net/svnroot/samtools/trunk/samtools"
     def _samtools_lib_install(env):
         lib_dir = os.path.join(env.system_install, "lib")
@@ -209,14 +226,13 @@ def install_tophat(env):
             run("wget http://www.seqan.de/uploads/media/Seqan_Release_1.2.zip")
             run("rm -rf seqan")
             run("unzip Seqan_Release_1.2.zip")
-        run("./configure --prefix=%s " % env.system_install)
-        run("make")
-        sudo("make install")
+        _configure_make(env)
     url = "http://tophat.cbcb.umd.edu/downloads/tophat-%s.tar.gz" % version
     _get_install(url, env, _fixseqan_configure_make)
 
 @_if_not_installed("cufflinks")
 def install_cufflinks(env):
+    # XXX problems on CentOS with older default version of boost libraries
     _install_samtools_libs(env)
     version = "0.9.3"
     url = "http://cufflinks.cbcb.umd.edu/downloads/cufflinks-%s.tar.gz" % version
@@ -226,9 +242,16 @@ def install_cufflinks(env):
 
 @_if_not_installed("ABYSS")
 def install_abyss(env):
-    version = "1.2.5"
+    # XXX check for no sparehash on non-ubuntu systems
+    version = "1.2.6"
     url = "http://www.bcgsc.ca/downloads/abyss/abyss-%s.tar.gz" % version
     _get_install(url, env, _configure_make)
+
+def install_transabyss(env):
+    version = "1.2.0"
+    url = "http://www.bcgsc.ca/platform/bioinfo/software/trans-abyss/" \
+          "releases/%s/trans-ABySS-v%s.tar.gz" % (version, version)
+    _get_install_local(url, env, _make_copy(do_make=False))
 
 @_if_not_installed("velvetg")
 def install_velvet(env):
@@ -236,8 +259,8 @@ def install_velvet(env):
     url = "http://www.ebi.ac.uk/~zerbino/velvet/velvet_%s.tgz" % version
     _get_install(url, env, _make_copy("find -perm -100 -name 'velvet*'"))
 
-@_if_not_installed("inchworm")
-def install_inchworm(env):
-    version = "r02-21-2011"
-    url = "http://downloads.sourceforge.net/project/inchworm/inchworm_%s.tgz" % version
-    _get_install(url, env, _configure_make)
+def install_trinity(env):
+    version = "03122011"
+    url = "http://downloads.sourceforge.net/project/trinityrnaseq/" \
+          "trinityrnaseq-%s.tgz" % version
+    _get_install_local(url, env, _make_copy())

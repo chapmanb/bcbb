@@ -35,4 +35,3 @@ libraries:
   - python-libs
   - ruby-libs
   - perl-libs
-  - clojure-libs

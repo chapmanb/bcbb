@@ -56,6 +56,8 @@ programming:
     - libcurl4-openssl-dev
     - libxml2
     - libxml2-dev
+    - libxslt1-dev
+    - libxslt1.1
     - libgsl0-dev
     - libgsl0ldbl
     - gsl-bin
@@ -87,6 +89,9 @@ programming:
     - libboost-python-dev
     - libboost-thread-dev
     - boost-build
+    - libopenmpi-dev 
+    - libopenmpi1.3
+    - openmpi-bin
   packaging:
     - build-essential
     - devscripts
@@ -133,6 +138,8 @@ python:
   wrappers:
     - python-rpy
 ruby:
+  - ruby
+  - ruby-dev
   - rubygems
   - ruby1.9.1
   - ruby1.9.1-dev
@@ -146,43 +153,6 @@ r:
   - r-base-core-ra
   - r-base-dev
   - r-base-html
-  - r-bioc-hilbertvis
-  - r-cran-abind
-  - r-cran-boot
-  - r-cran-car
-  - r-cran-chron
-  - r-cran-class
-  - r-cran-cluster
-  - r-cran-codetools
-  - r-cran-colorspace
-  - r-cran-date
-  - r-cran-effects
-  - r-cran-foreign
-  - r-cran-hdf5
-  - r-cran-hmisc
-  - r-cran-kernsmooth
-  - r-cran-lattice
-  - r-cran-lmtest
-  - r-cran-mass
-  - r-cran-matrix
-  - r-cran-mgcv
-  - r-cran-multcomp
-  - r-cran-mvtnorm
-  - r-cran-nlme
-  - r-cran-nnet
-  - r-cran-qvalue
-  - r-cran-rcmdr
-  - r-cran-relimp
-  - r-cran-rgl
-  - r-cran-rpart
-  - r-cran-sandwich
-  - r-cran-sm
-  - r-cran-spatial
-  - r-cran-strucchange
-  - r-cran-survival
-  - r-cran-vgam
-  - r-cran-vr
-  - r-cran-zoo
 perl: 
   - perl-base
   - perl

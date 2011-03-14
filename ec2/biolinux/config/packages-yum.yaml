@@ -26,6 +26,8 @@ programming:
     - curl-devel
     - libxml2
     - libxml2-devel
+    - libxslt
+    - libxslt-devel
     - gsl
     - gsl-devel
     - xfsprogs
@@ -49,6 +51,9 @@ programming:
     - gcc
     - gcc-gfortran
     - gcc-c++
+    - gcc44
+    - gcc44-c++
+    - gcc44-gfortran
   libraries:
     - lapack
     - lapack-devel
@@ -62,6 +67,8 @@ programming:
     - ImageMagick
     - boost
     - boost-devel
+    - openmpi
+    - openmpi-devel
   packaging:
     - unzip
   virtual:
@@ -80,6 +87,7 @@ python:
     - python26-distribute
 ruby:
   - ruby
+  - ruby-devel
   - rubygems
   - ruby-irb
   - rubygem-rake
@@ -126,6 +134,7 @@ math:
   - octave-devel
 viz:
   - graphviz
+  - graphviz-devel
 web:
   - httpd
   - httpd-devel
