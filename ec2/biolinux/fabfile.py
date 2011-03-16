@@ -324,7 +324,7 @@ def _perl_library_installer(config):
         # Need to hack stdin because of some problem with cpanminus script that
         # causes fabric to hang
         # http://agiletesting.blogspot.com/2010/03/getting-past-hung-remote-processes-in.html
-        sudo("cpanm --skip-installed %s < /dev/null" % (lib))
+        run("cpanm --sudo --skip-installed %s < /dev/null" % (lib))
 
 def _clojure_library_installer(config):
     """Install clojure libraries using cljr.

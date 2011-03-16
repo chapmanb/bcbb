@@ -69,6 +69,16 @@ programming:
     - boost-devel
     - openmpi
     - openmpi-devel
+    - gd
+    - gd-devel
+    - libgnomecanvas
+    - libgnomecanvas-devel
+    - gnome-vfs2
+    - gnome-vfs2-devel
+    - libgnomeui
+    - libgnomeui-devel
+    - pango
+    - pango-devel
   packaging:
     - unzip
   virtual:
