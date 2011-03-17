@@ -1,0 +1,22 @@
+# Configuration file for Fabric specifying filesystem information
+# This can be adjusted and passed to fab on the commandline as '-c'
+
+# Global installation directory for packages and standard programs
+system_install = /usr
+# Local install directory for versioned software that will not                                                                       
+# be included in the path by default
+local_install = ~/install
+shell_config = ~/.bashrc
+shell = /bin/bash -l -c
+# details about the operating system
+distribution = ubuntu
+dist_name = maverick
+dist_version = 10.10
+#distribution = centos
+
+# will try to guess user based on system if not specified
+# user = ""
+
+# details for biological data files and Galaxy
+data_files = /mnt/biodata
+galaxy_base = /mnt/biodata/galaxy

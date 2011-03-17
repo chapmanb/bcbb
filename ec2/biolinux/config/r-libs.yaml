@@ -3,46 +3,79 @@
 # via CRAN and Bioconductor.
 cranrepo: http://software.rc.fas.harvard.edu/mirrors/R/
 cran:
+ - abind
  - ape
  - aplpack
  - biglm
  - BiodiversityR
  - bitops
+ - boot
+ - car
  - caTools
  - chron
+ - class
+ - cluster
+ - codetools
  - coin
+ - colorspace
+ - date
  - DBI
  - digest
+ - effects
+ - foreign
  - gee
  - graph
  - ggplot2
+ - hdf5
  - hexbin
+ - hmisc
  - HH
  - hwriter
  - kernlab
+ - kernsmooth
+ - lattice
  - latticeExtra
  - leaps
+ - lmtest
+ - mass
+ - matrix
  - mclust
+ - mgcv
  - modeltools
+ - multcomp
  - multicore
+ - nlme
  - NMF
+ - nnet
  - pamr
  - plotrix
  - plyr
  - proto
  - qvalue
+ - rcmdr
+ - relimp
  - reshape
+ - rgl
  - RColorBrewer
  - RCurl
+ - rpart
  - rjson
  - RSQLite
+ - sandwich
+ - sm
  - snowfall
+ - spatial
  - sqldf
  - statmod
+ - strucchange
+ - survival
  - vegan
+ - vgam
+ - vr
  - XML
  - xtable
  - yacca
+ - zoo
 biocrepo: http://bioconductor.org/biocLite.R
 bioc:
  - affy
@@ -75,6 +108,7 @@ bioc:
  - GOstats
  - GSEABase
  - hgu95av2.db
+ - HilbertVis
  - IRanges
  - KEGG.db
  - limma

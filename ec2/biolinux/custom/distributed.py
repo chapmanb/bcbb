@@ -5,7 +5,7 @@ import os
 from fabric.api import *
 from fabric.contrib.files import *
 
-from shared import _if_not_installed, _make_tmp_dir, _if_not_python_lib
+from shared import _if_not_installed, _make_tmp_dir, _if_not_python_lib, _fetch_and_unpack
 
 @_if_not_python_lib("pydoop")
 def install_pydoop(env):
@@ -22,16 +22,14 @@ def install_pydoop(env):
 
     with _make_tmp_dir() as work_dir:
         with cd(work_dir):
-            run("wget %s" % hadoop_url)
-            run("tar -xzvpf %s" % os.path.split(hadoop_url)[-1])
-            hadoop_dir = os.path.join(work_dir, "hadoop-%s" % hadoop_version)
-            run("wget %s" % pydoop_url)
-            run("tar -xzvpf %s" % os.path.split(pydoop_url)[-1])
-            with cd("pydoop-%s" % pydoop_version):
+            hadoop_dir = _fetch_and_unpack(hadoop_url)
+            pydoop_dir = _fetch_and_unpack(pydoop_url)
+            with cd(pydoop_dir):
                 export_str = "export HADOOP_HOME=%s && export JAVA_HOME=%s" % \
-                    (hadoop_dir, env.java_home)
-                run("%s && python setup.py build" % export_str)
-                sudo("%s && python setup.py install --skip-build" % export_str)
+                    (os.path.join(os.pardir, hadoop_dir), env.java_home)
+                run("%s && python%s setup.py build" % (export_str, env.python_version_ext))
+                sudo("%s && python%s setup.py install --skip-build" %
+                     (export_str, env.python_version_ext))
 
 def install_mahout(env):
     # ToDo setup mahout, must be checked out from repo ATM:

@@ -16,7 +16,7 @@ def install_bx_python(env):
         with cd(work_dir):
             run("hg clone %s" % clone_url)
             with cd(os.path.split(clone_url)[-1]):
-                run("python setup.py build")
-                sudo("python setup.py install --skip-build")
+                run("python%s setup.py build" % env.python_version_ext)
+                sudo("python%s setup.py install --skip-build" % env.python_version_ext)
                 sudo("rm -rf dist")
                 sudo("rm -rf lib/bx_python.egg-info")

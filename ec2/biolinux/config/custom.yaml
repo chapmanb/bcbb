@@ -21,7 +21,8 @@ bio_nextgen:
     - tophat
   assembly:
     - abyss
-    - inchworm
+    - transabyss
+    - trinity
     - velvet
   needs_64bit:
     - ucsc_tools
@@ -33,9 +34,6 @@ distributed:
 java:
   - leinengin
   - cljr
-python:
-  - bx_python
-
 # ToDo -- test on 64bit with bfast
 #- dnaa
 #- srma

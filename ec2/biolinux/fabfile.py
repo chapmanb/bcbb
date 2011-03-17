@@ -15,30 +15,35 @@ import os
 import sys
 import subprocess
 
+from fabric.main import load_settings
 from fabric.api import *
 from fabric.contrib.files import *
 import yaml
 
 env.config_dir = os.path.join(os.path.dirname(__file__), "config")
 
-def setup_environment():
+# ### Configuration details for different server types
+
+def _setup_environment():
+    _add_defaults()
     if env.hosts == ["vagrant"]:
         _setup_vagrant_environment()
     elif env.hosts == ["localhost"]:
         _setup_local_environment()
     else:
         _setup_ec2_environment()
-    env.shell_config = "~/.bashrc"
-    env.shell = "/bin/bash -l -c"
-    # Global installation directory for packages and standard programs
-    env.system_install = "/usr"
-    # Local install directory for versioned software that will not
-    # be included in the path by default.
-    env.local_install = "install"
+    if env.distribution == "ubuntu":
+        _setup_ubuntu()
+    elif env.distribution == "centos":
+        _setup_centos()
+    else:
+        raise ValueError("Unexpected distribution %s" % env.distribution)
+    _expand_paths()
+
+def _setup_ubuntu():
     # package information. This is ubuntu/debian based and could be generalized.
     env.sources_file = "/etc/apt/sources.list"
-    #version = ("lucid", "10.4")
-    version = ("maverick", "10.10")
+    version = (env.dist_name, env.dist_version)
     sources = [
       "deb http://us.archive.ubuntu.com/ubuntu/ %s universe",
       "deb-src http://us.archive.ubuntu.com/ubuntu/ %s universe",
@@ -57,6 +62,34 @@ def setup_environment():
       "deb http://download.virtualbox.org/virtualbox/debian %s contrib", # virtualbox
     ]
     env.std_sources = _add_source_versions(version, sources)
+    env.python_version_ext = ""
+    if not env.has_key("java_home"):
+        # XXX look for a way to find JAVA_HOME automatically
+        env.java_home = "/usr/lib/jvm/java-6-openjdk"
+
+
+def _setup_centos():
+    env.python_version_ext = "2.6"
+    if not env.has_key("java_home"):
+        env.java_home = "/etc/alternatives/java_sdk"
+
+def _add_defaults():
+    """Defaults from fabricrc.txt file; loaded if not specified at commandline.
+    """
+    if not env.has_key("distribution"):
+        config_file = os.path.join(env.config_dir, "fabricrc.txt")
+        if os.path.exists(config_file):
+            env.update(load_settings(config_file))
+
+def _expand_paths():
+    """Expand any paths defined in terms of shell shortcuts (like ~).
+    """
+    if env.has_key("local_install"):
+        with cd(env.local_install):
+            with settings(hide('warnings', 'running', 'stdout', 'stderr'),
+                          warn_only=True):
+                result = run("pwd")
+                env.local_install = result
 
 def _setup_ec2_environment():
     """Setup default environmental variables for Ubuntu EC2 servers.
@@ -64,15 +97,16 @@ def _setup_ec2_environment():
     Works on a US EC2 server running Ubuntu. This is fairly general but
     we will need to define similar functions for other targets.
     """
-    env.user = "ubuntu"
-    # XXX look for a way to find JAVA_HOME automatically
-    env.java_home = "/usr/lib/jvm/java-6-openjdk"
+    if not env.has_key("user"):
+        env.user = "ubuntu"
 
 def _setup_local_environment():
     """Setup a localhost environment based on system variables.
     """
-    env.user = os.environ["USER"]
-    env.java_home = os.environ.get("JAVA_HOME", "/usr/lib/jvm/java-6-openjdk")
+    if not env.has_key("user"):
+        env.user = os.environ["USER"]
+    if not env.has_key("java_home"):
+        env.java_home = os.environ.get("JAVA_HOME", "/usr/lib/jvm/java-6-openjdk")
 
 def _setup_vagrant_environment():
     """Use vagrant commands to get connection information.
@@ -98,34 +132,39 @@ def _add_source_versions(version, sources):
         final.append(s)
     return final
 
-def install_biolinux():
+# ### Shared installation targets for all platforms
+
+def install_biolinux(target=None):
     """Main entry point for installing Biolinux on a remote server.
     """
-    setup_environment()
+    _check_version()
+    _setup_environment()
     pkg_install, lib_install = _read_main_config()
-    _setup_sources()
-    _setup_automation()
-    _add_gpg_keys()
-    _apt_packages(pkg_install)
-    _custom_installs(pkg_install)
-    _do_library_installs(lib_install)
-    _freenx_scripts()
-    _cleanup()
+    if target is None or target == "packages":
+        if env.distribution in ["ubuntu"]:
+            _setup_apt_sources()
+            _setup_apt_automation()
+            _add_apt_gpg_keys()
+            _apt_packages(pkg_install)
+        elif env.distribution in ["centos"]:
+            _yum_packages(pkg_install)
+            _setup_yum_bashrc()
+    if target is None or target == "custom":
+        _custom_installs(pkg_install)
+    if target is None or target == "libraries":
+        _do_library_installs(lib_install)
+    if target is None:
+        _freenx_scripts()
+        _cleanup()
 
-def _apt_packages(to_install):
-    """Install packages available via apt-get.
-    """
-    pkg_config = os.path.join(env.config_dir, "packages.yaml")
-    sudo("apt-get update")
-    sudo("apt-get -y --force-yes upgrade")
-    # Retrieve packages to get and install each of them
-    (packages, _) = _yaml_to_packages(pkg_config, to_install)
-    for package in packages:
-        sudo("apt-get -y --force-yes install %s" % package)
+def _check_version():
+    version = env.version
+    if int(version.split(".")[0]) < 1:
+        raise NotImplementedError("Please install fabric version 1 or better")
 
 def _custom_installs(to_install):
     if not exists(env.local_install):
-        run("mkdir %s" % env.local_install)
+        run("mkdir -p %s" % env.local_install)
     pkg_config = os.path.join(env.config_dir, "custom.yaml")
     packages, pkg_to_group = _yaml_to_packages(pkg_config, to_install)
     sys.path.append(os.path.split(__file__)[0])
@@ -141,7 +180,8 @@ def install_custom(p, automated=False, pkg_to_group=None):
         pkg_config = os.path.join(env.config_dir, "custom.yaml")
         packages, pkg_to_group = _yaml_to_packages(pkg_config, None)
         sys.path.append(os.path.split(__file__)[0])
-        env.system_install = "/usr"
+        if not env.has_key("system_install"):
+            _add_defaults()
     try:
         mod = __import__("custom.%s" % pkg_to_group[p], fromlist=["custom"])
     except ImportError:
@@ -196,13 +236,15 @@ def _read_main_config():
     libraries = libraries if libraries else []
     return packages, sorted(libraries)
 
-# --- Library specific installation code
+# ### Library specific installation code
 
 def _r_library_installer(config):
     """Install R libraries using CRAN and Bioconductor.
     """
     # Create an Rscript file with install details.
     out_file = "install_packages.R"
+    if exists(out_file):
+        run("rm -f %s" % out_file)
     run("touch %s" % out_file)
     repo_info = """
     cran.repos <- getOption("repos")
@@ -210,7 +252,7 @@ def _r_library_installer(config):
     options(repos=cran.repos)
     source("%s")
     """ % (config["cranrepo"], config["biocrepo"])
-    append(repo_info, out_file)
+    append(out_file, repo_info)
     install_fn = """
     repo.installer <- function(repos, install.fn) {
       update.or.install <- function(pname) {
@@ -221,24 +263,24 @@ def _r_library_installer(config):
       }
     }
     """
-    append(install_fn, out_file)
+    append(out_file, install_fn)
     std_install = """
     std.pkgs <- c(%s)
     std.installer = repo.installer(cran.repos, install.packages)
     lapply(std.pkgs, std.installer)
     """ % (", ".join('"%s"' % p for p in config['cran']))
-    append(std_install, out_file)
+    append(out_file, std_install)
     bioc_install = """
     bioc.pkgs <- c(%s)
     bioc.installer = repo.installer(biocinstallRepos(), biocLite)
     lapply(bioc.pkgs, bioc.installer)
     """ % (", ".join('"%s"' % p for p in config['bioc']))
-    append(bioc_install, out_file)
+    append(out_file, bioc_install)
     final_update = """
     update.packages(repos=biocinstallRepos(), ask=FALSE)
     update.packages(ask=FALSE)
     """
-    append(final_update, out_file)
+    append(out_file, final_update)
     # run the script and then get rid of it
     sudo("Rscript %s" % out_file)
     run("rm -f %s" % out_file)
@@ -246,17 +288,27 @@ def _r_library_installer(config):
 def _python_library_installer(config):
     """Install python specific libraries using easy_install.
     """
+    version_ext = "-%s" % env.python_version_ext if env.python_version_ext else ""
+    sudo("easy_install%s -U pip" % version_ext)
     for pname in config['pypi']:
-        sudo("easy_install -U %s" % pname)
+        sudo("easy_install%s -U %s" % (version_ext, pname))
+        # Use pip when it doesn't re-download even if latest package installed
+        # https://bitbucket.org/ianb/pip/issue/13/upgrade-always-downloads-most-recent
+        #sudo("pip%s install -U %s" % (version_ext,  pname))
 
 def _ruby_library_installer(config):
     """Install ruby specific gems.
     """
-    for gem in config['gems']:
+    def _cur_gems():
         with settings(
                 hide('warnings', 'running', 'stdout', 'stderr')):
             gem_info = run("gem list --no-versions")
-        installed = [l for l in gem_info.split("\n") if l]
+        return [l.rstrip("\r") for l in gem_info.split("\n") if l.rstrip("\r")]
+    installed = _cur_gems()
+    for gem in config['gems']:
+        # update current gems only to check for new installs
+        if gem not in installed:
+            installed = _cur_gems()
         if gem in installed:
             sudo("gem update %s" % gem)
         else:
@@ -272,7 +324,7 @@ def _perl_library_installer(config):
         # Need to hack stdin because of some problem with cpanminus script that
         # causes fabric to hang
         # http://agiletesting.blogspot.com/2010/03/getting-past-hung-remote-processes-in.html
-        sudo("cpanm --skip-installed %s < /dev/null" % (lib))
+        run("cpanm --sudo --skip-installed %s < /dev/null" % (lib))
 
 def _clojure_library_installer(config):
     """Install clojure libraries using cljr.
@@ -288,6 +340,13 @@ lib_installers = {
         "clojure-libs": _clojure_library_installer,
         }
 
+def install_libraries(language):
+    """High level target to install libraries for a specific language.
+    """
+    _check_version()
+    _setup_environment()
+    _do_library_installs(["%s-libs" % language])
+
 def _do_library_installs(to_install):
     for iname in to_install:
         yaml_file = os.path.join(env.config_dir, "%s.yaml" % iname)
@@ -295,9 +354,20 @@ def _do_library_installs(to_install):
             config = yaml.load(in_handle)
         lib_installers[iname](config)
 
-# --- System hacks to support automation on apt systems
+# ### Automated installation on apt systems
 
-def _add_gpg_keys():
+def _apt_packages(to_install):
+    """Install packages available via apt-get.
+    """
+    pkg_config = os.path.join(env.config_dir, "packages.yaml")
+    sudo("apt-get update")
+    sudo("apt-get -y --force-yes upgrade")
+    # Retrieve packages to get and install each of them
+    (packages, _) = _yaml_to_packages(pkg_config, to_install)
+    for package in packages:
+        sudo("apt-get -y --force-yes install %s" % package)
+
+def _add_apt_gpg_keys():
     """Adds GPG keys from all repositories
     """
     standalone = [
@@ -313,7 +383,7 @@ def _add_gpg_keys():
     for key in standalone:
         sudo("wget -q -O- %s | apt-key add -" % key)
 
-def _setup_automation():
+def _setup_apt_automation():
     """Setup the environment to be fully automated for tricky installs.
 
     Sun Java license acceptance:
@@ -326,8 +396,8 @@ def _setup_automation():
     http://www.uluga.ubuntuforums.org/showthread.php?p=9120196
     """
     interactive_cmd = "export DEBIAN_FRONTEND=noninteractive"
-    if not contains(interactive_cmd, env.shell_config):
-        append(interactive_cmd, env.shell_config)
+    if not contains(env.shell_config, interactive_cmd):
+        append(env.shell_config, interactive_cmd)
     package_info = [
             "postfix postfix/main_mailer_type select No configuration",
             "postfix postfix/mailname string notusedexample.org",
@@ -343,7 +413,7 @@ def _setup_automation():
     for l in package_info:
         sudo("echo %s | /usr/bin/debconf-set-selections" % l)
 
-def _setup_sources():
+def _setup_apt_sources():
     """Add sources for retrieving library packages.
        Using add-apt-repository allows processing PPAs
     """
@@ -351,8 +421,33 @@ def _setup_sources():
     for source in env.std_sources:
         if source.startswith("ppa:"):
             sudo("add-apt-repository '%s'" % source)
-        elif not contains(source, env.sources_file):
-            append(source, env.sources_file, use_sudo=True)
+        elif not contains(env.sources_file, source):
+            append(env.sources_file, source, use_sudo=True)
+
+# ### Automated installation on systems with yum package manager
+
+def _yum_packages(to_install):
+    """Install rpm packages available via yum.
+    """
+    pkg_config = os.path.join(env.config_dir, "packages-yum.yaml")
+    sudo("yum check-update")
+    sudo("yum -y upgrade")
+    # Retrieve packages to get and install each of them
+    (packages, _) = _yaml_to_packages(pkg_config, to_install)
+    for package in packages:
+        sudo("yum -y install %s" % package)
+
+def _setup_yum_bashrc():
+    """Fix the user bashrc to update compilers.
+    """
+    to_include = ["export CC=gcc44", "export CXX=g++44", "export FC=gfortran44",
+                  "export PKG_CONFIG_PATH=${PKG_CONFIG_PATH}:/usr/lib/pkgconfig"]
+    fname = run("ls %s" % env.shell_config)
+    for line in to_include:
+        if not contains(fname, line.split("=")[0]):
+            append(fname, line)
+
+# ### CloudBioLinux specific scripts
 
 def _freenx_scripts():
     """Provide graphical access to clients via FreeNX.

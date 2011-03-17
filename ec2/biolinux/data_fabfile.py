@@ -13,31 +13,37 @@ import os
 import operator
 from contextlib import contextmanager
 
+from fabric.main import load_settings
 from fabric.api import *
 from fabric.contrib.files import *
 
 # -- Host specific setup for various groups of servers.
 
+env.config_dir = os.path.join(os.path.dirname(__file__), "config")
 env.remove_old_genomes = False
 
-def amazon_ec2():
-    """Setup for a ubuntu amazon ec2 share.
+def setup_environment():
+    """Setup environment with required data file locations.
+    """
+    _add_defaults()
+    _amazon_ec2_environment()
+
+def _amazon_ec2_environment():
+    """Setup for a ubuntu amazon ec2 share; defaults if not set.
 
     Need to pass in host and private key file on commandline:
         -H hostname -i private_key_file
     """
-    env.user = 'ubuntu'
-    env.data_files = '/mnt/biodata'
-    env.galaxy_base = env.data_files + '/galaxy'
-    env.shell = "/bin/bash -l -c"
+    if not env.has_key("user") or not env.user:
+        env.user = 'ubuntu'
 
-def local_server():
-    """Example setup for a local (non-cloud) server.
+def _add_defaults():
+    """Defaults from fabricrc.txt file; loaded if not specified at commandline.
     """
-    env.user = 'chapman'
-    env.data_files = '/source/galaxy'
-    env.galaxy_base = os.path.join(env.data_files, 'web')
-    env.shell = "/usr/bin/zsh -l -i -c"
+    if not env.has_key("distribution"):
+        config_file = os.path.join(env.config_dir, "fabricrc.txt")
+        if os.path.exists(config_file):
+            env.update(load_settings(config_file))
 
 # -- Configuration for genomes to download and prepare
 
@@ -206,11 +212,16 @@ lift_over_genomes = [g.ucsc_name() for (_, _, g) in genomes if g.ucsc_name()]
 def install_data():
     """Main entry point for installing useful biological data.
     """
-    amazon_ec2()
-    #local_server()
+    _check_version()
+    setup_environment()
     _data_uniref()
     _data_ngs_genomes()
     _data_liftover()
+
+def _check_version():
+    version = env.version
+    if int(version.split(".")[0]) < 1:
+        raise NotImplementedError("Please install fabric version 1 or better")
 
 # == Decorators and context managers
 
@@ -315,8 +326,8 @@ def _update_loc_file(ref_file, line_parts):
         with cd(tools_dir):
             if not exists(ref_file):
                 run("touch %s" % ref_file)
-            if not contains(add_str, ref_file):
-                append(add_str, ref_file)
+            if not contains(ref_file, add_str):
+                append(ref_file, add_str)
 
 @_if_installed("faToTwoBit")
 def _index_twobit(ref_file):

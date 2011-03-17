@@ -2,7 +2,8 @@
 # Configuration file defining ruby libraries to install
 # using gem install (avoiding the distribution package manager)
 gems:
-  - bio
+  - addressable
+  - cheat
   - fastercsv
   - hpricot
   - htmlentities
@@ -11,12 +12,11 @@ gems:
   - libxml-ruby
   - uuidtools
   - xml-simple
-  - sqlite3-ruby
-  - do_sqlite3
-  - data_objects
-  - do_mysql
-  - mysql
+  # science
+  - bio
+  # databases
   - couchdb-ruby
+  - data_objects
   - datamapper
   - dm-adjust
   - dm-aggregates
@@ -41,6 +41,10 @@ gems:
   - dm-timestamps
   - dm-types
   - dm-validations
-  - cheat
-  - addressable
+  - do_sqlite3
+  # Require up to date ruby. Fail on Centos default
   - vagrant
+  - ruby-ensembl-api
+  - mysql
+  - do_mysql
+  - sqlite3-ruby
