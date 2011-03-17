@@ -27,6 +27,8 @@ def main(script, org_config_file, config_file, in_dir, local_out_dir):
     if os.path.exists(in_dir):
         shutil.rmtree(in_dir)
     os.makedirs(in_dir)
+    if not os.path.exists(local_out_dir):
+        os.makedirs(local_out_dir)
     shutil.copy(org_config["search_file"], in_dir)
 
     job_name = os.path.splitext(os.path.basename(script))[0]
