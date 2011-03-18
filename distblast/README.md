@@ -58,7 +58,7 @@ Follow [Cloudera script documentation][1]:
 6. In AWS console (https://console.aws.amazon.com/ec2/) setup
    filesystem with databases:
 
-    - Create data volume from snapshot (snap-78013813)
+    - Create data volume from snapshot (snap-78013813) with at least 4Gb of Capacity
     - Attach data volume to head node as /dev/sdf
 
 7. Login to the cluster and mount the data volume containing the organism data:
@@ -68,7 +68,7 @@ Follow [Cloudera script documentation][1]:
     % sudo mkdir /mnt/distblast
     % sudo mount /dev/sdf /mnt/distblast
 
-8. Run the cluster
+8. Run a distributed BLAST on the cluster
 
     % export HADOOP_HOME=/usr/lib/hadoop-0.20
     % cd /mnt/distblast/
@@ -76,13 +76,13 @@ Follow [Cloudera script documentation][1]:
       ~/install/bcbb/distblast/hadoop/fasta_process.py \
       org_configs/test.yaml base_config.yaml input output
 
-[1]: https://wiki.cloudera.com/display/DOC/Whirr+Installation
-[1a]: https://cwiki.apache.org/confluence/display/WHIRR/How+To+Contribute
-[3]: https://wiki.cloudera.com/display/DOC/Hadoop+Installation+(CDH3)
-
 9. Finished: logout, terminate the nodes and remove the cluster:
 
     whirr destroy-cluster --config ~/.hadoop-cloud/distblast.properties
+
+[1]: https://wiki.cloudera.com/display/DOC/Whirr+Installation
+[1a]: https://cwiki.apache.org/confluence/display/WHIRR/How+To+Contribute
+[3]: https://wiki.cloudera.com/display/DOC/Hadoop+Installation+(CDH3)
 
 ### Local hadoop cluster on ubuntu
 
@@ -90,7 +90,7 @@ Follow [installation documentation][2]:
 
 1. Start hadoop
 
-         sudo -u hadoop bash
+        sudo -u hadoop bash
         /usr/lib/hadoop/bin/start-all.sh
 
 2. Running pydoop
