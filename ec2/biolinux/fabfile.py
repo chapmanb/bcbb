@@ -459,7 +459,7 @@ def _freenx_scripts():
         put(os.path.join(install_file_dir, setup_script), setup_script,
                 mode=0777)
         sudo("mv %s %s" % (setup_script, remote_setup))
-    remote_login = "~/.bash_login"
+    remote_login = "~/configure_freenx.sh"
     if not exists(remote_login):
         put(os.path.join(install_file_dir, 'bash_login'), remote_login,
                 mode=0777)

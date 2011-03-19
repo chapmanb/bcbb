@@ -13,7 +13,7 @@ def install_pydoop(env):
 
     http://pydoop.sourceforge.net/docs/installation.html
     """
-    hadoop_version = "0.21.0"
+    hadoop_version = "0.20.2"
     pydoop_version = "0.3.7_rc1"
     hadoop_url = "http://apache.mirrors.hoobly.com/hadoop/core/" \
             "hadoop-%s/hadoop-%s.tar.gz" % (hadoop_version, hadoop_version)
@@ -22,11 +22,14 @@ def install_pydoop(env):
 
     with _make_tmp_dir() as work_dir:
         with cd(work_dir):
+            # Use native supplied Hadoop source to match installed defaults. On
+            # Ubuntu this is currently 0.20.2.
             hadoop_dir = _fetch_and_unpack(hadoop_url)
             pydoop_dir = _fetch_and_unpack(pydoop_url)
             with cd(pydoop_dir):
-                export_str = "export HADOOP_HOME=%s && export JAVA_HOME=%s" % \
-                    (os.path.join(os.pardir, hadoop_dir), env.java_home)
+                export_str = "export HADOOP_VERSION=%s && export HADOOP_HOME=%s " +
+                             "&& export JAVA_HOME=%s" % (hadoop_version,
+                                os.path.join(os.pardir, hadoop_dir), env.java_home)
                 run("%s && python%s setup.py build" % (export_str, env.python_version_ext))
                 sudo("%s && python%s setup.py install --skip-build" %
                      (export_str, env.python_version_ext))
