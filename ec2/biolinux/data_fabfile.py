@@ -70,17 +70,10 @@ class UCSCGenome(_DownloadHelper):
         return self._name
 
     def download(self, seq_dir):
-        for zipped_file in ["chromFa.tar.gz", "%s.fa.gz" % self._name,
-                            "chromFa.zip"]:
-            if not self._exists(zipped_file, seq_dir):
-                with settings(warn_only=True):
-                    result = run("wget %s/%s" % (self._url, zipped_file))
-                if not result.failed:
-                    break
-            else:
-                break
+        zipped_file = None
         genome_file = "%s.fa" % self._name
         if not self._exists(genome_file, seq_dir):
+            zipped_file = self._download_zip(seq_dir)
             if zipped_file.endswith(".tar.gz"):
                 run("tar -xzpf %s" % zipped_file)
             elif zipped_file.endswith(".zip"):
@@ -107,6 +100,18 @@ class UCSCGenome(_DownloadHelper):
             run("rm -f *.fa")
             run("mv %s %s" % (tmp_file, genome_file))
         return genome_file, [zipped_file]
+
+    def _download_zip(self, seq_dir):
+        for zipped_file in ["chromFa.tar.gz", "%s.fa.gz" % self._name,
+                            "chromFa.zip"]:
+            if not self._exists(zipped_file, seq_dir):
+                with settings(warn_only=True):
+                    result = run("wget %s/%s" % (self._url, zipped_file))
+                if not result.failed:
+                    break
+            else:
+                break
+        return zipped_file
 
 class NCBIRest(_DownloadHelper):
     """Retrieve files using the TogoWS REST server pointed at NCBI.
@@ -210,7 +215,7 @@ genomes = [
 
 genomes = [
            ("phiX174", "phix", NCBIRest("phix", ["NC_001422.1"])),
-#           ("Hsapiens", "hg19", UCSCGenome("hg19")),
+           ("Hsapiens", "hg19", UCSCGenome("hg19")),
           ]
 
 lift_over_genomes = [g.ucsc_name() for (_, _, g) in genomes if g.ucsc_name()]
