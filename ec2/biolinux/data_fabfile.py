@@ -511,8 +511,6 @@ def _index_eland(ref_file):
 def _download_genomes():
     """Download a group of genomes from Amazon s3 bucket.
     """
-    conn = boto.connect_s3()
-    bucket = conn.create_bucket("biodata")
     genome_dir = os.path.join(env.data_files, "genomes")
     for (orgname, gid, _) in genomes:
         org_dir = os.path.join(genome_dir, orgname)
