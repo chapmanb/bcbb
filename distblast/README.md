@@ -97,4 +97,15 @@ Follow [installation documentation][2]:
 
         export HADOOP_HOME=/usr/lib/hadoop
 
+#### Debugging tips
+
+Timeouts are set to 10 minutes, which will result in Hadoop sitting
+for long periods of time if nothing is wrong. While debugging issues,
+you can set this with `mapred.task.timeout` in `mapred-site.xml` to
+get informative error messages.
+
+The MapReduce job tracker web interface at http://localhost:50030/ has
+lots of useful error messages you may not be seeing from the
+commandline.
+
 [2]: http://www.michael-noll.com/wiki/Running_Hadoop_On_Ubuntu_Linux_(Single-Node_Cluster)
