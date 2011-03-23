@@ -12,6 +12,7 @@ Usage:
 import os
 import operator
 import socket
+import glob
 from contextlib import contextmanager
 
 from fabric.main import load_settings
@@ -244,7 +245,7 @@ def upload_s3():
     """
     if boto is None:
         raise ImportError("boto must be installed to upload to Amazon s3")
-    if env.host != "localhost" or not env.host.startswith(socket.gethostname()):
+    if env.host != "localhost" and not env.host.startswith(socket.gethostname()):
         raise ValueError("Need to run S3 upload on a local machine")
     _check_version()
     setup_environment()
@@ -555,15 +556,17 @@ def _upload_to_s3(tarball, bucket):
             s3_key.set_acl("public-read")
         else:
             _large_file_upload(bucket, s3_key_name, tarball)
-            s3_key = bucket.get_get(s3_key_name)
+            s3_key = bucket.get_key(s3_key_name)
             s3_key.set_acl("public-read")
 
 def _large_file_upload(bucket, s3_key_name, tarball):
     """Upload large files using Amazon's multipart upload functionality.
     """
     def split_file(in_file):
-        prefix = "S3PART%s" % (s3_key_name.split(".")[0])
-        run("split -b250m %s %s" % (in_file, prefix)
+        prefix = os.path.join(os.path.dirname(in_file),
+                              "S3PART%s" % (os.path.basename(s3_key_name).split(".")[0]))
+        if not exists("%saa" % prefix):
+            run("split -b250m %s %s" % (in_file, prefix))
         return sorted(glob.glob("%s*" % prefix))
 
     mp = bucket.initiate_multipart_upload(s3_key_name)
