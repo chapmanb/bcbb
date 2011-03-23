@@ -16,8 +16,20 @@ import fabric.contrib.files as fabric_files
 
 def main(cluster_config):
     addresses = _get_whirr_addresses(cluster_config)
+    # software for all nodes on the cluster
     for addr in addresses:
         install_distblast(addr)
+    # data on the head node
+    dl_distblast_data(addresses[0])
+
+def dl_distblast_data(addr):
+    """Download distblast data from S3 bucket for analysis.
+    """
+    data_url = "http://chapmanb.s3.amazonaws.com/distblast.tar.gz"
+    with fabric.settings(host_string="%s@%s" % ("ubuntu", addr)):
+        if not fabric_files.exists("distblast"):
+            fabric.run("wget %s" % data_url)
+            fabric.run("tar -xzvpf %s" % os.path.basename(data_url))
 
 def install_distblast(addr):
     print "Installing on", addr

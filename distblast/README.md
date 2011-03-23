@@ -51,32 +51,21 @@ Follow [Cloudera script documentation][1]:
 
     whirr launch-cluster --config ~/.ec2/distblast.whirr
 
-5. Install distblast on each node:
+5. Install distblast on each node and organism data on the head node:
 
     python2.6 bcbb/distblast/ec2/cluster_install_distblast.py ~/.ec2/distblast.whirr
 
-6. In AWS console (https://console.aws.amazon.com/ec2/) setup
-   filesystem with databases:
-
-    - Create data volume from snapshot (snap-78013813) with at least 4Gb of Capacity
-    - Attach data volume to head node as /dev/sdf
-
-7. Login to the cluster and mount the data volume containing the organism data:
+6. Login to the cluster and run a distributed BLAST
 
     whirr list-cluster --config ~/.ec2/distblast.whirr
     ssh ubuntu@first-ip-address
-    % sudo mkdir /mnt/distblast
-    % sudo mount /dev/sdf /mnt/distblast
-
-8. Run a distributed BLAST on the cluster
-
     % export HADOOP_HOME=/usr/lib/hadoop-0.20
-    % cd /mnt/distblast/
+    % cd ~/distblast/
     % python2.6 ~/install/bcbb/distblast/hadoop/hadoop_run.py \
       ~/install/bcbb/distblast/hadoop/fasta_process.py \
       org_configs/test.yaml base_config.yaml input output
 
-9. Finished: logout, terminate the nodes and remove the cluster:
+7. Finished: logout, terminate the nodes and remove the cluster:
 
     whirr destroy-cluster --config ~/.hadoop-cloud/distblast.properties
 
@@ -99,13 +88,13 @@ Follow [installation documentation][2]:
 
 #### Debugging tips
 
-Timeouts are set to 10 minutes, which will result in Hadoop sitting
-for long periods of time if nothing is wrong. While debugging issues,
-you can set this with `mapred.task.timeout` in `mapred-site.xml` to
-get informative error messages.
+Default timeouts are set to 10 minutes, which will result in Hadoop
+sitting for long periods of time when something is wrong. While
+debugging issues, you can set this with `mapred.task.timeout` in
+`mapred-site.xml` to get informative error messages quicker.
 
 The MapReduce job tracker web interface at http://localhost:50030/ has
-lots of useful error messages you may not be seeing from the
+lots of useful error information you may not be seeing from the
 commandline.
 
 [2]: http://www.michael-noll.com/wiki/Running_Hadoop_On_Ubuntu_Linux_(Single-Node_Cluster)
