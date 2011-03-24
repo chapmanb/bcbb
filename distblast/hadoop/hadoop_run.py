@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 """Build up a hadoop job to process an input FASTA file.
 
-Uses pydoop to manage interaction with the hadoop HDFS system.
+This handles copying over all of the input files, scripts and databases.
+After running the Hadoop job, the output files are retrieved and reformatted
+to be identical to a local run.
 """
 import os
 import sys
@@ -11,15 +13,12 @@ import json
 import shutil
 import optparse
 import subprocess
-import contextlib
 
 import yaml
-import pydoop.utils as pu
-from pydoop.hdfs import hdfs
 
 from bcbio.phylo import blast
 
-def main(script, org_config_file, config_file, in_dir, local_out_dir):
+def main(script, org_config_file, config_file, in_dir, out_dir):
     with open(config_file) as in_handle:
         config = yaml.load(in_handle)
     with open(org_config_file) as in_handle:
@@ -27,40 +26,63 @@ def main(script, org_config_file, config_file, in_dir, local_out_dir):
     if os.path.exists(in_dir):
         shutil.rmtree(in_dir)
     os.makedirs(in_dir)
-    if not os.path.exists(local_out_dir):
-        os.makedirs(local_out_dir)
     shutil.copy(org_config["search_file"], in_dir)
+    if not os.path.exists(out_dir):
+        os.makedirs(out_dir)
 
     job_name = os.path.splitext(os.path.basename(script))[0]
-    with _hdfs_filesystem() as (fs, lfs):
-        script, in_dir, out_dir = setup_hdfs(job_name, script, in_dir,
-                local_out_dir, fs, lfs)
-        db_files_str, dbnames, org_names = setup_db(job_name,
-                config['db_dir'], org_config['target_org'], fs, lfs)
-        hadoop_opts = {
-          "mapred.job.name" : job_name,
-          "hadoop.pipes.executable": script,
-          "mapred.cache.files" : db_files_str,
-          "mapred.create.symlink" : "yes",
-          "hadoop.pipes.java.recordreader": "false",
-          "hadoop.pipes.java.recordwriter": "true",
-          "mapred.map.tasks": "2",
-          "mapred.reduce.tasks": "2",
-          #"mapred.task.timeout": "60000", # useful for debugging
-          "fasta.blastdb": ",".join(dbnames)
-          }
+    print "Creating working directories in HDFS"
+    hdfs_script, hdfs_in_dir, hdfs_out_dir = setup_hdfs(job_name, script,
+                                                        in_dir, out_dir)
+    print "Copying organism database files to HDFS"
+    db_files_str, dbnames, org_names = setup_db(job_name, config['db_dir'],
+                                                org_config['target_org'])
+    print "Running script on Hadoop"
+    run_hadoop(job_name, hdfs_script, hdfs_in_dir, hdfs_out_dir, db_files_str, dbnames)
+    print "Processing output files"
+    process_output(hdfs_out_dir, out_dir, org_config['target_org'],
+                   org_names)
 
-        cl = ["hadoop", "pipes"] + _cl_opts(hadoop_opts) + [
-              "-program", script,
-              "-input", in_dir, "-output", out_dir]
+def run_hadoop(job_name, hdfs_script, hdfs_in_dir, hdfs_out_dir,
+               db_files_str, dbnames):
+    hadoop_opts = {
+      "mapred.job.name" : job_name,
+      "hadoop.pipes.executable": hdfs_script,
+      "mapred.cache.files" : db_files_str,
+      "mapred.create.symlink" : "yes",
+      "hadoop.pipes.java.recordreader": "false",
+      "hadoop.pipes.java.recordwriter": "true",
+      "mapred.map.tasks": "2",
+      "mapred.reduce.tasks": "2",
+      #"mapred.task.timeout": "60000", # useful for debugging
+      "fasta.blastdb": ",".join(dbnames)
+      }
+    cl = ["hadoop", "pipes"] + _cl_opts(hadoop_opts) + [
+          "-program", hdfs_script,
+          "-input", hdfs_in_dir, "-output", hdfs_out_dir]
+    subprocess.check_call(cl)
+
+def _read_hadoop_out(out_dir, work_dir):
+    """Reformat Hadoop output files for tab delimited output.
+    """
+    cl = ["hadoop", "fs", "-ls", os.path.join(out_dir, "part-*")]
+    p = subprocess.Popen(cl, stdout=subprocess.PIPE)
+    (out, _) = p.communicate()
+    for fname in sorted([l.split()[-1] for l in out.split("\n") if l]):
+        local_fname = os.path.join(work_dir, os.path.basename(fname))
+        cl = ["hadoop", "fs", "-get", fname, local_fname]
         subprocess.check_call(cl)
-        process_output(fs, lfs, out_dir, local_out_dir,
-                org_config['target_org'], org_names)
+        with open(local_fname) as in_handle:
+            for line in in_handle:
+                cur_id, info = line.split("\t")
+                data = json.loads(info)
+                data["cur_id"] = cur_id
+                yield data
+        os.remove(local_fname)
 
-def process_output(fs, lfs, out_dir, local_out_dir, target_org, org_names):
+def process_output(hdfs_out_dir, local_out_dir, target_org, org_names):
     """Convert JSON output into tab delimited score and ID files.
     """
-    # setup the output files
     if not os.path.exists(local_out_dir):
         os.makedirs(local_out_dir)
     base = target_org.replace(" ", "_")
@@ -73,68 +95,45 @@ def process_output(fs, lfs, out_dir, local_out_dir, target_org, org_names):
             header = [""] + org_names
             id_writer.writerow(header)
             score_writer.writerow(header)
-            # loop through the hadoop files and reformat each
-            # into tab delimited output
-            for fname in (f['name'] for f in fs.list_directory(out_dir)):
-                if os.path.basename(fname).startswith('part-'):
-                    in_handle = fs.open_file(fname)
-                    for line in in_handle:
-                        cur_id, info = line.split("\t")
-                        data = json.loads(info)
-                        id_writer.writerow([cur_id] + data['ids'])
-                        score_writer.writerow([cur_id] + data['scores'])
-                    in_handle.close()
+            for data in _read_hadoop_out(hdfs_out_dir, local_out_dir):
+                id_writer.writerow([data["cur_id"]] + data['ids'])
+                score_writer.writerow([data["cur_id"]] + data['scores'])
 
-def setup_hdfs(work_dir, script, in_dir, out_dir, fs, lfs):
-    """Add input output and script directories to hdfs.
+def setup_hdfs(hdfs_work_dir, script, in_dir, out_dir):
+    """Add input, output and script directories to hdfs.
     """
-    _cleanup_workdir(fs, work_dir)
+    cl = ["hadoop", "fs", "-rmr", hdfs_work_dir]
+    subprocess.check_call(cl)
+    cl = ["hadoop", "fs", "-mkdir", hdfs_work_dir]
+    subprocess.check_call(cl)
     out_info = []
-    fs.create_directory(work_dir)
     # copy over input and files
     for lfile in [script, in_dir]:
-        hdfs_ref = _hdfs_ref(work_dir, lfile)
-        lfs.copy(lfile, fs, hdfs_ref)
+        hdfs_ref = _hdfs_ref(hdfs_work_dir, lfile)
+        cl = ["hadoop", "fs", "-put", lfile, hdfs_ref]
+        subprocess.check_call(cl)
         out_info.append(hdfs_ref)
-    # create output directory
-    hdfs_out = _hdfs_ref(work_dir, out_dir)
+    hdfs_out = _hdfs_ref(hdfs_work_dir, out_dir)
     out_info.append(hdfs_out)
     return out_info
 
-def setup_db(work_dir, db_dir, target_org, fs, lfs):
+def setup_db(work_dir_base, db_dir, target_org):
     """Copy over BLAST database files, prepping them for map availability.
     """
     (_, org_names, db_refs) = blast.get_org_dbs(db_dir, target_org)
-    work_dir = os.path.join(work_dir, db_dir)
-    fs.create_directory(work_dir)
-    db_refs = db_refs
+    work_dir = os.path.join(work_dir_base, db_dir)
+    cl = ["hadoop", "fs", "-mkdir", work_dir]
+    subprocess.check_call(cl)
     ref_info = []
     blast_dbs = []
     for db_path in db_refs:
         blast_dbs.append(os.path.basename(db_path))
         for fname in glob.glob(db_path + ".[p|n]*"):
             hdfs_ref = _hdfs_ref(work_dir, fname)
-            lfs.copy(fname, fs, hdfs_ref)
+            cl = ["hadoop", "fs", "-put", fname, hdfs_ref]
+            subprocess.check_call(cl)
             ref_info.append("%s#%s" % (hdfs_ref, os.path.basename(hdfs_ref)))
     return ",".join(ref_info), blast_dbs, org_names
-
-@contextlib.contextmanager
-def _hdfs_filesystem():
-    """Retrieve references to the local and HDFS file system.
-
-    Need to be able to specify host/port. For now, works off defaults.
-    """
-    fs = hdfs("default", 0)
-    lfs = hdfs("", 0)
-    try:
-        yield fs, lfs
-    finally:
-        fs.close()
-        lfs.close()
-
-def _cleanup_workdir(fs, work_dir):
-    if fs.exists(work_dir):
-        fs.delete(work_dir)
 
 def _hdfs_ref(work_dir, local_file):
     basename = os.path.basename(local_file)
@@ -153,4 +152,3 @@ if __name__ == "__main__":
     parser = optparse.OptionParser()
     opts, args = parser.parse_args()
     main(*args)
-

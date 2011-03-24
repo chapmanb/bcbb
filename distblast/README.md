@@ -79,18 +79,16 @@ Follow [installation documentation][2]:
 
 1. Start hadoop
 
-        sudo -u hadoop bash
-        /usr/lib/hadoop/bin/start-all.sh
+    sudo -u hadoop bash
+    /usr/lib/hadoop/bin/start-all.sh
 
-2. Running pydoop
-
-        export HADOOP_HOME=/usr/lib/hadoop
+2. Run scripts as in step 6 for the remote Hadoop.
 
 #### Debugging tips
 
 Default timeouts are set to 10 minutes, which will result in Hadoop
 sitting for long periods of time when something is wrong. While
-debugging issues, you can set this with `mapred.task.timeout` in
+debugging issues, you can reset this with `mapred.task.timeout` in
 `mapred-site.xml` to get informative error messages quicker.
 
 The MapReduce job tracker web interface at http://localhost:50030/ has
