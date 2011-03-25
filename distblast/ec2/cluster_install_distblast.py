@@ -15,25 +15,26 @@ import fabric.api as fabric
 import fabric.contrib.files as fabric_files
 
 def main(cluster_config):
+    user = "hadoop"
     addresses = _get_whirr_addresses(cluster_config)
     # software for all nodes on the cluster
     for addr in addresses:
-        install_distblast(addr)
+        install_distblast(addr, user)
     # data on the head node
-    dl_distblast_data(addresses[0])
+    dl_distblast_data(addresses[0], user)
 
-def dl_distblast_data(addr):
+def dl_distblast_data(addr, user):
     """Download distblast data from S3 bucket for analysis.
     """
     data_url = "http://chapmanb.s3.amazonaws.com/distblast.tar.gz"
-    with fabric.settings(host_string="%s@%s" % ("ubuntu", addr)):
+    with fabric.settings(host_string="%s@%s" % (user, addr)):
         if not fabric_files.exists("distblast"):
             fabric.run("wget %s" % data_url)
             fabric.run("tar -xzvpf %s" % os.path.basename(data_url))
 
-def install_distblast(addr):
+def install_distblast(addr, user):
     print "Installing on", addr
-    with fabric.settings(host_string="%s@%s" % ("ubuntu", addr)):
+    with fabric.settings(host_string="%s@%s" % (user, addr)):
         work_dir = "install"
         if not fabric_files.exists(work_dir):
             fabric.run("mkdir %s" % work_dir)

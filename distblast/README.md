@@ -72,8 +72,8 @@ Follow [Cloudera script documentation][1]:
     % wget http://chapmanb.s3.amazonaws.com/distblast.tar.gz
     % tar -xzvpf distblast.tar.gz
     % cd distblast
-    % python2.6 ~/install/bcbb/distblast/hadoop/hadoop_run.py \
-      ~/install/bcbb/distblast/hadoop/distblast_streaming.py \
+    % python2.6 bcbb/distblast/hadoop/hadoop_run.py \
+      bcbb/distblast/hadoop/distblast_streaming.py \
       org_configs/test.yaml base_config.yaml input output
 
 7. Finished: logout, terminate the nodes and remove the cluster:
@@ -97,8 +97,8 @@ Follow [installation documentation][2]:
 2. Run scripts
 
     % cd distblast_data
-    % python2.6 ~/install/bcbb/distblast/hadoop/hadoop_run.py \
-      ~/install/bcbb/distblast/hadoop/distblast_pipes.py \
+    % python2.6 bcbb/distblast/hadoop/hadoop_run.py \
+      bcbb/distblast/hadoop/distblast_pipes.py \
       org_configs/test.yaml base_config.yaml input output
 
 #### Debugging tips
