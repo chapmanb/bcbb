@@ -114,6 +114,13 @@ def install_novoalign(env):
                 for fname in ["novoalignCS"]:
                     sudo("mv %s %s" % (fname, install_dir))
 
+@_if_not_installed("lastz")
+def install_lastz(env):
+    version = "1.02.00"
+    url = "http://www.bx.psu.edu/miller_lab/dist/" \
+          "lastz-%s.tar.gz" % version
+    _get_install(url, env, _make_copy("find -perm -100 -name 'lastz'"))
+
 # --- Analysis
 
 @_if_not_installed("fastq_quality_boxplot_graph.sh")
