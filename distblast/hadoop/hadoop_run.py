@@ -27,28 +27,77 @@ def main(script, org_config_file, config_file, in_dir, out_dir):
         shutil.rmtree(in_dir)
     os.makedirs(in_dir)
     shutil.copy(org_config["search_file"], in_dir)
-    if not os.path.exists(out_dir):
-        os.makedirs(out_dir)
+    if os.path.exists(out_dir):
+        shutil.rmtree(out_dir)
+    os.makedirs(out_dir)
 
     job_name = os.path.splitext(os.path.basename(script))[0]
     print "Creating working directories in HDFS"
     hdfs_script, hdfs_in_dir, hdfs_out_dir = setup_hdfs(job_name, script,
                                                         in_dir, out_dir)
     print "Copying organism database files to HDFS"
-    db_files_str, dbnames, org_names = setup_db(job_name, config['db_dir'],
-                                                org_config['target_org'])
+    db_files, dbnames, org_names = setup_db(job_name, config['db_dir'],
+                                            org_config['target_org'])
     print "Running script on Hadoop"
-    run_hadoop(job_name, hdfs_script, hdfs_in_dir, hdfs_out_dir, db_files_str, dbnames)
+    if script.endswith("streaming.py"):
+        run_hadoop_streaming(job_name, script, hdfs_in_dir, hdfs_out_dir,
+                             db_files, dbnames)
+    else:
+        run_hadoop(job_name, hdfs_script, hdfs_in_dir, hdfs_out_dir,
+                   db_files, dbnames)
     print "Processing output files"
     process_output(hdfs_out_dir, out_dir, org_config['target_org'],
                    org_names)
 
+def run_hadoop_streaming(job_name, script, hdfs_in_dir, hdfs_out_dir, db_files, dbnames):
+    """Run a hadoop streaming job with dumbo.
+    """
+    cachefiles = []
+    for db_file in db_files:
+        cachefiles.extend(("-cachefile", db_file))
+    hadoop = os.path.join(os.environ["HADOOP_HOME"], "bin", "hadoop")
+    hadoop = os.environ["HADOOP_HOME"]
+    cl = ["dumbo", script, "-hadoop", hadoop, "-input", hdfs_in_dir,
+          "-output", hdfs_out_dir, "-name", job_name,
+          "-inputformat", "com.lifetech.hadoop.streaming.FastaInputFormat",
+          "-libjar", os.path.abspath("jar/bioseq-0.0.1.jar"),
+          "-outputformat", "text",
+          "-cmdenv", "fasta_blastdb=%s" % ','.join(dbnames)] + cachefiles
+    subprocess.check_call(cl)
+
+def run_hadoop_streaming_mrjob(job_name, script, in_dir, db_files_str, dbnames):
+    jobconf_opts = {
+        "mapred.job.name" : job_name,
+        "mapred.cache.files" : db_files_str,
+        "mapred.create.symlink" : "yes",
+        "fasta.blastdb": ",".join(dbnames)
+        #"mapred.task.timeout": "60000", # useful for debugging
+        }
+    hadoop_opts = {
+        "-inputformat": "com.lifetech.hadoop.streaming.FastaInputFormat",
+        "-libjars" : os.path.abspath("jars/bioseq-0.0.1.jar")
+        }
+    def _mrjob_opts(opts, type, connect):
+        out = []
+        for k, v in opts.iteritems():
+            if connect == " ":
+                val = "'%s %s'" % (k, v)
+            else:
+                val = "%s%s%s" % (k, connect, v)
+            out.append("%s=%s" % (type, val))
+        return out
+    cl = [sys.executable, script, "-r", "hadoop"] + \
+         _mrjob_opts(jobconf_opts, "--jobconf", "=") + \
+         _mrjob_opts(hadoop_opts, "--hadoop-arg", " ") + \
+         glob.glob(os.path.join(in_dir, "*"))
+    subprocess.check_call(cl)
+
 def run_hadoop(job_name, hdfs_script, hdfs_in_dir, hdfs_out_dir,
-               db_files_str, dbnames):
+               db_files, dbnames):
     hadoop_opts = {
       "mapred.job.name" : job_name,
       "hadoop.pipes.executable": hdfs_script,
-      "mapred.cache.files" : db_files_str,
+      "mapred.cache.files" : ",".join(db_files),
       "mapred.create.symlink" : "yes",
       "hadoop.pipes.java.recordreader": "false",
       "hadoop.pipes.java.recordwriter": "true",
@@ -68,7 +117,8 @@ def _read_hadoop_out(out_dir, work_dir):
     cl = ["hadoop", "fs", "-ls", os.path.join(out_dir, "part-*")]
     p = subprocess.Popen(cl, stdout=subprocess.PIPE)
     (out, _) = p.communicate()
-    for fname in sorted([l.split()[-1] for l in out.split("\n") if l]):
+    for fname in sorted([l.split()[-1] for l in out.split("\n")
+                         if l and not l.startswith("Found")]):
         local_fname = os.path.join(work_dir, os.path.basename(fname))
         cl = ["hadoop", "fs", "-get", fname, local_fname]
         subprocess.check_call(cl)
@@ -102,8 +152,11 @@ def process_output(hdfs_out_dir, local_out_dir, target_org, org_names):
 def setup_hdfs(hdfs_work_dir, script, in_dir, out_dir):
     """Add input, output and script directories to hdfs.
     """
-    cl = ["hadoop", "fs", "-rmr", hdfs_work_dir]
-    subprocess.check_call(cl)
+    cl = ["hadoop", "fs", "-test", "-d", hdfs_work_dir]
+    result = subprocess.call(cl)
+    if result == 0:
+        cl = ["hadoop", "fs", "-rmr", hdfs_work_dir]
+        subprocess.check_call(cl)
     cl = ["hadoop", "fs", "-mkdir", hdfs_work_dir]
     subprocess.check_call(cl)
     out_info = []
@@ -133,7 +186,7 @@ def setup_db(work_dir_base, db_dir, target_org):
             cl = ["hadoop", "fs", "-put", fname, hdfs_ref]
             subprocess.check_call(cl)
             ref_info.append("%s#%s" % (hdfs_ref, os.path.basename(hdfs_ref)))
-    return ",".join(ref_info), blast_dbs, org_names
+    return ref_info, blast_dbs, org_names
 
 def _hdfs_ref(work_dir, local_file):
     basename = os.path.basename(local_file)

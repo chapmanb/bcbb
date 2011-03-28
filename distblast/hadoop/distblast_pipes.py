@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Process a fasta file through Hadoop one record at a time.
+"""Process a fasta file through Hadoop one record at a time using pydoop.
 """
 import sys
 import os

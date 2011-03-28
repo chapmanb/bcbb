@@ -8,6 +8,7 @@ bio_nextgen:
     - bwa
     - bowtie
     - gmap
+    - lastz
     - perm
   analysis:
     - bedtools

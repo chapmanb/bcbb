@@ -55,14 +55,25 @@ Follow [Cloudera script documentation][1]:
 
     python2.6 bcbb/distblast/ec2/cluster_install_distblast.py ~/.ec2/distblast.whirr
 
-6. Login to the cluster and run a distributed BLAST
+6. Run a distributed BLAST from your local machine
 
-    whirr list-cluster --config ~/.ec2/distblast.whirr
-    ssh ubuntu@first-ip-address
-    % export HADOOP_HOME=/usr/lib/hadoop-0.20
-    % cd ~/distblast/
-    % python2.6 ~/install/bcbb/distblast/hadoop/hadoop_run.py \
-      ~/install/bcbb/distblast/hadoop/fasta_process.py \
+ a. Start the proxy in a separate terminal. Allows you to connect to
+ the cluster and also view the Hadoop web interface in
+ http://cluster_machine_name:50030/. See the proxy information in the
+ [quick start guide][4] for details on setting up your browser to use
+ the proxy.
+
+    % . ~/.whirr/distblast/hadoop-proxy.sh
+
+ b. Setup enviornment to use local Hadoop pointed to remote cluster
+
+    % export HADOOP_HOME=/usr/lib/hadoop
+    % export HADOOP_CONF_DIR=~/.whirr/distblast
+    % wget http://chapmanb.s3.amazonaws.com/distblast.tar.gz
+    % tar -xzvpf distblast.tar.gz
+    % cd distblast
+    % python2.6 bcbb/distblast/hadoop/hadoop_run.py \
+      bcbb/distblast/hadoop/distblast_streaming.py \
       org_configs/test.yaml base_config.yaml input output
 
 7. Finished: logout, terminate the nodes and remove the cluster:
@@ -72,6 +83,7 @@ Follow [Cloudera script documentation][1]:
 [1]: https://wiki.cloudera.com/display/DOC/Whirr+Installation
 [1a]: https://cwiki.apache.org/confluence/display/WHIRR/How+To+Contribute
 [3]: https://wiki.cloudera.com/display/DOC/Hadoop+Installation+(CDH3)
+[4]: http://incubator.apache.org/whirr/quick-start-guide.html
 
 ### Local hadoop cluster on ubuntu
 
@@ -82,7 +94,12 @@ Follow [installation documentation][2]:
     sudo -u hadoop bash
     /usr/lib/hadoop/bin/start-all.sh
 
-2. Run scripts as in step 6 for the remote Hadoop.
+2. Run scripts
+
+    % cd distblast_data
+    % python2.6 bcbb/distblast/hadoop/hadoop_run.py \
+      bcbb/distblast/hadoop/distblast_pipes.py \
+      org_configs/test.yaml base_config.yaml input output
 
 #### Debugging tips
 
