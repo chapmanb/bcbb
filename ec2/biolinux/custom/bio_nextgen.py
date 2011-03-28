@@ -145,7 +145,7 @@ def install_solexaqa(env):
             sudo("mv SolexaQA.pl %s" % os.path.join(env.system_install, "bin"))
 
 def install_picard(env):
-    version = "1.40"
+    version = "1.41"
     url = "http://downloads.sourceforge.net/project/picard/" \
           "picard-tools/%s/picard-tools-%s.zip" % (version, version)
     install_dir = _symlinked_java_version_dir("picard", version)
@@ -158,7 +158,7 @@ def install_picard(env):
                     sudo("mv *.jar %s" % install_dir)
 
 def install_gatk(env):
-    version = "1.0.5336"
+    version = "1.0.5506"
     ext = ".tar.bz2"
     url = "ftp://ftp.broadinstitute.org/pub/gsa/GenomeAnalysisTK/"\
           "GenomeAnalysisTK-%s%s" % (version, ext)
