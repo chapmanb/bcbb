@@ -85,6 +85,8 @@ def _expand_paths():
     """Expand any paths defined in terms of shell shortcuts (like ~).
     """
     if env.has_key("local_install"):
+        if not exists(env.local_install):
+            run("mkdir -p %s" % env.local_install)
         with cd(env.local_install):
             with settings(hide('warnings', 'running', 'stdout', 'stderr'),
                           warn_only=True):
