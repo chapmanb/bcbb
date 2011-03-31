@@ -175,9 +175,12 @@ with. This can be done nicely via the AWS console, but if you'd like
 to use the commandline, these quick start docs follow
 <http://docs.amazonwebservices.com/AWSEC2/latest/GettingStartedGuide/running-an-instance.html>.
 
-Pick an AMI, start an instance and ensure that it is running:
+Pick an AMI, start an instance and ensure that it is running. You will
+need to increase the size of the root filesystem to fit all of the
+data:
 
-       % ec2-run-instances ami-1ad03273 -k sobchak-keypair
+       % ec2-run-instances ami-cef405a7 -k sobchak-keypair -t m1.large
+         -b /dev/sda1=:20
        RESERVATION	r-0a7af462	678711657553	default
        INSTANCE	i-0ca39764	ami-1ad03273			pending
 
@@ -185,9 +188,12 @@ Pick an AMI, start an instance and ensure that it is running:
        RESERVATION	r-0a7af462	678711657553	default
        INSTANCE	i-0ca39764	ami-1ad03273 ec2-174-129-68-135.compute-1.amazonaws.com
 
-Now you can ssh in using the key you created:
+Now you can ssh in using the key you created and resize the
+filesystem:
 
-       % ssh -i ~/.ec2/id-sobchak.keypair root@ec2-174-129-68-135.compute-1.amazonaws.com
+       % ssh -i ~/.ec2/id-sobchak.keypair ubuntut@ec2-174-129-68-135.compute-1.amazonaws.com
+       % sudo resize2fs /dev/sda1
+       % df -h
 
 You're in and paying per hour. When done:
 

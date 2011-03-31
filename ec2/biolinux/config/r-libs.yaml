@@ -109,7 +109,7 @@ bioc:
  - ChIPsim
  - CSAR
  - DEGseq
- - DEseq
+ - DESeq
  - DynDoc
  - edgeR
  - gage
