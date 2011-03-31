@@ -372,18 +372,16 @@ def _apt_packages(to_install):
 def _add_apt_gpg_keys():
     """Adds GPG keys from all repositories
     """
-    standalone = [
-        "http://archive.cloudera.com/debian/archive.key",
-        "http://download.virtualbox.org/virtualbox/debian/oracle_vbox.asc"]
-    keyserver = [
-        ("subkeys.pgp.net", "7F0CEB10"),
-        ("keyserver.ubuntu.com", "E084DAB9"),
-        ("keyserver.ubuntu.com", "D67FC6EAE2A11821"),
-    ]
-    for url, key in keyserver:
-        sudo("apt-key adv --keyserver %s --recv %s" % (url, key))
-    for key in standalone:
-        sudo("wget -q -O- %s | apt-key add -" % key)
+    local_key_dir = os.path.join(os.path.dirname(__file__),
+                                 "keys", env.distribution)
+    remote_key_dir = "%s/keys" % env.local_install 
+    run("mkdir %s" % remote_key_dir)
+    keyfiles = os.listdir(local_key_dir)
+    for keyfile in keyfiles:
+        put(os.path.join(local_key_dir, keyfile), remote_key_dir)
+    with(cd(remote_key_dir)):
+        for keyfile in keyfiles:
+            sudo("apt-key add %s" % keyfile)
 
 def _setup_apt_automation():
     """Setup the environment to be fully automated for tricky installs.
