@@ -138,6 +138,7 @@ def install_biolinux(target=None):
             _add_apt_gpg_keys()
             _apt_packages(pkg_install)
         elif env.distribution in ["centos"]:
+            _setup_yum_sources()
             _yum_packages(pkg_install)
             _setup_yum_bashrc()
     if target is None or target == "custom":
@@ -437,6 +438,13 @@ def _setup_yum_bashrc():
     for line in to_include:
         if not contains(fname, line.split("=")[0]):
             append(fname, line)
+
+def _setup_yum_sources():
+    """Add additional useful yum repositories.
+    """
+    repos = ["http://download.fedora.redhat.com/pub/epel/5/x86_64/epel-release-5-4.noarch.rpm"]
+    for repo in repos:
+        sudo("rpm -Uvh %s" % repo)
 
 # ### CloudBioLinux specific scripts
 
