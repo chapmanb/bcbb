@@ -185,7 +185,7 @@ class BroadGenome(_DownloadHelper):
             run("wget %s/%s" % (self._ftp_url, self._target))
         return self._target, []
 
-genomes = [
+GENOMES = [
            ("phiX174", "phix", NCBIRest("phix", ["NC_001422.1"])),
            ("Scerevisiae", "sacCer2", UCSCGenome("sacCer2")),
            ("Mmusculus", "mm9", UCSCGenome("mm9")),
@@ -215,14 +215,18 @@ genomes = [
            ("Tguttata_Zebra_finch", "taeGut1", UCSCGenome("taeGut1")),
           ]
 
+GENOME_INDEXES_SUPPORTED = ["bwa", "bowtie", "maq", "novoalign", "novoalign-cs",
+                            "twobit", "eland", "bfast", "arachne"]
+DEFAULT_GENOME_INDEXES = ["sam"]
+
+# -- Fabric instructions
+
+# XXX Should get these from a YAML configuration file
 genomes = [
            ("phiX174", "phix", NCBIRest("phix", ["NC_001422.1"])),
            ("Hsapiens", "hg19", UCSCGenome("hg19")),
           ]
-
-lift_over_genomes = [g.ucsc_name() for (_, _, g) in genomes if g.ucsc_name()]
-
-# -- Fabric instructions
+genome_indexes = ["bwa", "bowtie", "maq", "novoalign", "twobit"]
 
 def install_data():
     """Main entry point for installing useful biological data.
@@ -230,15 +234,16 @@ def install_data():
     _check_version()
     setup_environment()
     _data_uniref()
-    _data_ngs_genomes()
-    _data_liftover()
+    _data_ngs_genomes(genomes, genome_indexes + DEFAULT_GENOME_INDEXES)
+    lift_over_genomes = [g.ucsc_name() for (_, _, g) in genomes if g.ucsc_name()]
+    _data_liftover(lift_over_genomes)
 
 def install_data_s3():
     """Install data using pre-existing genomes present on Amazon s3.
     """
     _check_version()
     setup_environment()
-    _download_genomes()
+    _download_genomes(genomes, genome_indexes + DEFAULT_GENOME_INDEXES)
 
 def upload_s3():
     """Upload prepared genome files by identifier to Amazon s3 buckets.
@@ -249,8 +254,8 @@ def upload_s3():
         raise ValueError("Need to run S3 upload on a local machine")
     _check_version()
     setup_environment()
-    _data_ngs_genomes()
-    _upload_genomes()
+    _data_ngs_genomes(genomes, genome_indexes + DEFAULT_GENOME_INDEXES)
+    _upload_genomes(genomes, genome_indexes + DEFAULT_GENOME_INDEXES)
 
 def _check_version():
     version = env.version
@@ -284,7 +289,7 @@ def _make_tmp_dir():
 
 # == NGS
 
-def _data_ngs_genomes():
+def _data_ngs_genomes(genomes, genome_indexes):
     """Download and create index files for next generation genomes.
     """
     genome_dir = os.path.join(env.data_files, "genomes")
@@ -300,30 +305,34 @@ def _data_ngs_genomes():
             seq_dir = 'seq'
             ref_file, base_zips = manager.download(seq_dir)
             ref_file = _move_seq_files(ref_file, base_zips, seq_dir)
-        _index_to_galaxy(cur_dir, ref_file, genome)
+        _index_to_galaxy(cur_dir, ref_file, genome, genome_indexes)
 
-def _index_to_galaxy(work_dir, ref_file, gid):
+INDEX_FNS = {
+    "seq" : _index_sam,
+    "bwa" : _index_bwa,
+    "bowtie": _index_bowtie,
+    "maq": _index_maq,
+    "novoalign": _index_novoalign,
+    "novoalign_cs": _index_novoalign_cs,
+    "twobit": _index_twobit,
+    "eland": _index_eland,
+    "bfast": _index_bfast,
+    "arachne": _index_arachne
+    }
+
+def _index_to_galaxy(work_dir, ref_file, gid, genome_indexes):
     """Index sequence files and update associated Galaxy loc files.
     """
+    indexes = {}
     with cd(work_dir):
-        sam_index = _index_sam(ref_file)
-        bwa_index = _index_bwa(ref_file)
-        bowtie_index = _index_bowtie(ref_file)
-        maq_index = _index_maq(ref_file)
-        _index_novoalign(ref_file)
-        twobit_index = _index_twobit(ref_file)
-        _index_eland(ref_file)
-        # other indexers not supported by default
-        if False:
-            bfast_index = _index_bfast(ref_file)
-            arachne_index = _index_arachne(ref_file)
+        for idx in genome_indexes:
+            indexes[idx] = INDEX_FNS[idx](ref_file)
     for ref_index_file, cur_index, prefix, new_style in [
-            ("sam_fa_indices.loc", sam_index, "index", False),
-            ("alignseq.loc", twobit_index, "seq", False),
-            ("twobit.loc", twobit_index, "", False),
-            ("bowtie_indices.loc", bowtie_index, "", True),
-            ("bwa_index.loc", bwa_index, "", True),
-            ]:
+          ("sam_fa_indices.loc", indexes.get("seq", None), "index", False),
+          ("alignseq.loc", indexes.get("twobit", None), "seq", False),
+          ("twobit.loc", indexes.get("twobit", None), "", False),
+          ("bowtie_indices.loc", indexes.get("bowtie", None), "", True),
+          ("bwa_index.loc", indexes.get("bwa", None), "", True)]:
         if cur_index:
             str_parts = [gid, os.path.join(work_dir, cur_index)]
             if new_style:
@@ -335,8 +344,7 @@ def _index_to_galaxy(work_dir, ref_file, gid):
 def _clean_genome_directory():
     """Remove any existing sequence information in the current directory.
     """
-    remove = ["arachne", "bowtie", "bwa", "eland", "maq", "seq", "ucsc"]
-    for dirname in remove:
+    for dirname in GENOME_INDEXES_SUPPORTED + DEFAULT_GENOME_INDEXES:
         if exists(dirname):
             run("rm -rf %s" % dirname)
 
@@ -430,15 +438,15 @@ def _index_novoalign(ref_file):
         run("mkdir %s" % dir_name)
         with cd(dir_name):
             run("novoindex %s %s" % (index_name, ref_file))
-    _index_novoalign_cs(ref_file, index_name, dir_name)
 
 @_if_installed("novoalignCS")
-def _index_novoalign_cs(ref_file, index_name, dir_name):
-    color_dir = os.path.join(dir_name, "colorspace")
+def _index_novoalign_cs(ref_file):
+    dir_name = "novoalign_cs"
+    index_name = os.path.splitext(os.path.basename(ref_file))[0]
     ref_file = os.path.join(os.pardir, ref_file)
-    if not exists(color_dir):
-        run("mkdir %s" % color_dir)
-        with cd(color_dir):
+    if not exists(dir_name):
+        run("mkdir %s" % dir_name)
+        with cd(dir_name):
             run("novoindex -c %s %s" % (index_name, ref_file))
 
 def _index_sam(ref_file):
@@ -512,26 +520,26 @@ def _index_eland(ref_file):
 
 # -- Genome upload and download to Amazon s3 buckets
 
-def _download_genomes():
+def _download_genomes(genomes, genome_indexes):
     """Download a group of genomes from Amazon s3 bucket.
     """
     genome_dir = os.path.join(env.data_files, "genomes")
     for (orgname, gid, _) in genomes:
-        org_dir = os.path.join(genome_dir, orgname)
+        org_dir = os.path.join(genome_dir, orgname, gid)
         if not exists(org_dir):
             run('mkdir -p %s' % org_dir)
-        with cd(org_dir):
-            if not exists(gid):
-                url = "https://s3.amazonaws.com/biodata/genomes/%s.tar.gz" % gid
-                run("wget %s" % url)
-                run("tar -xzvpf %s" % os.path.basename(url))
-                run("rm -f %s" % os.path.basename(url))
-        gid_dir = os.path.join(org_dir, gid)
-        ref_file = os.path.join(gid_dir, "seq", "%s.fa" % gid)
+        for idx in genome_indexes:
+            with cd(org_dir):
+                if not exists(idx):
+                    url = "https://s3.amazonaws.com/biodata/genomes/%s-%s.tar.gz" % (gid, idx)
+                    run("wget %s" % url)
+                    run("tar -xzvpf %s" % os.path.basename(url))
+                    run("rm -f %s" % os.path.basename(url))
+        ref_file = os.path.join(org_dir, "seq", "%s.fa" % gid)
         assert exists(ref_file), ref_file
-        _index_to_galaxy(gid_dir, ref_file, gid)
+        _index_to_galaxy(gid_dir, ref_file, gid, genome_indexes)
 
-def _upload_genomes():
+def _upload_genomes(genomes, genome_indexes):
     """Upload our configured genomes to Amazon s3 bucket.
     """
     conn = boto.connect_s3()
@@ -540,8 +548,10 @@ def _upload_genomes():
     for (orgname, gid, _) in genomes:
         cur_dir = os.path.join(genome_dir, orgname, gid)
         _clean_directory(cur_dir, gid)
-        tarball = _tar_directory(cur_dir)
-        _upload_to_s3(tarball, bucket)
+        for idx in genome_indexes:
+            idx_dir = os.path.join(cur_dir, idx_dir)
+            tarball = _tar_directory(idx_dir, "%s-%s" % (gid, idx))
+            _upload_to_s3(tarball, bucket)
 
 def _upload_to_s3(tarball, bucket):
     """Upload the genome tarball to s3.
@@ -577,11 +587,11 @@ def _large_file_upload(bucket, s3_key_name, tarball):
         os.remove(part)
     mp.complete_upload()
 
-def _tar_directory(dir):
+def _tar_directory(dir, tar_name):
     """Create a tarball of the directory.
     """
     base_dir, tar_dir = os.path.split(dir)
-    tarball = os.path.join(base_dir, "%s.tar.gz" % tar_dir)
+    tarball = os.path.join(base_dir, "%s.tar.gz" % tar_name)
     if not exists(tarball):
         with cd(base_dir):
             run("tar -czvpf %s %s" % (os.path.basename(tarball), tar_dir))
@@ -606,7 +616,7 @@ def _clean_directory(dir, gid):
 
 # == Liftover files
 
-def _data_liftover():
+def _data_liftover(lift_over_genomes):
     """Download chain files for running liftOver.
 
     Does not install liftOver binaries automatically.
