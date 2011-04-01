@@ -185,7 +185,7 @@ class BroadGenome(_DownloadHelper):
             run("wget %s/%s" % (self._ftp_url, self._target))
         return self._target, []
 
-GENOMES = [
+GENOMES_SUPPORTED = [
            ("phiX174", "phix", NCBIRest("phix", ["NC_001422.1"])),
            ("Scerevisiae", "sacCer2", UCSCGenome("sacCer2")),
            ("Mmusculus", "mm9", UCSCGenome("mm9")),
@@ -215,18 +215,15 @@ GENOMES = [
            ("Tguttata_Zebra_finch", "taeGut1", UCSCGenome("taeGut1")),
           ]
 
-GENOME_INDEXES_SUPPORTED = ["bwa", "bowtie", "maq", "novoalign", "novoalign-cs",
-                            "twobit", "eland", "bfast", "arachne"]
-DEFAULT_GENOME_INDEXES = ["sam"]
+GENOME_INDEXES_SUPPORTED = ["bowtie", "bwa", "maq", "novoalign", "novoalign-cs",
+                            "ucsc", "eland", "bfast", "arachne"]
+DEFAULT_GENOME_INDEXES = ["seq"]
 
 # -- Fabric instructions
 
 # XXX Should get these from a YAML configuration file
-genomes = [
-           ("phiX174", "phix", NCBIRest("phix", ["NC_001422.1"])),
-           ("Hsapiens", "hg19", UCSCGenome("hg19")),
-          ]
-genome_indexes = ["bwa", "bowtie", "maq", "novoalign", "twobit"]
+genome_names = ["phix", "WS210", "dm3", "mm9", "araTha_tair9", "xenTro2", "sacCer2"]
+genome_indexes = ["bowtie", "bwa", "maq", "novoalign", "ucsc"]
 
 def install_data():
     """Main entry point for installing useful biological data.
@@ -234,6 +231,7 @@ def install_data():
     _check_version()
     setup_environment()
     _data_uniref()
+    genomes = _get_genomes(genome_names)
     _data_ngs_genomes(genomes, genome_indexes + DEFAULT_GENOME_INDEXES)
     lift_over_genomes = [g.ucsc_name() for (_, _, g) in genomes if g.ucsc_name()]
     _data_liftover(lift_over_genomes)
@@ -243,6 +241,7 @@ def install_data_s3():
     """
     _check_version()
     setup_environment()
+    genomes = _get_genomes(genome_names)
     _download_genomes(genomes, genome_indexes + DEFAULT_GENOME_INDEXES)
 
 def upload_s3():
@@ -254,6 +253,7 @@ def upload_s3():
         raise ValueError("Need to run S3 upload on a local machine")
     _check_version()
     setup_environment()
+    genomes = _get_genomes(genome_names)
     _data_ngs_genomes(genomes, genome_indexes + DEFAULT_GENOME_INDEXES)
     _upload_genomes(genomes, genome_indexes + DEFAULT_GENOME_INDEXES)
 
@@ -261,6 +261,11 @@ def _check_version():
     version = env.version
     if int(version.split(".")[0]) < 1:
         raise NotImplementedError("Please install fabric version 1 or better")
+
+def _get_genomes(names):
+    genomes = [info for info in GENOMES_SUPPORTED if info[1] in names]
+    genomes.sort(key=lambda g: names.index(g[1]))
+    return genomes
 
 # == Decorators and context managers
 
@@ -307,30 +312,29 @@ def _data_ngs_genomes(genomes, genome_indexes):
             ref_file = _move_seq_files(ref_file, base_zips, seq_dir)
         _index_to_galaxy(cur_dir, ref_file, genome, genome_indexes)
 
-INDEX_FNS = {
-    "seq" : _index_sam,
-    "bwa" : _index_bwa,
-    "bowtie": _index_bowtie,
-    "maq": _index_maq,
-    "novoalign": _index_novoalign,
-    "novoalign_cs": _index_novoalign_cs,
-    "twobit": _index_twobit,
-    "eland": _index_eland,
-    "bfast": _index_bfast,
-    "arachne": _index_arachne
-    }
-
 def _index_to_galaxy(work_dir, ref_file, gid, genome_indexes):
     """Index sequence files and update associated Galaxy loc files.
     """
+    INDEX_FNS = {
+        "seq" : _index_sam,
+        "bwa" : _index_bwa,
+        "bowtie": _index_bowtie,
+        "maq": _index_maq,
+        "novoalign": _index_novoalign,
+        "novoalign_cs": _index_novoalign_cs,
+        "ucsc": _index_twobit,
+        "eland": _index_eland,
+        "bfast": _index_bfast,
+        "arachne": _index_arachne
+        }
     indexes = {}
     with cd(work_dir):
         for idx in genome_indexes:
             indexes[idx] = INDEX_FNS[idx](ref_file)
     for ref_index_file, cur_index, prefix, new_style in [
           ("sam_fa_indices.loc", indexes.get("seq", None), "index", False),
-          ("alignseq.loc", indexes.get("twobit", None), "seq", False),
-          ("twobit.loc", indexes.get("twobit", None), "", False),
+          ("alignseq.loc", indexes.get("ucsc", None), "seq", False),
+          ("twobit.loc", indexes.get("ucsc", None), "", False),
           ("bowtie_indices.loc", indexes.get("bowtie", None), "", True),
           ("bwa_index.loc", indexes.get("bwa", None), "", True)]:
         if cur_index:
@@ -537,7 +541,7 @@ def _download_genomes(genomes, genome_indexes):
                     run("rm -f %s" % os.path.basename(url))
         ref_file = os.path.join(org_dir, "seq", "%s.fa" % gid)
         assert exists(ref_file), ref_file
-        _index_to_galaxy(gid_dir, ref_file, gid, genome_indexes)
+        _index_to_galaxy(org_dir, ref_file, gid, genome_indexes)
 
 def _upload_genomes(genomes, genome_indexes):
     """Upload our configured genomes to Amazon s3 bucket.
@@ -549,9 +553,10 @@ def _upload_genomes(genomes, genome_indexes):
         cur_dir = os.path.join(genome_dir, orgname, gid)
         _clean_directory(cur_dir, gid)
         for idx in genome_indexes:
-            idx_dir = os.path.join(cur_dir, idx_dir)
+            idx_dir = os.path.join(cur_dir, idx)
             tarball = _tar_directory(idx_dir, "%s-%s" % (gid, idx))
             _upload_to_s3(tarball, bucket)
+    bucket.make_public()
 
 def _upload_to_s3(tarball, bucket):
     """Upload the genome tarball to s3.
