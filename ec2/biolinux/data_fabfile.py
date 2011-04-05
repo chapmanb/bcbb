@@ -535,9 +535,9 @@ def _download_genomes(genomes, genome_indexes):
         for idx in genome_indexes:
             with cd(org_dir):
                 if not exists(idx):
-                    url = "https://s3.amazonaws.com/biodata/genomes/%s-%s.tar.gz" % (gid, idx)
+                    url = "https://s3.amazonaws.com/biodata/genomes/%s-%s.tar.xz" % (gid, idx)
                     run("wget %s" % url)
-                    run("tar -xzvpf %s" % os.path.basename(url))
+                    run("tar -xJvpf %s" % os.path.basename(url))
                     run("rm -f %s" % os.path.basename(url))
         ref_file = os.path.join(org_dir, "seq", "%s.fa" % gid)
         assert exists(ref_file), ref_file
@@ -596,10 +596,10 @@ def _tar_directory(dir, tar_name):
     """Create a tarball of the directory.
     """
     base_dir, tar_dir = os.path.split(dir)
-    tarball = os.path.join(base_dir, "%s.tar.gz" % tar_name)
+    tarball = os.path.join(base_dir, "%s.tar.xz" % tar_name)
     if not exists(tarball):
         with cd(base_dir):
-            run("tar -czvpf %s %s" % (os.path.basename(tarball), tar_dir))
+            run("tar -cJvpf %s %s" % (os.path.basename(tarball), tar_dir))
     return tarball
 
 def _clean_directory(dir, gid):
