@@ -16,24 +16,21 @@ def main(bucket_name):
         if s3_item.name.endswith(".gz"):
             print "xzipping", s3_item.name
             local_file = os.path.basename(s3_item.name)
-            if not os.path.exists(local_file):
-                s3_item.get_contents_to_filename(local_file)
-            local_xz = gzip_to_xz(local_file)
+            local_xz = "%s.xz" % os.path.splitext(local_file)[0]
+            if not os.path.exists(local_xz):
+                if not os.path.exists(local_file):
+                    s3_item.get_contents_to_filename(local_file)
+                local_xz = gzip_to_xz(local_file)
             swap_s3_item(local_xz, bucket, s3_item)
             os.remove(local_xz)
-
-def upload_cb(complete, total):
-    sys.stdout.write(".")
-    sys.stdout.flush()
 
 def swap_s3_item(xz_file, bucket, orig_s3_item):
     print " Uploading to S3",
     assert os.path.exists(xz_file)
     new_name = orig_s3_item.name.replace(".gz", ".xz")
-    new_s3_item = bucket.new_key(new_name)
-    new_s3_item.set_contents_from_filename(xz_file, reduced_redundancy=True,
-                                           cb=upload_cb, num_cb=10)
-    new_s3_item.make_public()
+    upload_script = os.path.join(os.path.dirname(__file__), "s3_multipart_upload.py")
+    cl = ["python2.6", upload_script, xz_file, bucket.name, new_name]
+    subprocess.check_call(cl)
     orig_s3_item.delete()
     print
 
