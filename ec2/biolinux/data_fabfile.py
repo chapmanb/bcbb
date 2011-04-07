@@ -15,6 +15,8 @@ import socket
 import glob
 from contextlib import contextmanager
 
+import yaml
+
 from fabric.main import load_settings
 from fabric.api import *
 from fabric.contrib.files import *
@@ -54,6 +56,9 @@ def _add_defaults():
 # -- Configuration for genomes to download and prepare
 
 class _DownloadHelper:
+    def __init__(self):
+        self.config = {}
+
     def ucsc_name(self):
         return None
 
@@ -64,6 +69,7 @@ class _DownloadHelper:
 
 class UCSCGenome(_DownloadHelper):
     def __init__(self, genome_name):
+        _DownloadHelper.__init__(self)
         self._name = genome_name
         self._url = "ftp://hgdownload.cse.ucsc.edu/goldenPath/%s/bigZips" % \
                 genome_name
@@ -119,6 +125,7 @@ class NCBIRest(_DownloadHelper):
     """Retrieve files using the TogoWS REST server pointed at NCBI.
     """
     def __init__(self, name, refs):
+        _DownloadHelper.__init__(self)
         self._name = name
         self._refs = refs
         self._base_url = "http://togows.dbcls.jp/entry/ncbi-nucleotide/%s.fasta"
@@ -150,6 +157,7 @@ class EnsemblGenome(_DownloadHelper):
     """
     def __init__(self, ensembl_section, release_number, release2, organism,
             name, convert_to_ucsc=False):
+        _DownloadHelper.__init__(self)
         if ensembl_section == "standard":
             url = "ftp://ftp.ensembl.org/pub/"
         else:
@@ -177,6 +185,7 @@ class BroadGenome(_DownloadHelper):
     """Retrieve genomes organized and sorted by Broad for use with GATK.
     """
     def __init__(self, target_fasta):
+        _DownloadHelper.__init__(self)
         self._target = target_fasta
         self._ftp_url = "ftp://ftp.broadinstitute.org/pub/seq/references/"
 
@@ -218,33 +227,30 @@ GENOMES_SUPPORTED = [
 GENOME_INDEXES_SUPPORTED = ["bowtie", "bwa", "maq", "novoalign", "novoalign-cs",
                             "ucsc", "eland", "bfast", "arachne"]
 DEFAULT_GENOME_INDEXES = ["seq"]
+CONFIG_FILE = os.path.join(os.path.dirname(__file__), "config", "biodata.yaml")
 
 # -- Fabric instructions
 
-# XXX Should get these from a YAML configuration file
-genome_names = ["phix", "WS210", "dm3", "mm9", "araTha_tair9", "xenTro2", "sacCer2"]
-genome_indexes = ["bowtie", "bwa", "maq", "novoalign", "ucsc"]
-
-def install_data():
+def install_data(config_file=CONFIG_FILE):
     """Main entry point for installing useful biological data.
     """
     _check_version()
     setup_environment()
     _data_uniref()
-    genomes = _get_genomes(genome_names)
+    genomes, genome_indexes = _get_genomes(config_file)
     _data_ngs_genomes(genomes, genome_indexes + DEFAULT_GENOME_INDEXES)
     lift_over_genomes = [g.ucsc_name() for (_, _, g) in genomes if g.ucsc_name()]
     _data_liftover(lift_over_genomes)
 
-def install_data_s3():
+def install_data_s3(config_file=CONFIG_FILE):
     """Install data using pre-existing genomes present on Amazon s3.
     """
     _check_version()
     setup_environment()
-    genomes = _get_genomes(genome_names)
+    genomes, genome_indexes = _get_genomes(config_file)
     _download_genomes(genomes, genome_indexes + DEFAULT_GENOME_INDEXES)
 
-def upload_s3():
+def upload_s3(config_file=CONFIG_FILE):
     """Upload prepared genome files by identifier to Amazon s3 buckets.
     """
     if boto is None:
@@ -253,7 +259,7 @@ def upload_s3():
         raise ValueError("Need to run S3 upload on a local machine")
     _check_version()
     setup_environment()
-    genomes = _get_genomes(genome_names)
+    genomes, genome_indexes = _get_genomes(config_file)
     _data_ngs_genomes(genomes, genome_indexes + DEFAULT_GENOME_INDEXES)
     _upload_genomes(genomes, genome_indexes + DEFAULT_GENOME_INDEXES)
 
@@ -262,10 +268,21 @@ def _check_version():
     if int(version.split(".")[0]) < 1:
         raise NotImplementedError("Please install fabric version 1 or better")
 
-def _get_genomes(names):
-    genomes = [info for info in GENOMES_SUPPORTED if info[1] in names]
-    genomes.sort(key=lambda g: names.index(g[1]))
-    return genomes
+def _get_genomes(config_file):
+    with open(config_file) as in_handle:
+        config = yaml.load(in_handle)
+    genomes = []
+    for g in config["genomes"]:
+        ginfo = None
+        for info in GENOMES_SUPPORTED:
+            if info[1] == g["dbkey"]:
+                ginfo = info
+                break
+        assert ginfo is not None, "Did not find download info for %s" % g["dbkey"]
+        name, gid, manager = ginfo
+        manager.config = g
+        genomes.append((name, gid, manager))
+    return genomes, config["genome_indexes"]
 
 # == Decorators and context managers
 
@@ -310,9 +327,10 @@ def _data_ngs_genomes(genomes, genome_indexes):
             seq_dir = 'seq'
             ref_file, base_zips = manager.download(seq_dir)
             ref_file = _move_seq_files(ref_file, base_zips, seq_dir)
-        _index_to_galaxy(cur_dir, ref_file, genome, genome_indexes)
+        cur_indexes = manager.config.get("indexes", genome_indexes)
+        _index_to_galaxy(cur_dir, ref_file, genome, cur_indexes, manager.config)
 
-def _index_to_galaxy(work_dir, ref_file, gid, genome_indexes):
+def _index_to_galaxy(work_dir, ref_file, gid, genome_indexes, config):
     """Index sequence files and update associated Galaxy loc files.
     """
     INDEX_FNS = {
@@ -338,12 +356,22 @@ def _index_to_galaxy(work_dir, ref_file, gid, genome_indexes):
           ("bowtie_indices.loc", indexes.get("bowtie", None), "", True),
           ("bwa_index.loc", indexes.get("bwa", None), "", True)]:
         if cur_index:
-            str_parts = [gid, os.path.join(work_dir, cur_index)]
-            if new_style:
-                str_parts = [gid, gid] + str_parts
-            if prefix:
-                str_parts.insert(0, prefix)
+            str_parts = _build_galaxy_loc_line(gid, os.path.join(work_dir, cur_index),
+                                               config, prefix, new_style)
             _update_loc_file(ref_index_file, str_parts)
+
+def _build_galaxy_loc_line(dbkey, file_path, config, prefix, new_style):
+    """Prepare genome information to write to a Galaxy *.loc config file.
+    """
+    build_id = config.get("build_id", dbkey)
+    display_name = config.get("name", dbkey)
+    if new_style:
+        str_parts = [build_id, dbkey, display_name, file_path]
+    else:
+        str_parts = [dbkey, file_path]
+    if prefix:
+        str_parts.insert(0, prefix)
+    return str_parts
 
 def _clean_genome_directory():
     """Remove any existing sequence information in the current directory.
@@ -528,7 +556,7 @@ def _download_genomes(genomes, genome_indexes):
     """Download a group of genomes from Amazon s3 bucket.
     """
     genome_dir = os.path.join(env.data_files, "genomes")
-    for (orgname, gid, _) in genomes:
+    for (orgname, gid, manager) in genomes:
         org_dir = os.path.join(genome_dir, orgname, gid)
         if not exists(org_dir):
             run('mkdir -p %s' % org_dir)
@@ -541,7 +569,8 @@ def _download_genomes(genomes, genome_indexes):
                     run("rm -f %s" % os.path.basename(url))
         ref_file = os.path.join(org_dir, "seq", "%s.fa" % gid)
         assert exists(ref_file), ref_file
-        _index_to_galaxy(org_dir, ref_file, gid, genome_indexes)
+        cur_indexes = manager.config.get("indexes", genome_indexes)
+        _index_to_galaxy(org_dir, ref_file, gid, cur_indexes, manager.config)
 
 def _upload_genomes(genomes, genome_indexes):
     """Upload our configured genomes to Amazon s3 bucket.

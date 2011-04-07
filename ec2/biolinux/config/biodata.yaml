@@ -1,0 +1,41 @@
+---
+# Configuration file defining biological data to retrieve and install.
+# These are stored in an Amazon S3 bucket:
+# https://s3.amazonaws.com/biodata
+# and retrieved using the data_fabfile Fabric script.
+
+# ## Genome data -- Next generation sequencing and Galaxy
+
+# Details about the genomes you want to include.
+#  Required genome fields (corresponding to Galaxy's tool_data_table_conf.xml columns):
+#    dbkey   - globally unique identifier for the genome (e.g., hg19)
+#    name    - descriptive name for the given genome (to be displayed in Galaxy, e.g., Hsapiens)
+#  Optional genome fields (corresponding to Galaxy's tool_data_table_conf.xml columns):
+#    build_id, formats, species, dbkey1, dbkey2
+#  Additional genome fields specific to data deployment: 
+#    indexes - list of tool indexes specific to the associated genome (overrides global 'indexes')
+genomes:
+  - dbkey: phix
+    name: phiX174
+  - dbkey: hg19
+    name: Human (hg19)
+  - dbkey: dm3
+    name: D melangogaster (dm3)
+  - dbkey: mm9
+    name: Mouse (mm9)
+  - dbkey: araTha_tair9
+    name: Arabidopsis thaliana (TAIR9)
+  - dbkey: xenTro2
+    name: X tropicalis (xenTro2)
+  - dbkey: sacCer2
+    name: S cerevisiae (sacCer2)
+  - dbkey: WS210
+    name: C elegans (WS210)
+
+# Global set of indexes to include for each genome.
+# Available choices are in GENOMES_INDEXES_SUPPORTED in data_fabfile.py
+genome_indexes:
+  - bowtie
+  - bwa
+  - novoalign
+  - ucsc
