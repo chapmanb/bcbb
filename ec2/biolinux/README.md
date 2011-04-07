@@ -20,6 +20,38 @@ version for users familiar with Amazon is:
   your running instance from the Instances section.
 * Connect to your machine via ssh or VNC.
 
+## Biological data
+
+We manage a repository of useful public biological data on an
+[Amazon S3 bucket][bd1]. Currently this includes whole genomes
+pre-indexed for a number of popular aligners. Downloading and
+installing these saves a ton of time over running the indexing steps
+yourself, and eases running next-generation analyses on cloud
+machines.
+
+A Fabric build script is provided to install this data on your
+local machine. A [biodata configuration file in YAML format][bd2],
+`config/biodata.yaml`, specifies the genomes of interest and the
+aligner indexes to use. The `config/fabricrc.txt` file specifies
+details about the system and where to install the data.
+
+The basic commandline is:
+
+    fab -f data_fabfile.py -H your_machine install_data_s3
+
+and you can pass in custom biodata and fabricrc files with:
+
+    fab -f data_fabfile.py -H your_machine -c your_fabricrc.txt install_data_s3:your_biodata.yaml
+
+In addition to downloading and preparing the data, the script will
+integrate these files with a Galaxy instance by updating appropriate
+Galaxy configuration files. This makes it useful for installing data
+to a local or [cloud-based][bd3] Galaxy server.
+
+[bd1]: http://s3.amazonaws.com/biodata
+[bd2]: https://github.com/chapmanb/bcbb/blob/master/ec2/biolinux/config/biodata.yaml
+[bd3]: https://bitbucket.org/galaxy/galaxy-central/wiki/cloud
+
 ## VirtualBox with vagrant
 
 Install [VirtualBox 4.0][v2] and [vagrant][v1]. Then add the pre-built
