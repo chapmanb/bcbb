@@ -86,19 +86,20 @@ def transfer_part(mp_id, mp_keyname, mp_bucketname, i, part):
 def _multipart_upload(bucket, s3_key_name, tarball, mb_size, use_rr=True):
     """Upload large files using Amazon's multipart upload functionality.
     """
-    def split_file(in_file, mb_size):
+    cores = multiprocessing.cpu_count()
+    def split_file(in_file, mb_size, split_num=5):
         prefix = os.path.join(os.path.dirname(in_file),
                               "%sS3PART" % (os.path.basename(s3_key_name)))
-        split_size = int(min(mb_size / 10.0, 250))
+        split_size = int(min(mb_size / (split_num * 2.0), 250))
         if not os.path.exists("%saa" % prefix):
             cl = ["split", "-b%sm" % split_size, in_file, prefix]
             subprocess.check_call(cl)
         return sorted(glob.glob("%s*" % prefix))
 
     mp = bucket.initiate_multipart_upload(s3_key_name, reduced_redundancy=use_rr)
-    with multimap() as pmap:
+    with multimap(cores) as pmap:
         for _ in pmap(transfer_part, ((mp.id, mp.key_name, mp.bucket_name, i, part) for (i, part) in
-                                      enumerate(split_file(tarball, mb_size)))):
+                                      enumerate(split_file(tarball, mb_size, cores)))):
             pass
     mp.complete_upload()
 
