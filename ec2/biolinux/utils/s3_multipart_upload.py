@@ -51,7 +51,7 @@ def _standard_transfer(bucket, s3_key_name, transfer_file, use_rr):
     print " Upload with standard transfer, not multipart",
     new_s3_item = bucket.new_key(s3_key_name)
     new_s3_item.set_contents_from_filename(transfer_file, reduced_redundancy=use_rr,
-                                           cb=upload, num_cb=10)
+                                           cb=upload_cb, num_cb=10)
     print
 
 def map_wrap(f):
@@ -130,5 +130,5 @@ if __name__ == "__main__":
     if len(args) < 2:
         print __doc__
         sys.exit()
-    kwags = dict(use_rr=options.use_rr, make_public=options.make_public)
+    kwargs = dict(use_rr=options.use_rr, make_public=options.make_public)
     main(*args, **kwargs)
