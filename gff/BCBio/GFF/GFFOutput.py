@@ -72,8 +72,21 @@ class GFF3Writer:
         for rec in recs:
             self._write_annotations(rec.annotations, rec.id, out_handle)
             for sf in rec.features:
+                sf = self._clean_feature(sf)
                 id_handler = self._write_feature(sf, rec.id, out_handle,
                         id_handler)
+
+    def _clean_feature(self, feature):
+        quals = {}
+        for key, val in feature.qualifiers.items():
+            if not isinstance(val, (list, tuple)):
+                val = [val]
+            val = [str(x) for x in val]
+            quals[key] = val
+        feature.qualifiers = quals
+        clean_sub = [self._clean_feature(f) for f in feature.sub_features]
+        feature.sub_features = clean_sub
+        return feature
 
     def _write_feature(self, feature, rec_id, out_handle, id_handler,
             parent_id=None):
