@@ -77,15 +77,17 @@ new TWTR.Widget({
       <div id="content">
         <h2>Motivation</h2>
         <p>Many bioinformatics workflows involve large datasets in which high performance computing is needed. Cloud computing provides researchers with the ability to perform computations using a practically unlimited pool of virtual machines, using platforms such as <a href="http://aws.amazon.com/ec2/" target="_blank">Amazon EC2</a> and <a href="http://www.eucalyptus.com/" target="_blank">Eucalyptus</a>. CloudBioLinux utilizes these resources to enable instant access to biological software, programming libraries and data.</p>
-        
+
         <p>CloudBioLinux is a community project and we welcome contributors and feedback. Software and data are built off of a <a href="http://alestic.com/">Ubuntu base image</a> using <a href="http://fabfile.org/">Fabric</a> for fully automated installation and deployment. Packages are specified in simple <a href="http://github.com/chapmanb/bcbb/tree/master/ec2/biolinux/config/#readme">configuration files</a> for both Linux packages and programming language libraries. Please fork <a href="http://github.com/chapmanb/bcbb/tree/master/ec2/biolinux/">our code on GitHub</a> and suggest improvements and additions.
         </p>
 
         <p>We hope these resources will be useful for biologists as well as programmers. With the help of the <a href="http://nebc.nerc.ac.uk/tools/bio-linux">NEBC Bio-Linux</a> development team, the images include a <a href="https://help.ubuntu.com/community/FreeNX">FreeNX</a> desktop environment designed to ease the transition to remote computational analysis.</p>
         <h2>Amazon EC2 Resources</h2>
         <ul class="fancy">
-          <li><i>ami-4e57a227</i> -- 64 bit image (29 September 2010)</li>
-          <li><i>ami-0af91263</i> -- 32 bit image (16 July 2010)</li>
+          <li><i>ami-7ae01d13</i> -- 64 bit image (31 March 2011)</li>
+          <ul>
+            <li class="inner">The image works with micro instances, which are a cost effective way to explore Amazon resources.</li>
+          </ul>
           <li><i>snap-84e771ef</i> -- Data volume (21 August 2010)</li>
           <ul>
             <li class="inner">Genomes indexed for next-gen sequencing analysis; <a href="http://www.ebi.ac.uk/uniref/">UniRef</a>; <a href="http://genome.ucsc.edu/cgi-bin/hgLiftOver">LiftOver</a></li>
@@ -96,7 +98,7 @@ new TWTR.Widget({
           <li><a href="http://bazaar.launchpad.net/%7Ebt27uk/cloud-bl-tutorials/trunk/download/head%3A/gettingstarted_cloud-20100913135735-ilr1gse4kxo9ylx6-1/gettingStarted_CloudBioLinux.pdf">Getting Started with CloudBioLinux</a> -- a gentle guide for new users.</li>
           <li><a href="http://bcbio.wordpress.com/2010/05/08/automated-build-environment-for-bioinformatics-cloud-images/">Build framework</a> -- a high level overview of the automated build environment.
           <li><a href="http://blog.eaglegenomics.com/?p=17">Getting started for developers</a> -- logging into Amazon and making AMIs with the command line tools.</li>
-          <li><a href="http://github.com/chapmanb/bcbb/blob/master/ec2/biolinux/README">Developer build documentation</a> -- details on using and contributing to the framework.</li>
+          <li><a href="https://github.com/chapmanb/bcbb/blob/master/ec2/biolinux/README.md">Developer build documentation</a> -- details on using and contributing to the framework.</li>
         </ul>
       </div>
     </div>
