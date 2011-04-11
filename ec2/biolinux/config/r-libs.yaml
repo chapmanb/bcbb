@@ -60,6 +60,7 @@ cran:
  - RCurl
  - rpart
  - rjson
+ - Rmpi
  - RSQLite
  - sandwich
  - sm
@@ -89,22 +90,41 @@ bioc:
  - ArrayExpress
  - arrayQualityMetrics
  - ArrayTools
+ - BayesPeak
+ - baySeq
  - beadarray
  - Biobase
  - biomaRt
  - Biostrings
  - BSgenome
+ - BSgenome.Athaliana.TAIR.TAIR9
+ - BSgenome.Celegans.UCSC.ce6
+ - BSgenome.Dmelanogaster.UCSC.dm3
+ - BSgenome.Hsapiens.UCSC.hg19
+ - BSgenome.Mmusculus.UCSC.mm9
+ - BSgenome.Scerevisiae.UCSC.sacCer2
+ - ChIPpeakAnno
+ - chipseq
+ - ChIPseqR
+ - ChIPsim
+ - CSAR
+ - DEGseq
+ - DESeq
  - DynDoc
  - edgeR
+ - gage
  - gcrma
  - genefilter
  - geneplotter
+ - GenomicFeatures
  - GenomicRanges
  - GEOquery
+ - girafe
  - GGBase
  - GGtools
  - globaltest
  - GO.db
+ - goseq
  - GOstats
  - GSEABase
  - hgu95av2.db
@@ -115,18 +135,32 @@ bioc:
  - lumi
  - makecdfenv
  - marray
+ - MEDIPS
  - multtest
  - MotIV
+ - oneChannelGUI
+ - org.At.tair.db
+ - org.Ce.eg.db
+ - org.Dm.eg.db
  - org.Hs.eg.db
  - org.Mm.eg.db
+ - org.Sc.sgd.db
+ - org.Xl.eg.db
  - preprocessCore
  - PICS
  - rGADEM
+ - R453Plus1Toolbox
+ - rGADEM
+ - Rgraphviz
+ - rnaSeqMap
  - Rolexa
  - Rsamtools
  - rtracklayer
+ - segmentSeq
  - ShortRead
  - siggenes
  - simpleaffy
  - snpMatrix
+ - splots
+ - SRAdb
  - vsn
