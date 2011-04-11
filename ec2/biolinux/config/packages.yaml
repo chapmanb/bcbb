@@ -219,11 +219,13 @@ databases:
     - postgresql-client
     - postgresql-plpython-8.4
     - postgresql-plperl-8.4
+    - libpq-dev
   sqlite:
     - libsqlite3-0
     - libsqlite3-dev
     - sqlite3
   document:
+    - libdb-dev
     - mongodb-stable
     - couchdb
     - tokyocabinet-bin

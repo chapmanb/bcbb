@@ -30,8 +30,6 @@ def _setup_environment():
         _setup_vagrant_environment()
     elif env.hosts == ["localhost"]:
         _setup_local_environment()
-    else:
-        _setup_ec2_environment()
     if env.distribution == "ubuntu":
         _setup_ubuntu()
     elif env.distribution == "centos":
@@ -85,20 +83,13 @@ def _expand_paths():
     """Expand any paths defined in terms of shell shortcuts (like ~).
     """
     if env.has_key("local_install"):
+        if not exists(env.local_install):
+            run("mkdir -p %s" % env.local_install)
         with cd(env.local_install):
             with settings(hide('warnings', 'running', 'stdout', 'stderr'),
                           warn_only=True):
                 result = run("pwd")
                 env.local_install = result
-
-def _setup_ec2_environment():
-    """Setup default environmental variables for Ubuntu EC2 servers.
-
-    Works on a US EC2 server running Ubuntu. This is fairly general but
-    we will need to define similar functions for other targets.
-    """
-    if not env.has_key("user"):
-        env.user = "ubuntu"
 
 def _setup_local_environment():
     """Setup a localhost environment based on system variables.
@@ -153,7 +144,7 @@ def install_biolinux(target=None):
         _custom_installs(pkg_install)
     if target is None or target == "libraries":
         _do_library_installs(lib_install)
-    if target is None:
+    if target is None or target == "finalize":
         _freenx_scripts()
         _cleanup()
 
@@ -459,7 +450,7 @@ def _freenx_scripts():
         put(os.path.join(install_file_dir, setup_script), setup_script,
                 mode=0777)
         sudo("mv %s %s" % (setup_script, remote_setup))
-    remote_login = "~/configure_freenx.sh"
+    remote_login = "configure_freenx.sh"
     if not exists(remote_login):
         put(os.path.join(install_file_dir, 'bash_login'), remote_login,
                 mode=0777)
