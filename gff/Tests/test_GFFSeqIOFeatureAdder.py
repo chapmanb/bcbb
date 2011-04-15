@@ -8,6 +8,9 @@ import StringIO
 
 from Bio import SeqIO
 from BCBio import GFF
+from Bio.Seq import Seq
+from Bio.SeqRecord import SeqRecord
+from Bio.SeqFeature import SeqFeature, FeatureLocation
 from BCBio.GFF import (GFF3Writer, GFFExaminer, GFFParser, DiscoGFFParser)
 
 class MapReduceGFFTest(unittest.TestCase):
@@ -552,6 +555,32 @@ class OutputTest(unittest.TestCase):
                 checks += 1
                 assert line.find("Note=MSP%3AFADFSPLDVSDVNFATDDLAK") > 0
         assert checks == 3, "Missing check line"
+
+    def t_write_from_recs(self):
+        """Write out GFF3 from SeqRecord inputs.
+        """
+        seq = Seq("GATCGATCGATCGATCGATC")
+        rec = SeqRecord(seq, "ID1")
+        qualifiers = {"source": "prediction", "score": 10.0, "other": ["Some", "annotations"],
+                      "ID": "gene1"}
+        sub_qualifiers = {"source": "prediction"}
+        top_feature = SeqFeature(FeatureLocation(0, 20), type="gene", strand=1,
+                                                          qualifiers=qualifiers)
+        top_feature.sub_features = [SeqFeature(FeatureLocation(0, 5), type="exon", strand=1,
+                                               qualifiers=sub_qualifiers),
+                                    SeqFeature(FeatureLocation(15, 20), type="exon", strand=1,
+                                               qualifiers=sub_qualifiers)]
+        rec.features = [top_feature]
+        out_handle = StringIO.StringIO()
+        GFF.write([rec], out_handle)
+        wrote_info = out_handle.getvalue().split("\n")
+        assert wrote_info[0] == "##gff-version 3"
+        assert wrote_info[1] == "##sequence-region ID1 1 20"
+        assert wrote_info[2].split("\t") == ['ID1', 'prediction', 'gene', '1',
+                                             '20', '10.0', '+', '.',
+                                             'other=Some,annotations;ID=gene1']
+        assert wrote_info[3].split("\t") == ['ID1', 'prediction', 'exon', '1', '5',
+                                             '.', '+', '.', 'Parent=gene1']
 
 def run_tests(argv):
     test_suite = testing_suite()

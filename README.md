@@ -3,10 +3,11 @@ discussed with examples at [Blue collar bioinformatics][1].
 
 Some projects which may be especially interesting:
 
-* ec2 -- An automated environment to install useful biological software and 
-  libraries. This is used to bootstrap blank machines, such as those you'd 
+* CloudBioLinux -- An automated environment to install useful biological software and
+  libraries. This is used to bootstrap blank machines, such as those you'd
   find on Cloud providers like Amazon, to ready to go analysis workstations.
-  See the [CloudBioLinux][2] effort for more details.
+  See the [CloudBioLinux][2] effort for more details. This project
+  moved to it's own repository at https://github.com/chapmanb/cloudbiolinux.
 * gff -- A GFF parsing library in Python, aimed for inclusion into Biopython.
 * nextgen -- Automated analysis pipeline for processing next generation
   sequencing data. This is tightly integrated with the Galaxy web framework.
@@ -16,4 +17,4 @@ Some projects which may be especially interesting:
   clusters.
 
 [1]: http://bcbio.wordpress.com
-[2]: http://cloudbiolinux.com/
+[2]: http://cloudbiolinux.org/
