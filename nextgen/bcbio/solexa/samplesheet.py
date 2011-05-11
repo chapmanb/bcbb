@@ -25,7 +25,7 @@ def _organize_lanes(info_iter, barcode_ids):
         if len(info) == 1: # non-barcoded sample
             cur_lane["description"] = info[0][1]
         else: # barcoded sample
-            cur_lane["description"] = "Barcoded lane %s by %s" % (lane, info[0][3])
+            cur_lane["description"] = "Barcoded lane %s" % lane
             multiplex = []
             for (_, _, sample_id, _, bc_seq) in info:
                 bc_type, bc_id = barcode_ids[bc_seq]
@@ -64,7 +64,7 @@ def _get_flowcell_id(in_file, require_single=True):
     """
     fc_ids = set([x[0] for x in _read_input_csv(in_file)])
     if require_single and len(fc_ids) > 1:
-        raise ValueError("There is more than one FCID in the samplesheet file: %s" % in_file)
+        raise ValueError("There are several FCIDs in the same samplesheet file: %s" % in_file)
     else:
         return fc_ids
 
