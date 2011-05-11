@@ -52,6 +52,7 @@ def main(config_file, fc_dir, run_info_yaml=None):
     with open(config_file) as in_handle:
         config = yaml.load(in_handle)
     log_handler = create_log_handler(config, LOG_NAME)
+    
     with log_handler.applicationbound():
         run_main(config, config_file, fc_dir, run_info_yaml)
 
@@ -94,15 +95,20 @@ def process_lane(info, fastq_dir, fc_name, fc_date, align_dir, config,
     """Do alignments for a lane, potentially splitting based on barcodes.
     """
     config = _update_config_w_custom(config, info)
+    
     sample_name = info.get("description", "")
     if (config["algorithm"].get("include_short_name", True) and
             info.get("name", "")):
         sample_name = "%s---%s" % (info.get("name", ""), sample_name)
     genome_build = info.get("genome_build", None)
     multiplex = info.get("multiplex", None)
-    log.info("Processing", info["lane"], genome_build, \
-            sample_name, info.get("researcher", ""), \
-            info.get("analysis", ""), multiplex)
+    
+    log.info("Processing sample %s on lane %s with reference genome %s by researcher %s. Using %s analysis preset" \
+             % (sample_name, info["lane"], genome_build, \
+                info.get("researcher", "unknown"), info.get("analysis", "")))
+    if multiplex:
+        log.debug("Sample %s is multiplexed as: %s" % (sample_name, multiplex))
+    
     fastq_dir, galaxy_dir = _get_full_paths(fastq_dir, config, config_file)
     align_ref, sam_ref = get_genome_ref(genome_build,
             config["algorithm"]["aligner"], galaxy_dir)
@@ -123,6 +129,7 @@ def process_sample(sample_name, fastq_files, info, bam_files, work_dir,
     """Finalize processing for a sample, potentially multiplexed.
     """
     config = _update_config_w_custom(config, info)
+    
     genome_build = info.get("genome_build", None)
     (_, galaxy_dir) = _get_full_paths("", config, config_file)
     (_, sam_ref) = get_genome_ref(genome_build, config["algorithm"]["aligner"],
@@ -233,6 +240,12 @@ def _add_multiplex_across_lanes(run_items, fastq_dir, fc_name):
     if not has_barcodes: # nothing to worry about
         return run_items
     fastq_sizes = list(set(fastq_sizes))
+
+    # discard 0 sizes to handle the case where lane(s) are empty or failed
+    try:
+        fastq_sizes.remove(0)
+    except ValueError: pass
+    
     tag_sizes = list(set(tag_sizes))
     final_items = []
     for item in run_items:
@@ -372,17 +385,20 @@ def bowtie_to_sam(fastq_file, pair_file, ref_file, out_base, align_dir, config):
 
 def tophat_align_to_sam(fastq_file, pair_file, ref_file, out_base, align_dir, config):
     out_dir = os.path.join(align_dir, "%s.sam" % out_base)
-    if not os.path.exists(out_file):
+    if not os.path.exists(out_dir):
         cl = [config["program"]["tophat"]]
         cl += ["--solexa1.3-quals",
-               "-p 8",
-               "-r 45",
-               ref_file]
-        cl += [fastq_file]
-        cl += ["-o", out_dir]
-    log.info("Running tophat with cmdline: %s" % " ".join(cl))
+              "-p 8",
+              "-r 45",
+              ref_file]
+        if pair_file:
+            cl += [fastq_file, pair_file]
+        else:
+            cl += [fastq_file]
+        cl += ["-o ", out_dir]
+    log.info("Running tophat with cmdline: %s" % cl)
     child = subprocess.check_call(cl)
-    return out_file
+    return out_dir
 
 def bwa_align_to_sam(fastq_file, pair_file, ref_file, out_base, align_dir, config):
     """Perform a BWA alignment, generating a SAM file.
@@ -555,9 +571,9 @@ def get_fastq_files(directory, lane, fc_name, bc_name=None):
     """Retrieve fastq files for the given lane, ready to process.
     """
     if bc_name:
-        glob_str = "%s_*%s_%s_*txt*" % (lane, fc_name, bc_name)
+        glob_str = "%s_*%s_%s_*_fastq.txt" % (lane, fc_name, bc_name)
     else:
-        glob_str = "%s_*%s*txt*" % (lane, fc_name)
+        glob_str = "%s_*%s*_fastq.txt" % (lane, fc_name)
     files = glob.glob(os.path.join(directory, glob_str))
     files.sort()
     if len(files) > 2 or len(files) == 0:
@@ -574,6 +590,8 @@ def get_fastq_files(directory, lane, fc_name, bc_name=None):
     return ready_files[0], (ready_files[1] if len(ready_files) > 1 else None)
 
 def _remap_to_maq(ref_file):
+    """ToDo: Why is this needed for ?
+    """
     base_dir = os.path.dirname(os.path.dirname(ref_file))
     name = os.path.basename(ref_file)
     for ext in ["fa", "fasta"]:
@@ -591,7 +609,8 @@ def get_genome_ref(genome_build, aligner, galaxy_base):
             bowtie = "bowtie_indices.loc",
             bwa = "bwa_index.loc",
             samtools = "sam_fa_indices.loc",
-            maq = "bowtie_indices.loc")
+            maq = "bowtie_indices.loc",
+	        tophat = "bowtie_indices.loc")
     remap_fns = dict(
             maq = _remap_to_maq
             )

@@ -51,6 +51,7 @@ def main(galaxy_config, local_config, post_config_file=None,
     with open(local_config) as in_handle:
         config = yaml.load(in_handle)
     log_handler = create_log_handler(config, LOG_NAME)
+    
     with log_handler.applicationbound():
         search_for_new(config, amqp_config, post_config_file,
                        process_msg, store_msg, qseq, fastq)
@@ -59,12 +60,41 @@ def search_for_new(config, amqp_config, post_config_file,
                    process_msg, store_msg, qseq, fastq):
     """Search for any new directories that have not been reported.
     """
+
     reported = _read_reported(config["msg_db"])
     for dname in _get_directories(config):
         if os.path.isdir(dname) and dname not in reported:
             if _is_finished_dumping(dname):
-                log.info("The instrument has finished dumping on directory %s" % dname)
-                _update_reported(config["msg_db"], dname)
+                # Injects run_name on logging calls.
+                # Convenient for run_name on "Subject" for email notifications
+                with logbook.Processor(lambda record: record.extra.__setitem__('run', os.path.basename(dname))):
+                    log.info("The instrument has finished dumping on directory %s" % dname)
+                    _update_reported(config["msg_db"], dname)
+
+                    ss_file = samplesheet.run_has_samplesheet(dname, config)
+                    if ss_file:
+                        out_file = os.path.join(dname, "run_info.yaml")
+                        log.debug("CSV Samplesheet %s found, converting to %s" %
+                                 (ss_file, out_file))
+                        samplesheet.csv2yaml(ss_file, out_file)
+                        #copyfile(ss_file, dname)
+                    if qseq:
+                        log.debug("Generating qseq files for %s" % dname)
+                        _generate_qseq(get_qseq_dir(dname), config)
+                    if fastq:
+                        log.debug("Generating fastq files for %s" % dname)
+                        _generate_fastq(dname, config)
+   
+                    log.info("Pre-processing complete, transferring files") 
+                    store_files, process_files = _files_to_copy(dname)
+
+    
+                    if process_msg:
+                        finished_message(config["msg_process_tag"], dname,
+                                         process_files, amqp_config)
+                    if store_msg:
+                        finished_message(config["msg_store_tag"], dname,
+                                         store_files, amqp_config)
                 _process_samplesheets(dname, config)
                 if qseq:
                     log.info("Generating qseq files for %s" % dname)
@@ -131,7 +161,6 @@ def _generate_fastq(fc_dir, config):
         fastq_dir = os.path.join(postprocess_dir, os.path.basename(fc_dir),
                                  "fastq")
     if not fastq_dir == fc_dir and not os.path.exists(fastq_dir):
-        log.info("Generating fastq files for %s" % fc_dir)
         with utils.chdir(basecall_dir):
             lanes = sorted(list(set([f.split("_")[1] for f in
                 glob.glob("*qseq.txt")])))
@@ -139,9 +168,8 @@ def _generate_fastq(fc_dir, config):
                   ",".join(lanes)]
             if postprocess_dir:
                 cl += ["-o", fastq_dir]
-            log.info("Converting qseq to fastq on all lanes.")
+            log.debug("Converting qseq to fastq on all lanes.")
             subprocess.check_call(cl)
-            log.info("Qseq to fastq conversion completed.")
     return fastq_dir
 
 def _generate_qseq(bc_dir, config):
@@ -152,7 +180,6 @@ def _generate_qseq(bc_dir, config):
     the offline base caller OLB.
     """
     if not os.path.exists(os.path.join(bc_dir, "finished.txt")):
-        log.info("Generating qseq files at %s" % bc_dir)
         bcl2qseq_log = os.path.join(config["log_dir"], "setupBclToQseq.log")
         cmd = os.path.join(config["program"]["olb"], "bin", "setupBclToQseq.py")
         cl = [cmd, "-L", bcl2qseq_log,"-o", bc_dir, "--in-place", "--overwrite"]
@@ -166,7 +193,6 @@ def _generate_qseq(bc_dir, config):
         else:
             cl += ["-i", bc_dir, "-p", os.path.split(bc_dir)[0]]
         subprocess.check_call(cl)
-        log.info("Qseq files generated.")
         with utils.chdir(bc_dir):
             try:
                 processors = config["algorithm"]["num_cores"]
@@ -235,12 +261,19 @@ def _files_to_copy(directory):
                       glob.glob("Data/Intensities/BaseCalls/*qseq.txt"),
                       ])
         reports = reduce(operator.add,
-                     [glob.glob("Data/Intensities/BaseCalls/*.xml"),
+                     [glob.glob("*.xml"),
+                      glob.glob("Data/Intensities/BaseCalls/*.xml"),
                       glob.glob("Data/Intensities/BaseCalls/*.xsl"),
                       glob.glob("Data/Intensities/BaseCalls/*.htm"),
-                      ["Data/Intensities/BaseCalls/Plots", "Data/reports"]])
+                      ["Data/Intensities/BaseCalls/Plots", "Data/reports", 
+                       "Data/Status.htm", "Data/Status_Files", "InterOp"]])
+        
+        run_info = reduce(operator.add,
+                        [glob.glob("run_info.yaml"),
+                         glob.glob("*.csv"),
+                        ])
+        
         logs = reduce(operator.add, [["Logs", "Recipe", "Diag", "Data/RTALogs", "Data/Log.txt"]])
-        run_info = glob.glob("run_info.yaml")
         fastq = ["Data/Intensities/BaseCalls/fastq"]
     return sorted(image_redo_files + logs + reports + run_info), sorted(reports + fastq + run_info)
 
@@ -269,7 +302,7 @@ def _update_reported(msg_db, new_dname):
 def finished_message(tag_name, directory, files_to_copy, config):
     """Wait for messages with the give tag, passing on to the supplied handler.
     """
-    log.info("Sending finished message to: %s" % tag_name)
+    log.debug("Sending finished message to: %s" % tag_name)
     user = getpass.getuser()
     hostname = socket.gethostbyaddr(socket.gethostname())[0]
     data = dict(
