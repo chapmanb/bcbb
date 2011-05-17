@@ -31,6 +31,7 @@ import glob
 import getpass
 import subprocess
 from optparse import OptionParser
+from xml.etree.ElementTree import ElementTree
 
 import yaml
 from amqplib import client_0_8 as amqp
@@ -50,6 +51,7 @@ def main(galaxy_config, local_config, post_config_file=None,
     with open(local_config) as in_handle:
         config = yaml.load(in_handle)
     log_handler = create_log_handler(config, LOG_NAME)
+    
     with log_handler.applicationbound():
         search_for_new(config, amqp_config, post_config_file,
                        process_msg, store_msg, qseq, fastq)
@@ -58,23 +60,27 @@ def search_for_new(config, amqp_config, post_config_file,
                    process_msg, store_msg, qseq, fastq):
     """Search for any new directories that have not been reported.
     """
+
     reported = _read_reported(config["msg_db"])
     for dname in _get_directories(config):
         if os.path.isdir(dname) and dname not in reported:
             if _is_finished_dumping(dname):
-                log.info("The instrument has finished dumping on directory %s" % dname)
-                _update_reported(config["msg_db"], dname)
-                _process_samplesheets(dname, config)
-                if qseq:
-                    log.info("Generating qseq files for %s" % dname)
-                    _generate_qseq(get_qseq_dir(dname), config)
-                fastq_dir = None
-                if fastq:
-                    log.info("Generating fastq files for %s" % dname)
-                    fastq_dir = _generate_fastq(dname, config)
-                _post_process_run(dname, config, amqp_config,
-                                  fastq_dir, post_config_file,
-                                  process_msg, store_msg)
+                # Injects run_name on logging calls.
+                # Convenient for run_name on "Subject" for email notifications
+                with logbook.Processor(lambda record: record.extra.__setitem__('run', os.path.basename(dname))):
+                    log.info("The instrument has finished dumping on directory %s" % dname)
+                    _update_reported(config["msg_db"], dname)
+                    _process_samplesheets(dname, config)
+                    if qseq:
+                        log.info("Generating qseq files for %s" % dname)
+                        _generate_qseq(get_qseq_dir(dname), config)
+                    fastq_dir = None
+                    if fastq:
+                        log.info("Generating fastq files for %s" % dname)
+                        fastq_dir = _generate_fastq(dname, config)
+                    _post_process_run(dname, config, amqp_config,
+                                      fastq_dir, post_config_file,
+                                      process_msg, store_msg)
 
 def _post_process_run(dname, config, amqp_config, fastq_dir, post_config_file,
                       process_msg, store_msg):
@@ -130,7 +136,6 @@ def _generate_fastq(fc_dir, config):
         fastq_dir = os.path.join(postprocess_dir, os.path.basename(fc_dir),
                                  "fastq")
     if not fastq_dir == fc_dir and not os.path.exists(fastq_dir):
-        log.info("Generating fastq files for %s" % fc_dir)
         with utils.chdir(basecall_dir):
             lanes = sorted(list(set([f.split("_")[1] for f in
                 glob.glob("*qseq.txt")])))
@@ -138,9 +143,8 @@ def _generate_fastq(fc_dir, config):
                   ",".join(lanes)]
             if postprocess_dir:
                 cl += ["-o", fastq_dir]
-            log.info("Converting qseq to fastq on all lanes.")
+            log.debug("Converting qseq to fastq on all lanes.")
             subprocess.check_call(cl)
-            log.info("Qseq to fastq conversion completed.")
     return fastq_dir
 
 def _generate_qseq(bc_dir, config):
@@ -151,7 +155,6 @@ def _generate_qseq(bc_dir, config):
     the offline base caller OLB.
     """
     if not os.path.exists(os.path.join(bc_dir, "finished.txt")):
-        log.info("Generating qseq files at %s" % bc_dir)
         bcl2qseq_log = os.path.join(config["log_dir"], "setupBclToQseq.log")
         cmd = os.path.join(config["program"]["olb"], "bin", "setupBclToQseq.py")
         cl = [cmd, "-L", bcl2qseq_log,"-o", bc_dir, "--in-place", "--overwrite"]
@@ -165,7 +168,6 @@ def _generate_qseq(bc_dir, config):
         else:
             cl += ["-i", bc_dir, "-p", os.path.split(bc_dir)[0]]
         subprocess.check_call(cl)
-        log.info("Qseq files generated.")
         with utils.chdir(bc_dir):
             try:
                 processors = config["algorithm"]["num_cores"]
@@ -180,8 +182,36 @@ def _is_finished_dumping(directory):
     The final checkpoint file will differ depending if we are a
     single or paired end run.
     """
-    # Recent versions of RTA (1.10 or better), write the complete
-    # file at the end as expected. This is the most reliable source.
+    #if _is_finished_dumping_checkpoint(directory):
+    #    return True
+    # Check final output files; handles both HiSeq and GAII
+    run_info = os.path.join(directory, "RunInfo.xml")
+    hi_seq_checkpoint = "Basecalling_Netcopy_complete_Read%s.txt" % \
+                        _expected_reads(run_info)
+    to_check = ["Basecalling_Netcopy_complete_SINGLEREAD.txt",
+                "Basecalling_Netcopy_complete_READ2.txt",
+                hi_seq_checkpoint]
+    return reduce(operator.or_,
+            [os.path.exists(os.path.join(directory, f)) for f in to_check])
+
+def _expected_reads(run_info_file):
+    """Parse the number of expected reads from the RunInfo.xml file.
+    """
+    reads = []
+    if os.path.exists(run_info_file):
+        tree = ElementTree()
+        tree.parse(run_info_file)
+        read_elem = tree.find("Run/Reads")
+        reads = read_elem.findall("Read")
+    return len(reads)
+
+def _is_finished_dumping_checkpoint(directory):
+    """Recent versions of RTA (1.10 or better), write the complete file.
+
+    This is the most straightforward source but as of 1.10 still does not
+    work correctly as the file will be created at the end of Read 1 even
+    if there are multiple reads.
+    """
     check_file = os.path.join(directory, "Basecalling_Netcopy_complete.txt")
     check_v1, check_v2 = (1, 10)
     if os.path.exists(check_file):
@@ -192,13 +222,6 @@ def _is_finished_dumping(directory):
             v1, v2 = [float(v) for v in version.split(".")[:2]]
             if ((v1 > check_v1) or (v1 == check_v1 and v2 >= check_v2)):
                 return True
-    # If not found, check for output from previous versions
-    to_check = ["Basecalling_Netcopy_complete_SINGLEREAD.txt",
-                "Basecalling_Netcopy_complete_READ2.txt",
-                "Basecalling_Netcopy_complete_Read3.txt"]
-
-    return reduce(operator.or_,
-            [os.path.exists(os.path.join(directory, f)) for f in to_check])
 
 def _files_to_copy(directory):
     """Retrieve files that should be remotely copied.
@@ -213,12 +236,19 @@ def _files_to_copy(directory):
                       glob.glob("Data/Intensities/BaseCalls/*qseq.txt"),
                       ])
         reports = reduce(operator.add,
-                     [glob.glob("Data/Intensities/BaseCalls/*.xml"),
+                     [glob.glob("*.xml"),
+                      glob.glob("Data/Intensities/BaseCalls/*.xml"),
                       glob.glob("Data/Intensities/BaseCalls/*.xsl"),
                       glob.glob("Data/Intensities/BaseCalls/*.htm"),
-                      ["Data/Intensities/BaseCalls/Plots", "Data/reports"]])
+                      ["Data/Intensities/BaseCalls/Plots", "Data/reports", 
+                       "Data/Status.htm", "Data/Status_Files", "InterOp"]])
+        
+        run_info = reduce(operator.add,
+                        [glob.glob("run_info.yaml"),
+                         glob.glob("*.csv"),
+                        ])
+        
         logs = reduce(operator.add, [["Logs", "Recipe", "Diag", "Data/RTALogs", "Data/Log.txt"]])
-        run_info = glob.glob("run_info.yaml")
         fastq = ["Data/Intensities/BaseCalls/fastq"]
     return sorted(image_redo_files + logs + reports + run_info), sorted(reports + fastq + run_info)
 
@@ -247,7 +277,7 @@ def _update_reported(msg_db, new_dname):
 def finished_message(tag_name, directory, files_to_copy, config):
     """Wait for messages with the give tag, passing on to the supplied handler.
     """
-    log.info("Sending finished message to: %s" % tag_name)
+    log.debug("Sending finished message to: %s" % tag_name)
     user = getpass.getuser()
     hostname = socket.gethostbyaddr(socket.gethostname())[0]
     data = dict(
