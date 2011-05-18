@@ -1,12 +1,9 @@
 #!/usr/bin/env python
-"""Process a fasta file through Hadoop one record at a time.
+"""Process a fasta file through Hadoop one record at a time using pydoop.
 """
 import sys
 import os
 import json
-import tempfile
-import subprocess
-import contextlib
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
@@ -69,21 +66,8 @@ class FastaReader(RecordReader):
     def getProgress(self):
         return 0
 
-@contextlib.contextmanager
-def tmpfile(*args, **kwargs):
-    """Make a tempfile, safely cleaning up file descriptors on completion.
-    """
-    (fd, fname) = tempfile.mkstemp(*args, **kwargs)
-    try:
-        yield fname
-    finally:
-        os.close(fd)
-        os.unlink(fname)
-
 def main(argv):
-    runTask(Factory(FastaMapper, FastaReducer,
-                  record_reader_class=FastaReader,
-                  ))
+    runTask(Factory(FastaMapper, FastaReducer, record_reader_class=FastaReader))
 
 if __name__ == "__main__":
     main(sys.argv)
