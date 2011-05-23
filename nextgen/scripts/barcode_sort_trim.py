@@ -203,7 +203,8 @@ class BarcodeTest(unittest.TestCase):
     """Test identification and removal of barcodes with local alignments.
     """
     def setUp(self):
-        self.barcodes = {"CGATGT": "2", "CAGATC": "7"}
+        self.barcodes = {"CGATGT": "2", "CAGATC": "7",
+                         "TTAGGCATC" :"8"}
 
     def test_1_end_generator(self):
         """Ensure the proper end is returned for sequences.
@@ -251,11 +252,11 @@ class BarcodeTest(unittest.TestCase):
         # Use the custom long barcode
         custom_barcode = dict((bc_seq, bc_id) for bc_id, bc_seq in self.barcodes.iteritems())
         # Simulate an arbitrary read, attach barcode and remove it from the 3' end
-        seq = "GATTACA"*5+custom_barcode["7"]
+        seq = "GATTACA"*5+custom_barcode["8"]
         (bc_id, bc_seq, match_seq) = best_match(end_generator(seq), self.barcodes, 1)
         (removed, _, _, _) = remove_barcode(seq, "B"*9, seq, "g"*9, match_seq, True, True)
         # Was the barcode properly identified and removed with 1 mismatch allowed ?
-        assert bc_id == "7"
+        assert bc_id == "8"
         assert bc_seq == match_seq
         assert removed == "GATTACA"*5
 
