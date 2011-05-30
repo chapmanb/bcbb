@@ -29,9 +29,11 @@ def _organize_lanes(info_iter, barcode_ids):
         else: # barcoded sample
             cur_lane["description"] = "Barcoded lane %s" % lane
             multiplex = []
+            count = -1
             for (_, _, sample_id, _, bc_seq) in info:
                 bc_type, bc_id = barcode_ids[bc_seq]
-                check_illumina_idx(info[0][2], bc_seq)
+                count += 1
+                check_illumina_idx(info[count][2], bc_seq)
                 multiplex.append(dict(barcode_type=bc_type,
                                       barcode_id=bc_id,
                                       sequence=bc_seq,
@@ -111,16 +113,22 @@ def check_illumina_idx(sample_id, bc_seq):
     sample = sample_id.split("_")
     sample_idx = sample[-1]
 
-    if sample_idx not in official_indexes.keys():
-        raise ValueError("SampleID column does not conform *_indexN format")
+    assert sample_idx in official_indexes.keys(), "SampleID %s does not conform *_indexN format" % sample
 
-    # We'll check for barcodes and its reverse complements too
+    # Official (non-custom) barcode ends in "A" ?
+    if len(bc_seq) == 6:
+        raise ValueError("Barcode %s needs a final A base" % bc_seq)
+    if len(bc_seq) == 7:
+        assert bc_seq[-1] == "A", "Barcode %s does not have a final A base, demultiplexing tainted ?" % bc_seq
+
+    # We'll check for barcodes and its reverse complements
     official_idx = official_indexes[sample_idx]
     official_idx_rc = str(Seq(official_idx).reverse_complement())
 
     assert sample_idx in official_indexes.keys(), "Found SampleID %. Does not match any official illumina barcode."
-    assert official_idx == bc_seq or official_idx_rc == bc_seq, \
-           "\nOfficial illumina %s corresponds to %s nor %s \
+    assert official_idx == bc_seq or official_idx_rc == bc_seq \
+           or official_idx+"A" == bc_seq or official_idx_rc+"A" == bc_seq, \
+           "\nOfficial illumina %s corresponds to %s or %s \
             \nSamplesheet reads %s corresponds to %s" % (sample_idx, official_idx, official_idx_rc,
                                                          sample_idx, bc_seq)
 
