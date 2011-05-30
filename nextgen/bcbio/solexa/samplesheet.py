@@ -29,11 +29,8 @@ def _organize_lanes(info_iter, barcode_ids):
         else: # barcoded sample
             cur_lane["description"] = "Barcoded lane %s" % lane
             multiplex = []
-            count = -1
             for (_, _, sample_id, _, bc_seq) in info:
                 bc_type, bc_id = barcode_ids[bc_seq]
-                count += 1
-                check_illumina_idx(info[count][2], bc_seq)
                 multiplex.append(dict(barcode_type=bc_type,
                                       barcode_id=bc_id,
                                       sequence=bc_seq,
@@ -84,13 +81,17 @@ def csv2yaml(in_file, out_file=None):
     """
     if out_file is None:
         out_file = "%s.yaml" % os.path.splitext(in_file)[0]
-    barcode_ids = _generate_barcode_ids(_read_input_csv(in_file))
-    lanes = _organize_lanes(_read_input_csv(in_file), barcode_ids)
+
+    samplesheet = _read_input_csv(in_file)
+    sanity_checks(samplesheet)
+
+    barcode_ids = _generate_barcode_ids(samplesheet)
+    lanes = _organize_lanes(samplesheet, barcode_ids)
     with open(out_file, "w") as out_handle:
         out_handle.write(yaml.dump(lanes, default_flow_style=False))
     return out_file
 
-def check_illumina_idx(sample_id, bc_seq):
+def _check_illumina_idx(sample_id, bc_seq):
     """ Sanity checks for barcodes: Makes sure "SampleID" matches the
         actual illumina sequence on the "Index" samplesheet column
     """
@@ -132,6 +133,9 @@ def check_illumina_idx(sample_id, bc_seq):
             \nSamplesheet reads %s corresponds to %s" % (sample_idx, official_idx, official_idx_rc,
                                                          sample_idx, bc_seq)
 
+def sanity_checks(samplesheet):
+    for (_, _, sample_id, _, bc_seq) in samplesheet:
+        _check_illumina_idx(sample_id, bc_seq)
 
 def run_has_samplesheet(fc_dir, config, require_single=True):
     """Checks if there's a suitable SampleSheet.csv present for the run
