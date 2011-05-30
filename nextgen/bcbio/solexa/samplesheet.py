@@ -120,7 +120,7 @@ def check_illumina_idx(sample_id, bc_seq):
 
     assert sample_idx in official_indexes.keys(), "Found SampleID %. Does not match any official illumina barcode."
     assert official_idx == bc_seq or official_idx_rc == bc_seq, \
-           "\nOfficial illumina %s corresponds to %s or %s \
+           "\nOfficial illumina %s corresponds to %s nor %s \
             \nSamplesheet reads %s corresponds to %s" % (sample_idx, official_idx, official_idx_rc,
                                                          sample_idx, bc_seq)
 
