@@ -76,21 +76,6 @@ def _get_flowcell_id(in_file, require_single=True):
     else:
         return fc_ids
 
-def csv2yaml(in_file, out_file=None):
-    """Convert a CSV SampleSheet to YAML run_info format.
-    """
-    if out_file is None:
-        out_file = "%s.yaml" % os.path.splitext(in_file)[0]
-
-    samplesheet = _read_input_csv(in_file)
-    sanity_checks(samplesheet)
-
-    barcode_ids = _generate_barcode_ids(samplesheet)
-    lanes = _organize_lanes(samplesheet, barcode_ids)
-    with open(out_file, "w") as out_handle:
-        out_handle.write(yaml.dump(lanes, default_flow_style=False))
-    return out_file
-
 def _check_illumina_idx(sample_id, bc_seq):
     """ Sanity checks for barcodes: Makes sure "SampleID" matches the
         actual illumina sequence on the "Index" samplesheet column
@@ -111,8 +96,9 @@ def _check_illumina_idx(sample_id, bc_seq):
         'index12': 'TACAAG'
     }
 
-    sample = sample_id.split("_")
-    sample_idx = sample[-1]
+    sample_idx = sample_id.split("_")
+    if not len(sample_idx) == 1:
+        sample_idx = sample_idx[-1]
 
     assert sample_idx in official_indexes.keys(), "SampleID %s does not conform *_indexN format" % sample
 
@@ -132,6 +118,22 @@ def _check_illumina_idx(sample_id, bc_seq):
            "\nOfficial illumina %s corresponds to %s or %s \
             \nSamplesheet reads %s corresponds to %s" % (sample_idx, official_idx, official_idx_rc,
                                                          sample_idx, bc_seq)
+
+def csv2yaml(in_file, out_file=None):
+    """Convert a CSV SampleSheet to YAML run_info format.
+    """
+    if out_file is None:
+        out_file = "%s.yaml" % os.path.splitext(in_file)[0]
+
+    samplesheet = _read_input_csv(in_file)
+    sanity_checks(samplesheet)
+
+    barcode_ids = _generate_barcode_ids(samplesheet)
+    lanes = _organize_lanes(samplesheet, barcode_ids)
+    with open(out_file, "w") as out_handle:
+        out_handle.write(yaml.dump(lanes, default_flow_style=False))
+    return out_file
+
 
 def sanity_checks(samplesheet):
     for (_, _, sample_id, _, bc_seq) in samplesheet:
