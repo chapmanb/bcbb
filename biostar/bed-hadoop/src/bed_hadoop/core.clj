@@ -1,6 +1,7 @@
 (ns bed-hadoop.core
   (:use [clojure.string :only [split]]
-        [cascalog.api]))
+        [cascalog.api])
+  (:gen-class))
 
 ;; The base query -- define overlap function and query from BED inputs
 
