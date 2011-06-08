@@ -289,6 +289,8 @@ def split_by_barcode(fastq1, fastq2, multiplex, base_name, config):
                 cl.append("--second")
             if int(config["algorithm"]["bc_position"]) == 5:
                 cl.append("--five")
+            if config["algorithm"].get("bc_allow_indels", True) is False:
+                cl.append("--noindel")
             subprocess.check_call(cl)
     out_files = []
     for info in multiplex:
@@ -657,10 +659,15 @@ def write_metrics(run_info, analysis_dir, fc_dir, fc_name, fc_date,
         metrics = dict(lanes=lane_stats, samples=sample_stats)
         yaml.dump(metrics, out_handle, default_flow_style=False)
     tab_out_file = os.path.join(fc_dir, "run_summary.tsv")
-    with open(tab_out_file, "w") as out_handle:
-        writer = csv.writer(out_handle, dialect="excel-tab")
-        for info in tab_metrics:
-            writer.writerow(info)
+    try:
+        with open(tab_out_file, "w") as out_handle:
+            writer = csv.writer(out_handle, dialect="excel-tab")
+            for info in tab_metrics:
+                writer.writerow(info)
+    # If on NFS mounted directory can fail due to filesystem or permissions
+    # errors. That's okay, we'll just not write the file.
+    except IOError:
+        pass
     return out_file
 
 def summary_metrics(run_info, analysis_dir, fc_name, fc_date, fastq_dir):
