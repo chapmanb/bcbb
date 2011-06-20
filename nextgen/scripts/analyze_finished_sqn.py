@@ -121,6 +121,7 @@ def _remote_copy(remote_info, config):
                   (remote_info["user"], remote_info["hostname"],
                    remote_info["directory"], fcopy),
                   target_loc]
+            log.debug(cl)
             fabric.run(" ".join(cl))
     log.info("Analysis files copied")
     return fc_dir
