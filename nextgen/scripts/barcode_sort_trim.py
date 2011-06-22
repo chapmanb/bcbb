@@ -10,6 +10,7 @@ Usage:
         --mismatch=n (number of allowed mismatches, default 1)
         --second (barcode is on the second read, defaults to first)
         --five (barcode is on the 5' end of the sequence, default to 3')
+        --noindel (disallow insertion/deletions on barcode matches)
         --quiet (do not print out summary information on tags)
 
 <barcode file> is a text file of:
@@ -40,15 +41,17 @@ from optparse import OptionParser
 from Bio import pairwise2
 from Bio.SeqIO.QualityIO import FastqGeneralIterator
 
-def main(barcode_file, out_format, in1, in2,
-         mismatch, first_read, three_end, metrics_file, verbose):
+def main(barcode_file, out_format, in1, in2, mismatch,
+         first_read, three_end, allow_indels,
+         metrics_file, verbose):
     barcodes = read_barcodes(barcode_file)
     stats = collections.defaultdict(int)
     out_writer = output_to_fastq(out_format)
     for (name1, seq1, qual1), (name2, seq2, qual2) in itertools.izip(
             read_fastq(in1), read_fastq(in2)):
         end_gen = end_generator(seq1, seq2, first_read, three_end)
-        bc_name, bc_seq, match_seq = best_match(end_gen, barcodes, mismatch)
+        bc_name, bc_seq, match_seq = best_match(end_gen, barcodes, mismatch,
+                                                allow_indels)
         seq1, qual1, seq2, qual2 = remove_barcode(seq1, qual1, seq2, qual2,
                 match_seq, first_read, three_end)
         out_writer(bc_name, name1, seq1, qual1, name2, seq2, qual2)
@@ -74,7 +77,7 @@ def main(barcode_file, out_format, in1, in2,
             for bc in sort_bcs:
                 writer.writerow([bc, stats[bc]])
 
-def best_match(end_gen, barcodes, mismatch):
+def best_match(end_gen, barcodes, mismatch, allow_indels=True):
     """Identify barcode best matching to the test sequence, with mismatch.
 
     Returns the barcode id, barcode sequence and match sequence.
@@ -104,8 +107,9 @@ def best_match(end_gen, barcodes, mismatch):
             (abc_seq, atest_seq) = aligns[0][:2] if len(aligns) == 1 else ("", "")
             matches = sum(1 for i, base in enumerate(abc_seq)
                           if base == atest_seq[i])
-            cur_mismatch = len(test_seq) - matches
-            if cur_mismatch <= mismatch:
+            gaps = abc_seq.count("-")
+            cur_mismatch = len(test_seq) - matches + gaps
+            if cur_mismatch <= mismatch and (allow_indels or gaps == 0):
                 match_info.append((cur_mismatch, bc_id, abc_seq, atest_seq))
     if len(match_info) > 0:
         match_info.sort()
@@ -203,7 +207,8 @@ class BarcodeTest(unittest.TestCase):
     """Test identification and removal of barcodes with local alignments.
     """
     def setUp(self):
-        self.barcodes = {"CGATGT": "2", "CAGATC": "7"}
+        self.barcodes = {"CGATGT": "2", "CAGATC": "7",
+                         "TTAGGCATC" :"8"}
 
     def test_1_end_generator(self):
         """Ensure the proper end is returned for sequences.
@@ -232,24 +237,47 @@ class BarcodeTest(unittest.TestCase):
         # 1 and 2 mismatches
         (bc_id, _, _) = best_match(end_generator("CGTTGT"), self.barcodes, 1)
         assert bc_id == "2"
+        # with indels permitted, accepts 2 mismatches, even if "1" is specified
+        (bc_id, _, _) = best_match(end_generator("CGAAGT"), self.barcodes, 1)
+        assert bc_id == "2"
         (bc_id, _, _) = best_match(end_generator("GCATGT"), self.barcodes, 2)
         assert bc_id == "2"
         # single gap insertion
         (bc_id, _, _) = best_match(end_generator("GATTGT"), self.barcodes, 1)
         # single gap deletion
         (bc_id, _, _) = best_match(end_generator("GCGAGT"), self.barcodes, 1)
+        assert bc_id == "unmatched"
+        (bc_id, _, _) = best_match(end_generator("GCGAGT"), self.barcodes, 2)
         assert bc_id == "2"
+        (bc_id, _, _) = best_match(end_generator("GCGAGT"), self.barcodes, 2, False)
+        assert bc_id == "unmatched"
         # too many errors
         (bc_id, _, _) = best_match(end_generator("GCATGT"), self.barcodes, 1)
         assert bc_id == "unmatched"
         (bc_id, _, _) = best_match(end_generator("GCTTGT"), self.barcodes, 2)
         assert bc_id == "unmatched"
 
+    def test_4_custom_barcodes(self):
+        """ Detect longer non-standard custom barcodes, trimming
+        """
+        # Use the custom long barcode
+        custom_barcode = dict((bc_seq, bc_id) for bc_id, bc_seq in self.barcodes.iteritems())
+        # Simulate an arbitrary read, attach barcode and remove it from the 3' end
+        seq = "GATTACA"*5+custom_barcode["8"]
+        (bc_id, bc_seq, match_seq) = best_match(end_generator(seq), self.barcodes, 1)
+        (removed, _, _, _) = remove_barcode(seq, "B"*9, seq, "g"*9, match_seq, True, True)
+        # Was the barcode properly identified and removed with 1 mismatch allowed ?
+        assert bc_id == "8"
+        assert bc_seq == match_seq
+        assert removed == "GATTACA"*5
+
 if __name__ == "__main__":
     parser = OptionParser()
     parser.add_option("-s", "--second", dest="first_read",
                       action="store_false", default=True)
     parser.add_option("-f", "--five", dest="three_end",
+                      action="store_false", default=True)
+    parser.add_option("-i", "--noindel", dest="indels",
                       action="store_false", default=True)
     parser.add_option("-q", "--quiet", dest="verbose",
                       action="store_false", default=True)
@@ -265,5 +293,5 @@ if __name__ == "__main__":
         print __doc__
         sys.exit()
     main(barcode_file, out_format, in1, in2, int(options.mismatch),
-         options.first_read, options.three_end, options.metrics_file,
-         options.verbose)
+         options.first_read, options.three_end, options.indels,
+         options.metrics_file, options.verbose)

@@ -9,6 +9,7 @@ import csv
 import itertools
 import difflib
 import glob
+from Bio.Seq import Seq
 
 import yaml
 
@@ -19,15 +20,16 @@ def _organize_lanes(info_iter, barcode_ids):
     """Organize flat lane information into nested YAML structure.
     """
     all_lanes = []
-    for (fcid, lane, sampleref), info in itertools.groupby(info_iter, lambda x: (x[0], x[1], x[1])):
+    for (fcid, lane, sampleID, sampleref), info in itertools.groupby(info_iter, lambda x: (x[0], x[1], x[2], x[3])):
         info = list(info)
-        cur_lane = dict(flowcell_id=fcid, lane=lane, genome_build=info[0][3], analysis="Standard")
-        if len(info) == 1: # non-barcoded sample
-            cur_lane["description"] = info[0][1]
+        cur_lane = dict(flowcell_id=fcid, lane=lane, genome_build=sampleref, analysis="Standard")
+        
+        if not _has_barcode(info):
+            cur_lane["description"] = info[0][2]
         else: # barcoded sample
-            cur_lane["description"] = "Barcoded lane %s" % lane
+            cur_lane["description"] = "Lane %s, %s" % (lane, info[0][5])
             multiplex = []
-            for (_, _, sample_id, _, bc_seq) in info:
+            for (_, _, sample_id, _, bc_seq, descr) in info:
                 bc_type, bc_id = barcode_ids[bc_seq]
                 multiplex.append(dict(barcode_type=bc_type,
                                       barcode_id=bc_id,
@@ -37,11 +39,17 @@ def _organize_lanes(info_iter, barcode_ids):
         all_lanes.append(cur_lane)
     return all_lanes
 
+def _has_barcode(sample):
+    if sample[0][4]:
+        return True
+    else:
+        raise "No barcode present on samplesheet sample %s !" % sample
+
 def _generate_barcode_ids(info_iter):
     """Create unique barcode IDs assigned to sequences
     """
     bc_type = "SampleSheet"
-    barcodes = list(set([x[-1] for x in info_iter]))
+    barcodes = list(set([x[-2] for x in info_iter]))
     barcodes.sort()
     barcode_ids = {}
     for i, bc in enumerate(barcodes):
@@ -56,15 +64,15 @@ def _read_input_csv(in_file):
         reader.next() # header
         for line in reader:
             if line: # empty lines
-                (fc_id, lane, sample_id, genome, barcode) = line[:5]
-                yield fc_id, lane, sample_id, genome, barcode
+                (fc_id, lane, sample_id, genome, barcode, description) = line[:6]
+                yield fc_id, lane, sample_id, genome, barcode, description
 
 def _get_flowcell_id(in_file, require_single=True):
     """Retrieve the unique flowcell id represented in the SampleSheet.
     """
     fc_ids = set([x[0] for x in _read_input_csv(in_file)])
     if require_single and len(fc_ids) > 1:
-        raise ValueError("There is more than one FCID in the samplesheet file: %s" % in_file)
+        raise ValueError("There are several FCIDs in the same samplesheet file: %s" % in_file)
     else:
         return fc_ids
 
@@ -73,11 +81,13 @@ def csv2yaml(in_file, out_file=None):
     """
     if out_file is None:
         out_file = "%s.yaml" % os.path.splitext(in_file)[0]
+
     barcode_ids = _generate_barcode_ids(_read_input_csv(in_file))
     lanes = _organize_lanes(_read_input_csv(in_file), barcode_ids)
     with open(out_file, "w") as out_handle:
         out_handle.write(yaml.dump(lanes, default_flow_style=False))
     return out_file
+
 
 def run_has_samplesheet(fc_dir, config, require_single=True):
     """Checks if there's a suitable SampleSheet.csv present for the run

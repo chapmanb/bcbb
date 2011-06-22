@@ -36,6 +36,7 @@
 (defn tx-sqn-frame [dna frame]
   "Longest transcribed region within a given translation frame."
   (let [tx-engine (-> (TranscriptionEngine$Builder.)
+                      (.translateNCodons true)
                       (.trimStop false)
                       (.build))
         dna-coords (fn [coords]

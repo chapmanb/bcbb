@@ -25,6 +25,8 @@ algorithm:
   bc_mismatch: 2
   bc_read: 1
   bc_position: 3
+  java_memory: 5g
+  save_diskspace: true
 
 analysis:
   towig_script: bam_to_wiggle.py

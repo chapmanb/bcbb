@@ -7,6 +7,7 @@ import contextlib
 import itertools
 import functools
 import warnings
+import ConfigParser
 
 try:
     import multiprocessing
@@ -60,6 +61,29 @@ def map_wrap(f):
         return apply(f, *args, **kwargs)
     return wrapper
 
+def memoize_outfile(ext):
+    """Creates outfile from input file and ext, running if outfile not present.
+
+    This requires a standard function usage. The first arg, or kwarg 'in_file', needs
+    to be the input file that is being processed. The output name is created with the
+    provided ext relative to the input. The function is only run if the created
+    out_file is not present.
+    """
+    def decor(f):
+        @functools.wraps(f)
+        def wrapper(*args, **kwargs):
+            if len(args) > 0:
+                in_file = args[0]
+            else:
+                in_file = kwargs['in_file']
+            out_file = "%s%s" % (os.path.splitext(in_file)[0], ext)
+            if not os.path.exists(out_file) or os.path.getsize(out_file) == 0:
+                kwargs['out_file'] = out_file
+                f(*args, **kwargs)
+            return out_file
+        return wrapper
+    return decor
+
 def safe_makedir(dname):
     """Make a directory if it doesn't exist, handling concurrent race conditions.
     """
@@ -72,7 +96,7 @@ def safe_makedir(dname):
             assert os.path.isdir(dname)
 
 @contextlib.contextmanager
-def curdir_tmpdir():
+def curdir_tmpdir(remove=True):
     """Context manager to create and remove a temporary directory.
     """
     tmp_dir_base = os.path.join(os.getcwd(), "tmp")
@@ -82,7 +106,8 @@ def curdir_tmpdir():
     try :
         yield tmp_dir
     finally :
-        shutil.rmtree(tmp_dir)
+        if remove:
+            shutil.rmtree(tmp_dir)
 
 @contextlib.contextmanager
 def chdir(new_dir):
@@ -116,3 +141,23 @@ def create_dirs(config, names=None):
     for dname in names:
         d = config["dir"][dname]
         safe_makedir(d)
+
+def save_diskspace(fname, reason, config):
+    """Overwrite a file in place with a short message to save disk.
+
+    This keeps files as a sanity check on processes working, but saves
+    disk by replacing them with a short message.
+    """
+    if config["algorithm"].get("save_diskspace", False):
+        with open(fname, "w") as out_handle:
+            out_handle.write("File removed to save disk space: %s" % reason)
+
+def read_galaxy_amqp_config(galaxy_config):
+    """Read connection information on the RabbitMQ server from Galaxy config.
+    """
+    config = ConfigParser.ConfigParser()
+    config.read(galaxy_config)
+    amqp_config = {}
+    for option in config.options("galaxy_amqp"):
+        amqp_config[option] = config.get("galaxy_amqp", option)
+    return amqp_config
