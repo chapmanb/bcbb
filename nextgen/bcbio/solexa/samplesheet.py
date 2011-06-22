@@ -20,16 +20,16 @@ def _organize_lanes(info_iter, barcode_ids):
     """Organize flat lane information into nested YAML structure.
     """
     all_lanes = []
-    for (fcid, lane, sampleref), info in itertools.groupby(info_iter, lambda x: (x[0], x[1], x[1])):
+    for (fcid, lane, sampleID, sampleref), info in itertools.groupby(info_iter, lambda x: (x[0], x[1], x[2], x[3])):
         info = list(info)
-        cur_lane = dict(flowcell_id=fcid, lane=lane, genome_build=info[0][3], analysis="Standard")
+        cur_lane = dict(flowcell_id=fcid, lane=lane, genome_build=sampleref, analysis="Standard")
         
         if not _has_barcode(info):
-            cur_lane["description"] = info[0][1]
+            cur_lane["description"] = info[0][2]
         else: # barcoded sample
-            cur_lane["description"] = "Lane %s, %s" % (lane, cur_lane["description"])
+            cur_lane["description"] = "Lane %s, %s" % (lane, info[0][5])
             multiplex = []
-            for (_, _, sample_id, _, bc_seq) in info:
+            for (_, _, sample_id, _, bc_seq, descr) in info:
                 bc_type, bc_id = barcode_ids[bc_seq]
                 multiplex.append(dict(barcode_type=bc_type,
                                       barcode_id=bc_id,
@@ -49,7 +49,7 @@ def _generate_barcode_ids(info_iter):
     """Create unique barcode IDs assigned to sequences
     """
     bc_type = "SampleSheet"
-    barcodes = list(set([x[-1] for x in info_iter]))
+    barcodes = list(set([x[-2] for x in info_iter]))
     barcodes.sort()
     barcode_ids = {}
     for i, bc in enumerate(barcodes):
@@ -64,8 +64,8 @@ def _read_input_csv(in_file):
         reader.next() # header
         for line in reader:
             if line: # empty lines
-                (fc_id, lane, sample_id, genome, barcode) = line[:5]
-                yield fc_id, lane, sample_id, genome, barcode
+                (fc_id, lane, sample_id, genome, barcode, description) = line[:6]
+                yield fc_id, lane, sample_id, genome, barcode, description
 
 def _get_flowcell_id(in_file, require_single=True):
     """Retrieve the unique flowcell id represented in the SampleSheet.
@@ -76,69 +76,18 @@ def _get_flowcell_id(in_file, require_single=True):
     else:
         return fc_ids
 
-def _check_illumina_idx(sample_id, bc_seq):
-    """ Sanity checks for barcodes: Makes sure "SampleID" matches the
-        actual illumina sequence on the "Index" samplesheet column
-    """
-
-    official_indexes = {
-        'index1': 'CGTGAT',
-        'index2': 'ACATCG',
-        'index3': 'GCCTAA',
-        'index4': 'TGGTCA',
-        'index5': 'CACTGT',
-        'index6': 'ATTGGC',
-        'index7': 'GATCTG',
-        'index8': 'TCAAGT',
-        'index9': 'CTGATC',
-        'index10': 'AAGCTA',
-        'index11': 'GTAGCC',
-        'index12': 'TACAAG'
-    }
-
-    sample_idx = sample_id.split("_")
-    if not len(sample_idx) == 1:
-        sample_idx = sample_idx[-1]
-
-    assert sample_idx in official_indexes.keys(), "SampleID %s does not conform *_indexN format" % sample
-
-    # Official (non-custom) barcode ends in "A" ?
-    if len(bc_seq) == 6:
-        raise ValueError("Barcode %s needs a final A base" % bc_seq)
-    if len(bc_seq) == 7:
-        assert bc_seq[-1] == "A", "Barcode %s does not have a final A base, demultiplexing tainted ?" % bc_seq
-
-    # We'll check for barcodes and its reverse complements
-    official_idx = official_indexes[sample_idx]
-    official_idx_rc = str(Seq(official_idx).reverse_complement())
-
-    assert sample_idx in official_indexes.keys(), "Found SampleID %. Does not match any official illumina barcode."
-    assert official_idx == bc_seq or official_idx_rc == bc_seq \
-           or official_idx+"A" == bc_seq or official_idx_rc+"A" == bc_seq, \
-           "\nOfficial illumina %s corresponds to %s or %s \
-            \nSamplesheet reads %s corresponds to %s" % (sample_idx, official_idx, official_idx_rc,
-                                                         sample_idx, bc_seq)
-
 def csv2yaml(in_file, out_file=None):
     """Convert a CSV SampleSheet to YAML run_info format.
     """
     if out_file is None:
         out_file = "%s.yaml" % os.path.splitext(in_file)[0]
 
-    print "Converting samplesheet file %s" % in_file
-    samplesheet = _read_input_csv(in_file)
-    #sanity_checks(samplesheet)
-
-    barcode_ids = _generate_barcode_ids(samplesheet)
-    lanes = _organize_lanes(samplesheet, barcode_ids)
+    barcode_ids = _generate_barcode_ids(_read_input_csv(in_file))
+    lanes = _organize_lanes(_read_input_csv(in_file), barcode_ids)
     with open(out_file, "w") as out_handle:
         out_handle.write(yaml.dump(lanes, default_flow_style=False))
     return out_file
 
-
-def sanity_checks(samplesheet):
-    for (_, _, sample_id, _, bc_seq) in samplesheet:
-        _check_illumina_idx(sample_id, bc_seq)
 
 def run_has_samplesheet(fc_dir, config, require_single=True):
     """Checks if there's a suitable SampleSheet.csv present for the run
