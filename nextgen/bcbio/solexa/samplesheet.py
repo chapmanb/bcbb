@@ -27,7 +27,7 @@ def _organize_lanes(info_iter, barcode_ids):
         if not _has_barcode(info):
             cur_lane["description"] = info[0][1]
         else: # barcoded sample
-            cur_lane["description"] = "Barcoded lane %s" % lane
+            cur_lane["description"] = "Lane %s, %s" % (lane, cur_lane["description"])
             multiplex = []
             for (_, _, sample_id, _, bc_seq) in info:
                 bc_type, bc_id = barcode_ids[bc_seq]

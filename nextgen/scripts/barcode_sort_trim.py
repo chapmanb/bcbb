@@ -237,6 +237,9 @@ class BarcodeTest(unittest.TestCase):
         # 1 and 2 mismatches
         (bc_id, _, _) = best_match(end_generator("CGTTGT"), self.barcodes, 1)
         assert bc_id == "2"
+        # with indels permitted, accepts 2 mismatches, even if "1" is specified
+        (bc_id, _, _) = best_match(end_generator("CGAAGT"), self.barcodes, 1)
+        assert bc_id == "2"
         (bc_id, _, _) = best_match(end_generator("GCATGT"), self.barcodes, 2)
         assert bc_id == "2"
         # single gap insertion
