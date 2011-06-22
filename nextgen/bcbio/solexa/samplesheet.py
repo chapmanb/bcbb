@@ -125,8 +125,9 @@ def csv2yaml(in_file, out_file=None):
     if out_file is None:
         out_file = "%s.yaml" % os.path.splitext(in_file)[0]
 
+    print "Converting samplesheet file %s" % in_file
     samplesheet = _read_input_csv(in_file)
-    sanity_checks(samplesheet)
+    #sanity_checks(samplesheet)
 
     barcode_ids = _generate_barcode_ids(samplesheet)
     lanes = _organize_lanes(samplesheet, barcode_ids)
