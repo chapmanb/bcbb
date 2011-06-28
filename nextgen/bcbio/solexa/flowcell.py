@@ -15,7 +15,8 @@ def get_flowcell_info(fc_dir):
     name = None
     date = None
     for p in parts:
-        if p.endswith("XX"):
+        # Support for Hiseq 2000 flowcell id updates
+        if p.endswith(("XX", "xx")):
             name = p
         elif len(p) == 6:
             try:
