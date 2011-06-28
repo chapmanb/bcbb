@@ -93,3 +93,31 @@ def picard_sam_to_bam(picard, align_sam, fastq_bam, ref_file,
                     ]
             picard.run("MergeBamAlignment", opts)
     return out_bam
+
+def picard_mark_duplicates(picard, align_bam):
+    base, ext = os.path.splitext(align_bam)
+    base = base.replace(".", "-")
+    dup_bam = "%s-dup%s" % (base, ext)
+    dup_metrics = "%s-dup.dup_metrics" % base
+    if not os.path.exists(dup_bam):
+        with curdir_tmpdir() as tmp_dir:
+            opts = [("INPUT", align_bam),
+                    ("OUTPUT", dup_bam),
+                    ("TMP_DIR", tmp_dir),
+                    ("METRICS_FILE", dup_metrics)]
+        picard.run("MarkDuplicates", opts)
+    return dup_bam, dup_metrics
+
+def picard_fixmate(picard, align_bam):
+    """Run Picard's FixMateInformation generating an aligned output file.
+    """
+    base, ext = os.path.splitext(align_bam)
+    out_file = "%s-sort%s" % (base, ext)
+    if not os.path.exists(out_file):
+        with curdir_tmpdir() as tmp_dir:
+            opts = [("INPUT", align_bam),
+                    ("OUTPUT", out_file),
+                    ("TMP_DIR", tmp_dir),
+                    ("SORT_ORDER", "coordinate")]
+            picard.run("FixMateInformation", opts)
+    return out_file
