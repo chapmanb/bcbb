@@ -164,7 +164,10 @@ def _split_paired(files):
 def _get_qseq_seq_size(fname):
     with open(fname) as in_handle:
         parts = in_handle.readline().split("\t")
+    if parts:
         return len(parts[8])
+    else:
+        raise ValueError("Qseq formatting error, check %s contents" % fname)
 
 if __name__ == "__main__":
     parser = OptionParser()
