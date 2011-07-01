@@ -20,8 +20,9 @@ def _organize_lanes(info_iter, barcode_ids):
     """Organize flat lane information into nested YAML structure.
     """
     all_lanes = []
-    for (fcid, lane, sampleID, sampleref), info in itertools.groupby(info_iter, lambda x: (x[0], x[1], x[2], x[3])):
+    for (fcid, lane), info in itertools.groupby(info_iter, lambda x: (x[0], x[1])):
         info = list(info)
+        sampleref = info[0][3]
         cur_lane = dict(flowcell_id=fcid, lane=lane, genome_build=sampleref, analysis="Standard")
         
         if not _has_barcode(info):
