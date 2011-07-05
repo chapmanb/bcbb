@@ -36,13 +36,14 @@ def main(config_file, fc_dir, analysis_dir, run_info_yaml=None):
     with open(config_file) as in_handle:
         config = yaml.load(in_handle)
     fc_name, fc_date = get_flowcell_info(fc_dir)
+    galaxy_api = GalaxyApiAccess(config['galaxy_url'], config['galaxy_api_key'])
+
+    # run_info will override some galaxy details, if present
     if run_info_yaml:
         with open(run_info_yaml) as in_handle:
             run_details = yaml.load(in_handle)
         run_info = dict(details=run_details, run_id="")
-        galaxy_api = None
     else:
-        galaxy_api = GalaxyApiAccess(config['galaxy_url'], config['galaxy_api_key'])
         run_info = galaxy_api.run_details(fc_name, fc_date)
 
     base_folder_name = "%s_%s" % (fc_date, fc_name)
@@ -53,6 +54,7 @@ def main(config_file, fc_dir, analysis_dir, run_info_yaml=None):
                       if library_name else None)
         upload_files = list(select_upload_files(local_name, bc_id, fc_dir,
                                                 analysis_dir, config))
+
         if len(upload_files) > 0:
             print lane, bc_id, name, desc, library_name
             print "Creating storage directory"
@@ -86,7 +88,7 @@ def lims_run_details(run_info, fc_name, base_folder_name):
                                                 lane_info["lab_association"],
                                                 lane_info["researcher"])
         else:
-            libname, role = (None, None)
+	    libname, role = (lane_info.get("library_name", None), "sequencing")
         for barcode in lane_info.get("multiplex", [None]):
             remote_folder = lane_info.get("name", "")
             description = "%s: %s" % (lane_info.get("researcher", ""),
