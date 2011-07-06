@@ -6,7 +6,6 @@ import shutil
 import contextlib
 import itertools
 import functools
-import warnings
 import ConfigParser
 
 try:
@@ -14,31 +13,16 @@ try:
     from multiprocessing.pool import IMapIterator
 except ImportError:
     multiprocessing = None
-try:
-    ipclient = None
-    #with warnings.catch_warnings():
-    #    warnings.filterwarnings("ignore", category=DeprecationWarning)
-    #    from IPython.kernel import client as ipclient
-except ImportError:
-    ipclient = None
 
 @contextlib.contextmanager
-def cpmap(cores=1, ipython=False):
+def cpmap(cores=1):
     """Configurable parallel map context manager.
 
     Returns appropriate map compatible function based on configuration:
     - Local single core (the default)
     - Multiple local cores
-    - Parallelized on a cluster using ipython.
     """
-    if ipython or cores=="ipython":
-        raise NotImplementedError("Not working yet")
-        if ipclient is None:
-            raise ImportError("ipython parallelization not available.")
-        mec = ipclient.MultiEngineClient()
-        # Would be ideal to have an imap style lazy map
-        yield mec.map
-    elif int(cores) == 1:
+    if int(cores) == 1:
         yield itertools.imap
     else:
         if multiprocessing is None:
@@ -93,7 +77,8 @@ def safe_makedir(dname):
         try:
             os.makedirs(dname)
         except OSError:
-            assert os.path.isdir(dname)
+            if not os.path.isdir(dname):
+                raise
 
 @contextlib.contextmanager
 def curdir_tmpdir(remove=True):
@@ -152,12 +137,20 @@ def save_diskspace(fname, reason, config):
         with open(fname, "w") as out_handle:
             out_handle.write("File removed to save disk space: %s" % reason)
 
-def read_galaxy_amqp_config(galaxy_config):
+def read_galaxy_amqp_config(galaxy_config, base_dir):
     """Read connection information on the RabbitMQ server from Galaxy config.
     """
+    galaxy_config = add_full_path(galaxy_config, base_dir)
     config = ConfigParser.ConfigParser()
     config.read(galaxy_config)
     amqp_config = {}
     for option in config.options("galaxy_amqp"):
         amqp_config[option] = config.get("galaxy_amqp", option)
     return amqp_config
+
+def add_full_path(dirname, basedir=None):
+    if basedir is None:
+        basedir = os.getcwd()
+    if not dirname.startswith("/"):
+        dirname = os.path.join(basedir, dirname)
+    return dirname

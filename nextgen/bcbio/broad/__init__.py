@@ -6,7 +6,7 @@
 import os
 import subprocess
 
-from bcbio.broad import gatkrun, picardrun
+from bcbio.broad import picardrun
 
 class BroadRunner:
     """Simplify running Broad commandline tools.
@@ -25,7 +25,7 @@ class BroadRunner:
         See the gatkrun, picardrun module for available functions.
         """
         fn = None
-        to_check = [gatkrun, picardrun]
+        to_check = [picardrun]
         for ns in to_check:
             try:
                 fn = getattr(ns, name)
@@ -70,3 +70,8 @@ class BroadRunner:
             if os.path.exists(check_file):
                 return check_file
         raise ValueError("Could not find jar %s in %s" % (command, self._picard_dir))
+
+def runner_from_config(config):
+    return BroadRunner(config["program"]["picard"],
+                       config["program"].get("gatk", ""),
+                       max_memory=config["algorithm"].get("java_memory", ""))
