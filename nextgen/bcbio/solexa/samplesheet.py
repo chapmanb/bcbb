@@ -25,8 +25,9 @@ def _organize_lanes(info_iter, barcode_ids):
         sampleref = info[0][3].lower()
         cur_lane = dict(flowcell_id=fcid, lane=lane, genome_build=sampleref, analysis="Standard")
         
+        cur_lane["description"] = "Lane %s, %s" % (lane, info[0][5])
+        
         if _has_barcode(info):
-            cur_lane["description"] = "Lane %s, %s" % (lane, info[0][5])
             multiplex = []
             for (_, _, sample_id, _, bc_seq, descr) in info:
                 bc_type, bc_id = barcode_ids[bc_seq]
@@ -35,8 +36,6 @@ def _organize_lanes(info_iter, barcode_ids):
                                       sequence=bc_seq,
                                       name=sample_id))
             cur_lane["multiplex"] = multiplex
-        else: # lane is not multiplexed
-            cur_lane["description"] = info[0][2]
 
         all_lanes.append(cur_lane)
     return all_lanes
@@ -46,7 +45,6 @@ def _has_barcode(sample):
         return True
     else: # lane is not multiplexed
        pass 
-#        raise "No barcode present on samplesheet sample %s !" % sample
 
 def _generate_barcode_ids(info_iter):
     """Create unique barcode IDs assigned to sequences
