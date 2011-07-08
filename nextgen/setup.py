@@ -40,5 +40,6 @@ setup(name = "bcbio-nextgen",
           "fabric >= 1.0.1",
           "setuptools",
           "celery >= 2.2.7",
+          "nose >= 1.0.0",
           #"rpy2 >= 2.0.7"
       ])

@@ -12,18 +12,32 @@ class SampleSheetTest(unittest.TestCase):
     """
     def setUp(self):
         self.ss_file = os.path.join(os.path.dirname(__file__),
-                                    "data", "illumina_samplesheet.csv")
+                                    "data", "samplesheets",
+                                    "illumina_samplesheet.csv")
+        self.ss_non_multiplex = os.path.join(os.path.dirname(__file__),
+                                             "data", "samplesheets",
+                                             "illumina_samplesheet_non_multiplex_samples.csv")
+        self.out_file = ""
+
+    def tearDown(self):
+        if os.path.exists(self.out_file):
+            os.remove(self.out_file)
 
     def test_toyaml(self):
         """Convert CSV Illumina SampleSheet to YAML.
         """
-        out_file = samplesheet.csv2yaml(self.ss_file)
-        assert os.path.exists(out_file)
-        with open(out_file) as in_handle:
-            info = yaml.load(in_handle)
+        info = self.toyaml(self.ss_file)
         assert info[0]['lane'] == '1'
         assert info[0]['multiplex'][0]['barcode_id'] == 5
-        os.remove(out_file)
+
+    def test_non_multiplexed(self):
+        info = self.toyaml(self.ss_non_multiplex)
+        assert os.path.exists(self.out_file)
+        with open(self.out_file) as in_handle:
+            info = yaml.load(in_handle)
+
+        assert info[7]['lane'] == '8'
+        assert not info[7].has_key("multiplex")
 
     def test_checkforrun(self):
         """Check for the presence of runs in an Illumina SampleSheet.
@@ -35,3 +49,14 @@ class SampleSheetTest(unittest.TestCase):
         fcdir = "fake/101007_NOPEXX"
         ss = samplesheet.run_has_samplesheet(fcdir, config, False)
         assert ss is None
+
+
+# Helper functions
+# 
+
+    def toyaml(self, ssheet):
+        self.out_file = samplesheet.csv2yaml(ssheet)
+        assert os.path.exists(self.out_file)
+        with open(self.out_file) as in_handle:
+            info = yaml.load(in_handle)
+        return info
