@@ -56,6 +56,7 @@ def main(run_name, lane_nums, do_fail=False, outdir=None):
 
 def write_lane(lane_prefix, out_prefix, outdir, fail_dir):
     qseq_files = glob.glob("%s_*qseq.txt" % lane_prefix)
+    #_check_filesizes(qseq_files)
     one_files, two_files, bc_files = _split_paired(qseq_files)
     is_paired = len(two_files) > 0
     out_files = (_get_outfiles(out_prefix, outdir, is_paired)
@@ -164,10 +165,21 @@ def _split_paired(files):
 def _get_qseq_seq_size(fname):
     with open(fname) as in_handle:
         parts = in_handle.readline().split("\t")
-    if parts:
-        return len(parts[8])
-    else:
-        raise ValueError("Qseq formatting error, check %s contents" % fname)
+        try:
+            return len(parts[8])
+        except IndexError:
+            if os.path.getsize(fname) < 1:
+                print "Empty qseq file %s" % fname
+            else:
+                raise ValueError("Qseq formatting error, check %s contents" % fname)
+
+# TODO: find a cleaner way to fish out 0-sized files
+#def _check_filesizes(files):
+#    for f in files:
+#        if os.path.getsize(f) < 1:
+#            log.warn("Empty qseq file %s" % fname)
+#        else:
+            
 
 if __name__ == "__main__":
     parser = OptionParser()
