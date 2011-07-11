@@ -38,6 +38,7 @@ class SampleBasedAnalysisTest(unittest.TestCase):
         self.bcbio_tests_dir = os.path.join(bcbio.__path__[0], os.pardir, "tests")
         self.bcbio_fcdir = os.path.join(self.bcbio_tests_dir, "test_automated_output")
         self._install_project_config_files()
+        self._install_config_data()
         if os.path.exists(os.path.join(self.proj_dir, "data")):
             shutil.rmtree(os.path.join(self.proj_dir, "data"))
         if os.path.exists(os.path.join(self.proj_dir, "intermediate")):
