@@ -1,4 +1,4 @@
-- analysis: SNP calling
+- analysis: Minimal
   description: Test1
   genome_build: hg19
   lane: 1
@@ -51,7 +51,8 @@
     barcode_type: Illumina
     name: BAC02
     sequence: CTTGTA
-- analysis: SNP calling
+- analysis: Minimal
+
   description: Test2
   genome_build: hg19
   lane: 2
@@ -104,7 +105,7 @@
     barcode_type: Illumina
     name: BAC02
     sequence: CTTGTA
-- analysis: Standard
+- analysis: Minimal
   description: Test3
   genome_build: hg19
   lane: 3
