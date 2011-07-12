@@ -12,11 +12,11 @@ import glob
 from string import Template
 
 @contextlib.contextmanager
-def make_workdir():
-    dirname = os.path.join(os.path.dirname(__file__), "projects", "j_doe_00_01", "intermediate")
-    if os.path.exists(dirname):
-        shutil.rmtree(dirname)
-    os.makedirs(dirname)
+def workdir():
+    dirname = os.path.join(os.path.dirname(__file__), "projects", "j_doe_00_01")
+    # if os.path.exists(dirname):
+    #     shutil.rmtree(dirname)
+    # os.makedirs(dirname)
     orig_dir = os.getcwd()
     try:
         os.chdir(dirname)
@@ -87,9 +87,10 @@ class SampleBasedAnalysisTest(unittest.TestCase):
 
     def test_run_samplebased_pipeline(self):
         """Test a sample based pipeline"""
-        cl = ["exome_pipeline.py",
-              os.path.join(self.proj_dir, "proj_conf.yaml"),
-              os.path.join(self.proj_dir, "data", "20000101A_hiseq2000"),
-              os.path.join(self.proj_dir, "data", "20000101A_hiseq2000", "project_run_info.yaml"),
-              "--project_dir=%s" %(self.proj_dir)]
-        subprocess.check_call(cl)
+        with workdir():
+            cl = ["exome_pipeline.py",
+                  os.path.join(self.proj_dir, "proj_conf.yaml"),
+                  os.path.join(self.proj_dir, "data", "20000101A_hiseq2000"),
+                  os.path.join(self.proj_dir, "data", "20000101A_hiseq2000", "project_run_info.yaml"),
+                  "--project_dir=%s" %(self.proj_dir)]
+            subprocess.check_call(cl)
