@@ -9,6 +9,7 @@ import sys
 import subprocess
 import unittest
 import shutil
+from string import Template
 
 class ProjectSetupTest(unittest.TestCase):
     """Test project setup"""
@@ -18,6 +19,8 @@ class ProjectSetupTest(unittest.TestCase):
         self.proj_dir = os.path.join(self.file_dir, "projects", "j_doe_00_01")
         self.fcdir = os.path.join(os.path.dirname(__file__), "test_automated_output")
         delivery_dir = os.path.join(self.proj_dir, "data", "110106_FC70BUKAAXX")
+        if not os.path.exists(self.proj_dir):
+            os.makedirs(self.proj_dir)
         if os.path.exists(delivery_dir):
             shutil.rmtree(delivery_dir)
         if os.path.exists(os.path.join(self.proj_dir, "intermediate")):

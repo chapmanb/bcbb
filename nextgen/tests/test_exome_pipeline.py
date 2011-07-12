@@ -31,6 +31,8 @@ class SampleBasedAnalysisTest(unittest.TestCase):
         self.file_dir = os.path.join(os.path.dirname(__file__))
         self.proj_dir = os.path.join(self.file_dir, "projects", "j_doe_00_01")
         self.fcdir = os.path.join(os.path.dirname(__file__), "test_automated_output")
+        if not os.path.exists(self.proj_dir):
+            os.makedirs(self.proj_dir)
         self._install_project_config_files()
         self._install_config_data()
         if os.path.exists(os.path.join(self.proj_dir, "intermediate")):

@@ -6,6 +6,7 @@ import sys
 import subprocess
 import unittest
 import shutil
+from string import Template
 
 class SampleDeliveryTest(unittest.TestCase):
     """Deliver samples from bcbio-processed data to John Doe"""
@@ -18,6 +19,8 @@ class SampleDeliveryTest(unittest.TestCase):
         self._install_config_data()
         if os.path.exists(delivery_dir):
             shutil.rmtree(delivery_dir)
+        if not os.path.exists(self.proj_dir):
+            os.makedirs(self.proj_dir)
 
     def _install_config_data(self):
         loc_files = ['bowtie_indices.loc', 'bwa_index.loc', 'sam_fa_indices.loc']
