@@ -38,11 +38,11 @@ import glob
 import shutil
 from itertools import izip
 
-from scilife.log import create_log_handler
-from scilife.pipeline import log
-from scilife.pipeline.run_info import prune_run_info_by_description
-from scilife.pipeline.lane import get_flowcell_id
-from scilife.pipeline.fastq import get_single_fastq_files, get_barcoded_fastq_files, convert_barcode_id_to_name
+from bcbio.log import create_log_handler
+from bcbio.pipeline import log
+from bcbio.pipeline.run_info import prune_run_info_by_description
+from bcbio.pipeline.lane import get_flowcell_id
+from bcbio.pipeline.fastq import get_single_fastq_files, get_barcoded_fastq_files, convert_barcode_id_to_name
 
 from bcbio import utils
 

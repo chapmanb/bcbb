@@ -68,10 +68,9 @@ import subprocess
 import glob
 import collections
 
-from scilife.log import create_log_handler
-from scilife.pipeline import log
-from scilife.pipeline.lane import make_lane_items, get_flowcell_id
-
+from bcbio.log import create_log_handler
+from bcbio.pipeline import log
+from bcbio.pipeline.lane import make_lane_items, get_flowcell_id
 from bcbio.solexa.flowcell import get_flowcell_info
 from bcbio.galaxy.api import GalaxyApiAccess
 from bcbio import utils

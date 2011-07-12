@@ -18,9 +18,10 @@ from optparse import OptionParser
 from itertools import izip
 import yaml
 
-# XXX: Use bcbio lib ?
-from scilife.pipeline.lane import get_flowcell_id
-from scilife.pipeline.fastq import get_barcoded_project_files, convert_name_to_barcode_id
+from bcbio.log import create_log_handler
+from bcbio.pipeline import log
+from bcbio.pipeline.lane import get_flowcell_id
+from bcbio.pipeline.fastq import get_barcoded_project_files, convert_name_to_barcode_id
 
 def main(run_info_yaml, fastq_dir, project_dir="./"):
     with open(run_info_yaml) as in_handle:

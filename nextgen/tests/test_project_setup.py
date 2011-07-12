@@ -33,8 +33,10 @@ class ProjectSetupTest(unittest.TestCase):
 
     def test_project_setup(self):
         """Test project setup"""
+        print "Linking delivered files to " + os.path.join(self.proj_dir, "data", "20000101A_hiseq2000")
         cl = ["setup_project_files.py",
               os.path.join(self.proj_dir, "data", "20000101A_hiseq2000", "project_run_info.yaml"),
               "20000101A_hiseq2000",
               "--project_dir=%s" %(self.proj_dir)]
         subprocess.check_call(cl)
+        
