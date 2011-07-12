@@ -22,6 +22,7 @@ class ProjectSetupTest(unittest.TestCase):
             shutil.rmtree(delivery_dir)
         if os.path.exists(os.path.join(self.proj_dir, "intermediate")):
             shutil.rmtree(os.path.join(self.proj_dir, "intermediate"))
+        self._install_config_data()
         self._deliver_data()
 
     def _deliver_data(self):
@@ -30,6 +31,22 @@ class ProjectSetupTest(unittest.TestCase):
               "J.Doe_00_01", self.fcdir, self.proj_dir,
               "--flowcell_alias=20000101A_hiseq2000"]
         subprocess.check_call(cl)
+
+    def _install_config_data(self):
+        loc_files = ['bowtie_indices.loc', 'bwa_index.loc', 'sam_fa_indices.loc']
+        tooldir = os.path.join(self.file_dir, "config", "tool-data")
+
+        d = {'genomedir':os.path.join(os.path.dirname(__file__), "data", "genomes")}
+        if not os.path.exists(tooldir):
+            os.makedirs(tooldir)
+        for lf in loc_files:
+            outfile = os.path.join(tooldir, lf)
+            if not os.path.exists(outfile):
+                with open(os.path.join(self.file_dir, "templates", "tool-data", lf)) as in_handle:
+                    tmpl = Template(in_handle.read())
+                with open(outfile, "w") as out_handle:
+                    out_handle.write(tmpl.safe_substitute(d))
+                          
 
     def test_project_setup(self):
         """Test project setup"""

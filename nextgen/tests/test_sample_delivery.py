@@ -15,8 +15,26 @@ class SampleDeliveryTest(unittest.TestCase):
         self.proj_dir = os.path.join(self.file_dir, "projects", "j_doe_00_01")
         self.fcdir = os.path.join(os.path.dirname(__file__), "test_automated_output")
         delivery_dir = os.path.join(self.proj_dir, "data", "110106_FC70BUKAAXX")
+        self._install_config_data()
         if os.path.exists(delivery_dir):
             shutil.rmtree(delivery_dir)
+
+    def _install_config_data(self):
+        loc_files = ['bowtie_indices.loc', 'bwa_index.loc', 'sam_fa_indices.loc']
+        tooldir = os.path.join(self.file_dir, "config", "tool-data")
+
+        d = {'genomedir':os.path.join(os.path.dirname(__file__), "data", "genomes")}
+        if not os.path.exists(tooldir):
+            os.makedirs(tooldir)
+        for lf in loc_files:
+            outfile = os.path.join(tooldir, lf)
+            if not os.path.exists(outfile):
+                with open(os.path.join(self.file_dir, "templates", "tool-data", lf)) as in_handle:
+                    tmpl = Template(in_handle.read())
+                with open(outfile, "w") as out_handle:
+                    out_handle.write(tmpl.safe_substitute(d))
+                          
+
 
     def test_deliver_data(self):
         """Test data delivery"""
