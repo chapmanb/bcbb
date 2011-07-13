@@ -9,8 +9,7 @@ files.
 
 Usage:
     exome_pipeline.py <exome pipeline YAML config file> 
-                      <pruned YAML run information>
-                      <project_name> <fc_dir>
+                      <fc_dir>  <pruned YAML run information>
                       [--project_dir=<project directory>]
 
 Options:
@@ -84,6 +83,7 @@ from bcbio.pipeline.merge import organize_samples
 def main(config_file, fastq_dir, run_info_yaml=None, project_dir=None):
     if project_dir == None:
         project_dir = os.getcwd()
+    fastq_dir = os.path.normpath(fastq_dir)
     with open(config_file) as in_handle:
         config = yaml.load(in_handle)
     log_handler = create_log_handler(config, log.name)
@@ -102,11 +102,10 @@ def run_main(config, config_file, fastq_dir, project_dir, run_info_yaml):
     config_file = os.path.join(config_dir, os.path.basename(config_file))
     dirs = dict(fastq = fastq_dir, galaxy= galaxy_dir, 
                 align = align_dir, 
-                work = os.path.join(project_dir, "intermediate", os.path.basename(fastq_dir), "%s_%s" %(fc_date, fc_name)),
+                work = os.path.join(project_dir, "intermediate", fq_name, "%s_%s" %(fc_date, fc_name)),
                 config = config_dir, flowcell = None, 
-                fc_dir = os.path.join(project_dir, "intermediate", os.path.basename(fastq_dir), "%s_%s" %(fc_date, fc_name))
+                fc_dir = os.path.join(project_dir, "intermediate", fq_name, "%s_%s" %(fc_date, fc_name))
                 )
-                
     # Since demultiplexing is already done, just extract run_items
     run_items = run_info['details']
     lane_items = []
@@ -189,6 +188,7 @@ if __name__ == "__main__":
         print __doc__
         sys.exit()
     kwargs = dict(
-        project_dir = options.project_dir
+        project_dir = os.path.normpath(options.project_dir)
         )
     main(*args, **kwargs)
+

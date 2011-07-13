@@ -26,6 +26,8 @@ from bcbio.pipeline.fastq import get_barcoded_project_files, convert_name_to_bar
 def main(run_info_yaml, fastq_dir, project_dir="./"):
     with open(run_info_yaml) as in_handle:
         run_info = yaml.load(in_handle)
+    fastq_dir = os.path.normpath(fastq_dir)
+    project_dir = os.path.normpath(project_dir)
     dirs  = dict(work_dir = project_dir)
     if os.path.exists( os.path.join(project_dir, "data", fastq_dir)):
         dirs.update(fastq_dir = os.path.join(project_dir, "data", fastq_dir))

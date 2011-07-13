@@ -4,8 +4,9 @@
 Usage:
     sample_delivery.py <YAML run config> <yaml project description>
                        <flowcell directory> <project output directory>
-                       [--flowcell_alias=<flowcell alias> --only_install_run_info
-                       --make_delivery_report --dry_run]
+                       [--flowcell_alias=<flowcell alias> 
+                        --only_install_run_info
+                        --make_delivery_report --dry_run]
 
 The YAML run config stores information about the samples loaded on each lane. 
 Given a project description and a flowcell directory, the script will look 
@@ -50,6 +51,8 @@ def main(run_info_yaml, yaml_project_desc, fc_dir, project_outdir,
          only_run_info, report, fc_alias=None):
     with open(run_info_yaml) as in_handle:
         run_info = yaml.load(in_handle)
+    fc_dir = os.path.normpath(fc_dir)
+    project_outdir = os.path.normpath(project_outdir)
     config = dict(log_dir=os.path.join(project_outdir, "log"),
                   yaml_project_desc = yaml_project_desc
                   )
