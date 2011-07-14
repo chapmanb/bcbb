@@ -13,7 +13,7 @@ from string import Template
 
 @contextlib.contextmanager
 def workdir():
-    dirname = os.path.join(os.path.dirname(__file__), "projects", "j_doe_00_01")
+    dirname = os.path.join(os.path.dirname(__file__), "projects", "j_doe_00_01", "intermediate", "20000101A_hiseq2000")
     # if os.path.exists(dirname):
     #     shutil.rmtree(dirname)
     # os.makedirs(dirname)
@@ -90,7 +90,7 @@ class SampleBasedAnalysisTest(unittest.TestCase):
         with workdir():
             cl = ["exome_pipeline.py",
                   os.path.join(self.proj_dir, "proj_conf.yaml"),
-                  os.path.join(self.proj_dir, "data", "20000101A_hiseq2000"),
+                  os.path.join(self.proj_dir, "intermediate", "20000101A_hiseq2000", "110106_FC70BUKAAXX"),
                   os.path.join(self.proj_dir, "data", "20000101A_hiseq2000", "project_run_info.yaml"),
                   "--project_dir=%s" %(self.proj_dir)]
             subprocess.check_call(cl)

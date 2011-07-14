@@ -9,7 +9,7 @@ files.
 
 Usage:
     exome_pipeline.py <exome pipeline YAML config file> 
-                      <fc_dir>  <pruned YAML run information>
+                      <flow cell dir>  <pruned YAML run information>
                       [--project_dir=<project directory>]
 
 Options:
@@ -40,13 +40,13 @@ j_doe_00_01/intermediate/fastq_dir/
 
 which in turn contains subdirectories for flowcells, alignments etc.
 
-The <fc_dir> names a flowcell directory:
+The <flow cell dir> names a flowcell directory:
 
-j_doe_00_01/intermediate/fastq_dir/fc_dir
+j_doe_00_01/intermediate/fastq_dir/flow_cell_dir
 
 in which the delivered fastq files have been renamed to their original names
 and link back to the files in j_doe_00_01/data/fastq_dir directory. Hence,
-the bcbio modules can be directly applied to the file names in fc_dir.
+the bcbio modules can be directly applied to the file names in flow_cell_dir.
 
 Relinking of files is done in the script setup_project_files.py.
 
@@ -80,31 +80,38 @@ from bcbio.pipeline import lane
 from bcbio.pipeline import sample
 from bcbio.pipeline.merge import organize_samples
 
-def main(config_file, fastq_dir, run_info_yaml=None, project_dir=None):
+def main(config_file, fc_dir, run_info_yaml=None, project_dir=None):
     if project_dir == None:
         project_dir = os.getcwd()
-    fastq_dir = os.path.normpath(fastq_dir)
+    fc_dir = os.path.normpath(fc_dir)
     with open(config_file) as in_handle:
         config = yaml.load(in_handle)
     log_handler = create_log_handler(config, log.name)
     with log_handler.applicationbound():
-        run_main(config, config_file, fastq_dir, project_dir, run_info_yaml)
+        run_main(config, config_file, fc_dir, project_dir, run_info_yaml)
 
-def run_main(config, config_file, fastq_dir, project_dir, run_info_yaml):
-    work_dir = project_dir
-    (_, fq_name) = os.path.split(fastq_dir)
-    align_dir = os.path.join(work_dir, "intermediate",  fq_name, "alignments")
+def run_main(config, config_file, fc_dir, project_dir, run_info_yaml):
+    # Working directory has to be identical to where (demultiplexed) fastq files are delivered
+    work_dir = fc_dir
+    align_dir = os.path.join(work_dir, "alignments")
+    (fc_alias_dir, _) = os.path.split(work_dir)
+    (_, fastq_dir_label) = os.path.split(fc_alias_dir)
+    fastq_dir = os.path.join(project_dir, "data", fastq_dir_label)
+    # Sanity check
+    if not os.path.exists(fastq_dir):
+        print "Cannot find %s : ensure that your project folder contains delivered fastq files in data/%s and a flowcell directory in intermediate/%s" %(fastq_dir, fastq_dir_label, fastq_dir_label)
+        sys.exit()
 
-    run_info = _get_run_info(None, None, config, run_info_yaml)
-    fc_name, fc_date = get_flowcell_id(run_info['details'], fastq_dir, check_bc=False,  glob_ext=".fastq")
-
+    fc_name, fc_date = get_flowcell_info(fc_dir)
+    run_info = _get_run_info(fc_name, fc_date, config, run_info_yaml)
     fastq_dir, galaxy_dir, config_dir = _get_full_paths(fastq_dir, config, config_file)
+
     config_file = os.path.join(config_dir, os.path.basename(config_file))
     dirs = dict(fastq = fastq_dir, galaxy= galaxy_dir, 
                 align = align_dir, 
-                work = os.path.join(project_dir, "intermediate", fq_name, "%s_%s" %(fc_date, fc_name)),
-                config = config_dir, flowcell = None, 
-                fc_dir = os.path.join(project_dir, "intermediate", fq_name, "%s_%s" %(fc_date, fc_name))
+                work = work_dir,
+                config = config_dir, flowcell = fc_dir,
+                fc_dir = fc_dir
                 )
     # Since demultiplexing is already done, just extract run_items
     run_items = run_info['details']
@@ -119,8 +126,6 @@ def run_main(config, config_file, fastq_dir, project_dir, run_info_yaml):
                   organize_samples(dirs, fc_name, fc_date, run_items)
     samples = ((n, sample_fastq[n], sample_info[n], bam_files, dirs, config, config_file)
                for n, bam_files in sample_files)
-    # TODO: For some reason, in bcbio.broad.picardrun there is a line 
-    # base = base.replace(".", "-") that screws up if one has a directory with a . in it
     _run_parallel("process_sample", samples, dirs, config)
 
 def _get_run_info(fc_name, fc_date, config, run_info_yaml):
