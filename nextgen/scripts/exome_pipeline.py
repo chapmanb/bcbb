@@ -83,6 +83,8 @@ from bcbio.pipeline.merge import organize_samples
 def main(config_file, fc_dir, run_info_yaml=None, project_dir=None):
     if project_dir == None:
         project_dir = os.getcwd()
+    else:
+        project_dir = os.path.normpath(project_dir)
     fc_dir = os.path.normpath(fc_dir)
     with open(config_file) as in_handle:
         config = yaml.load(in_handle)
@@ -193,7 +195,7 @@ if __name__ == "__main__":
         print __doc__
         sys.exit()
     kwargs = dict(
-        project_dir = os.path.normpath(options.project_dir)
+        project_dir = options.project_dir
         )
     main(*args, **kwargs)
 
