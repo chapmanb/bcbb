@@ -36,13 +36,13 @@ j_doe_00_01/data/fastq_dir
 where j_doe_00_01 is the project name to be provided at the command line. Data 
 analyses are then performed in 
 
-j_doe_00_01/intermediate/fastq_dir/
+j_doe_00_01/intermediate/nobackup/fastq_dir/
 
 which in turn contains subdirectories for flowcells, alignments etc.
 
 The <flow cell dir> names a flowcell directory:
 
-j_doe_00_01/intermediate/fastq_dir/flow_cell_dir
+j_doe_00_01/intermediate/nobackup/fastq_dir/flow_cell_dir
 
 in which the delivered fastq files have been renamed to their original names
 and link back to the files in j_doe_00_01/data/fastq_dir directory. Hence,

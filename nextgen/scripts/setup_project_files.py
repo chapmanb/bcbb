@@ -39,7 +39,7 @@ def main(run_info_yaml, fastq_dir, project_dir="./"):
                   fc_name = fc_name,
                   fc_date = fc_date
                   )
-    dirs.update(fc_dir = os.path.join(project_dir, "intermediate", os.path.basename(fastq_dir), 
+    dirs.update(fc_dir = os.path.join(project_dir, "intermediate", "nobackup", os.path.basename(fastq_dir), 
                                                 "%s_%s" %(fc_date, fc_name)))
 
 
