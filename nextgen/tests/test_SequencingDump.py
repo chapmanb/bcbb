@@ -11,13 +11,14 @@ class SampleSheetTest(unittest.TestCase):
     """Deal with Illumina SampleSheets and convert to YAML input.
     """
     def setUp(self):
-        self.ss_file = os.path.join(os.path.dirname(__file__),
-                                    "data", "samplesheets",
-                                    "illumina_samplesheet.csv")
-        self.ss_non_multiplex = os.path.join(os.path.dirname(__file__),
-                                             "data", "samplesheets",
-                                             "illumina_samplesheet_non_multiplex_samples.csv")
-        self.out_file = ""
+        ssheets_dir = os.path.join(os.path.dirname(__file__),
+                      os.path.join("data", "samplesheets"))
+
+        self.ss_file = os.path.join( ssheets_dir, "illumina_samplesheet.csv")
+        self.ss_non_multiplex = os.path.join( ssheets_dir, "illumina_samplesheet_non_multiplex_samples.csv")
+        self.ss_unbalanced = os.path.join( ssheets_dir, "illumina_samplesheet_unbalanced_quotes.csv")
+
+        self.out_file = "" 
 
     def tearDown(self):
         if os.path.exists(self.out_file):
@@ -27,6 +28,7 @@ class SampleSheetTest(unittest.TestCase):
         """Convert CSV Illumina SampleSheet to YAML.
         """
         info = self.toyaml(self.ss_file)
+        
         assert info[0]['lane'] == '1'
         assert info[0]['multiplex'][0]['barcode_id'] == 5
 
@@ -38,6 +40,14 @@ class SampleSheetTest(unittest.TestCase):
 
         assert info[7]['lane'] == '8'
         assert not info[7].has_key("multiplex")
+
+    def test_unbalanced_quotes(self):
+        info = self.toyaml(self.ss_unbalanced)
+        assert os.path.exists(self.out_file)
+        with open(self.out_file) as in_handle:
+            info = yaml.load(in_handle)
+
+        assert info[0]['lane'] == '1'
 
     def test_checkforrun(self):
         """Check for the presence of runs in an Illumina SampleSheet.
@@ -59,4 +69,5 @@ class SampleSheetTest(unittest.TestCase):
         assert os.path.exists(self.out_file)
         with open(self.out_file) as in_handle:
             info = yaml.load(in_handle)
+        in_handle.close()
         return info
