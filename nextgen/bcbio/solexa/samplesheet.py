@@ -5,6 +5,7 @@ files from Illumina SampleSheet or Genesifter.
 """
 import os
 import sys
+import fileinput
 import csv
 import itertools
 import difflib
@@ -61,13 +62,20 @@ def _generate_barcode_ids(info_iter):
 def _read_input_csv(in_file):
     """Parse useful details from SampleSheet CSV file.
     """
-    with open(in_file, "rU") as in_handle:
-        reader = csv.reader(in_handle)
-        reader.next() # header
-        for line in reader:
-            if line: # empty lines
-                (fc_id, lane, sample_id, genome, barcode, description) = line[:6]
-                yield fc_id, lane, sample_id, genome, barcode, description
+    # Sanitize raw file before opening with csv reader
+    _sanitize(in_file)
+
+    try:
+        with open(in_file, "rU") as in_handle:
+            reader = csv.reader(in_handle)
+            reader.next() # header
+            for line in reader:
+                if line: # empty lines
+                    (fc_id, lane, sample_id, genome, barcode, description) = line[:6]
+                    yield fc_id, lane, sample_id, genome, barcode, description
+    except ValueError:
+        print "Corrupt samplesheet %s, please fix it" % in_file 
+        pass
 
 def _get_flowcell_id(in_file, require_single=True):
     """Retrieve the unique flowcell id represented in the SampleSheet.
@@ -77,6 +85,17 @@ def _get_flowcell_id(in_file, require_single=True):
         raise ValueError("There are several FCIDs in the same samplesheet file: %s" % in_file)
     else:
         return fc_ids
+
+def _sanitize(in_file):
+    """Removes badly balanced quotes and other possible future
+       cruft introduced on the samplesheets
+    """
+    for line in fileinput.FileInput(in_file, inplace=1):
+        line = line.replace('"','')
+        # print adds line in place, not stdout
+        print line.replace("\n", '')
+
+    fileinput.close()
 
 def csv2yaml(in_file, out_file=None):
     """Convert a CSV SampleSheet to YAML run_info format.
