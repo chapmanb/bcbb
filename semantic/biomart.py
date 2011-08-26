@@ -8,7 +8,7 @@ ICGC: http://bm-test.res.oicr.on.ca:9085/
 """
 import unittest
 
-from SPARQLWrapper import SPARQLWrapper
+import SPARQLWrapper
 
 class SematicBioMart:
     """Given SPARQL query, retrieve results from remote BioMart SPARQL endpoint.
@@ -16,7 +16,7 @@ class SematicBioMart:
     def __init__(self, base_url):
         self._base_url = base_url
         self._access_point = "snp_config"
-        self._query_url = "{url}/martsemantics/{ap}/SPARQLXML/get/".format(
+        self._query_url = "http://{url}/martsemantics/{ap}/SPARQLXML/get/".format(
             url=base_url, ap=self._access_point)
 
         self._prefixes = [
@@ -38,13 +38,16 @@ class SematicBioMart:
         return "\n".join(out) + "\n\n"
 
     def do_query(self, statement):
-        sparql = SPARQLWrapper(self._query_url)
+        sparql = SPARQLWrapper.SPARQLWrapper(self._query_url)
+        sparql.setReturnFormat(SPARQLWrapper.XML)
         query = self._get_prefix_str() + statement
         print query
         sparql.setQuery(query)
         print sparql.query().geturl()
         for info in sparql.query():
             print info
+        results = sparql.query().convert()
+        print results
 
 class BioMartQueryBuilder:
     def __init__(self, dataset):
@@ -74,5 +77,5 @@ WHERE {
 }
 """
 
-icgc_server = SematicBioMart("http://bm-test.res.oicr.on.ca:9085")
+icgc_server = SematicBioMart("bm-test.res.oicr.on.ca:9085")
 icgc_server.do_query(example_query)
