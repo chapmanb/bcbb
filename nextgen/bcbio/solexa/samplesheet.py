@@ -26,8 +26,7 @@ def _organize_lanes(info_iter, barcode_ids):
     for (fcid, lane), info in itertools.groupby(info_iter, lambda x: (x[0], x[1])):
         info = list(info)
         sampleref = info[0][3].lower()
-        cur_lane = dict(flowcell_id=fcid, lane=lane, genome_build=sampleref, analysis="Standard",
-                        library_name = "scilifelab")
+        cur_lane = dict(flowcell_id=fcid, lane=lane, genome_build=sampleref, analysis="Standard")
         
         cur_lane["description"] = "Lane %s, %s" % (lane, info[0][5])
         
