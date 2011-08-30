@@ -7,6 +7,7 @@ import os
 import sys
 import fileinput
 import csv
+import codecs
 import itertools
 import difflib
 import glob
@@ -16,6 +17,7 @@ import yaml
 
 from bcbio.solexa.flowcell import (get_flowcell_info)
 from bcbio import utils
+
 
 def _organize_lanes(info_iter, barcode_ids):
     """Organize flat lane information into nested YAML structure.
@@ -65,17 +67,16 @@ def _read_input_csv(in_file):
     # Sanitize raw file before opening with csv reader
     _sanitize(in_file)
 
-    try:
-        with open(in_file, "rU") as in_handle:
-            reader = csv.reader(in_handle)
-            reader.next() # header
-            for line in reader:
-                if line: # empty lines
-                    (fc_id, lane, sample_id, genome, barcode, description) = line[:6]
-                    yield fc_id, lane, sample_id, genome, barcode, description
-    except ValueError:
-        print "Corrupt samplesheet %s, please fix it" % in_file 
-        pass
+#    try:
+    with open(in_file, "rU") as in_handle:
+        reader = _unicode_csv_reader(in_handle)
+        for line in reader:
+            if line: # empty lines
+                (fc_id, lane, sample_id, genome, barcode, description) = line[:6]
+                yield fc_id, lane, sample_id, genome, barcode, description
+#    except ValueError:
+#        print "Corrupt samplesheet %s, please fix it" % in_file 
+#        pass
 
 def _get_flowcell_id(in_file, require_single=True):
     """Retrieve the unique flowcell id represented in the SampleSheet.
@@ -97,6 +98,20 @@ def _sanitize(in_file):
 
     fileinput.close()
 
+
+def _unicode_csv_reader(unicode_csv_data, dialect=csv.excel, **kwargs):
+    # csv.py doesn't do Unicode; encode temporarily as UTF-8:
+    csv_reader = csv.reader(_utf_8_encoder(unicode_csv_data),
+                            dialect=dialect, **kwargs)
+    for row in csv_reader:
+        # decode UTF-8 back to Unicode, cell by cell:
+        yield [unicode(cell, 'utf-8') for cell in row]
+
+def _utf_8_encoder(unicode_csv_data):
+    for line in unicode_csv_data:
+        print line
+        yield line.encode('utf-8')
+
 def csv2yaml(in_file, out_file=None):
     """Convert a CSV SampleSheet to YAML run_info format.
     """
@@ -106,7 +121,7 @@ def csv2yaml(in_file, out_file=None):
     barcode_ids = _generate_barcode_ids(_read_input_csv(in_file))
     lanes = _organize_lanes(_read_input_csv(in_file), barcode_ids)
     with open(out_file, "w") as out_handle:
-        out_handle.write(yaml.dump(lanes, default_flow_style=False))
+        out_handle.write(yaml.safe_dump(lanes, default_flow_style=False, allow_unicode=True))
     return out_file
 
 
