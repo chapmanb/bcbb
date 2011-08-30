@@ -17,6 +17,13 @@ def split_by_barcode(fastq1, fastq2, multiplex, base_name, dirs, config):
     bc_dir = os.path.join(dirs["work"], "%s_barcode" % base_name)
     nomatch_file = "%s_unmatched_1_fastq.txt" % base_name
     metrics_file = "%s_bc.metrics" % base_name
+    out_files = []
+    for info in multiplex:
+        fq_fname = lambda x: os.path.join(bc_dir, "%s_%s_%s_fastq.txt" %
+                             (base_name, info["barcode_id"], x))
+        bc_file1 = fq_fname("1")
+        bc_file2 = fq_fname("2") if fastq2 else None
+        out_files.append((info["barcode_id"], info["name"], bc_file1, bc_file2))
     with utils.chdir(bc_dir):
         if not os.path.exists(nomatch_file) and not os.path.exists(metrics_file):
             tag_file = _make_tag_file(multiplex)
@@ -33,14 +40,8 @@ def split_by_barcode(fastq1, fastq2, multiplex, base_name, dirs, config):
                 cl.append("--five")
             if config["algorithm"].get("bc_allow_indels", True) is False:
                 cl.append("--noindel")
-            subprocess.check_call(cl)
-    out_files = []
-    for info in multiplex:
-        fq_fname = lambda x: os.path.join(bc_dir, "%s_%s_%s_fastq.txt" %
-                             (base_name, info["barcode_id"], x))
-        bc_file1 = fq_fname("1")
-        bc_file2 = fq_fname("2") if fastq2 else None
-        out_files.append((info["barcode_id"], info["name"], bc_file1, bc_file2))
+            with utils.file_transaction(out_files + [nomatch_file, metrics_file]):
+                subprocess.check_call(cl)
     return out_files
 
 def _make_tag_file(barcodes):
@@ -126,7 +127,7 @@ def add_multiplex_across_lanes(run_items, fastq_dir, fc_name):
 def _get_fastq_size(item, fastq_dir, fc_name):
     """Retrieve the size of reads from the first flowcell sequence.
     """
-    (fastq1, _) = get_fastq_files(fastq_dir, item['lane'], fc_name)
+    (fastq1, _) = get_fastq_files(fastq_dir, item, fc_name)
     with open(fastq1) as in_handle:
         try:
             rec = SeqIO.parse(in_handle, "fastq").next()

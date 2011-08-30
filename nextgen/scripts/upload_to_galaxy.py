@@ -21,33 +21,24 @@ import os
 import glob
 import shutil
 import ConfigParser
-import urllib
-import urllib2
 import time
-import json
 
 import yaml
 
-from bcbio.solexa.flowcell import get_flowcell_info, get_fastq_dir
+from bcbio.solexa.flowcell import get_fastq_dir
+from bcbio.pipeline.run_info import get_run_info
 from bcbio.galaxy.api import GalaxyApiAccess
 from bcbio import utils
 
 def main(config_file, fc_dir, analysis_dir, run_info_yaml=None):
     with open(config_file) as in_handle:
         config = yaml.load(in_handle)
-    fc_name, fc_date = get_flowcell_info(fc_dir)
-    galaxy_api = GalaxyApiAccess(config['galaxy_url'], config['galaxy_api_key'])
-
-    # run_info will override some galaxy details, if present
-    if run_info_yaml:
-        with open(run_info_yaml) as in_handle:
-            run_details = yaml.load(in_handle)
-        run_info = dict(details=run_details, run_id="")
-    else:
-        run_info = galaxy_api.run_details(fc_name, fc_date)
+    galaxy_api = (GalaxyApiAccess(config['galaxy_url'], config['galaxy_api_key'])
+                  if config.has_key("galaxy_api_key") else None)
+    fc_name, fc_date, run_info = get_run_info(fc_dir, config, run_info_yaml)
 
     base_folder_name = "%s_%s" % (fc_date, fc_name)
-    run_details = lims_run_details(run_info, fc_name, base_folder_name)
+    run_details = lims_run_details(run_info, base_folder_name)
     for (library_name, access_role, dbkey, lane, bc_id, name, desc,
             local_name) in run_details:
         library_id = (get_galaxy_library(library_name, galaxy_api)
@@ -64,12 +55,12 @@ def main(config_file, fc_dir, analysis_dir, run_info_yaml=None):
             else:
                 cur_galaxy_files = []
             store_dir = move_to_storage(lane, bc_id, base_folder_name, upload_files,
-                                        cur_galaxy_files, config)
+                                        cur_galaxy_files, config, config_file)
             if store_dir and library_id:
                 print "Uploading directory of files to Galaxy"
                 print galaxy_api.upload_directory(library_id, folder['id'],
                                                   store_dir, dbkey, access_role)
-    if galaxy_api:
+    if galaxy_api and not run_info_yaml:
         add_run_summary_metrics(analysis_dir, galaxy_api)
 
 # LIMS specific code for retrieving information on what to upload from
@@ -78,7 +69,7 @@ def main(config_file, fc_dir, analysis_dir, run_info_yaml=None):
 # analysis directories.
 # These should be edited to match a local workflow if adjusting this.
 
-def lims_run_details(run_info, fc_name, base_folder_name):
+def lims_run_details(run_info, base_folder_name):
     """Retrieve run infomation on a flow cell from Next Gen LIMS.
     """
     for lane_info in (l for l in run_info["details"] if l.has_key("researcher")
@@ -87,12 +78,15 @@ def lims_run_details(run_info, fc_name, base_folder_name):
             libname, role = _get_galaxy_libname(lane_info["private_libs"],
                                                 lane_info["lab_association"],
                                                 lane_info["researcher"])
+        elif lane_info.has_key("galaxy_library"):
+            libname = lane_info["galaxy_library"]
+            role = lane_info["galaxy_role"]
         else:
 	    libname, role = (lane_info.get("library_name", None), "sequencing")
         for barcode in lane_info.get("multiplex", [None]):
-            remote_folder = lane_info.get("name", "")
-            description = "%s: %s" % (lane_info.get("researcher", ""),
-                    lane_info["description"])
+            remote_folder = str(lane_info.get("name", lane_info["lane"]))
+            description = ": ".join([lane_info[n] for n in ["researcher", "description"]
+                                     if lane_info.has_key(n)])
             local_name = "%s_%s" % (lane_info["lane"], base_folder_name)
             if barcode:
                 remote_folder += "_%s" % barcode["barcode_id"]
@@ -103,6 +97,11 @@ def lims_run_details(run_info, fc_name, base_folder_name):
                     remote_folder, description, local_name)
 
 def _get_galaxy_libname(private_libs, lab_association, researcher):
+    """Retrieve most appropriate Galaxy data library.
+
+    Gives preference to private data libraries associated with the user. If not
+    found will create a user specific library.
+    """
     print private_libs, lab_association
     # simple case -- one private library. Upload there
     if len(private_libs) == 1:
@@ -232,16 +231,19 @@ def _folders_by_name(name, items):
     return [f for f in items if f['type'] == 'folder' and
                                 f['name'] == name]
 
-def move_to_storage(lane, bc_id, fc_dir, select_files, cur_galaxy_files, config):
+def move_to_storage(lane, bc_id, fc_dir, select_files, cur_galaxy_files,
+                    config, config_file):
     """Create directory for long term storage before linking to Galaxy.
     """
+    galaxy_config_file = utils.add_full_path(config["galaxy_config"],
+                                             os.path.dirname(config_file))
     galaxy_conf = ConfigParser.SafeConfigParser({'here' : ''})
-    galaxy_conf.read(config["galaxy_config"])
+    galaxy_conf.read(galaxy_config_file)
     try:
         lib_import_dir = galaxy_conf.get("app:main", "library_import_dir")
-    except ConfigParser.NoOptionError:
+    except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
         raise ValueError("Galaxy config %s needs library_import_dir to be set."
-                % config["galaxy_config"])
+                         % galaxy_config_file)
     storage_dir = _get_storage_dir(fc_dir, lane, bc_id, os.path.join(lib_import_dir,
                                    "storage"))
     existing_files = [os.path.basename(f['name']) for f in cur_galaxy_files]
