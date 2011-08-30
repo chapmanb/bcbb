@@ -64,11 +64,13 @@ def _read_input_csv(in_file):
     """Parse useful details from SampleSheet CSV file.
     """
     # Sanitize raw file before opening with csv reader
-    _sanitize(in_file)
+    #_sanitize(in_file)
 
 #    try:
     with open(in_file, "rU") as in_handle:
-        reader = _unicode_csv_reader(in_handle)
+        reader = csv.reader(in_handle)
+        #reader = unicode_csv_reader(in_handle)
+        reader.next() # header
         for line in reader:
             if line: # empty lines
                 (fc_id, lane, sample_id, genome, barcode, description) = line[:6]
@@ -97,19 +99,6 @@ def _sanitize(in_file):
 
     fileinput.close()
 
-
-def _unicode_csv_reader(unicode_csv_data, dialect=csv.excel, **kwargs):
-    # csv.py doesn't do Unicode; encode temporarily as UTF-8:
-    csv_reader = csv.reader(_utf_8_encoder(unicode_csv_data),
-                            dialect=dialect, **kwargs)
-    for row in csv_reader:
-        # decode UTF-8 back to Unicode, cell by cell:
-        yield [unicode(cell, 'utf-8') for cell in row]
-
-def _utf_8_encoder(unicode_csv_data):
-    for line in unicode_csv_data:
-        print line
-        yield line.encode('utf-8')
 
 def csv2yaml(in_file, out_file=None):
     """Convert a CSV SampleSheet to YAML run_info format.
