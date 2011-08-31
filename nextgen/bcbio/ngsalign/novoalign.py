@@ -3,7 +3,7 @@
 import os
 import subprocess
 
-from bcbio.utils import (memoize_outfile, file_transaction)
+from bcbio.utils import (memoize_outfile)
 
 @memoize_outfile(".ndx")
 def refindex(ref_file, kmer_size=None, step_size=None, out_file=None):
@@ -37,7 +37,6 @@ def align(out_dir, ref_index, fastq1, fastq2=None, qual_format=None):
         if qual_format:
             cl += ["-F", qual_format]
         print " ".join(cl)
-        with file_transaction(out_file):
-            with open(out_file, "w") as out_handle:
-                subprocess.check_call(cl, stdout=out_handle)
+        with open(out_file, "w") as out_handle:
+            subprocess.check_call(cl, stdout=out_handle)
     return out_file

@@ -3,11 +3,6 @@
 import os
 import glob
 import json
-import contextlib
-
-from bcbio.utils import tmpfile, file_transaction
-
-import pysam
 
 class PicardMetricsParser:
     """Read metrics files produced by Picard analyses.
@@ -254,14 +249,11 @@ class PicardMetrics:
         base, ext = os.path.splitext(dup_bam)
         metrics = "%s.hs_metrics" % base
         if not os.path.exists(metrics):
-            with bed_to_interval(bait_file, dup_bam) as ready_bait:
-                with bed_to_interval(target_file, dup_bam) as ready_target:
-                    opts = [("BAIT_INTERVALS", ready_bait),
-                            ("TARGET_INTERVALS", ready_target),
-                            ("INPUT", dup_bam),
-                            ("OUTPUT", metrics)]
-                    with file_transaction(metrics):
-                        self._picard.run("CalculateHsMetrics", opts)
+            opts = [("BAIT_INTERVALS", bait_file),
+                    ("TARGET_INTERVALS", target_file),
+                    ("INPUT", dup_bam),
+                    ("OUTPUT", metrics)]
+            self._picard.run("CalculateHsMetrics", opts)
         return metrics
 
     def _variant_eval_metrics(self, dup_bam):
@@ -288,8 +280,7 @@ class PicardMetrics:
                     ("OUTPUT", gc_metrics),
                     ("CHART", gc_graph),
                     ("R", ref_file)]
-            with file_transaction(gc_graph, gc_metrics):
-                self._picard.run("CollectGcBiasMetrics", opts)
+            self._picard.run("CollectGcBiasMetrics", opts)
         return gc_graph, gc_metrics
 
     def _insert_sizes(self, dup_bam):
@@ -300,8 +291,7 @@ class PicardMetrics:
             opts = [("INPUT", dup_bam),
                     ("OUTPUT", insert_metrics),
                     ("H", insert_graph)]
-            with file_transaction(insert_graph, insert_metrics):
-                self._picard.run("CollectInsertSizeMetrics", opts)
+            self._picard.run("CollectInsertSizeMetrics", opts)
         return insert_graph, insert_metrics
 
     def _collect_align_metrics(self, dup_bam, ref_file):
@@ -311,8 +301,7 @@ class PicardMetrics:
             opts = [("INPUT", dup_bam),
                     ("OUTPUT", align_metrics),
                     ("R", ref_file)]
-            with file_transaction(align_metrics):
-                self._picard.run("CollectAlignmentSummaryMetrics", opts)
+            self._picard.run("CollectAlignmentSummaryMetrics", opts)
         return align_metrics
 
 def _add_commas(s, sep=','):
@@ -322,27 +311,3 @@ def _add_commas(s, sep=','):
     """
     if len(s) <= 3: return s
     return _add_commas(s[:-3], sep) + sep + s[-3:]
-
-@contextlib.contextmanager
-def bed_to_interval(orig_bed, bam_file):
-    """Add header and format BED bait and target files for Picard if necessary.
-    """
-    with open(orig_bed) as in_handle:
-        line = in_handle.readline()
-    if line.startswith("@"):
-        yield orig_bed
-    else:
-        bam_handle = pysam.Samfile(bam_file, "rb")
-        with contextlib.closing(bam_handle):
-            header = bam_handle.text
-        with tmpfile(dir=os.getcwd(), prefix="picardbed") as tmp_bed:
-            with open(tmp_bed, "w") as out_handle:
-                out_handle.write(header)
-                with open(orig_bed) as in_handle:
-                    for line in in_handle:
-                        parts = line.rstrip().split("\t")
-                        if len(parts) == 3:
-                            parts.append("+")
-                            parts.append("a")
-                        out_handle.write("\t".join(parts) + "\n")
-            yield tmp_bed
