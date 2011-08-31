@@ -1,0 +1,3 @@
+FCID,Lane,SampleID,SampleRef,Index,Description,Y,Recipe,Operator
+80HM7ABXX,1,Åsö Bergström,hg19,GCCAAT,Test,N,R1,ES
+80HM7ABXX,1,åäö,Småland Sjölund,CTTGTA,Test,N,R1,ES
