@@ -1,5 +1,8 @@
+# -*- coding: utf-8 -*-
 """Tests associated with detecting sequencing results dumped from a machine.
 """
+# http://www.python.org/dev/peps/pep-0263/
+
 import os
 import unittest
 
@@ -17,6 +20,7 @@ class SampleSheetTest(unittest.TestCase):
         self.ss_file = os.path.join( ssheets_dir, "illumina_samplesheet.csv")
         self.ss_non_multiplex = os.path.join( ssheets_dir, "illumina_samplesheet_non_multiplex_samples.csv")
         self.ss_unbalanced = os.path.join( ssheets_dir, "illumina_samplesheet_unbalanced_quotes.csv")
+        self.ss_unicode = os.path.join( ssheets_dir, "illumina_samplesheet_unicode.csv")
 
         self.out_file = "" 
 
@@ -28,7 +32,7 @@ class SampleSheetTest(unittest.TestCase):
         """Convert CSV Illumina SampleSheet to YAML.
         """
         info = self.toyaml(self.ss_file)
-        
+       
         assert info[0]['lane'] == '1'
         assert info[0]['multiplex'][0]['barcode_id'] == 5
 
@@ -48,6 +52,15 @@ class SampleSheetTest(unittest.TestCase):
             info = yaml.load(in_handle)
 
         assert info[0]['lane'] == '1'
+
+    def test_unicode(self):
+        info = self.toyaml(self.ss_unicode)
+        assert os.path.exists(self.out_file)
+        with open(self.out_file) as in_handle:
+            info = yaml.load(in_handle)
+       
+        assert info[0]['multiplex'][0]['name'].encode('utf-8') == 'Åsö Bergström'
+
 
     def test_checkforrun(self):
         """Check for the presence of runs in an Illumina SampleSheet.

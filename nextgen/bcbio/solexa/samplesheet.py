@@ -26,8 +26,7 @@ def _organize_lanes(info_iter, barcode_ids):
     for (fcid, lane), info in itertools.groupby(info_iter, lambda x: (x[0], x[1])):
         info = list(info)
         sampleref = info[0][3].lower()
-        cur_lane = dict(flowcell_id=fcid, lane=lane, genome_build=sampleref, analysis="Standard",
-                        library_name = "scilifelab")
+        cur_lane = dict(flowcell_id=fcid, lane=lane, genome_build=sampleref, analysis="Standard")
         
         cur_lane["description"] = "Lane %s, %s" % (lane, info[0][5])
         
@@ -65,11 +64,13 @@ def _read_input_csv(in_file):
     """Parse useful details from SampleSheet CSV file.
     """
     # Sanitize raw file before opening with csv reader
-    _sanitize(in_file)
+    #_sanitize(in_file)
 
 #    try:
     with open(in_file, "rU") as in_handle:
-        reader = _unicode_csv_reader(in_handle)
+        reader = csv.reader(in_handle)
+        #reader = unicode_csv_reader(in_handle)
+        reader.next() # header
         for line in reader:
             if line: # empty lines
                 (fc_id, lane, sample_id, genome, barcode, description) = line[:6]
@@ -98,19 +99,6 @@ def _sanitize(in_file):
 
     fileinput.close()
 
-
-def _unicode_csv_reader(unicode_csv_data, dialect=csv.excel, **kwargs):
-    # csv.py doesn't do Unicode; encode temporarily as UTF-8:
-    csv_reader = csv.reader(_utf_8_encoder(unicode_csv_data),
-                            dialect=dialect, **kwargs)
-    for row in csv_reader:
-        # decode UTF-8 back to Unicode, cell by cell:
-        yield [unicode(cell, 'utf-8') for cell in row]
-
-def _utf_8_encoder(unicode_csv_data):
-    for line in unicode_csv_data:
-        print line
-        yield line.encode('utf-8')
 
 def csv2yaml(in_file, out_file=None):
     """Convert a CSV SampleSheet to YAML run_info format.
