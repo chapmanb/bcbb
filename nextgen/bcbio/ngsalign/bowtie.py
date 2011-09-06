@@ -25,7 +25,7 @@ def align(fastq_file, pair_file, ref_file, out_base, align_dir, config):
         else:
             cl += [fastq_file]
         cl += [out_file]
-        cl = [str(i) for i in cl]
+        cl = [os.path.expandvars(str(i)) for i in cl]
         subprocess.check_call(cl)
     return out_file
 
