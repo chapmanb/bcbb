@@ -24,6 +24,9 @@ def align(fastq_file, pair_file, ref_file, out_base, align_dir, config):
         sam_cl.append(fastq_file)
         if sai2_file:
             sam_cl.append(pair_file)
+
+        sam_cl = [os.path.expandvars(command) for command in sam_cl]
+        
         with open(sam_file, "w") as out_handle:
             subprocess.check_call(sam_cl, stdout=out_handle)
     return sam_file
@@ -33,6 +36,8 @@ def _run_bwa_align(fastq_file, ref_file, out_file, config):
               "-n %s" % config["algorithm"]["max_errors"],
               "-k %s" % config["algorithm"]["max_errors"],
               ref_file, fastq_file]
+    aln_cl = [os.path.expandvars(command) for command in aln_cl]
+
     with open(out_file, "w") as out_handle:
         subprocess.check_call(aln_cl, stdout=out_handle)
 

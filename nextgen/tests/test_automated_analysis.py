@@ -58,6 +58,21 @@ class AutomatedAnalysisTest(unittest.TestCase):
                   os.path.join(self.data_dir, "run_info.yaml")]
             subprocess.check_call(cl)
 
+    def test_run_full_pipeline_with_variable_expansion(self):
+        """Run full automated analysis pipeline, but support environment 
+        variables in the config files.
+        """
+        # Make an environmental variable with the empty string
+        os.environ['E'] = ""
+
+        with make_workdir():
+            self._install_test_files(self.data_dir)
+            cl = ["automated_initial_analysis.py",
+                  os.path.join(self.data_dir, "post_process_env_var.yaml"),
+                  os.path.join(self.data_dir, os.pardir, "110106_FC70BUKAAXX"),
+                  os.path.join(self.data_dir, "run_info.yaml")]
+            subprocess.check_call(cl)
+
     def test_empty_fastq(self):
         """Handle analysis of empty fastq inputs from failed runs.
         """

@@ -28,6 +28,7 @@ from mako.template import Template
 from bcbio.broad import BroadRunner
 from bcbio.broad.metrics import PicardMetrics
 from bcbio import utils
+from bcbio.pipeline.config_loader import load_config
 
 def main(picard_dir, align_bam, ref_file, is_paired, bait_file=None,
          target_file=None, do_sort=False, sample_name="", config=None):
@@ -36,10 +37,9 @@ def main(picard_dir, align_bam, ref_file, is_paired, bait_file=None,
         params = {}
         java_memory = ""
         if config:
-            with open(config) as in_handle:
-                info = yaml.load(in_handle)
-                params = info["program"]
-                java_memory = info["algorithm"].get("java_memory", "")
+            info = load_config(config)
+            params = info["program"]
+            java_memory = info["algorithm"].get("java_memory", "")
         picard = BroadRunner(picard_dir, max_memory=java_memory)
         if do_sort:
             align_bam = picard_sort(picard, align_bam, tmp_dir)
