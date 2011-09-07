@@ -5,6 +5,7 @@ program:
   bowtie: bowtie
   samtools: samtools
   bwa: bwa
+  tophat: tophat
   ucsc_bigwig: wigToBigWig
   picard: /usr/share/java/picard
   gatk: /usr/share/java/gatk
@@ -68,5 +69,7 @@ custom_algorithms:
     dbsnp: variation/dbsnp_132.vcf
     hybrid_bait:
     hybrid_target:
+  'RNA-seq':
+    aligner: tophat
   'Minimal':
     aligner: ""
