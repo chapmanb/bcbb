@@ -6,11 +6,6 @@ from an Illumina sequencer, converting them to standard Fastq format,
 aligning to a reference genome, doing SNP calling, and producing a
 summary PDF of results.
 
-The pipeline runs on single multicore machines, in compute clusters
-run by LSF or SGE, or on the Amazon cloud. [This tutorial][o5]
-describes running the pipeline on Amazon with [CloudBioLinux][o6] and
-[CloudMan][o7].
-
 The scripts are tightly integrated with the [Galaxy][o1]
 web-based analysis tool. Samples are entered and tracked through a LIMS
 system and processed results are uploading into Galaxy Data Libraries for
@@ -24,9 +19,6 @@ researcher access and additional analysis. See the
 [o2]: https://bitbucket.org/galaxy/galaxy-central/wiki/LIMS/nglims
 [o3]: http://bcbio.wordpress.com/2011/01/11/next-generation-sequencing-information-management-and-analysis-system-for-galaxy/
 [o4]: http://chapmanb.github.com/bcbb/nglims_organization.png
-[o5]: http://bcbio.wordpress.com/2011/08/19/distributed-exome-analysis-pipeline-with-cloudbiolinux-and-cloudman/
-[o6]: http://cloudbiolinux.org
-[o7]: http://wiki.g2.bx.psu.edu/Admin/Cloud
 
 ## Code structure
 
@@ -34,25 +26,16 @@ The main scripts that handle automation of the analysis and storage
 are:
 
 * `scripts/illumina_finished_msg.py` -- Sits on a machine where sequencing
-  runs are dumped. Should be run via a cron job every hour to
+  runs are dumped. Should be run via a cron job every hour or so to
   check for new output runs.
 
-* `scripts/nextgen_analysis_server.py` -- The main server script which
-  is used for several tasks based on a queue name passed on the
-  command line:
+* `scripts/analyze_finished_sqn.py` -- Continuously running server script on
+  the Galaxy analysis machine. When new results are reported in the messaging queue,
+  this copies over the relevant fastq files and starts an automated
+  analysis.
 
- * Called with `-q toplevel` -- Coordinate analysis of samples. This
-   can be called from `illumina_finished_msg.py` or a Galaxy front end
-   runs the full automated analysis, optionally uploading results to
-   Galaxy.
-
- * Called with no queue arguments -- Run individual steps in the
-   analysis pipeline. Multiple servers can be started on distributed
-   machines connected with a shared filesystem to allow scaling on a
-   cluster or Amazon.
-
- * Called with `-q storage` -- Manage long term storage of larger
-    files, like qseq and images.
+* `scripts/store_finished_sqn.py` -- Continuously running server that
+  manages long term storage of larger files, like qseq and images.
 
 System specific information is specified in configuration files:
 
@@ -63,17 +46,17 @@ System specific information is specified in configuration files:
   customization for processing algorithms.
 * `config/universe_wsgi.ini` -- Configuration variables that should be
   included on your Galaxy server. RabbitMQ details are specified here
-  for communication between the sequencing and analysis machines.
+  for communication between the sequencing and analysis machine.
 
-Scripts involved in the processing:
+The scripts involved in the actual processing:
 
 * `scripts/automated_initial_analysis.py` -- Drives the high level analysis of
-  sequencing lanes based on information specified through the Galaxy LIMS
-  system or in a YAML configuration file. Also produces a PDF summary file with
-  statistics on alignments, duplicates, GC distribution, quality scores,
-  and other metrics of interest.
+  sequencing lanes based on information specified through the Galaxy LIMS system
 * `scripts/upload_to_galaxy.py` -- Handles storing and uploading Fastq,
   alignment, analysis and summary files to Galaxy.
+* `scripts/align_summary_report.py` -- Produces a PDF summary file with
+  statistics on alignments, duplicates, GC distribution, quality scores,
+  and other metrics of interest.
 
 ## Installation
 
@@ -147,7 +130,6 @@ processing by hand:
 
 1. Start the processing server, `nextgen_analysis_server.py` on each
    processing machine. This takes one argument, the
-
    `post_process.yaml` file (which references the `universe_wsgi.ini`
    configuration).
 
@@ -194,10 +176,10 @@ analysis server:
 Setup rabbitmq for passing Galaxy and processing messages:
 
         rabbitmqctl add_user <username> <password>
-        rabbitmqctl add_vhost bionextgen
-        rabbitmqctl set_permissions -p bionextgen <username> ".*" ".*" ".*"
         rabbitmqctl add_vhost galaxy_messaging_engine
         rabbitmqctl set_permissions -p galaxy_messaging_engine <username> ".*" ".*" ".*"
+        rabbitmqctl add_vhost bionextgen
+        rabbitmqctl set_permissions -p bionextgen <username> ".*" ".*" ".*"
 
 Then adjust the `[galaxy_amqp]` section of your `universe_wsgi.ini`
 Galaxy configuration file. An example configuration is available in
@@ -217,13 +199,17 @@ machines without passwords, using [ssh public key authentication][i1].
 You want to enable password-less ssh for the following machine
 combinations:
 
-* Analysis server to `illumina_finished_msg` machine
-* Storage server to `illumina_finished_msg` machine
+* `analyze_finished_sqn` server to `illumina_finished_msg` machine
+* `store_finished_sqn` server to `illumina_finished_msg` machine
+* `analyze_finished_sqn` to actual analysis machine, if different else
+  localhost
+* `store_finished_sqn` server to actual storage machine, if different
+  else localhost
 
 ### Sequencing machines
 
 The backend has been developed using Illumina GAII and HiSeq sequencing
-machines. It is designed to be general and support other platforms, and
+machines. It is designed to be general and support other platforms, and 
 we welcome feedback from researchers with different machines at their
 institutions.
 
@@ -260,6 +246,7 @@ to ease your development needs using the following script:
 * [Picard][3]
 * [GATK][4]
 * [bowtie][5] or [bwa][5b]
+* [samtools][7]
 * [snpEff][16]
 * [FastQC][6]
 
@@ -268,12 +255,14 @@ to ease your development needs using the following script:
 [5]: http://bowtie-bio.sourceforge.net/
 [5b]: http://bio-bwa.sourceforge.net/
 [6]: http://www.bioinformatics.bbsrc.ac.uk/projects/fastqc/
+[7]: http://samtools.sourceforge.net/
 [16]: http://sourceforge.net/projects/snpeff/
 
 ### Processing infrastructure
 
 * RabbitMQ for communication between machines
 * LaTeX and pdflatex for report generation
+* ps2pdf
 
 ### Optional software for generating report graphs
 
@@ -289,12 +278,14 @@ to ease your development needs using the following script:
 * [PyYAML][14]
 * [logbook] [17]
 * [celery][18]
+* [amqplib][15]
 
 [10]: http://biopython.org
 [11]: http://rpy.sourceforge.net/rpy2.html
 [12]: http://code.google.com/p/pysam/
 [13]: http://www.makotemplates.org/
 [14]: http://pyyaml.org/
+[15]: http://code.google.com/p/py-amqplib
 [17]: http://packages.python.org/Logbook
 [18]: http://celeryproject.org/
 

@@ -76,8 +76,7 @@ class Biogateway:
             self._org_map = dict()
             for taxon_info in self._do_query(query):
                 if not taxon_info["graph"].endswith("_tc"):
-                    if not self._org_map.has_key(taxon_info["taxon"]):
-                        self._org_map[taxon_info["taxon"]] = taxon_info["graph"]
+                    self._org_map[taxon_info["taxon"]] = taxon_info["graph"]
         orgs = self._org_map.keys()
         orgs.sort()
         return orgs
@@ -97,26 +96,24 @@ class Biogateway:
                 all_terms, " ")
         stmt += "\nWHERE {"
         if builder.organism is not None:
-            stmt += self._get_sparql_piece("GRAPH <%s> {" %
+            stmt += self._get_sparql_piece("GRAPH <%s> {" % 
                     self._org_map[builder.organism],
                     "org_graph", all_terms, "\n", "}\n")
         for (graph_name, attr_name) in [("uniprot_sprot", "uniprot_graph"),
-                                        ("SSB", "ssb"),
+                                        ("GOA", "goa_graph"),
                                         ("gene_ontology_edit", "go_graph"),
                                         ("evidence_code", "evidence_graph")]:
             stmt += self._get_sparql_piece("GRAPH <%s> {" % graph_name,
                     attr_name, all_terms, "\n", "}\n")
         stmt += self._get_sparql_piece("", "to_filter", all_terms, "\n")
         stmt += "\n}"
+        print stmt
         results = self._do_query(stmt)
         term_names = [t.select[1:] for t in all_terms if t.select]
         vals = []
         for r in results:
             vals.append([r[n] for n in term_names])
-        if len(vals) > 0:
-            vals = numpy.core.records.array(vals, names=",".join(term_names))
-        else:
-            vals = None
+        vals = numpy.core.records.array(vals, names=",".join(term_names))
         return vals
 
     def _get_sparql_piece(self, base, attr, terms, join, end = ""):
@@ -221,7 +218,7 @@ class _RetrieveReference:
     select = "reference"
     def __init__(self):
         self.select = "?%s" % self.__class__.select
-        self.ssb = """
+        self.goa_graph = """
         ?GOA_triple rdf:subject ?protein_id.
         ?GOA_triple ssb:supported_by ?support_node.
         ?support_node ssb:refer %s.
@@ -231,7 +228,7 @@ class _RetrieveEvidence:
     select = "evidence"
     def __init__(self):
         self.select = "?%s" % self.__class__.select
-        self.ssb = """
+        self.goa_graph = """
         ?GOA_triple rdf:subject ?protein_id.
         ?GOA_triple ssb:supported_by ?support_node.
         ?support_node ssb:has_evidence ?evidence_id.
@@ -245,7 +242,7 @@ class _RetrieveGODescription:
     select = "go_desc"
     def __init__(self):
         self.select = "?%s" % self.__class__.select
-        self.ssb = "?GOA_triple rdf:object ?object."
+        self.goa_graph = "?GOA_triple rdf:object ?object."
         self.go_graph = """
           ?object rdfs:label %s.
           ?object a ?type2.

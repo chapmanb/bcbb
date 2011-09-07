@@ -8,45 +8,28 @@ system architecture.
 
 Usage:
   nextgen_analysis_server.py <post_process.yaml>
-   [--queues=list,of,queues: can specify specific queues to listen for jobs
-                             on. No argument runs the default queue, which
-                             handles processing alignments. 'toplevel' handles
-                             managing the full work process.]
 """
 import os
 import sys
 import subprocess
-import optparse
 
 import yaml
 
 from bcbio import utils
 from bcbio.distributed.messaging import create_celeryconfig
 
-def main(config_file, queues=None):
+def main(config_file):
     task_module = "bcbio.distributed.tasks"
     with open(config_file) as in_handle:
         config = yaml.load(in_handle)
     with utils.curdir_tmpdir() as work_dir:
         dirs = {"work": work_dir, "config": os.path.dirname(config_file)}
-        with create_celeryconfig(task_module, dirs, config,
-                                 os.path.abspath(config_file)):
-            run_celeryd(work_dir, queues)
+        with create_celeryconfig(task_module, dirs, config):
+            run_celeryd(work_dir)
 
-def run_celeryd(work_dir, queues):
+def run_celeryd(work_dir):
     with utils.chdir(work_dir):
-        cl = ["celeryd"]
-        if queues:
-            cl += ["-Q", queues]
-        subprocess.check_call(cl)
+        subprocess.check_call("celeryd")
 
 if __name__ == "__main__":
-    parser = optparse.OptionParser()
-    parser.add_option("-q", "--queues", dest="queues", action="store",
-                      default=None)
-    (options, args) = parser.parse_args()
-    if len(args) != 1:
-        print "Incorrect arguments"
-        print __doc__
-        sys.exit()
-    main(args[0], options.queues)
+    main(*sys.argv[1:])

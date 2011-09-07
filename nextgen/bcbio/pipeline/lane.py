@@ -26,9 +26,9 @@ def process_lane(info, fc_name, fc_date, dirs, config):
              (sample_name, info["lane"], genome_build,
               info.get("researcher", ""), info.get("analysis", "")))
     if multiplex:
-        log.debug("Sample %s multiplexed as: %s" % (sample_name, multiplex))
+        log.debug("Sample %s is multiplexed as: %s" % (sample_name, multiplex))
 
-    full_fastq1, full_fastq2 = get_fastq_files(dirs["fastq"], info, fc_name)
+    full_fastq1, full_fastq2 = get_fastq_files(dirs["fastq"], info['lane'], fc_name)
     lane_name = "%s_%s_%s" % (info['lane'], fc_date, fc_name)
     lane_items = []
     for mname, msample, fastq1, fastq2 in split_by_barcode(full_fastq1,
@@ -71,12 +71,10 @@ def process_alignment(fastq1, fastq2, genome_build, lane_name, sample, dirs, con
     """Do an alignment of fastq files, preparing a sorted BAM output file.
     """
     aligner = config["algorithm"].get("aligner", None)
-    out_bam = ""
     if os.path.exists(fastq1) and aligner:
         log.info("Aligning lane %s with %s aligner" % (lane_name, aligner))
-        out_bam = align_to_sort_bam(fastq1, fastq2, genome_build, aligner,
-                                    lane_name, sample, dirs, config)
-    return [sample, [fastq1, fastq2], out_bam, dirs, config]
+        align_to_sort_bam(fastq1, fastq2, genome_build, aligner,
+                          lane_name, sample, dirs, config)
 
 def _update_config_w_custom(config, lane_info):
     """Update the configuration for this lane if a custom analysis is specified.
@@ -87,8 +85,5 @@ def _update_config_w_custom(config, lane_info):
     if custom:
         for key, val in custom.iteritems():
             config["algorithm"][key] = val
-    # apply any algorithm details specified with the lane
-    for key, val in lane_info.get("algorithm", {}).iteritems():
-        config["algorithm"][key] = val
     return config
 
