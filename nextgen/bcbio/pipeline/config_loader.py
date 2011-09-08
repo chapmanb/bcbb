@@ -38,14 +38,24 @@ def load_config(config_file):
 		config = yaml.load(in_handle)
 	
 	for field, setting in config.items():
-		config[field] = expand_path(setting)
+		try:
+			config[field] = expand_path(setting)
+		except AttributeError:
+			pass
 
-		for sub_field, sub_setting in config[field].items():
-			config[field][sub_field] = expand_path(sub_setting)
+		try:
+			for sub_field, sub_setting in config[field].items():
+				config[field][sub_field] = expand_path(sub_setting)
+		except AttributeError:
+			pass
 
 	return config
 
 def expand_path(path):
 	""" Combines os.path.expandvars with replacing ~ with $HOME.
 	"""
-	return os.path.expandvars(path.replace("~", "$HOME"))
+	try:
+		new_path = os.path.expandvars(path.replace("~", "$HOME"))
+		return new_path
+	except AttributeError:
+		raise AttributeError("Not a path string")
