@@ -1,3 +1,7 @@
+# IMPORTANT
+# To test with this file, make sure there is an environment variable
+# $E set to "" on your system.
+
 galaxy_config: universe_wsgi.ini${E}
 program:
   bowtie: bowtie${E}
