@@ -30,13 +30,14 @@ import fabric.contrib.files as fabric_files
 
 from bcbio.log import create_log_handler
 
+from bcbio.pipeline.config_loader import load_config
+
 LOG_NAME = os.path.splitext(os.path.basename(__file__))[0]
 log = logbook.Logger(LOG_NAME)
 
 def main(galaxy_config, processing_config):
     amqp_config = _read_amqp_config(galaxy_config)
-    with open(processing_config) as in_handle:
-        config = yaml.load(in_handle)
+    config = load_config(processing_config)
     log_handler = create_log_handler(config, LOG_NAME)
     process_tag = config["msg_process_tag"]
     handlers = [(process_tag,
