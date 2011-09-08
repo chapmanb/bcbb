@@ -4,6 +4,7 @@ import os
 import copy
 import csv
 
+from bcbio.utils import UnicodeWriter
 from bcbio.pipeline import log
 from bcbio.pipeline.fastq import get_fastq_files
 from bcbio.pipeline.demultiplex import split_by_barcode
@@ -62,7 +63,7 @@ def process_lane(info, fc_name, fc_date, dirs, config):
             
             # Append the results to the report file 
             with open(dmplx_report_file,"ab") as mfw:
-                csvw = csv.writer(mfw,dialect='excel-tab')
+                csvw = UnicodeWriter(mfw, dialect='excel-tab')
                 csvw.writerows(dmplx)    
         
     return lane_items
