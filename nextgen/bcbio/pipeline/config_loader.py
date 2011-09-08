@@ -30,10 +30,10 @@ import os
 import yaml
 
 def load_config(config_file):
-""" Goes through two levels of the given yaml  post processing config file, 
-performs replacement of environment variables and returns a dictionary 
-representing the yaml file.
-"""
+	""" Goes through two levels of the given yaml  post processing config file, 
+	performs replacement of environment variables and returns a dictionary 
+	representing the yaml file.
+	"""
 	with open(config_file) as in_handle:
 		config = yaml.load(in_handle)
 	
@@ -46,6 +46,6 @@ representing the yaml file.
 	return config
 
 def expand_path(path):
-""" Combines os.path.expandvars with replacing ~ with $HOME.
-"""
+	""" Combines os.path.expandvars with replacing ~ with $HOME.
+	"""
 	return os.path.expandvars(path.replace("~", "$HOME"))
