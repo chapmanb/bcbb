@@ -79,7 +79,6 @@ def _write_demultiplex_counts(lane_name, fc_name, fc_date, workdir, info):
     with open(dmplx_report_file,"ab") as mfw:
         csvw = UnicodeWriter(mfw, dialect='excel-tab')
         csvw.writerows(dmplx)    
-        
 
 def process_alignment(fastq1, fastq2, genome_build, lane_name, sample, dirs, config):
     """Do an alignment of fastq files, preparing a sorted BAM output file.
