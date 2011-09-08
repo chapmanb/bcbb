@@ -4,6 +4,7 @@ import os
 import copy
 import csv
 
+from bcbio.utils import UnicodeWriter
 from bcbio.pipeline import log
 from bcbio.pipeline.fastq import get_fastq_files
 from bcbio.pipeline.demultiplex import split_by_barcode
@@ -76,7 +77,7 @@ def _write_demultiplex_counts(lane_name, fc_name, fc_date, workdir, info):
             
     # Append the list of results to the report file 
     with open(dmplx_report_file,"ab") as mfw:
-        csvw = csv.writer(mfw,dialect='excel-tab')
+        csvw = UnicodeWriter(mfw, dialect='excel-tab')
         csvw.writerows(dmplx)    
         
 
