@@ -39,33 +39,46 @@ def process_lane(info, fc_name, fc_date, dirs, config):
         lane_items.append((fastq1, fastq2, genome_build, mlane_name, msample,
                            dirs, config))
     
-    # Append the demultiplexing results for this lane to the report file
-    if multiplex:
-        metrics_file = os.path.join(dirs["work"], "%s_barcode" % lane_name, "%s_bc.metrics" % lane_name)
-        dmplx_report_file = os.path.join(dirs["work"], "demultiplexed_read_counts.txt")
-        if os.path.exists(metrics_file):
-            
-            # Lookup the name and sequence of the barcode index
-            barcodes = dict()
-            for m in multiplex:
-                barcodes[m.get('barcode_id','')] = [m.get('name','.'),m.get('sequence','.')]
-            
-            # Parse the demultiplexed barcode counts and store them and the metadata in a list
-            dmplx = []
-            with open(metrics_file,"rb") as mfr:
-                csvr = csv.reader(mfr,dialect='excel-tab')
-                for row in csvr:
-                    d = [fc_date,fc_name,info['lane'],info.get('description','Lane '+str(info['lane'])),row[0]]
-                    d.extend(barcodes.get(row[0],['.','.']))
-                    d.append(row[1])
-                    dmplx.append(d)
-            
-            # Append the results to the report file 
-            with open(dmplx_report_file,"ab") as mfw:
-                csvw = csv.writer(mfw,dialect='excel-tab')
-                csvw.writerows(dmplx)    
-        
+    _write_demultiplex_counts(lane_name,fc_name,fc_date,dirs["work"],info)
+    
     return lane_items
+    
+# Append the demultiplexing results for this lane to the report file
+def _write_demultiplex_counts(lane_name, fc_name, fc_date, workdir, info):
+    
+    multiplex = info.get("multiplex", None)
+    if not multiplex:
+        return
+    
+    metrics_file = os.path.join(workdir, "%s_barcode" % lane_name, "%s_bc.metrics" % lane_name)
+    dmplx_report_file = os.path.join(workdir, "%s_%s_demultiplexed_read_counts.txt" % (fc_date,fc_name))
+    
+    if not os.path.exists(metrics_file):
+        log.info("No barcode metrics file could be found for lane %s (expected '%s')" % (lane_name,metrics_file))
+        return
+    
+    # Get the name and sequence corresponding to each barcode index in the multiplex section for this lane
+    bc_meta_data = dict()
+    for bc in multiplex:
+        bc_id = bc.get("barcode_id",None)
+        if bc_id:
+            bc_meta_data[str(bc_id)] = [bc.get('name','N/A'),bc.get('sequence','N/A'),bc.get('barcode_type','N/A')]
+            
+    # Parse the demultiplexed barcode counts in the metrics file and store them and the metadata in a list
+    dmplx = []
+    with open(metrics_file,"rb") as mfr:
+        csvr = csv.reader(mfr,dialect='excel-tab')
+        for row in csvr:
+            bc_id = row[0]
+            bc_count = row[1]
+            (bc_name,bc_seq,bc_type) = bc_meta_data.get(str(bc_id),['N/A','N/A','N/A'])
+            dmplx.append([fc_date,fc_name,info['lane'],info.get('description','Lane '+str(info['lane'])),bc_id,bc_name,bc_seq,bc_type,bc_count])
+            
+    # Append the list of results to the report file 
+    with open(dmplx_report_file,"ab") as mfw:
+        csvw = csv.writer(mfw,dialect='excel-tab')
+        csvw.writerows(dmplx)    
+        
 
 def process_alignment(fastq1, fastq2, genome_build, lane_name, sample, dirs, config):
     """Do an alignment of fastq files, preparing a sorted BAM output file.
