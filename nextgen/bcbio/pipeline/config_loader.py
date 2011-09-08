@@ -10,7 +10,11 @@ program:
 algorithm:
 	setting1:
 	setting2:
+log_dir:
+store_dir:
+store_host:
 analysis:
+	config_file:
 	towig_script:
 distributed:
 	rabbitmq_vhost:
