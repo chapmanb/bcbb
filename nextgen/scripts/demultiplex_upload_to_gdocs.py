@@ -32,15 +32,15 @@ import gdata.docs.service
 
 # The structure of the demultiplex result file on the form {title: column index}
 header = {
-          'date': 0,
-          'flowcell_id': 1,
-          'lane_id': 2,
-          'description': 3,
-          'barcode_id': 4,
-          'barcode_name': 5,
-          'barcode_sequence': 6,
-          'barcode_type': 7,
-          'demultiplexed_reads': 8
+          'Date': 0,
+          'Flowcell': 1,
+          'Lane': 2,
+          'Description': 3,
+          'Internal barcode index': 4,
+          'Barcode name': 5,
+          'Barcode sequence': 6,
+          'Barcode type': 7,
+          'Demultiplexed read count': 8
           }
 
 def decode_credentials(credentials):
@@ -79,7 +79,7 @@ def upload_demultiplex_data(dmplx_report_file, gdocs_spreadsheet_title, credenti
     client = gdata.spreadsheet.service.SpreadsheetsService()
     client.email = credentials[0]
     client.password = credentials[1]
-    client.source = 'demultiplex_upload.py'
+    client.source = 'demultiplex_upload_to_gdocs.py'
     client.ProgrammaticLogin()
     
     # Create a query that restricts the spreadsheet feed to documents having the supplied title
@@ -117,8 +117,8 @@ def upload_demultiplex_data(dmplx_report_file, gdocs_spreadsheet_title, credenti
             return
         
         # Get the date and flowcell id and base the name of the worksheet on these
-        date = rows[0][header.get('date',0)]
-        fcid = rows[0][header.get('flowcell_id',1)]
+        date = rows[0][header.get('Date',0)]
+        fcid = rows[0][header.get('Flowcell',1)]
         
         # Check if there already is a worksheet present matching the data
         ws_title = "%s_%s" % (date,fcid)
@@ -139,17 +139,20 @@ def upload_demultiplex_data(dmplx_report_file, gdocs_spreadsheet_title, credenti
 
         log.info("Adding data to the '%s' worksheet" % ws_title)
         # First, print the header
+        # As a workaround for the InsertRow bugs with column names, just use single lowercase letters as column headers to start with
         for val, j in header.items():
-             client.UpdateCell(1,j+1,val,ss_key,ws_id)
+             client.UpdateCell(1,j+1,chr(97+j),ss_key,ws_id)
         
         # Iterate over the rows and add the data to the worksheet
-        i=2
         for row in rows:
-            j=1
-            for val in row:
-                client.UpdateCell(i,j,val,ss_key,ws_id)
-                j += 1
-            i += 1
+            row_data = {}
+            for col,idx in header.items():
+                row_data[chr(97+idx)] = row[idx]
+            client.InsertRow(row_data,ss_key,ws_id)
+
+        # Lastly, substitute the one-letter header for the real deal
+        for val, j in header.items():
+             client.UpdateCell(1,j+1,val,ss_key,ws_id)
  
 
 
