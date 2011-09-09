@@ -6,6 +6,8 @@ import subprocess
 def test_analyze_finished_sqn():
 	"""Test running the script with the config files in the
 	sub directory tests/test_transfer_data as input.
+
+	Requires running Galaxy to use, with correct values in the configs.
 	"""
 	config_dir = os.path.join(os.path.dirnam(__file__), "test_transfer_data")
 	cl = ["analyze_finished_sqn.py", 
@@ -17,6 +19,8 @@ def test_analyze_finished_sqn():
 def test_analyze_finished_sqn_transfer_info():
 	"""Test running the script with the config files in the
 	sub directory tests/test_transfer_data as input.
+
+	Requires running Galaxy to use, with correct values in the configs.
 	"""
 	config_dir = os.path.join(os.path.dirnam(__file__), "test_transfer_data")
 	cl = ["analyze_finished_sqn.py", 
@@ -25,3 +29,16 @@ def test_analyze_finished_sqn_transfer_info():
 		  os.path.join(config_dir, "transfer_info.yaml")]
 
 	subprocess.check_call(cl)
+
+def test__remote_copy():
+	"""Sets up dictionaries simulating loaded remote_info and config
+	from various sources. Then test transferring files with the function.
+	"""
+	config = {'analysis': {'store_dir': '/Users/val/pipeline_test/store_dir'}}
+	remote_info = {}
+	remote_info["directory"] = ""
+	remote_info["to_copy"] = ""
+	remote_info["user"] = ""
+	remote_info["hostname"] = ""
+
+	_remote_copy(remote_info, config)

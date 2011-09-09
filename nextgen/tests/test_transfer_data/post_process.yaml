@@ -48,7 +48,7 @@ analysis:
   config_file: /path/to/remote/post_process.yaml
   copy_user:
   copy_host:
-  store_dir: /store4/solexadata
+  store_dir: ~/pipeline_test/store_dir
   base_dir: /array0/projects/Sequencing
   towig_script: bam_to_wiggle.py
   process_program: automated_initial_analysis.py
