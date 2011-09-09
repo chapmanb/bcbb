@@ -59,7 +59,10 @@ def run_analysis(config_file, fc_dir, run_info_yaml, cluster, config):
 
 def stop_workers(cluster, jobids):
     for jobid in jobids:
-        cluster.stop_job(jobid)
+        try:
+            cluster.stop_job(jobid)
+        except:
+            pass
 
 if __name__ == "__main__":
     main(*sys.argv[1:])
