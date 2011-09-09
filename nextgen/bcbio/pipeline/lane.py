@@ -4,6 +4,7 @@ import os
 import copy
 import csv
 
+from operator import itemgetter
 from bcbio.utils import UnicodeWriter
 from bcbio.pipeline import log
 from bcbio.pipeline.fastq import get_fastq_files
@@ -48,8 +49,11 @@ def process_lane(info, fc_name, fc_date, dirs, config):
 def _write_demultiplex_counts(lane_name, fc_name, fc_date, workdir, info):
     
     multiplex = info.get("multiplex", None)
-    if not multiplex:
+    if not multiplex or len(multiplex) == 0:
         return
+    
+    lane = info['lane']
+    description = info.get('description','Lane '+str(info['lane']))
     
     metrics_file = os.path.join(workdir, "%s_barcode" % lane_name, "%s_bc.metrics" % lane_name)
     dmplx_report_file = os.path.join(workdir, "%s_%s_demultiplexed_read_counts.txt" % (fc_date,fc_name))
@@ -65,16 +69,43 @@ def _write_demultiplex_counts(lane_name, fc_name, fc_date, workdir, info):
         if bc_id:
             bc_meta_data[str(bc_id)] = [bc.get('name','N/A'),bc.get('sequence','N/A'),bc.get('barcode_type','N/A')]
             
-    # Parse the demultiplexed barcode counts in the metrics file and store them and the metadata in a list
-    dmplx = []
+    # Parse the demultiplexed barcode counts in the metrics file
+    bc_metrics = []
     with open(metrics_file,"rb") as mfr:
         csvr = csv.reader(mfr,dialect='excel-tab')
         for row in csvr:
-            bc_id = row[0]
-            bc_count = row[1]
-            (bc_name,bc_seq,bc_type) = bc_meta_data.get(str(bc_id),['N/A','N/A','N/A'])
-            dmplx.append([fc_date,fc_name,info['lane'],info.get('description','Lane '+str(info['lane'])),bc_id,bc_name,bc_seq,bc_type,bc_count])
-            
+            bc_metrics.append([row[0],int(row[1])])
+    
+    # Sort the metrics according to number of reads
+    bc_metrics = sorted(bc_metrics,key=itemgetter(1),reverse=True)
+    
+    # Join the metrics and the meta data into a list
+    dmplx = []
+    rank = 1
+    for (bc_id,bc_count) in bc_metrics:
+        
+        # Get the corresponding meta data as specified in the multiplex section of run_info.yaml
+        meta = bc_meta_data.get(str(bc_id),None)
+        comment = ""
+        
+        # If meta data was not specified, check that the number of reads for this barcode isn't greater than the number for any of the expected barcodes
+        if not meta:
+            meta = ["N/A","N/A","N/A"]
+            if rank <= len(multiplex):
+                comment = "not specified in samplesheet, yet more reads than some of the expected barcodes"
+        # Else, delete the entry from the barcode dictionary
+        else:
+            del bc_meta_data[str(bc_id)]
+            if rank > len(multiplex):
+                pass
+    
+        rank += 1
+        dmplx.append([fc_date,fc_name,lane,description,bc_id,meta[0],meta[1],meta[2],bc_count,comment])
+    
+    # Warn if no demultiplex metrics were found for a barcode entry in run_info.yaml
+    for bc_id, meta in bc_meta_data.items():
+        dmplx.append([fc_date,fc_name,lane,description,bc_id,meta[0],meta[1],meta[2],0,"no reads after demultiplexing"])
+    
     # Append the list of results to the report file 
     with open(dmplx_report_file,"ab") as mfw:
         csvw = UnicodeWriter(mfw, dialect='excel-tab')

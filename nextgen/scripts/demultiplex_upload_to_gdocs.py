@@ -40,7 +40,8 @@ header = {
           'Barcode name': 5,
           'Barcode sequence': 6,
           'Barcode type': 7,
-          'Demultiplexed read count': 8
+          'Demultiplexed read count': 8,
+          'Comment': 9
           }
 
 def decode_credentials(credentials):
