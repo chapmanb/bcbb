@@ -26,6 +26,7 @@ import base64
 import yaml
 from optparse import OptionParser
 from bcbio.pipeline import log
+from bcbio.utils import UnicodeReader
 
 import gdata.spreadsheet.service
 import gdata.docs.service
@@ -105,7 +106,7 @@ def upload_demultiplex_data(dmplx_report_file, gdocs_spreadsheet_title, credenti
     
     # Parse the result file to get the necessary parameters to determine worksheet names etc.
     with open(dmplx_report_file,"rb") as f:
-        csvr = csv.reader(f,dialect='excel-tab')
+        csvr = UnicodeReader(f,dialect='excel-tab')
         
         # Read the entire file
         rows = []
