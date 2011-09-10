@@ -59,6 +59,10 @@ def main(run_info_yaml, yaml_project_desc, fc_dir, project_outdir,
     log_handler = create_log_handler(config, log.name)
     with log_handler.applicationbound():
         run_info = prune_run_info_by_description(run_info, yaml_project_desc)
+    if len(run_info) == 0:
+        log.error("No lanes found with matching description %s: please check your run_info.yaml file" % yaml_project_desc)
+        sys.exit()
+
 
     dirs = dict(fc_dir=fc_dir, project_dir=project_outdir)
     fc_name, fc_date = get_flowcell_id(run_info, dirs['fc_dir'])
@@ -131,7 +135,18 @@ def _save_run_info(run_info, outdir, run_exit=False):
         sys.exit()
 
 if __name__ == "__main__":
-    parser = OptionParser()
+    usage = """
+    sample_delivery.py <YAML run config> <yaml project description>
+                       <flowcell directory> <project output directory>
+                       [--flowcell_alias=<flowcell alias> 
+                        --only_install_run_info
+                        --make_delivery_report --dry_run]
+
+    For more extensive help type sample_delivery.py
+
+"""
+
+    parser = OptionParser(usage=usage)
     parser.add_option("-a", "--flowcell_alias", dest="fc_alias")
     parser.add_option("-I", "--only_install_run_info", dest="only_run_info", action="store_true",
                       default=False)
