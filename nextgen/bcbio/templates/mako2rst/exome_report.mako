@@ -34,28 +34,13 @@ Mapping results
 Targeted resequencing QC
 ================================
 
-% if use_picard_metrics
-
 Picard metrics
 --------------
 
 Align metrics
 ~~~~~~~~~~~~~
 
-<%!
-for fc in flowcell_ids:
-    align_files = glob.glob(os.path.join(intermediate_dir, fc, "*", "*.align_metrics"))
-    metrics = dict()
-    for af in align_files:
-        f = open(af)
-        tmp = f.readlines()
-        close(f)
-        metrics[fc] = tmp
-%>
-% for fc in flowcell_ids:
-${metrics[fc]}
-% endfor
-
+${m2r.align_metrics(align_metrics)}
 
 Duplication metrics
 ~~~~~~~~~~~~~
@@ -71,13 +56,25 @@ SNP filter metrics
 
 
 
-% endif
-
-
-% if use_TEQC
-
 TEQC
 -----
 
+Chromosal distribution
+~~~~~~~~~~~~~~~~~~
 
-% endif
+These plots show the distribution of reads over chromosomes.
+
+${m2r.teqc_graphics(teqc_grf)}
+
+Coverage histogram
+~~~~~~~~~~~~~~~~~~
+
+Coverage target length
+~~~~~~~~~~~~~~~~~~~~~~~
+
+
+Coverage target length nReads
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+
