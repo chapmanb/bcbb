@@ -90,7 +90,7 @@ class SampleBasedAnalysisTest(unittest.TestCase):
         with workdir():
             cl = ["exome_pipeline.py",
                   os.path.join(self.proj_dir, "proj_conf.yaml"),
-                  os.path.join(self.proj_dir, "intermediate", "nobackup", "20000101A_hiseq2000", "110106_FC70BUKAAXX"),
+                  os.path.join(self.proj_dir, "intermediate", "nobackup", "110106_FC70BUKAAXX"),
                   os.path.join(self.proj_dir, "data", "20000101A_hiseq2000", "project_run_info.yaml"),
                   "--project_dir=%s" %(self.proj_dir)]
             subprocess.check_call(cl)
