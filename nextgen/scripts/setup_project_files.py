@@ -23,31 +23,33 @@ from bcbio.pipeline import log
 from bcbio.pipeline.lane import get_flowcell_id
 from bcbio.pipeline.fastq import get_barcoded_project_files, convert_name_to_barcode_id
 
-def main(run_info_yaml, fastq_dir, project_dir="./"):
+def main(run_info_yaml, fastq_dir, project_dir):
     with open(run_info_yaml) as in_handle:
         run_info = yaml.load(in_handle)
     fastq_dir = os.path.normpath(fastq_dir)
-    project_dir = os.path.normpath(project_dir)
+    project_dir = os.path.abspath(project_dir)
     dirs  = dict(work_dir = project_dir)
     if os.path.exists( os.path.join(project_dir, "data", fastq_dir)):
         dirs.update(fastq_dir = os.path.join(project_dir, "data", fastq_dir))
     else:
-        dirs.update(fastq_dir = fastq_dir)
+        dirs.update(fastq_dir = os.path.abspath(fastq_dir))
 
     fc_name, fc_date = get_flowcell_id(run_info, dirs['fastq_dir'], glob_ext=".fastq", check_bc=False)
     config = dict(log_dir=os.path.join(project_dir, "log"), 
                   fc_name = fc_name,
                   fc_date = fc_date
                   )
-    dirs.update(fc_dir = os.path.join(project_dir, "intermediate", "nobackup", os.path.basename(fastq_dir), 
-                                                "%s_%s" %(fc_date, fc_name)))
-
+    dirs.update(fc_dir = os.path.join(project_dir, "intermediate", "nobackup", "%s_%s" %(fc_date, fc_name)))
+    dirs.update(fc_alias_dir = os.path.join(project_dir, "intermediate", "nobackup", os.path.basename(fastq_dir)))
 
     log_handler = create_log_handler(config, log.name)
     with log_handler.applicationbound():
         if not os.path.exists(dirs['fc_dir']):
             log.info("Creating flow cell directory %s" % (dirs['fc_dir']))
             os.makedirs(dirs['fc_dir'])
+        if not os.path.exists(dirs['fc_alias_dir']):
+            log.info("Creating symbolic link from flowcell directory %s to alias directory %s" % (dirs['fc_dir'], dirs['fc_alias_dir']))
+            os.symlink(dirs['fc_dir'], dirs['fc_alias_dir'])
         run_main(run_info, config, dirs)
 
 def run_main(run_info, config, dirs):

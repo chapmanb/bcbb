@@ -33,20 +33,22 @@ the following convention:
 
 j_doe_00_01/data/fastq_dir
 
-where j_doe_00_01 is the project name to be provided at the command line. Data 
-analyses are then performed in 
-
-j_doe_00_01/intermediate/nobackup/fastq_dir/
-
-which in turn contains subdirectories for flowcells, alignments etc.
+where j_doe_00_01 is the project name to be provided at the command line. 
 
 The <flow cell dir> names a flowcell directory:
 
-j_doe_00_01/intermediate/nobackup/fastq_dir/flow_cell_dir
+j_doe_00_01/intermediate/nobackup/flow_cell_dir
 
-in which the delivered fastq files have been renamed to their original names
+in which data analyses are then performed.
+
+In this directory, the delivered fastq files have been renamed to their original names
 and link back to the files in j_doe_00_01/data/fastq_dir directory. Hence,
 the bcbio modules can be directly applied to the file names in flow_cell_dir.
+
+If sample delivery was done to a fastq directory named differently than the 
+flowcell id, there will also be a link to <fc_alias_dir>
+
+j_doe_00_01/intermediate/nobackup/fc_alias_dir -> j_doe_00_01/intermediate/nobackup/flow_cell_dir
 
 Relinking of files is done in the script setup_project_files.py.
 
@@ -96,13 +98,8 @@ def run_main(config, config_file, fc_dir, project_dir, run_info_yaml):
     # Working directory has to be identical to where (demultiplexed) fastq files are delivered
     work_dir = fc_dir
     align_dir = os.path.join(work_dir, "alignments")
-    (fc_alias_dir, _) = os.path.split(work_dir)
-    (_, fastq_dir_label) = os.path.split(fc_alias_dir)
+    (_, fastq_dir_label) = os.path.split(work_dir)
     fastq_dir = os.path.join(project_dir, "data", fastq_dir_label)
-    # Sanity check
-    if not os.path.exists(fastq_dir):
-        print "Cannot find %s : ensure that your project folder contains delivered fastq files in data/%s and a flowcell directory in intermediate/%s" %(fastq_dir, fastq_dir_label, fastq_dir_label)
-        sys.exit()
 
     fc_name, fc_date = get_flowcell_info(fc_dir)
     run_info = _get_run_info(fc_name, fc_date, config, run_info_yaml)

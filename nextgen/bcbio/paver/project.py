@@ -39,8 +39,8 @@ def mako_to_rst(tmpl, **tmpl_kw):
 
 
 def _exome_pipeline_cl(item):
-    fc = glob.glob(os.path.join(options.dirs.intermediate, item, "*_*"))[0]
-    wd = os.path.join(options.dirs.intermediate, item, fc)
+    fc = glob.glob(os.path.join(options.dirs.intermediate, "*_*"))[0]
+    wd = os.path.join(options.dirs.intermediate, fc)
     cl = ['exome_pipeline.py', os.path.join(options.dirs.git,"proj_conf.yaml"), 
           wd, os.path.join(options.dirs.data, item, "project_run_info.yaml"), 
           '--project_dir=%s' %(options.dirs.top) ]
