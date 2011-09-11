@@ -51,7 +51,9 @@ ${footer}
 
 PROJ_CONF_YAML = Template('''\
 galaxy_config:
+top_dir: ${top_dir}
 log_dir: ${log_dir}
+intermediate_dir: $
 genome_build: hg19
 program:
   bowtie: bowtie
@@ -124,7 +126,7 @@ options(
         sbatch = "${sbatch_dir}",
         log = "${log_dir}",
         git = "${git_dir}",
-        intermediate = os.path.join("${top_dir}", "intermediate", "nobackup"),
+        intermediate = "${intermediate_dir}",
         data = os.path.join("${top_dir}", "data"),
         ),
     sbatch = Bunch(
@@ -132,7 +134,7 @@ options(
         constraint = '',
         time = '50:00:00',
         jobname = '',
-        workdir = os.path.join("${top_dir}", "intermediate", "nobackup"),
+        workdir = "${intermediate_dir}",
         partition = 'node',
         cores = '8',
         mail_type = 'ALL',
@@ -171,12 +173,6 @@ options(
 # ##############################
 # # Sphinx related tasks
 # ##############################
-@task
-def make_delivery_report():
-    """Make delivery report"""
-    tmpl = Template(filename=os.path.join(options.sphinx.doc, "delivery.mako"))
-    tmpl_kw = dict(options.dirs)
-    mako_to_rst(tmpl, **tmpl_kw)
 
 '''
 )
@@ -284,6 +280,7 @@ The top path defines the root of the project. Relative to this path there should
     d['sbatch_dir'] = path.join(d['top_dir'], 'sbatch')
     d['log_dir'] = path.join(d['top_dir'], 'log')
     d['sphinx_dir'] = path.join(d['git_dir'], 'doc')
+    d['intermediate_dir'] = path.join(d['top_dir'], "intermediate", "nobackup")
 
     mkdir_p(d['git_dir'])
     mkdir_p(d['sbatch_dir'])
