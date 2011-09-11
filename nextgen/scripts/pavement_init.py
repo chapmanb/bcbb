@@ -30,6 +30,7 @@ TMPDIR=/scratch/$SLURM_JOB_ID
 #SBATCH -J ${jobname}
 #SBATCH -D ${workdir}
 #SBATCH -p ${partition}
+#SBATCH -n ${cores}
 #SBATCH --mail-type=${mail_type}
 #SBATCH --mail-user=${mail_user}
 <%
@@ -133,6 +134,7 @@ options(
         jobname = '',
         workdir = os.path.join("${top_dir}", "intermediate", "nobackup"),
         partition = 'node',
+        cores = '8',
         mail_type = 'ALL',
         mail_user = "${mail_user}",
         header = '',
