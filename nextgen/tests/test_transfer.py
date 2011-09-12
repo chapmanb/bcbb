@@ -1,6 +1,7 @@
 """Testing using config files for transfer settings.
 """
 import os
+import sys
 import subprocess
 
 def test_analyze_finished_sqn():
@@ -29,6 +30,12 @@ def test_analyze_finished_sqn_transfer_info():
 		  os.path.join(config_dir, "transfer_info.yaml")]
 
 	subprocess.check_call(cl)
+
+# To be able to import functions from the scripts for testing.
+sys.path.append("/Users/val/Documents/bcbb/nextgen/scripts")
+sys.path.append("/Users/val/Documents/bcbb/nextgen")
+
+from analyze_finished_sqn import _remote_copy
 
 def test__remote_copy():
 	"""Sets up dictionaries simulating loaded remote_info and config
