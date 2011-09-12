@@ -36,9 +36,9 @@ def test__remote_copy():
 	"""
 	config = {'analysis': {'store_dir': '/Users/val/pipeline_test/store_dir'}}
 	remote_info = {}
-	remote_info["directory"] = ""
-	remote_info["to_copy"] = ""
-	remote_info["user"] = ""
-	remote_info["hostname"] = ""
+	remote_info["directory"] = "/Users/val/Documents/bcbb/nextgen/tests/test_transfer_data/to_copy"
+	remote_info["to_copy"] = ["file1", "file2", "file3"]
+	remote_info["user"] = "val"
+	remote_info["hostname"] = "localhost"
 
 	_remote_copy(remote_info, config)
