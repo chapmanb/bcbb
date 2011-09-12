@@ -9,6 +9,34 @@ import glob
 
 from paver.easy import *
 from bcbio.paver.misc import process_list, process_dict
+from mako.template import Template
+
+EXOMEQC_YAMLTEMPLATE = Template("""## Configuration for exomeQC
+## Analysis files
+target: ${target}
+baits: ${bait}
+bedfile: ${bedfile}
+
+## Sample label for easy reference
+label: ${label}
+
+## Genome: one of NA, hg18, hg19
+genome: ${genome}
+
+## Save configuration
+outdir: ${outdir}
+pairedend: ${pairedend}
+saverda: TRUE
+
+## Analyses - either TRUE or FALSE
+analyses:
+  barplot: TRUE
+  specificity: TRUE
+  coverage: TRUE
+  enrichment: TRUE
+  duplicates: TRUE
+""")
+
 
 @contextlib.contextmanager
 def cd_workdir(wd):
@@ -47,6 +75,29 @@ def _exome_pipeline_cl(item):
     options.sbatch.update(jobname="%s_exomepipe" % (item), workdir=wd)
     _sbatch(cl, options.mako.sbatch, **options.sbatch)
 
+def _exomeQC_cl(item):
+    fc = glob.glob(os.path.join(options.dirs.intermediate, "*_*"))[0]
+    wd = os.path.join(options.dirs.intermediate, fc)
+    bedfiles = glob.glob(os.path.join(wd, "*.bed"))
+    cl = []
+    for bd in bedfiles:
+        yatmpl = EXOMEQC_YAMLTEMPLATE
+        yatmpl_qw = {
+            'bedfile' : bd,
+            'label' : os.path.basename(bd).split("-")[0],
+            'outdir' : wd,
+            'target' : options.seqcap.target,
+            'bait' : options.seqcap.bait,
+            'genome' : options.seqcap.genome,
+            'pairedend' : options.seqcap.pairedend,
+            'outdir' : wd
+            }
+        out_yaml = os.path.join(options.dirs.sbatch, "%s.yaml" % (yatmpl_qw['label']))
+        with open(out_yaml, 'w') as out_handle:
+            out_handle.write(yatmpl.render(**yatmpl_qw))
+        cl.append("R CMD BATCH --vanilla '--args exomerc=\"%s\"' %s %s.Rout\n" % (out_yaml, options.seqcap.exomeQC, yatmpl_qw['label']))
+    options.sbatch.update(jobname="%s_eqc" % (item), workdir=wd, constraint='fat')
+    _sbatch(cl, options.mako.sbatch, **options.sbatch)
 
 # Tasks
 @task
@@ -70,13 +121,8 @@ def sbatch_exome_pipeline():
 @task
 def sbatch_exomeQC():
     """Make sbatch files for exomeQC.R
-    """
-    YAMLFILE = Template
-
-# @task
-# def make_exomeQC_sbatch(options):
-#     """Make sbatch file for exomeQC.R
-#     See %(sbatch) directory for output""" % (options.dirs.sbatch_dir)
-#     with cd_workdir(options.dirs.sbatch_dir):
-#         process_list(_make_exomeQC_cl, options.illumina.fcids)
+    See ../sbatch for output"""
+    options.log.info("Running pavement.sbatch_exomeQC")
+    with cd_workdir(options.dirs.top):
+        process_list(_exomeQC_cl, options.illumina.flowcell_ids)
 
