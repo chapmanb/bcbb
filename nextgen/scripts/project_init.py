@@ -116,6 +116,7 @@ from mako.template import Template
 from paver.easy import *
 from bcbio.paver.misc import *
 from bcbio.paver.project import *
+import paver.doctools
 
 handler = logbook.FileHandler(os.path.join("${log_dir}", "%s.log" % log.name))
 handler.push_application()
@@ -148,7 +149,7 @@ options(
         sbatch = Template(filename = "sbatch_template.mako"),
         ),
     sphinx = Bunch(
-        doc = "${sphinx_dir}",
+        docroot = "${sphinx_dir}",
         ),
     # useful option for facilitating rsync
     #rsync = Bunch(
