@@ -41,6 +41,10 @@ import fabric.api as fabric
 def test__remote_copy():
 	"""Sets up dictionaries simulating loaded remote_info and config
 	from various sources. Then test transferring files with the function.
+
+	Note that there need to be passphrase free SSH between this machine
+	and what is set up as remote_info["hostname"]. If remote_info["hostname]
+	is "localhost"; SSH to localhost need to be set up to be passphrase free.
 	"""
 	config = {"analysis": {"store_dir": "/Users/val/pipeline_test/store_dir"}}
 	remote_info = {}
