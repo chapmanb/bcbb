@@ -42,5 +42,6 @@ setup(name = "bcbio-nextgen",
           "setuptools",
           "celery >= 2.2.7",
           "nose >= 1.0.0",
+          "gdata >= 2.0.14",
           #"rpy2 >= 2.0.7"
       ])
