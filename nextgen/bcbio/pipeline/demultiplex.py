@@ -33,7 +33,10 @@ def split_by_barcode(fastq1, fastq2, multiplex, base_name, dirs, config):
                 cl.append("--five")
             if config["algorithm"].get("bc_allow_indels", True) is False:
                 cl.append("--noindel")
+            
+            cl = [os.path.expandvars(command) for command in cl]
             subprocess.check_call(cl)
+            
     out_files = []
     for info in multiplex:
         fq_fname = lambda x: os.path.join(bc_dir, "%s_%s_%s_fastq.txt" %

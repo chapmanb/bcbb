@@ -51,10 +51,11 @@ ${footer}
 
 PROJ_CONF_YAML = Template('''\
 galaxy_config:
-top_dir: ${top_dir}
-log_dir: ${log_dir}
-intermediate_dir: $
-genome_build: hg19
+third_party:
+  top_dir: ${top_dir}
+  log_dir: ${log_dir}
+  intermediate_dir: ${intermediate_dir}
+  genome_build: hg19
 program:
   bowtie: bowtie
   samtools: samtools
