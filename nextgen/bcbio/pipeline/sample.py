@@ -46,6 +46,7 @@ def bam_to_wig(bam_file, config, config_file):
     wig_file = "%s.bigwig" % os.path.splitext(bam_file)[0]
     if not (os.path.exists(wig_file) and os.path.getsize(wig_file) > 0):
         cl = [config["analysis"]["towig_script"], bam_file, config_file]
+        cl = [os.path.expandvars(command) for command in cl]
         subprocess.check_call(cl)
     return wig_file
 

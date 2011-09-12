@@ -21,6 +21,7 @@ class SampleSheetTest(unittest.TestCase):
         self.ss_non_multiplex = os.path.join( ssheets_dir, "illumina_samplesheet_non_multiplex_samples.csv")
         self.ss_unbalanced = os.path.join( ssheets_dir, "illumina_samplesheet_unbalanced_quotes.csv")
         self.ss_unicode = os.path.join( ssheets_dir, "illumina_samplesheet_unicode.csv")
+        self.ss_nonbarcoded = os.path.join( ssheets_dir, "illumina_samplesheet_nonbarcoded_lanes.csv")
 
         self.out_file = "" 
 
@@ -61,6 +62,13 @@ class SampleSheetTest(unittest.TestCase):
        
         assert info[0]['multiplex'][0]['name'].encode('utf-8') == 'Åsö Bergström'
 
+    def test_nonbarcoded(self):
+        info = self.toyaml(self.ss_nonbarcoded)
+        assert os.path.exists(self.out_file)
+        with open(self.out_file) as in_handle:
+            info = yaml.load(in_handle)
+       
+        assert not info[0].has_key('multiplex')
 
     def test_checkforrun(self):
         """Check for the presence of runs in an Illumina SampleSheet.
