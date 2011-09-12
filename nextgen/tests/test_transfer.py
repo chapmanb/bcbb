@@ -38,6 +38,14 @@ sys.path.append("/Users/val/Documents/bcbb/nextgen")
 from analyze_finished_sqn import _remote_copy
 import fabric.api as fabric
 
+fabric.env.key_filename = ["/Users/val/.ssh/local_ssh"]
+
+def _remove_transferred_files():
+	"""Remove the files transferred in a previous test.
+	"""
+	with fabric.settings(host_string = "val@localhost"):
+		fabric.run("rm /Users/val/pipeline_test/store_dir/to_copy/file*")
+
 def test__remote_copy():
 	"""Sets up dictionaries simulating loaded remote_info and config
 	from various sources. Then test transferring files with the function.
