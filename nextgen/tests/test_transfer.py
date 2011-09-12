@@ -36,16 +36,18 @@ sys.path.append("/Users/val/Documents/bcbb/nextgen/scripts")
 sys.path.append("/Users/val/Documents/bcbb/nextgen")
 
 from analyze_finished_sqn import _remote_copy
+import fabric.api as fabric
 
 def test__remote_copy():
 	"""Sets up dictionaries simulating loaded remote_info and config
 	from various sources. Then test transferring files with the function.
 	"""
-	config = {'analysis': {'store_dir': '/Users/val/pipeline_test/store_dir'}}
+	config = {"analysis": {"store_dir": "/Users/val/pipeline_test/store_dir"}}
 	remote_info = {}
 	remote_info["directory"] = "/Users/val/Documents/bcbb/nextgen/tests/test_transfer_data/to_copy"
 	remote_info["to_copy"] = ["file1", "file2", "file3"]
 	remote_info["user"] = "val"
 	remote_info["hostname"] = "localhost"
 
-	_remote_copy(remote_info, config)
+	with fabric.settings(host_string = "%s@%s" % (remote_info["user"], remote_info["hostname"])):
+		_remote_copy(remote_info, config)
