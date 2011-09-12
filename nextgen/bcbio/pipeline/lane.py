@@ -74,8 +74,10 @@ def process_alignment(fastq1, fastq2, genome_build, lane_name, sample, dirs, con
     aligner = config["algorithm"].get("aligner", None)
     if os.path.exists(fastq1) and aligner:
         log.info("Aligning lane %s with %s aligner" % (lane_name, aligner))
-        align_to_sort_bam(fastq1, fastq2, genome_build, aligner,
-                          lane_name, sample, dirs, config)
+        out_bam = align_to_sort_bam(fastq1, fastq2, genome_build, aligner,
+                                    lane_name, sample, dirs, config)
+    return [{"sample": sample, "fastq": [fastq1, fastq2], "out_bam": out_bam,
+            "lane": lane_name}]
 
 def _update_config_w_custom(config, lane_info):
     """Update the configuration for this lane if a custom analysis is specified.
