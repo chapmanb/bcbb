@@ -45,7 +45,13 @@ Delivery report for ${project_id}
 Delivery
 --------
 
-The clustering was performed...
+The clustering was performed on a cBot cluster generation system using
+a HiSeq paired-end read cluster generation kit according to the
+manufacturer’s instructions. The samples were sequenced on an Illumina
+HiSeq 2000 as paired-end reads to 100 bp. All lanes were spiked
+with 1% phiX control library, except for lane 8, which has 2% phiX.
+The sequencing runs were performed according to the manufacturer’s
+instructions. Base conversion was done using Illuminas OLB v1.9.
 
 Comment
 --------
@@ -57,7 +63,11 @@ ${infotable}
 
 ${lanetable}
 
-The sequence files are named...
+The sequence files are named after the following scheme:
+lane_runname_sample_1(2).fastq, where the 1 or 2 represents the first
+(forward) and the second (reverse) read in a paired­end run. Single
+end runs will have one the first read. The files only contain
+sequences that have passed Illuminas Chastity filter.
 
 Run information
 ---------------
