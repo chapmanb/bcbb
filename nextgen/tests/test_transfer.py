@@ -54,7 +54,7 @@ def test__remote_copy():
 	and what is set up as remote_info["hostname"]. If remote_info["hostname]
 	is "localhost"; SSH to localhost need to be set up to be passphrase free.
 	"""
-	config = {"analysis": {"store_dir": "/Users/val/pipeline_test/store_dir"}}
+	config = {"analysis": {"store_dir": "$HOME/pipeline_test/store_dir"}}
 	remote_info = {}
 	remote_info["directory"] = "/Users/val/Documents/bcbb/nextgen/tests/test_transfer_data/to_copy"
 	remote_info["to_copy"] = ["file1", "file2", "file3"]
