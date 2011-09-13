@@ -12,3 +12,22 @@ def test_loading():
 	"""
 	config = load_config("data/loading_test/variables.yaml")
 	assert(isinstance(config, dict))
+
+def test_variable_expansion():
+	"""Test expanding the environment variables in the
+	test yaml.
+	"""
+	config = load_config("data/loading_test/variables.yaml")
+
+	try:
+		for variable, value in config.items():
+			assert (os.environ[variable] == value
+			), "The strings %s and %s doesn't match (variable %s)" % (
+			os.environ[variable], value, variable)
+	
+	# When the key isnn't in os.environ
+	except KeyError as e:
+		for variable, value in config[e.message].items():
+			assert (os.environ[variable] == value
+			), "The strings %s and %s doesn't match (variable %s)" % (
+			os.environ[variable], value, variable)
