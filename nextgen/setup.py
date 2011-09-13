@@ -4,7 +4,7 @@
 from setuptools import setup, find_packages
 
 setup(name = "bcbio-nextgen",
-      version = "0.1",
+      version = "0.2",
       author = "Brad Chapman",
       author_email = "chapmanb@50mail.com",
       description = "Automated nextgen sequencing analysis coupled with Galaxy",
