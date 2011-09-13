@@ -1,0 +1,4 @@
+home: $HOME
+path: $PATH
+pwd: $PWD
+lang: $LANG
