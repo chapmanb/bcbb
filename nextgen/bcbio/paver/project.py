@@ -95,7 +95,7 @@ def _exomeQC_cl(item):
         out_yaml = os.path.join(options.dirs.sbatch, "%s.yaml" % (yatmpl_qw['label']))
         with open(out_yaml, 'w') as out_handle:
             out_handle.write(yatmpl.render(**yatmpl_qw))
-        cl.append("R CMD BATCH --vanilla '--args exomerc=\"%s\"' %s %s.Rout\n" % (out_yaml, options.seqcap.exomeQC, yatmpl_qw['label']))
+        cl.append("R CMD BATCH --vanilla '--args exomerc=\"%s\"' %s %s.Rout &\n" % (out_yaml, options.seqcap.exomeQC, yatmpl_qw['label']))
     options.sbatch.update(jobname="%s_eqc" % (item), workdir=wd, constraint='fat')
     _sbatch(cl, options.mako.sbatch, **options.sbatch)
 
