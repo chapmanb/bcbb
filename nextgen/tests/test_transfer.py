@@ -71,7 +71,7 @@ def test__remote_copy():
 	print(store_dir)
 
 	with fabric.settings(host_string = "%s@%s" % (remote_info["user"], remote_info["hostname"])):
-		if fabric_files.exists(store_dir):
-			_remove_transferred_files(os.path.split(store_dir)[1])
+		if fabric_files.exists("%s/%s" % (store_dir, os.path.split(copy_dir)[1])):
+			_remove_transferred_files(os.path.split(copy_dir)[1])
 
 		_remote_copy(remote_info, config)
