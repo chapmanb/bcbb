@@ -68,7 +68,7 @@ def main(config_file):
         elif name in templates:
             version = globals()[templates[name]](executable)
         # Else, we don't know..
-        else
+        else:
             version = "N/A"
             
         prog_version[name] = version
