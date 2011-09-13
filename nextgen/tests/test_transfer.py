@@ -3,12 +3,14 @@
 import os
 import sys
 import subprocess
+import fabric.api as fabric
+import fabric.contrib.files as fabric_files
 
 def test_analyze_finished_sqn():
 	"""Test running the script with the config files in the
 	sub directory tests/test_transfer_data as input.
 
-	Requires running Galaxy to use, with correct values in the configs.
+	NOTE: Requires running Galaxy to use, with correct values in the configs.
 	"""
 	config_dir = os.path.join(os.path.dirnam(__file__), "test_transfer_data")
 	cl = ["analyze_finished_sqn.py", 
@@ -21,7 +23,7 @@ def test_analyze_finished_sqn_transfer_info():
 	"""Test running the script with the config files in the
 	sub directory tests/test_transfer_data as input.
 
-	Requires running Galaxy to use, with correct values in the configs.
+	NOTE: Requires running Galaxy to use, with correct values in the configs.
 	"""
 	config_dir = os.path.join(os.path.dirnam(__file__), "test_transfer_data")
 	cl = ["analyze_finished_sqn.py", 
@@ -32,19 +34,19 @@ def test_analyze_finished_sqn_transfer_info():
 	subprocess.check_call(cl)
 
 # To be able to import functions from the scripts for testing.
-sys.path.append("/Users/val/Documents/bcbb/nextgen/scripts")
-sys.path.append("/Users/val/Documents/bcbb/nextgen")
+sys.path.append(os.path.realpath("../scripts"))
+sys.path.append(os.path.realpath(".."))
 
 from analyze_finished_sqn import _remote_copy
-import fabric.api as fabric
 
 fabric.env.key_filename = ["/Users/val/.ssh/local_ssh"]
 
-def _remove_transferred_files():
+def _remove_transferred_files(store_dir):
 	"""Remove the files transferred in a previous test.
 	"""
+	copy_to = os.path.realpath("test_transfer_data/copy_to")
 	with fabric.settings(host_string = "val@localhost"):
-		fabric.run("rm /Users/val/pipeline_test/store_dir/to_copy/file*")
+		fabric.run("rm -r %s/%s" % (copy_to, store_dir))
 
 def test__remote_copy():
 	"""Sets up dictionaries simulating loaded remote_info and config
@@ -54,12 +56,22 @@ def test__remote_copy():
 	and what is set up as remote_info["hostname"]. If remote_info["hostname]
 	is "localhost"; SSH to localhost need to be set up to be passphrase free.
 	"""
-	config = {"analysis": {"store_dir": "$HOME/pipeline_test/store_dir"}}
+	store_dir = os.path.realpath("test_transfer_data/copy_to")
+
+	config = {"analysis": {"store_dir": store_dir}}
+
+	copy_dir = os.path.realpath("test_transfer_data/to_copy")
+
 	remote_info = {}
-	remote_info["directory"] = "/Users/val/Documents/bcbb/nextgen/tests/test_transfer_data/to_copy"
+	remote_info["directory"] = copy_dir
 	remote_info["to_copy"] = ["file1", "file2", "file3"]
 	remote_info["user"] = "val"
 	remote_info["hostname"] = "localhost"
 
+	print(store_dir)
+
 	with fabric.settings(host_string = "%s@%s" % (remote_info["user"], remote_info["hostname"])):
+		if fabric_files.exists(store_dir):
+			_remove_transferred_files(os.path.split(store_dir)[1])
+
 		_remote_copy(remote_info, config)
