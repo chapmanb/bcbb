@@ -58,6 +58,17 @@ def align_metrics(d):
                     tab.add_row(row)
     return tab.draw()
 
+
+##################################################
+## Illumina raw data
+##################################################
+def image(fp, width):
+    res = ".. figure:: %s\n    :width: %s\n\n" % (fp, width)
+    return res
+
+##################################################
+## Output for TEQC
+##################################################
 def teqc_json(d):
     if d is None:
         return
@@ -68,6 +79,7 @@ def teqc_json(d):
             tab = Texttable()
             tab.add_rows([["key", "value"],
                           ['enrichment', d[fc][s]['enrichment']],
+                          ['max theoretical enrichment', "%.1f" % ( 1.0/float(d[fc][s]['target']['fraction']))],
                           ['target fraction (%)', d[fc][s]['target']['fraction'] * 100],
                           ['target width (Mb)', "%.2f" % (int(d[fc][s]['target']['width']) / int(1000000))],
                           ['mean coverage', d[fc][s]['coverage']['avg']],
@@ -85,8 +97,9 @@ def teqc_json(d):
             res.append(tab.draw())
             
             tab = Texttable()
-            tab.add_rows([d[fc][s]['coverage']['k'].keys(),
-                          d[fc][s]['coverage']['k'].values()])
+            ck = d[fc][s]['coverage']['k']
+            tab.add_rows([sorted(ck.keys(),key=int),
+                          [ck[x] for x in sorted(ck.keys(), key=int)]])
             res.append(tab.draw())
 
             tab = Texttable()
