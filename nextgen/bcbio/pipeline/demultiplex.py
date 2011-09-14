@@ -33,17 +33,9 @@ def split_by_barcode(fastq1, fastq2, multiplex, base_name, dirs, config):
                 cl.append("--five")
             if config["algorithm"].get("bc_allow_indels", True) is False:
                 cl.append("--noindel")
-            
-            cl = [os.path.expandvars(command) for command in cl]
-            subprocess.check_call(cl)
-            
-    out_files = []
-    for info in multiplex:
-        fq_fname = lambda x: os.path.join(bc_dir, "%s_%s_%s_fastq.txt" %
-                             (base_name, info["barcode_id"], x))
-        bc_file1 = fq_fname("1")
-        bc_file2 = fq_fname("2") if fastq2 else None
-        out_files.append((info["barcode_id"], info["name"], bc_file1, bc_file2))
+            with utils.file_transaction(out_files + [nomatch_file, metrics_file]):
+                cl = [os.path.expandvars(command) for command in cl]
+                subprocess.check_call(cl)
     return out_files
 
 def _make_tag_file(barcodes):
@@ -129,7 +121,7 @@ def add_multiplex_across_lanes(run_items, fastq_dir, fc_name):
 def _get_fastq_size(item, fastq_dir, fc_name):
     """Retrieve the size of reads from the first flowcell sequence.
     """
-    (fastq1, _) = get_fastq_files(fastq_dir, item['lane'], fc_name)
+    (fastq1, _) = get_fastq_files(fastq_dir, item, fc_name)
     with open(fastq1) as in_handle:
         try:
             rec = SeqIO.parse(in_handle, "fastq").next()
