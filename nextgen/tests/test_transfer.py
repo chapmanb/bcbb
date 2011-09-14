@@ -49,14 +49,15 @@ def _remove_transferred_files(store_dir):
 	with fabric.settings(host_string = "val@localhost"):
 		fabric.run("rm -r %s/%s" % (copy_to, store_dir))
 
-def get_transfer_function(setting):
+def get_transfer_function(transfer_config):
 	"""Returns a function to use for transfer where we will have set the
 	parameter protocol=setting
 
-	setting : string - The setting for the transfer protocol to be used.
+	transfer_config : dictionary - The dictionary containing transfer
+		configurations. For example which protocol to use.
 	"""
 	def transfer_function(remote_info, config):
-		_remote_copy(remote_info, config, protocol = setting)
+		_remote_copy(remote_info, config, transfer_config = transfer_config)
 
 	return transfer_function
 
@@ -115,11 +116,13 @@ def perform__remote_copy_test(transfer_function):
 def test__remote_copy_scp():
 	"""Test using the copy function with scp.
 	"""
-	copy_function = get_transfer_function("scp")
+	transfer_config = {"transfer_protocol" : "scp"}
+	copy_function = get_transfer_function(transfer_config)
 	perform__remote_copy_test(copy_function)
 
 def test__remote_copy_rsync():
 	"""Test using the copy function with rsync.
 	"""
-	copy_function = get_transfer_function("rsync")
+	transfer_config = {"transfer_protocol" : "rsync"}
+	copy_function = get_transfer_function(transfer_config)
 	perform__remote_copy_test(copy_function)

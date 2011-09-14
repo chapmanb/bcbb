@@ -101,12 +101,18 @@ def _config_hosts(config):
     copy_host_str = "%s@%s" % (copy_user, copy_host)
     return analysis_host_str, analysis_shell, copy_host_str
 
-def _remote_copy(remote_info, config, protocol = "scp"):
+def _remote_copy(remote_info, config, transfer_config = None):
     """Securely copy files from remote directory to the processing server.
 
     This requires ssh public keys to be setup so that no password entry
     is necessary.
     """
+    try:
+        protocol = transfer_config["transfer_protocol"]
+    except TypeError:
+        # transfer_config was None.
+        pass
+
     fc_dir = os.path.join(config["analysis"]["store_dir"],
                           os.path.basename(remote_info['directory']))
     log.info("Copying analysis files to %s" % fc_dir)
@@ -119,7 +125,7 @@ def _remote_copy(remote_info, config, protocol = "scp"):
             if not fabric_files.exists(target_dir):
                 fabric.run("mkdir -p %s" % target_dir)
            
-            if protocol == "scp":
+            if protocol == "scp" or transfer_config == None:
                 cl = ["scp", "-r", "%s@%s:%s/%s" %
                       (remote_info["user"], remote_info["hostname"],
                        remote_info["directory"], fcopy),
