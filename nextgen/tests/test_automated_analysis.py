@@ -53,7 +53,7 @@ class AutomatedAnalysisTest(unittest.TestCase):
         with make_workdir():
             self._install_test_files(self.data_dir)
             cl = ["automated_initial_analysis.py",
-                  os.path.join(self.data_dir, "post_process.yaml"),
+                  os.path.join(self.data_dir, "post_process_env_var.yaml"),
                   os.path.join(self.data_dir, os.pardir, "110106_FC70BUKAAXX"),
                   os.path.join(self.data_dir, "run_info.yaml")]
             subprocess.check_call(cl)
