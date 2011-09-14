@@ -56,8 +56,8 @@ def get_version(name,executable):
             
 def _get_git_hash(git_repo):
     
-    # Look for a file named .[bcbb repository]_commit in the user's home directory
-    hash_file = os.path.join(os.getenv('HOME'),".%s_commit" % git_repo)
+    # Look for a file named .[bcbb repository]_pipeline.version in the user's home directory
+    hash_file = os.path.join(os.getenv('HOME'),".%s_pipeline.version" % git_repo)
     commit = "N/A"
     if os.path.exists(hash_file):
         with open(hash_file) as hf:
