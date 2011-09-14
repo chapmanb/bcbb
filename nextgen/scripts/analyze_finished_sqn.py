@@ -118,10 +118,19 @@ def _remote_copy(remote_info, config, protocol = "scp"):
             target_dir = os.path.dirname(target_loc)
             if not fabric_files.exists(target_dir):
                 fabric.run("mkdir -p %s" % target_dir)
-            cl = ["scp", "-r", "%s@%s:%s/%s" %
-                  (remote_info["user"], remote_info["hostname"],
-                   remote_info["directory"], fcopy),
-                  target_loc]
+           
+            if protocol == "scp":
+                cl = ["scp", "-r", "%s@%s:%s/%s" %
+                      (remote_info["user"], remote_info["hostname"],
+                       remote_info["directory"], fcopy),
+                      target_loc]
+           
+            elif protocol == "rsync":
+                cl = ["rsync", "-craz", "%s@%s:%s/%s" %
+                      (remote_info["user"], remote_info["hostname"],
+                       remote_info["directory"], fcopy),
+                      target_loc]
+
             log.debug(cl)
             fabric.run(" ".join(cl))
     log.info("Analysis files copied")

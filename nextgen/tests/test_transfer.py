@@ -113,7 +113,13 @@ def perform__remote_copy_test(transfer_function):
 			assert read_data == test_data[test_file], "File copy failed"
 
 def test__remote_copy_scp():
-	""" Test using the copy function with scp.
+	"""Test using the copy function with scp.
 	"""
 	copy_function = get_transfer_function("scp")
+	perform__remote_copy_test(copy_function)
+
+def test__remote_copy_rsync():
+	"""Test using the copy function with rsync.
+	"""
+	copy_function = get_transfer_function("rsync")
 	perform__remote_copy_test(copy_function)
