@@ -117,6 +117,7 @@ def _remote_copy(remote_info, config, transfer_config = None):
         protocol = transfer_config["transfer_protocol"]
     except TypeError:
         # transfer_config was None.
+        protocol = None
         pass
 
     fc_dir = os.path.join(config["analysis"]["store_dir"],
