@@ -33,7 +33,8 @@ templates = {
              'picard': '_picard_version',
              'bwa': '_bwa_version',
              'fastqc': '_fastqc_version',
-             'gatk': '_gatk_version'
+             'gatk': '_gatk_version',
+             'ucsc_bigwig': '_ucsc_bigwig_version'
              }
 
 def main(config_file):
@@ -45,7 +46,14 @@ def main(config_file):
     
     with open(config_file) as in_handle:
         config = yaml.load(in_handle)
+
+    for name,ver in get_software_versions(config).items():
+        print "%s: %s" % (name,ver)
+
+def get_software_versions(config):
     
+    """Returns a dictionary with the program names (as specified in the 'program' section of the supplied configuration object) as keys and the corresponding software version strings as values. If no version could be determined, the string 'N/A' is used."""
+       
     # Get the list of external software from the config file
     prog_version = dict()
     for name, executable in config.get("program",{}).items():
@@ -64,9 +72,8 @@ def main(config_file):
             
         prog_version[name] = version
         
-    for name,version in prog_version.items():
-        print "%s: version %s" % (name,version)
-
+    return prog_version
+ 
 def _get_output(executable,argument=''):
     args = shlex.split("%s %s" % (executable,argument))
     output = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()[0]
@@ -82,6 +89,13 @@ def _get_git_hash(git_repo):
     return commit 
 
 def _generic_version(executable,argument='-v',regexp=r'Version:\s*(\S+)'):
+    
+    """Extract the version number of a piece of software.
+    
+    argument -- a string containing the arguments needed for the software to print the version number
+    regexp -- a regular expression that will capture the version string from the output produced. The regexp must contain at least one capturing group and the first group is assumed to contain the version string
+    
+    """
     
     try:
         output = _get_output(executable,argument)
@@ -101,6 +115,8 @@ def _samtools_version(executable):
     return _generic_version(executable,'')
 def _bwa_version(executable):
     return _generic_version(executable,'')
+def _ucsc_bigwig_version(executable):
+    return _generic_version(executable,'',r'wigToBigWig\s+v\s+(.+?)\s+\-')
 def _pdflatex_version(executable):
     return _generic_version(executable,'-v',r'(3\.14.*)') # The pdflatex version numbers are approaching pi...
 def _fastqc_version(executable):
