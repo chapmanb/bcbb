@@ -90,6 +90,10 @@ def perform__remote_copy_test(transfer_function):
 	test_data = {}
 	for test_file in remote_info["to_copy"]:
 		with open("%s/%s" % (copy_dir, test_file), "w") as file_to_write:
+			# We just use seconds since epoch as test data, the important
+			# part is that it will be different enough between tests just
+			# so we know we are not comparing with files copied in a 
+			# previous test during the assertion.
 			test_data[test_file] = str(time.time())
 			file_to_write.write(test_data[test_file])
 
