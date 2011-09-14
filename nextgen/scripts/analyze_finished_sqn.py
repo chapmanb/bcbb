@@ -35,9 +35,15 @@ from bcbio.pipeline.config_loader import load_config
 LOG_NAME = os.path.splitext(os.path.basename(__file__))[0]
 log = logbook.Logger(LOG_NAME)
 
-def main(galaxy_config, processing_config):
+def main(galaxy_config, processing_config, transfer_config = None):
     amqp_config = _read_amqp_config(galaxy_config)
     config = load_config(processing_config)
+
+    if transfer_config != None:
+        trnsfr_config = load_config(transfer_config)
+    else:
+        trnsfr_config = None
+
     log_handler = create_log_handler(config, LOG_NAME)
     process_tag = config["msg_process_tag"]
     handlers = [(process_tag,
@@ -45,14 +51,14 @@ def main(galaxy_config, processing_config):
     with log_handler.applicationbound():
         message_reader(handlers, amqp_config)
 
-def copy_and_analyze(remote_info, config, config_file):
+def copy_and_analyze(remote_info, config, config_file, transfer_config = None):
     """Remote copy an output directory, process it, and upload to Galaxy.
     """
     log.debug("Remote host information: %s" % remote_info)
     a_host_str, a_shell, c_host_str = _config_hosts(config)
 
     with fabric.settings(host_string=c_host_str):
-        fc_dir = _remote_copy(remote_info, config)
+        fc_dir = _remote_copy(remote_info, config, transfer_config)
 
     with fabric.settings(host_string=a_host_str, shell=a_shell):
         _analyze_and_upload(remote_info, config, config_file, fc_dir)
@@ -142,11 +148,11 @@ def _remote_copy(remote_info, config, transfer_config = None):
     log.info("Analysis files copied")
     return fc_dir
 
-def analysis_handler(processing_config, tag_name, config_file):
+def analysis_handler(processing_config, tag_name, config_file, transfer_file):
     def receive_msg(msg):
         if msg.properties['application_headers'].get('msg_type') == tag_name:
             copy_and_analyze(json.loads(msg.body), processing_config,
-                config_file)
+                config_file, transfer_file)
     return receive_msg
 
 def message_reader(handlers, config):
