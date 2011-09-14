@@ -16,7 +16,7 @@ def generate_align_summary(bam_file, is_paired, sam_ref, config,
     """Run alignment summarizing script to produce a pdf with align details.
     """
     sample_name = " : ".join(sample_name)
-    cl = ["align_summary_report.py", "--name=%s" % sample_name,
+    cl = ["align_summary_report.py", "--name=\"%s\"" % sample_name,
             config["program"]["picard"], bam_file, sam_ref]
     if is_paired:
         cl.append("--paired")
