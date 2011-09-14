@@ -17,7 +17,9 @@ class BroadRunner:
             max_memory = "6g"
         self._memory_args.append("-Xmx%s" % max_memory)
         self._picard_dir = picard_dir
+        self._picard_dir = os.path.expandvars(self._picard_dir)
         self._gatk_dir = gatk_dir or picard_dir
+        self._gatk_dir = os.path.expandvars(self._gatk_dir)
 
     def run_fn(self, name, *args, **kwds):
         """Run pre-built functionality that used Broad tools by name.

@@ -1,0 +1,216 @@
+- analysis: SNP calling
+  description: Lane 1, J.Doe_00_01
+  genome_build: hg19
+  lane: 1
+  multiplex:
+  - barcode_id: '1'
+    barcode_type: Illumina
+    name: BAC44_index1
+    sequence: ATCACG
+  - barcode_id: '2'
+    barcode_type: Illumina
+    name: BAC22_index10
+    sequence: CGATGT
+  - barcode_id: '3'
+    barcode_type: Illumina
+    name: BAC22_index2
+    sequence: TTAGGC
+  - barcode_id: '4'
+    barcode_type: Illumina
+    name: BAC44_index3
+    sequence: TGACCA
+  - barcode_id: '5'
+    barcode_type: Illumina
+    name: BAC44_index6
+    sequence: ACAGTG
+  - barcode_id: '6'
+    barcode_type: Illumina
+    name: BAC22_index12
+    sequence: GCCAAT
+  - barcode_id: '7'
+    barcode_type: Illumina
+    name: BAC44_index9
+    sequence: CAGATC
+  - barcode_id: '8'
+    barcode_type: Illumina
+    name: BAC22_index11
+    sequence: ACTTGA
+  - barcode_id: '9'
+    barcode_type: Illumina
+    name: BAC22_index5
+    sequence: GATCAG
+  - barcode_id: '10'
+    barcode_type: Illumina
+    name: BAC44_index7
+    sequence: TAGCTT
+  - barcode_id: '11'
+    barcode_type: Illumina
+    name: BAC11_index4
+    sequence: GGCTAC
+  - barcode_id: '12'
+    barcode_type: Illumina
+    name: BAC11_index8
+    sequence: CTTGTA
+- analysis: SNP calling
+  description: Lane 2, J.Doe_00_01
+  genome_build: hg19
+  lane: 2
+  multiplex:
+  - barcode_id: '1'
+    barcode_type: Illumina
+    name: BAC22_index1
+    sequence: ATCACG
+  - barcode_id: '2'
+    barcode_type: Illumina
+    name: BAC22_index10
+    sequence: CGATGT
+  - barcode_id: '3'
+    barcode_type: Illumina
+    name: BAC33_index2
+    sequence: TTAGGC
+  - barcode_id: '4'
+    barcode_type: Illumina
+    name: BAC44_index3
+    sequence: TGACCA
+  - barcode_id: '5'
+    barcode_type: Illumina
+    name: BAC33_index6
+    sequence: ACAGTG
+  - barcode_id: '6'
+    barcode_type: Illumina
+    name: BAC22_index12
+    sequence: GCCAAT
+  - barcode_id: '7'
+    barcode_type: Illumina
+    name: BAC44_index9
+    sequence: CAGATC
+  - barcode_id: '8'
+    barcode_type: Illumina
+    name: BAC22_index11
+    sequence: ACTTGA
+  - barcode_id: '9'
+    barcode_type: Illumina
+    name: BAC44_index5
+    sequence: GATCAG
+  - barcode_id: '10'
+    barcode_type: Illumina
+    name: BAC33_index7
+    sequence: TAGCTT
+  - barcode_id: '11'
+    barcode_type: Illumina
+    name: BAC22_index4
+    sequence: GGCTAC
+  - barcode_id: '12'
+    barcode_type: Illumina
+    name: BAC44_index8
+    sequence: CTTGTA
+- analysis: Standard
+  description: Test3
+  genome_build: hg19
+  lane: 3
+- analysis: SNP calling
+  description: Lane 1, J.DoeJr_00_01
+  genome_build: hg19
+  lane: 4
+  multiplex:
+  - barcode_id: '1'
+    barcode_type: Illumina
+    name: BAC44_index1
+    sequence: ATCACG
+  - barcode_id: '2'
+    barcode_type: Illumina
+    name: BAC22_index10
+    sequence: CGATGT
+  - barcode_id: '3'
+    barcode_type: Illumina
+    name: BAC22_index2
+    sequence: TTAGGC
+  - barcode_id: '4'
+    barcode_type: Illumina
+    name: BAC44_index3
+    sequence: TGACCA
+  - barcode_id: '5'
+    barcode_type: Illumina
+    name: BAC44_index6
+    sequence: ACAGTG
+  - barcode_id: '6'
+    barcode_type: Illumina
+    name: BAC22_index12
+    sequence: GCCAAT
+  - barcode_id: '7'
+    barcode_type: Illumina
+    name: BAC44_index9
+    sequence: CAGATC
+  - barcode_id: '8'
+    barcode_type: Illumina
+    name: BAC22_index11
+    sequence: ACTTGA
+  - barcode_id: '9'
+    barcode_type: Illumina
+    name: BAC22_index5
+    sequence: GATCAG
+  - barcode_id: '10'
+    barcode_type: Illumina
+    name: BAC44_index7
+    sequence: TAGCTT
+  - barcode_id: '11'
+    barcode_type: Illumina
+    name: BAC11_index4
+    sequence: GGCTAC
+  - barcode_id: '12'
+    barcode_type: Illumina
+    name: BAC11_index8
+    sequence: CTTGTA
+- analysis: SNP calling
+  description: Lane 1, J.DoeJr_00_01
+  genome_build: hg19
+  lane: 5
+  multiplex:
+  - barcode_id: '1'
+    barcode_type: Illumina
+    name: BAC44_index1
+    sequence: ATCACG
+  - barcode_id: '2'
+    barcode_type: Illumina
+    name: BAC22_index10
+    sequence: CGATGT
+  - barcode_id: '3'
+    barcode_type: Illumina
+    name: BAC22_index2
+    sequence: TTAGGC
+  - barcode_id: '4'
+    barcode_type: Illumina
+    name: BAC44_index3
+    sequence: TGACCA
+  - barcode_id: '5'
+    barcode_type: Illumina
+    name: BAC44_index6
+    sequence: ACAGTG
+  - barcode_id: '6'
+    barcode_type: Illumina
+    name: BAC22_index12
+    sequence: GCCAAT
+  - barcode_id: '7'
+    barcode_type: Illumina
+    name: BAC44_index9
+    sequence: CAGATC
+  - barcode_id: '8'
+    barcode_type: Illumina
+    name: BAC22_index11
+    sequence: ACTTGA
+  - barcode_id: '9'
+    barcode_type: Illumina
+    name: BAC22_index5
+    sequence: GATCAG
+  - barcode_id: '10'
+    barcode_type: Illumina
+    name: BAC44_index7
+    sequence: TAGCTT
+  - barcode_id: '11'
+    barcode_type: Illumina
+    name: BAC11_index4
+    sequence: GGCTAC
+  - barcode_id: '12'
+    barcode_type: Illumina
+    name: BAC11_index8
+    sequence: CTTGTA

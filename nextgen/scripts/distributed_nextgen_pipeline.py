@@ -19,10 +19,10 @@ import subprocess
 import yaml
 
 from bcbio.distributed import lsf
+from bcbio.pipeline.config_loader import load_config
 
 def main(config_file, fc_dir, run_info_yaml=None):
-    with open(config_file) as in_handle:
-        config = yaml.load(in_handle)
+    config = load_config(config_file)
     assert config["algorithm"]["num_cores"] == "messaging", \
            "Designed for use with messaging parallelization"
     cluster = globals()[config["distributed"]["cluster_platform"]]
