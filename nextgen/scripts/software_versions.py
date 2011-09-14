@@ -47,10 +47,10 @@ def main(config_file):
     with open(config_file) as in_handle:
         config = yaml.load(in_handle)
 
-    for name,ver in get_software_versions(config).items():
+    for name,ver in get_versions(config).items():
         print "%s: %s" % (name,ver)
 
-def get_software_versions(config):
+def get_versions(config):
     
     """Returns a dictionary with the program names (as specified in the 'program' section of the supplied configuration object) as keys and the corresponding software version strings as values. If no version could be determined, the string 'N/A' is used."""
        
@@ -58,26 +58,29 @@ def get_software_versions(config):
     prog_version = dict()
     for name, executable in config.get("program",{}).items():
         
-        name = name.lower()
-        
-        # If the executable is a python script, get the path and get the git commit hash for the repository
-        if os.path.splitext(executable)[1] == '.py':
-            version = _get_git_hash(git_repo)
-        # Else, if we have a function that knows how to get the version info from the particular piece of software, call that
-        elif name in templates:
-            version = globals()[templates[name]](executable)
-        # Else, try the generic approach..
-        else:
-            version = _generic_version(executable)
-            
-        prog_version[name] = version
+        prog_version[name] = get_version(name,executable)
         
     return prog_version
+
+def get_version(name,executable):
  
-def _get_output(executable,argument=''):
-    args = shlex.split("%s %s" % (executable,argument))
-    output = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()[0]
-    return output.decode('UTF-8')
+    """Get the software version of a named program and the corresponding executable"""
+    
+    name = name.lower()
+    
+    # If the executable is a python script, attempt to get the path and the git commit hash for the repository
+    if os.path.splitext(executable)[1] == '.py':
+        version = _get_git_hash(git_repo)
+        
+    # Else, if we have a function that knows how to get the version info from the particular piece of software, call that
+    elif name in templates:
+        version = globals()[templates[name]](executable)
+        
+    # Else, try the generic approach..
+    else:
+        version = _generic_version(executable)
+        
+    return version
             
 def _get_git_hash(git_repo):
     
@@ -87,7 +90,12 @@ def _get_git_hash(git_repo):
         with open(hash_file) as hf:
             commit = hf.read().strip()
     return commit 
-
+   
+def _get_output(executable,argument=''):
+    args = shlex.split("%s %s" % (executable,argument))
+    output = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()[0]
+    return output.decode('UTF-8')
+     
 def _generic_version(executable,argument='-v',regexp=r'Version:\s*(\S+)'):
     
     """Extract the version number of a piece of software.
