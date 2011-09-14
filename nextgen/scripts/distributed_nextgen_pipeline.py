@@ -64,6 +64,15 @@ def stop_workers(cluster, jobids):
         except:
             pass
 
+def _needed_workers(run_info):
+    """Determine workers needed to run multiplex flowcells in parallel.
+    """
+    names = []
+    for lane in run_info["details"]:
+        for multiplex in lane.get("multiplex", [{"barcode_id": ""}]):
+            names.append((lane.get("name", ""), lane["description"], multiplex["barcode_id"]))
+    return len(set(names))
+
 if __name__ == "__main__":
     if len(sys.argv) < 3:
         print "Incorrect arguments"
