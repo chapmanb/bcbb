@@ -49,7 +49,18 @@ def _remove_transferred_files(store_dir):
 	with fabric.settings(host_string = "val@localhost"):
 		fabric.run("rm -r %s/%s" % (copy_to, store_dir))
 
-def test__remote_copy():
+def get_transfer_function(setting):
+	"""Returns a function to use for transfer where we will have set the
+	parameter protocol=setting
+
+	setting : string - The setting for the transfer protocol to be used.
+	"""
+	def transfer_function(remote_info, config):
+		_remote_copy(remote_info, config, protocol = setting)
+
+	return transfer_function
+
+def perform__remote_copy_test(transfer_function):
 	"""Sets up dictionaries simulating loaded remote_info and config
 	from various sources. Then test transferring files with the function
 	using the standard setting.
@@ -57,6 +68,11 @@ def test__remote_copy():
 	Note that there need to be passphrase free SSH between this machine
 	and what is set up as remote_info["hostname"]. If remote_info["hostname]
 	is "localhost"; SSH to localhost need to be set up to be passphrase free.
+
+	transfer_function : function - The function to use for transferring
+	the files.
+		This function should accept the two dictionaries config and
+		remote_info as parameters.
 	"""
 	store_dir = os.path.realpath("test_transfer_data/copy_to")
 
@@ -84,7 +100,7 @@ def test__remote_copy():
 			_remove_transferred_files(os.path.split(copy_dir)[1])
 
 		# Copy
-		_remote_copy(remote_info, config)
+		transfer_function(remote_info, config)
 
 	# Check of the copy succeeded
 	for test_file in remote_info["to_copy"]:
@@ -92,30 +108,8 @@ def test__remote_copy():
 			read_data = copied_file.read()
 			assert read_data == test_data[test_file], "File copy failed"
 
-def _test__remote_copy_scp():
-	"""Sets up dictionaries simulating loaded remote_info and config
-	from various sources. Then test transferring files with the function using
-	the scp setting.
-
-	Note that there need to be passphrase free SSH between this machine
-	and what is set up as remote_info["hostname"]. If remote_info["hostname]
-	is "localhost"; SSH to localhost need to be set up to be passphrase free.
+def test__remote_copy_scp():
+	""" Test using the copy function with scp.
 	"""
-	store_dir = os.path.realpath("test_transfer_data/copy_to")
-
-	config = {"analysis": {"store_dir": store_dir}}
-
-	copy_dir = os.path.realpath("test_transfer_data/to_copy")
-
-	remote_info = {}
-	remote_info["directory"] = copy_dir
-	remote_info["to_copy"] = ["file1", "file2", "file3"]
-	remote_info["user"] = "val"
-	remote_info["hostname"] = "localhost"
-
-	with fabric.settings(host_string = "%s@%s" % (remote_info["user"], remote_info["hostname"])):
-		if fabric_files.exists("%s/%s" % (store_dir, os.path.split(copy_dir)[1])):
-			_remove_transferred_files(os.path.split(copy_dir)[1])
-
-		# Standard settings
-		_remote_copy(remote_info, config, protocol = "scp")
+	copy_function = get_transfer_function("scp")
+	perform__remote_copy_test(copy_function)

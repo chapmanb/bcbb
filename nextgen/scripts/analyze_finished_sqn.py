@@ -101,7 +101,7 @@ def _config_hosts(config):
     copy_host_str = "%s@%s" % (copy_user, copy_host)
     return analysis_host_str, analysis_shell, copy_host_str
 
-def _remote_copy(remote_info, config):
+def _remote_copy(remote_info, config, protocol = "scp"):
     """Securely copy files from remote directory to the processing server.
 
     This requires ssh public keys to be setup so that no password entry
