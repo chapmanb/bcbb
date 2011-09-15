@@ -132,3 +132,10 @@ def test__remote_copy_rsync():
 	transfer_config = {"transfer_protocol" : "rsync"}
 	copy_function = get_transfer_function(transfer_config)
 	perform__remote_copy_test(copy_function)
+
+def test__remote_copy_rdiff_backup():
+	"""Test using the copy function with rdiff-backup.
+	"""
+	transfer_config = {"transfer_protocol" : "rdiff-backup"}
+	copy_function = get_transfer_function(transfer_config)
+	perform__remote_copy_test(copy_function)

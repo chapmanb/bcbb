@@ -137,6 +137,9 @@ def _remote_copy(remote_info, config, transfer_config = None):
                       (remote_info["user"], remote_info["hostname"],
                        remote_info["directory"], fcopy),
                       target_loc]
+
+                log.debug(cl)
+                fabric.run(" ".join(cl))
            
             elif protocol == "rsync":
                 cl = ["rsync", "-craz", "%s@%s:%s/%s" %
@@ -144,8 +147,21 @@ def _remote_copy(remote_info, config, transfer_config = None):
                        remote_info["directory"], fcopy),
                       target_loc]
 
-            log.debug(cl)
-            fabric.run(" ".join(cl))
+                log.debug(cl)
+                fabric.run(" ".join(cl))
+
+    if protocol == "rdiff-backup":
+        include = []
+        for fcopy in remote_info['to_copy']:
+            include.append("--include %s/%s" % (remote_info["directory"], fcopy))
+        
+        cl = ["rdiff-backup", " ".join(include), "--exclude '**'", "%s@%s::%s" % 
+              (remote_info["user"], remote_info["hostname"], remote_info["directory"]),
+              fc_dir]
+
+        log.debug(cl)
+        fabric.run(" ".join(cl))
+
     log.info("Analysis files copied")
     return fc_dir
 
