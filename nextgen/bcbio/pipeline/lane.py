@@ -74,6 +74,7 @@ def process_alignment(fastq1, fastq2, genome_build, lane_name, sample, dirs, con
     """Do an alignment of fastq files, preparing a sorted BAM output file.
     """
     aligner = config["algorithm"].get("aligner", None)
+    out_bam = ""
     if os.path.exists(fastq1) and aligner:
         log.info("Aligning lane %s with %s aligner" % (lane_name, aligner))
         out_bam = align_to_sort_bam(fastq1, fastq2, genome_build, aligner,
@@ -90,6 +91,9 @@ def _update_config_w_custom(config, lane_info):
     if custom:
         for key, val in custom.iteritems():
             config["algorithm"][key] = val
+    # apply any algorithm details specified with the lane
+    for key, val in lane_info.get("algorithm", {}).iteritems():
+        config["algorithm"][key] = val
     return config
 
 def make_lane_items(info, fc_date, fc_name, dirs, config):
