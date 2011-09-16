@@ -61,7 +61,7 @@ def get_transfer_function(transfer_config):
 
 	return transfer_function
 
-def perform__remote_copy_test(transfer_function):
+def perform__remote_copy_test(transfer_function, remove_before_copy = True):
 	"""Sets up dictionaries simulating loaded remote_info and config
 	from various sources. Then test transferring files with the function
 	using the standard setting.
@@ -83,7 +83,7 @@ def perform__remote_copy_test(transfer_function):
 
 	remote_info = {}
 	remote_info["directory"] = copy_dir
-	remote_info["to_copy"] = ["file1", "file2", "file3", "dir1"]
+	remote_info["to_copy"] = ["file1", "file2", "file3", "dir1/"]
 	remote_info["user"] = "val"
 	remote_info["hostname"] = "localhost"
 
@@ -103,7 +103,8 @@ def perform__remote_copy_test(transfer_function):
 	# Perform copy with settings
 	with fabric.settings(host_string = "%s@%s" % (remote_info["user"], remote_info["hostname"])):
 		
-		if fabric_files.exists("%s/%s" % (store_dir, os.path.split(copy_dir)[1])):
+		if fabric_files.exists("%s/%s" % (store_dir, os.path.split(copy_dir)[1])
+		) and remove_before_copy:
 			_remove_transferred_files(os.path.split(copy_dir)[1])
 
 		# Copy
@@ -116,7 +117,14 @@ def perform__remote_copy_test(transfer_function):
 		if os.path.isfile(test_file_path):
 			with open(test_file_path, "r") as copied_file:
 				read_data = copied_file.read()
-				assert read_data == test_data[test_file], "File copy failed"
+				fail_string = "File copy failed: %s doesn't equal %s (for %s) Remove is %s" % (
+				read_data, test_data[test_file], test_file_path, str(remove_before_copy))
+				# Assertion that passes when:
+				#  - The files got copied if we removed the old files in the
+				# target directory.
+				#  - The new files did not replace the old files in the 
+				# target directory if we did not copy.
+				assert (read_data == test_data[test_file]) == remove_before_copy, fail_string
 		# Did the directories get copied correcty
 		if os.path.isdir(test_file_path):
 			pass
@@ -126,6 +134,7 @@ def test__remote_copy():
 	as to how to do it.
 	"""
 	perform__remote_copy_test(_remote_copy)
+	perform__remote_copy_test(_remote_copy, remove_before_copy = False)
 
 def test__remote_copy_scp():
 	"""Test using the copy function with scp.
@@ -133,6 +142,7 @@ def test__remote_copy_scp():
 	transfer_config = {"transfer_protocol" : "scp"}
 	copy_function = get_transfer_function(transfer_config)
 	perform__remote_copy_test(copy_function)
+	perform__remote_copy_test(_remote_copy, remove_before_copy = False)
 
 def test__remote_copy_rsync():
 	"""Test using the copy function with rsync.
@@ -140,6 +150,7 @@ def test__remote_copy_rsync():
 	transfer_config = {"transfer_protocol" : "rsync"}
 	copy_function = get_transfer_function(transfer_config)
 	perform__remote_copy_test(copy_function)
+	#perform__remote_copy_test(_remote_copy, remove_before_copy = False)
 
 def test__remote_copy_rdiff_backup():
 	"""Test using the copy function with rdiff-backup.
@@ -147,3 +158,4 @@ def test__remote_copy_rdiff_backup():
 	transfer_config = {"transfer_protocol" : "rdiff-backup"}
 	copy_function = get_transfer_function(transfer_config)
 	perform__remote_copy_test(copy_function)
+	perform__remote_copy_test(_remote_copy, remove_before_copy = False)
