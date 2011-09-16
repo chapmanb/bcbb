@@ -57,7 +57,7 @@ def decode_credentials(credentials):
     return base64.b64decode(credentials).split(':',1);
     
 
-def main(flowcell_id, gdocs_spreadsheet, gdocs_credentials, archive_dir, analysis_dir):
+def main(flowcell_id, gdocs_spreadsheet, gdocs_credentials, archive_dir, analysis_dir, gdocs_worksheet, append):
 
     # Split the username and password
     credentials = decode_credentials(gdocs_credentials)
@@ -78,10 +78,10 @@ def main(flowcell_id, gdocs_spreadsheet, gdocs_credentials, archive_dir, analysi
     fc_dir = os.path.join(analysis_dir,flowcell_id)
     bc_metrics = get_bc_stats(run_info,fc_dir)
     
-    upload_demultiplex_data(bc_metrics,gdocs_spreadsheet,credentials)
+    upload_demultiplex_data(bc_metrics,gdocs_spreadsheet,credentials,gdocs_worksheet,append)
     
     
-def upload_demultiplex_data(bc_metrics, gdocs_spreadsheet, credentials):
+def upload_demultiplex_data(bc_metrics, gdocs_spreadsheet, credentials, gdocs_worksheet=None, append=False):
        
     # Create a client class which will make HTTP requests with Google Docs server.
     client = gdata.spreadsheet.service.SpreadsheetsService()
@@ -110,30 +110,38 @@ def upload_demultiplex_data(bc_metrics, gdocs_spreadsheet, credentials):
     ss_key = spreadsheet.id.text.split('/')[-1]
     log.info("Found spreadsheet matching the supplied title: '%s'" % spreadsheet.title.text)
     
-    # Get the date and flowcell id and base the name of the worksheet on these
-    date = bc_metrics[0][header[1][1]]
-    fcid = bc_metrics[0][header[2][1]]
+    # Convert the bc_metrics data structure into a flat list
+    rows = _structure_to_list(bc_metrics)
     
-    # Iterate over the barcode statistics and count the number of rows that will be written
-    rowcount = 0
-    for lane in bc_metrics:
-        for bc in lane.get("multiplex",[]):
-            rowcount += 1
+    # Set the default title of the worksheet to be a string of concatenated date and flowcell id
+    if gdocs_worksheet is None:
+        gdocs_worksheet = "%s_%s" % (rows[0][1],rows[0][2])
+    
+    # Write to the worksheet
+    _write_to_worksheet(client,ss_key,gdocs_worksheet,header,rows,append)
+    
+def _write_to_worksheet(client,ss_key,ws_title,header,rows,append=False):
     
     # Check if there already is a worksheet present matching the data
-    ws_title = "%s_%s" % (date,fcid)
+    ws = None
     q = gdata.spreadsheet.service.DocumentQuery(params={'title':ws_title})
     feed = client.GetWorksheetsFeed(key=ss_key,query=q)
-    # If there already exists one or more matching worksheet(s), add an enumerating suffix to the ws title
+    # If there already exists one or more matching worksheet(s)
     if len(feed.entry) > 0:
-        ws_title += "(%s)" % (len(feed.entry) + 1)
+        # If we're appending, do it to the last entry in the feed
+        if append:
+            ws = feed.entry[-1]
+        # Else, add an enumerating suffix to the ws title
+        else:
+            ws_title += "(%s)" % (len(feed.entry) + 1)
     
-    # Create a new worksheet for this run and add it to the end of the spreadsheet
-    log.info("Adding a new worksheet, '%s', to the spreadsheet" % ws_title)
-    ws = client.AddWorksheet(ws_title,rowcount+1,len(header),ss_key)
+    # If necessary, create a new worksheet for this run and add it to the end of the spreadsheet
     if ws is None:
-        log.info("Could not add a worksheet '%s' to spreadsheet with key '%s'" % (ws_title,ss_key))
-        return
+        log.info("Adding a new worksheet, '%s', to the spreadsheet" % ws_title)
+        ws = client.AddWorksheet(ws_title,len(rows)+1,len(header),ss_key)
+        if ws is None:
+            log.info("Could not add a worksheet '%s' to spreadsheet with key '%s'" % (ws_title,ss_key))
+            return
     
     ws_id = ws.id.text.split('/')[-1]
 
@@ -143,37 +151,70 @@ def upload_demultiplex_data(bc_metrics, gdocs_spreadsheet, credentials):
     for i in range(0,len(header)):
         client.UpdateCell(1,i+1,chr(97+i),ss_key,ws_id)
           
-    # Iterate over the lanes and add the data to the worksheet
-    for lane in bc_metrics:
+    # Iterate over the barcode stats and add the data to the worksheet
+    for row in rows:
         row_data = {}
-        for i in range(0,5):
-            row_data[chr(97+i)] = lane.get(header[i][1],"")
-        # Iterate over the barcodes
-        for bc in lane.get("multiplex",[]):
-            for i in range(5,len(header)):
-                 row_data[chr(97+i)] = str(bc.get(header[i][1],""))
-            client.InsertRow(row_data,ss_key,ws_id)
+        for i,value in enumerate(row):
+            row_data[chr(97+i)] = str(value)
+        client.InsertRow(row_data,ss_key,ws_id)
 
     # Lastly, substitute the one-letter header for the real deal
     for i in range(0,len(header)):
         client.UpdateCell(1,i+1,header[i][0],ss_key,ws_id)
-   
+
+def _structure_to_list(structure):
+    """Flatten all entries in the metrics data structure into a list of entry rows"""
+    
+    metrics_list = []
+    for lane in structure:
+        row = [""]*len(header)
+        for i in range(0,5):
+            row[i] = lane.get(header[i][1],"")
+
+        for m in lane.get("multiplex",[]):
+            for i in range(5,len(header)):
+                row[i] = m.get(header[i][1],"")
+                
+            metrics_list.append(list(row))
+            
+    return metrics_list
+
+def _apply_filter(unfiltered,filter):
+    
+    filtered = []
+    for entry in unfiltered:
+        passed = True
+        for i,f in enumerate(filter):
+            if f and entry[i] != f:
+                passed = False
+                break
+        if passed:
+            filtered.append(entry)
+    
+    return filtered
+
 if __name__ == "__main__":
     usage = """
     demultiplex_upload_to_gdocs.py <flowcell id> <gdocs_spreadsheet> <gdocs_credentials>
                            [--archive_dir=<archive directory> 
-                            --analysis_dir=<analysis directory>]
+                            --analysis_dir=<analysis directory>
+                            --gdocs_worksheet=<worksheet title>
+                            --append]
 """
 
     parser = OptionParser(usage=usage)
-    parser.add_option("-a", "--archive_dir", dest="archive_dir", default=os.path.join(os.getcwd(),'store'))
+    parser.add_option("-r", "--archive_dir", dest="archive_dir", default=os.path.join(os.getcwd(),'store'))
     parser.add_option("-b", "--analysis_dir", dest="analysis_dir", default=os.getcwd())
+    parser.add_option("-w", "--gdocs_worksheet", dest="gdocs_worksheet", default=None)
+    parser.add_option("-a", "--append", action="store_true", dest="append", default=False)
     (options, args) = parser.parse_args()
     if len(args) < 1:
         print __doc__
         sys.exit()
     kwargs = dict(
         archive_dir = os.path.normpath(options.archive_dir),
-        analysis_dir = os.path.normpath(options.analysis_dir)
+        analysis_dir = os.path.normpath(options.analysis_dir),
+        gdocs_worksheet = options.gdocs_worksheet,
+        append = options.append
         )
     main(*args, **kwargs)
