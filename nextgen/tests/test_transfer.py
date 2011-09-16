@@ -83,7 +83,7 @@ def perform__remote_copy_test(transfer_function, remove_before_copy = True):
 
 	remote_info = {}
 	remote_info["directory"] = copy_dir
-	remote_info["to_copy"] = ["file1", "file2", "file3", "dir1/"]
+	remote_info["to_copy"] = ["file1", "file2", "file3", "dir1"]
 	remote_info["user"] = "val"
 	remote_info["hostname"] = "localhost"
 
@@ -150,7 +150,7 @@ def test__remote_copy_rsync():
 	transfer_config = {"transfer_protocol" : "rsync"}
 	copy_function = get_transfer_function(transfer_config)
 	perform__remote_copy_test(copy_function)
-	#perform__remote_copy_test(_remote_copy, remove_before_copy = False)
+	perform__remote_copy_test(_remote_copy, remove_before_copy = False)
 
 def test__remote_copy_rdiff_backup():
 	"""Test using the copy function with rdiff-backup.

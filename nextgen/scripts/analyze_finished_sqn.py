@@ -142,6 +142,9 @@ def _remote_copy(remote_info, config, transfer_config = None):
                 fabric.run(" ".join(cl))
            
             elif protocol == "rsync":
+                if os.path.isdir("%s/%s" % (remote_info["directory"], fcopy)) and fcopy[-1] != "/":
+                    fcopy += "/"
+
                 cl = ["rsync", "-craz", "%s@%s:%s/%s" %
                       (remote_info["user"], remote_info["hostname"],
                        remote_info["directory"], fcopy),
