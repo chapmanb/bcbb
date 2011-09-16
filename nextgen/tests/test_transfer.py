@@ -7,32 +7,32 @@ import fabric.api as fabric
 import fabric.contrib.files as fabric_files
 import time
 
-def test_analyze_finished_sqn():
-	"""Test running the script with the config files in the
-	sub directory tests/test_transfer_data as input.
+# def test_analyze_finished_sqn():
+# 	"""Test running the script with the config files in the
+# 	sub directory tests/test_transfer_data as input.
 
-	NOTE: Requires running Galaxy to use, with correct values in the configs.
-	"""
-	config_dir = os.path.join(os.path.dirnam(__file__), "test_transfer_data")
-	cl = ["analyze_finished_sqn.py", 
-		  os.path.join(config_dir, "universe_wsgi.ini"),
-		  os.path.join(config_dir, "post_process.yaml")]
+# 	NOTE: Requires running Galaxy to use, with correct values in the configs.
+# 	"""
+# 	config_dir = os.path.join(os.path.dirnam(__file__), "test_transfer_data")
+# 	cl = ["analyze_finished_sqn.py", 
+# 		  os.path.join(config_dir, "universe_wsgi.ini"),
+# 		  os.path.join(config_dir, "post_process.yaml")]
 
-	subprocess.check_call(cl)
+# 	subprocess.check_call(cl)
 
-def test_analyze_finished_sqn_transfer_info():
-	"""Test running the script with the config files in the
-	sub directory tests/test_transfer_data as input.
+# def test_analyze_finished_sqn_transfer_info():
+# 	"""Test running the script with the config files in the
+# 	sub directory tests/test_transfer_data as input.
 
-	NOTE: Requires running Galaxy to use, with correct values in the configs.
-	"""
-	config_dir = os.path.join(os.path.dirnam(__file__), "test_transfer_data")
-	cl = ["analyze_finished_sqn.py", 
-		  os.path.join(config_dir, "universe_wsgi.ini"),
-		  os.path.join(config_dir, "post_process.yaml"),
-		  os.path.join(config_dir, "transfer_info.yaml")]
+# 	NOTE: Requires running Galaxy to use, with correct values in the configs.
+# 	"""
+# 	config_dir = os.path.join(os.path.dirnam(__file__), "test_transfer_data")
+# 	cl = ["analyze_finished_sqn.py", 
+# 		  os.path.join(config_dir, "universe_wsgi.ini"),
+# 		  os.path.join(config_dir, "post_process.yaml"),
+# 		  os.path.join(config_dir, "transfer_info.yaml")]
 
-	subprocess.check_call(cl)
+#	subprocess.check_call(cl)
 
 # To be able to import functions from the scripts for testing.
 sys.path.append(os.path.realpath("../scripts"))
@@ -61,7 +61,7 @@ def get_transfer_function(transfer_config):
 
 	return transfer_function
 
-def perform__remote_copy_test(transfer_function, remove_before_copy = True):
+def perform__remote_copy(transfer_function, remove_before_copy = True):
 	"""Sets up dictionaries simulating loaded remote_info and config
 	from various sources. Then test transferring files with the function
 	using the standard setting.
@@ -133,29 +133,29 @@ def test__remote_copy():
 	"""Test using the copy function without any specification
 	as to how to do it.
 	"""
-	perform__remote_copy_test(_remote_copy)
-	perform__remote_copy_test(_remote_copy, remove_before_copy = False)
+	perform__remote_copy(_remote_copy)
+	perform__remote_copy(_remote_copy, remove_before_copy = False)
 
 def test__remote_copy_scp():
 	"""Test using the copy function with scp.
 	"""
 	transfer_config = {"transfer_protocol" : "scp"}
 	copy_function = get_transfer_function(transfer_config)
-	perform__remote_copy_test(copy_function)
-	perform__remote_copy_test(_remote_copy, remove_before_copy = False)
+	perform__remote_copy(copy_function)
+	perform__remote_copy(_remote_copy, remove_before_copy = False)
 
 def test__remote_copy_rsync():
 	"""Test using the copy function with rsync.
 	"""
 	transfer_config = {"transfer_protocol" : "rsync"}
 	copy_function = get_transfer_function(transfer_config)
-	perform__remote_copy_test(copy_function)
-	perform__remote_copy_test(_remote_copy, remove_before_copy = False)
+	perform__remote_copy(copy_function)
+	perform__remote_copy(_remote_copy, remove_before_copy = False)
 
 def test__remote_copy_rdiff_backup():
 	"""Test using the copy function with rdiff-backup.
 	"""
 	transfer_config = {"transfer_protocol" : "rdiff-backup"}
 	copy_function = get_transfer_function(transfer_config)
-	perform__remote_copy_test(copy_function)
-	perform__remote_copy_test(_remote_copy, remove_before_copy = False)
+	perform__remote_copy(copy_function)
+	perform__remote_copy(_remote_copy, remove_before_copy = False)
