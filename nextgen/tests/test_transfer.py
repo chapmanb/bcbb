@@ -83,20 +83,22 @@ def perform__remote_copy_test(transfer_function):
 
 	remote_info = {}
 	remote_info["directory"] = copy_dir
-	remote_info["to_copy"] = ["file1", "file2", "file3"]
+	remote_info["to_copy"] = ["file1", "file2", "file3", "dir1"]
 	remote_info["user"] = "val"
 	remote_info["hostname"] = "localhost"
 
 	# Generate test files
 	test_data = {}
 	for test_file in remote_info["to_copy"]:
-		with open("%s/%s" % (copy_dir, test_file), "w") as file_to_write:
-			# We just the current processor time as test data, the important
-			# part is that it will be different enough between tests just
-			# so we know we are not comparing with files copied in a 
-			# previous test during the assertion.
-			test_data[test_file] = str(time.clock())
-			file_to_write.write(test_data[test_file])
+		test_file_path = "%s/%s" % (copy_dir, test_file)
+		if not os.path.isdir(test_file_path):
+			with open(test_file_path , "w") as file_to_write:
+				# We just the current processor time as test data, the important
+				# part is that it will be different enough between tests just
+				# so we know we are not comparing with files copied in a 
+				# previous test during the assertion.
+				test_data[test_file] = str(time.clock())
+				file_to_write.write(test_data[test_file])
 
 	# Perform copy with settings
 	with fabric.settings(host_string = "%s@%s" % (remote_info["user"], remote_info["hostname"])):
@@ -108,10 +110,16 @@ def perform__remote_copy_test(transfer_function):
 		transfer_function(remote_info, config)
 
 	# Check of the copy succeeded
-	for test_file in remote_info["to_copy"]:
-		with open("%s/%s/%s" % (store_dir, os.path.split(copy_dir)[1], test_file), "r") as copied_file:
-			read_data = copied_file.read()
-			assert read_data == test_data[test_file], "File copy failed"
+	for test_file in remote_info["to_copy"]:		
+		test_file_path = "%s/%s/%s" % (store_dir, os.path.split(copy_dir)[1], test_file)
+		# Did the files get copied correctly
+		if os.path.isfile(test_file_path):
+			with open(test_file_path, "r") as copied_file:
+				read_data = copied_file.read()
+				assert read_data == test_data[test_file], "File copy failed"
+		# Did the directories get copied correcty
+		if os.path.isdir(test_file_path):
+			pass
 
 def test__remote_copy():
 	"""Test using the copy function without any specification
