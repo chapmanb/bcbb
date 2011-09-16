@@ -7,18 +7,22 @@ import fabric.api as fabric
 import fabric.contrib.files as fabric_files
 import time
 
-# def test_analyze_finished_sqn():
-# 	"""Test running the script with the config files in the
-# 	sub directory tests/test_transfer_data as input.
+# To be able to import functions from the scripts for testing.
+sys.path.append(os.path.realpath(".."))
+sys.path.append(os.path.realpath("../scripts"))
 
-# 	NOTE: Requires running Galaxy to use, with correct values in the configs.
-# 	"""
-# 	config_dir = os.path.join(os.path.dirnam(__file__), "test_transfer_data")
-# 	cl = ["analyze_finished_sqn.py", 
-# 		  os.path.join(config_dir, "universe_wsgi.ini"),
-# 		  os.path.join(config_dir, "post_process.yaml")]
+def test_analyze_finished_sqn():
+	"""Test running the script with the config files in the
+	sub directory tests/test_transfer_data as input.
 
-# 	subprocess.check_call(cl)
+	NOTE: Requires running Galaxy to use, with correct values in the configs.
+	"""
+	config_dir = os.path.join(os.path.dirname(__file__), "test_transfer_data")
+	cl = ["../scripts/analyze_finished_sqn.py", 
+		  os.path.join(config_dir, "universe_wsgi.ini"),
+		  os.path.join(config_dir, "post_process.yaml")]
+
+	subprocess.check_call(cl)
 
 # def test_analyze_finished_sqn_transfer_info():
 # 	"""Test running the script with the config files in the
@@ -33,10 +37,6 @@ import time
 # 		  os.path.join(config_dir, "transfer_info.yaml")]
 
 #	subprocess.check_call(cl)
-
-# To be able to import functions from the scripts for testing.
-sys.path.append(os.path.realpath("../scripts"))
-sys.path.append(os.path.realpath(".."))
 
 from analyze_finished_sqn import _remote_copy
 
