@@ -24,29 +24,29 @@ The columns in the report file are assumed to be:
 """
 import os
 import sys
-import csv
 import base64
 import yaml
 from optparse import OptionParser
 from bcbio.pipeline import log
-from bcbio.utils import UnicodeReader
+from bcbio.templates.bc_metrics import get_bc_stats
 
 import gdata.spreadsheet.service
 import gdata.docs.service
 
 # The structure of the demultiplex result file on the form {title: column index}
-header = {
-          'Date': 0,
-          'Flowcell': 1,
-          'Lane': 2,
-          'Description': 3,
-          'Internal barcode index': 4,
-          'Barcode name': 5,
-          'Barcode sequence': 6,
-          'Barcode type': 7,
-          'Demultiplexed read count': 8,
-          'Comment': 9
-          }
+header = [
+          ['Project name','project_name'],
+          ['Date','date'],
+          ['Flowcell','flowcell_id'],
+          ['Lane','lane'],
+          ['Description','description'],
+          ['Internal barcode index','barcode_id'],
+          ['Barcode name','name'],
+          ['Barcode sequence','sequence'],
+          ['Barcode type','barcode_type'],
+          ['Demultiplexed read count','barcode_read_count'],
+          ['Comment','comment']
+        ]
 
 def decode_credentials(credentials):
     
@@ -57,28 +57,31 @@ def decode_credentials(credentials):
     return base64.b64decode(credentials).split(':',1);
     
 
-def main(dmplx_report_file, gdocs_spreadsheet_title, credentials):
+def main(flowcell_id, gdocs_spreadsheet, gdocs_credentials, archive_dir, analysis_dir):
 
-    # Get the local demultiplex result file
-    if not os.path.exists(dmplx_report_file):
-        log.info("Could not find local demultiplex results file %s. No demultiplex counts were written to Google Docs" % dmplx_report_file)
-        return
-    
     # Split the username and password
-    credentials = decode_credentials(credentials)
+    credentials = decode_credentials(gdocs_credentials)
     if not credentials:
-        log.info("Could not find GDocs credentials in config. No demultiplex counts were written to Google Docs")
+        log.info("Could not decode GDocs credentials. No demultiplex counts were written to Google Docs")
         return
     
     # Get the GDocs demultiplex result file title
-    if not gdocs_spreadsheet_title:
+    if not gdocs_spreadsheet:
         log.info("Could not find Google Docs demultiplex results file title in config. No demultiplex counts were written to Google Docs")
         return
     
-    upload_demultiplex_data(dmplx_report_file,gdocs_spreadsheet_title,credentials)
+    # Get the barcode statistics
+    fp = os.path.join(archive_dir, flowcell_id, "run_info.yaml")
+    with open(fp) as in_handle:
+        run_info = yaml.load(in_handle)
+
+    fc_dir = os.path.join(analysis_dir,flowcell_id)
+    bc_metrics = get_bc_stats(run_info,fc_dir)
+    
+    upload_demultiplex_data(bc_metrics,gdocs_spreadsheet,credentials)
     
     
-def upload_demultiplex_data(dmplx_report_file, gdocs_spreadsheet_title, credentials):
+def upload_demultiplex_data(bc_metrics, gdocs_spreadsheet, credentials):
        
     # Create a client class which will make HTTP requests with Google Docs server.
     client = gdata.spreadsheet.service.SpreadsheetsService()
@@ -88,18 +91,18 @@ def upload_demultiplex_data(dmplx_report_file, gdocs_spreadsheet_title, credenti
     client.ProgrammaticLogin()
     
     # Create a query that restricts the spreadsheet feed to documents having the supplied title
-    q = gdata.spreadsheet.service.DocumentQuery(params={'title':gdocs_spreadsheet_title, 'title-exact':'true'})
+    q = gdata.spreadsheet.service.DocumentQuery(params={'title':gdocs_spreadsheet, 'title-exact':'true'})
     # Query the server for an Atom feed containing a list of your documents.
     feed = client.GetSpreadsheetsFeed(query=q)
     
     # Check that we got a result back
     if len(feed.entry) == 0:
-        log.info("No document with specified title '%s' found in GoogleDocs repository" % gdocs_spreadsheet_title)
+        log.info("No document with specified title '%s' found in GoogleDocs repository" % gdocs_spreadsheet)
         return
     
     # If we get more than one feed item back, will have to implement some way of resolving these
     if len(feed.entry) > 1:
-        log.info("More than one document match the specified title '%s', will have to implement some way of resolving these!" % gdocs_spreadsheet_title)
+        log.info("More than one document match the specified title '%s', will have to implement some way of resolving these!" % gdocs_spreadsheet)
         return
     
     # Get the matching spreadsheet entry from the feed    
@@ -107,66 +110,70 @@ def upload_demultiplex_data(dmplx_report_file, gdocs_spreadsheet_title, credenti
     ss_key = spreadsheet.id.text.split('/')[-1]
     log.info("Found spreadsheet matching the supplied title: '%s'" % spreadsheet.title.text)
     
-    # Parse the result file to get the necessary parameters to determine worksheet names etc.
-    with open(dmplx_report_file,"rb") as f:
-        csvr = UnicodeReader(f,dialect='excel-tab')
-        
-        # Read the entire file
-        rows = []
-        for row in csvr:
-            rows.append(row)
-        
-        # Check that we got any rows
-        if len(rows) == 0:
-            log.info("Did not read any data from input file '%s'" % result_file)
-            return
-        
-        # Get the date and flowcell id and base the name of the worksheet on these
-        date = rows[0][header.get('Date',0)]
-        fcid = rows[0][header.get('Flowcell',1)]
-        
-        # Check if there already is a worksheet present matching the data
-        ws_title = "%s_%s" % (date,fcid)
-        q = gdata.spreadsheet.service.DocumentQuery(params={'title':ws_title})
-        feed = client.GetWorksheetsFeed(key=ss_key,query=q)
-        # If there already exists one or more matching worksheet(s), add an enumerating suffix to the ws title
-        if len(feed.entry) > 0:
-            ws_title += "(%s)" % (len(feed.entry) + 1)
-        
-        # Create a new worksheet for this run and add it to the end of the spreadsheet
-        log.info("Adding a new worksheet, '%s', to the spreadsheet" % ws_title)
-        ws = client.AddWorksheet(ws_title,len(rows)+1,len(header),ss_key)
-        if ws is None:
-            log.info("Could not add a worksheet '%s' to spreadsheet with key '%s'" % (ws_title,ss_key))
-            return
-        
-        ws_id = ws.id.text.split('/')[-1]
+    # Get the date and flowcell id and base the name of the worksheet on these
+    date = bc_metrics[0][header[1][1]]
+    fcid = bc_metrics[0][header[2][1]]
+    
+    # Iterate over the barcode statistics and count the number of rows that will be written
+    rowcount = 0
+    for lane in bc_metrics:
+        for bc in lane.get("multiplex",[]):
+            rowcount += 1
+    
+    # Check if there already is a worksheet present matching the data
+    ws_title = "%s_%s" % (date,fcid)
+    q = gdata.spreadsheet.service.DocumentQuery(params={'title':ws_title})
+    feed = client.GetWorksheetsFeed(key=ss_key,query=q)
+    # If there already exists one or more matching worksheet(s), add an enumerating suffix to the ws title
+    if len(feed.entry) > 0:
+        ws_title += "(%s)" % (len(feed.entry) + 1)
+    
+    # Create a new worksheet for this run and add it to the end of the spreadsheet
+    log.info("Adding a new worksheet, '%s', to the spreadsheet" % ws_title)
+    ws = client.AddWorksheet(ws_title,rowcount+1,len(header),ss_key)
+    if ws is None:
+        log.info("Could not add a worksheet '%s' to spreadsheet with key '%s'" % (ws_title,ss_key))
+        return
+    
+    ws_id = ws.id.text.split('/')[-1]
 
-        log.info("Adding data to the '%s' worksheet" % ws_title)
-        # First, print the header
-        # As a workaround for the InsertRow bugs with column names, just use single lowercase letters as column headers to start with
-        for val, j in header.items():
-             client.UpdateCell(1,j+1,chr(97+j),ss_key,ws_id)
-        
-        # Iterate over the rows and add the data to the worksheet
-        for row in rows:
-            row_data = {}
-            for col,idx in header.items():
-                row_data[chr(97+idx)] = row[idx]
+    log.info("Adding data to the '%s' worksheet" % ws_title)
+    # First, print the header
+    # As a workaround for the InsertRow bugs with column names, just use single lowercase letters as column headers to start with
+    for i in range(0,len(header)):
+        client.UpdateCell(1,i+1,chr(97+i),ss_key,ws_id)
+          
+    # Iterate over the lanes and add the data to the worksheet
+    for lane in bc_metrics:
+        row_data = {}
+        for i in range(0,5):
+            row_data[chr(97+i)] = lane.get(header[i][1],"")
+        # Iterate over the barcodes
+        for bc in lane.get("multiplex",[]):
+            for i in range(5,len(header)):
+                 row_data[chr(97+i)] = str(bc.get(header[i][1],""))
             client.InsertRow(row_data,ss_key,ws_id)
 
-        # Lastly, substitute the one-letter header for the real deal
-        for val, j in header.items():
-             client.UpdateCell(1,j+1,val,ss_key,ws_id)
- 
-
-
+    # Lastly, substitute the one-letter header for the real deal
+    for i in range(0,len(header)):
+        client.UpdateCell(1,i+1,header[i][0],ss_key,ws_id)
+   
 if __name__ == "__main__":
-    parser = OptionParser()
+    usage = """
+    demultiplex_upload_to_gdocs.py <flowcell id> <gdocs_spreadsheet> <gdocs_credentials>
+                           [--archive_dir=<archive directory> 
+                            --analysis_dir=<analysis directory>]
+"""
+
+    parser = OptionParser(usage=usage)
+    parser.add_option("-a", "--archive_dir", dest="archive_dir", default=os.path.join(os.getcwd(),'store'))
+    parser.add_option("-b", "--analysis_dir", dest="analysis_dir", default=os.getcwd())
     (options, args) = parser.parse_args()
-    if len(args) != 3:
-        print "Incorrect arguments"
+    if len(args) < 1:
         print __doc__
         sys.exit()
-    kwargs = dict()
+    kwargs = dict(
+        archive_dir = os.path.normpath(options.archive_dir),
+        analysis_dir = os.path.normpath(options.analysis_dir)
+        )
     main(*args, **kwargs)
