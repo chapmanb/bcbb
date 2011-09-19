@@ -63,7 +63,7 @@ def get_transfer_function(transfer_config):
 
 	return transfer_function
 
-def perform__remote_copy(transfer_function, remove_before_copy = True):
+def perform__remote_copy(transfer_function, remove_before_copy = True, should_overwrite = False):
 	"""Sets up dictionaries simulating loaded remote_info and config
 	from various sources. Then test transferring files with the function
 	using the standard setting.
@@ -119,14 +119,16 @@ def perform__remote_copy(transfer_function, remove_before_copy = True):
 		if os.path.isfile(test_file_path):
 			with open(test_file_path, "r") as copied_file:
 				read_data = copied_file.read()
-				fail_string = "File copy failed: %s doesn't equal %s (for %s) Remove is %s" % (
-				read_data, test_data[test_file], test_file_path, str(remove_before_copy))
+				fail_string = "File copy failed: %s doesn't equal %s (for %s). Remove is %s and Overwrite is %s." % (
+				read_data, test_data[test_file], test_file_path, str(remove_before_copy), str(should_overwrite))
 				# Assertion that passes when:
 				#  - The files got copied if we removed the old files in the
-				# target directory.
+				# target directory before the copy.
 				#  - The new files did not replace the old files in the 
-				# target directory if we did not copy.
-				assert (read_data == test_data[test_file]) == remove_before_copy, fail_string
+				# target directory if they where not supposed to overwrite.
+				#  - The new files did replace the old files in the target
+				# directory of we specified that this should happen.
+				assert (read_data == test_data[test_file]) == (remove_before_copy or should_overwrite), fail_string
 		# Did the directories get copied correcty
 		if os.path.isdir(test_file_path):
 			pass
@@ -160,4 +162,4 @@ def test__remote_copy_rdiff_backup():
 	transfer_config = {"transfer_protocol" : "rdiff-backup"}
 	copy_function = get_transfer_function(transfer_config)
 	perform__remote_copy(copy_function)
-	perform__remote_copy(copy_function, remove_before_copy = False)
+	perform__remote_copy(copy_function, remove_before_copy = False, should_overwrite = True)
