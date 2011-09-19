@@ -129,14 +129,15 @@ def _remote_copy(remote_info, config, transfer_config = None):
     log.info("Copying analysis files to %s" % fc_dir)
     if not fabric_files.exists(fc_dir):
         fabric.run("mkdir %s" % fc_dir)
-    for fcopy in remote_info['to_copy']:
-        target_loc = os.path.join(fc_dir, fcopy)
-        if not fabric_files.exists(target_loc):
-            target_dir = os.path.dirname(target_loc)
-            if not fabric_files.exists(target_dir):
-                fabric.run("mkdir -p %s" % target_dir)
-           
-            if protocol == "scp" or transfer_config == None:
+    
+    if protocol == "scp" or transfer_config == None:
+        for fcopy in remote_info['to_copy']:
+            target_loc = os.path.join(fc_dir, fcopy)
+            if not fabric_files.exists(target_loc):
+                target_dir = os.path.dirname(target_loc)
+                if not fabric_files.exists(target_dir):
+                    fabric.run("mkdir -p %s" % target_dir)
+               
                 cl = ["scp", "-r", "%s@%s:%s/%s" %
                       (remote_info["user"], remote_info["hostname"],
                        remote_info["directory"], fcopy),
@@ -144,8 +145,8 @@ def _remote_copy(remote_info, config, transfer_config = None):
 
                 log.debug(cl)
                 fabric.run(" ".join(cl))
-           
-    if protocol == "rsync":
+       
+    elif protocol == "rsync":
         for fcopy in remote_info['to_copy']:
             target_loc = os.path.join(fc_dir, fcopy)
             target_dir = os.path.dirname(target_loc)
@@ -164,7 +165,10 @@ def _remote_copy(remote_info, config, transfer_config = None):
             log.debug(cl)
             fabric.run(" ".join(cl))
 
-    if protocol == "rdiff-backup":
+    # Note: rdiff-backup doesn't have the ability to resume a partial transfer,
+    # and will instead transfer the backup from the beginning if it detects a partial
+    # transfer.
+    elif protocol == "rdiff-backup":
         include = []
         for fcopy in remote_info['to_copy']:
             include.append("--include %s/%s" % (remote_info["directory"], fcopy))
