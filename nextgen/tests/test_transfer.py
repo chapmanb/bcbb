@@ -144,7 +144,7 @@ def test__remote_copy_scp():
 	transfer_config = {"transfer_protocol" : "scp"}
 	copy_function = get_transfer_function(transfer_config)
 	perform__remote_copy(copy_function)
-	perform__remote_copy(_remote_copy, remove_before_copy = False)
+	perform__remote_copy(copy_function, remove_before_copy = False)
 
 def test__remote_copy_rsync():
 	"""Test using the copy function with rsync.
@@ -152,7 +152,7 @@ def test__remote_copy_rsync():
 	transfer_config = {"transfer_protocol" : "rsync"}
 	copy_function = get_transfer_function(transfer_config)
 	perform__remote_copy(copy_function)
-	perform__remote_copy(_remote_copy, remove_before_copy = False)
+	perform__remote_copy(copy_function, remove_before_copy = False)
 
 def test__remote_copy_rdiff_backup():
 	"""Test using the copy function with rdiff-backup.
@@ -160,4 +160,4 @@ def test__remote_copy_rdiff_backup():
 	transfer_config = {"transfer_protocol" : "rdiff-backup"}
 	copy_function = get_transfer_function(transfer_config)
 	perform__remote_copy(copy_function)
-	perform__remote_copy(_remote_copy, remove_before_copy = False)
+	perform__remote_copy(copy_function, remove_before_copy = False)

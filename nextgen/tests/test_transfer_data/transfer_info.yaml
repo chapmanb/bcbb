@@ -23,5 +23,5 @@ program:
 algorithm:
   num_cores: 8
 
-# Specify protocol user for transferring remote copies.
+# Specify protocol used for transferring remote copies.
 transfer_protocol: rsync
