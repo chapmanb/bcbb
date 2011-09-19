@@ -22,3 +22,6 @@ program:
   olb_make: make
 algorithm:
   num_cores: 8
+
+# Specify protocol user for transferring remote copies.
+transfer_protocol: rsync

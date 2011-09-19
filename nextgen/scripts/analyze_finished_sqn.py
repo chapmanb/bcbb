@@ -1,12 +1,15 @@
 """Server which listens for finished NGS runs, processing for upload to galaxy.
 
 Usage:
-    analyze_finished_sqn.py <Galaxy config file> <Post-processing config file>
+    analyze_finished_sqn.py <Galaxy config file> <Post-processing config file> [<Transfer info config file>]
 
 The server can run the copy and processing on a remote host by setting the
 analysis user and host parameters in your post_process.yaml file.
 ssh keys need to be configured to allow passwordless login between
 the machine running this server and the analysis host.
+
+If a transfer info config file is give, the transfer_protocol parameter will determine
+what protocol among the choices scp, rsync and rdiff-backup to use.
 
 Need to configure the RabbitMQ server with:
 
