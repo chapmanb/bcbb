@@ -157,8 +157,8 @@ def _remote_copy(remote_info, config, transfer_config = None):
             if os.path.isdir("%s/%s" % (remote_info["directory"], fcopy)) and fcopy[-1] != "/":
                 fcopy += "/"
             
-            # Option -P should enable resuming progress on partial transfers
-            cl = ["rsync", "-craz", "-P", "%s@%s:%s/%s" %
+            # Option -P --append should enable resuming progress on partial transfers
+            cl = ["rsync", "-craz", "-P", "--append", "%s@%s:%s/%s" %
                   (remote_info["user"], remote_info["hostname"],
                    remote_info["directory"], fcopy)]
             
