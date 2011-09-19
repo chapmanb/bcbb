@@ -47,7 +47,8 @@ def main(galaxy_config, processing_config, transfer_config = None):
     log_handler = create_log_handler(config, LOG_NAME)
     process_tag = config["msg_process_tag"]
     handlers = [(process_tag,
-                 analysis_handler(config, process_tag, processing_config))]
+                 analysis_handler(config, process_tag, 
+                 processing_config, trnsfr_config))]
     with log_handler.applicationbound():
         message_reader(handlers, amqp_config)
 
