@@ -145,17 +145,24 @@ def _remote_copy(remote_info, config, transfer_config = None):
                 log.debug(cl)
                 fabric.run(" ".join(cl))
            
-            elif protocol == "rsync":
-                if os.path.isdir("%s/%s" % (remote_info["directory"], fcopy)) and fcopy[-1] != "/":
-                    fcopy += "/"
+    if protocol == "rsync":
+        for fcopy in remote_info['to_copy']:
+            target_loc = os.path.join(fc_dir, fcopy)
+            target_dir = os.path.dirname(target_loc)
+            
+            if not fabric_files.exists(target_dir):
+                fabric.run("mkdir -p %s" % target_dir)
 
-                cl = ["rsync", "-craz", "%s@%s:%s/%s" %
-                      (remote_info["user"], remote_info["hostname"],
-                       remote_info["directory"], fcopy),
-                      target_loc]
-
-                log.debug(cl)
-                fabric.run(" ".join(cl))
+            if os.path.isdir("%s/%s" % (remote_info["directory"], fcopy)) and fcopy[-1] != "/":
+                fcopy += "/"
+            
+            # Option -P should enable resuming progress on partial transfers
+            cl = ["rsync", "-craz", "-P", "%s@%s:%s/%s" %
+                  (remote_info["user"], remote_info["hostname"],
+                   remote_info["directory"], fcopy)]
+            
+            log.debug(cl)
+            fabric.run(" ".join(cl))
 
     if protocol == "rdiff-backup":
         include = []
