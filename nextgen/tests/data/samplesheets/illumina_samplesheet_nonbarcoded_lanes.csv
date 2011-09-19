@@ -1,0 +1,6 @@
+FCID,Lane,SampleID,SampleRef,Index,Description,Y,Recipe,Operator
+80HM7ABXX,1,117,a_ref,,Test,N,R1,ES
+80HM7ABXX,2,139,a_ref,GCCAAT,Test,N,R1,ES
+80HM7ABXX,2,127,a_ref,CTTGTA,Test,N,R1,ES
+80HM7ABXX,3,146,a_ref,GCCAAT,Test,N,R1,ES
+80HM7ABXX,3,140,a_ref,CTTGTA,Test,N,R1,ES
