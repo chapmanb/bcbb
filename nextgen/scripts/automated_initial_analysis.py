@@ -63,7 +63,7 @@ def run_main(config, config_file, fc_dir, run_info_yaml):
     lane_items = _run_parallel("process_lane", lanes, dirs, config)
     
     # Upload the demultiplex counts to Google Docs
-    _upload_to_gdocs(config,fc_dir)
+    _upload_to_gdocs(config,fc_dir,run_info_yaml)
     
     _run_parallel("process_alignment", lane_items, dirs, config)
     # process samples, potentially multiplexed across multiple lanes
@@ -128,7 +128,7 @@ def _get_full_paths(fastq_dir, config, config_file):
     galaxy_config_file = utils.add_full_path(config["galaxy_config"], config_dir)
     return fastq_dir, os.path.dirname(galaxy_config_file), config_dir
 
-def _upload_to_gdocs(config,fc_dir):
+def _upload_to_gdocs(config,fc_dir,run_info_yaml):
     """Upload the barcode demultiplex counts to spreadsheet on Google Docs
     """
     
@@ -143,20 +143,15 @@ def _upload_to_gdocs(config,fc_dir):
     
     # Get the store dir and base dir from the configuration file
     analysis = config.get("analysis",{})
-    store_dir = analysis.get("store_dir",None)
     base_dir = analysis.get("base_dir",None)
-    if not store_dir or not base_dir:
-        log.warn("Could not get store_dir and base_dir from configuration file, will not upload barcode statistics to google docs")
+    if not base_dir:
+        log.warn("Could not get base_dir from configuration file, will not upload barcode statistics to google docs")
         return
     
     upload_script = gdocs.get("gdocs_upload_script",None)
     destination_file = gdocs.get("gdocs_dmplx_file",None)
     credentials = gdocs.get("gdocs_credentials",None)
-    if not upload_script or not destination_file or not credentials:
-        log.warn("Not all required parameters to GDocs upload script were specified in config file")
-        return
-    
-    cl = [upload_script, run_name, destination_file, credentials, "-r %s" % store_dir, "-b %s" % base_dir]
+    cl = [upload_script, run_name, run_info_yaml, destination_file, credentials, "-b %s" % base_dir]
     try:
         subprocess.check_call(cl)
     except Exception, e:
