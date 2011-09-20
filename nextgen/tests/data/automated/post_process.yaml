@@ -1,4 +1,6 @@
 galaxy_config: universe_wsgi.ini
+galaxy_url: foobar
+galaxy_api_key: fobar
 program:
   bowtie: bowtie
   bwa: bwa

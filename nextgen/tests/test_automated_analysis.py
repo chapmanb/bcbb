@@ -41,7 +41,7 @@ class AutomatedAnalysisTest(unittest.TestCase):
             self._download_to_dir(genome_url, genome_dir)
 
         rnaseq_url = "http://chapmanb.s3.amazonaws.com/110907_ERP000591.tar.gz"
-        rnaseq_dir = os.path.join(data_dir, os.pardir, "110907_ERP000591")
+        rnaseq_dir = os.path.join(data_dir, os.pardir, "110907_ERP000591XX")
         if not os.path.exists(rnaseq_dir):
             self._download_to_dir(rnaseq_url, rnaseq_dir)
 
@@ -80,7 +80,7 @@ class AutomatedAnalysisTest(unittest.TestCase):
             self._install_test_files(self.data_dir)
             cl = ["automated_initial_analysis.py",
                   os.path.join(self.data_dir, "post_process.yaml"),
-                  os.path.join(self.data_dir, os.pardir, "110907_ERP000591"),
+                  os.path.join(self.data_dir, os.pardir, "110907_ERP000591XX"),
                   os.path.join(self.data_dir, "run_info-rnaseq.yaml")]
             subprocess.check_call(cl)
 

@@ -51,7 +51,7 @@ def organize_samples(dirs, fc_name, fc_date, run_items, align_items):
             for multi in multiplex:
                 name = (lane_info.get("name", ""), lane_info["description"],
                         multi["name"])
-                base = "%s_%s_%s" % (lane_info["lane"], fc_date, fc_name, multi["barcode_id"])
+                base = "%s_%s_%s_%s" % (lane_info["lane"], fc_date, fc_name, multi["barcode_id"])
                 fname = os.path.join(dirs["align"], "%s-sort.bam" % base)
                 if os.path.exists(fname):
                     bams_by_sample[name].append(fname)

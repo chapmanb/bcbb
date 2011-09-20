@@ -59,9 +59,12 @@ def run_main(config, config_file, fc_dir, run_info_yaml):
 
     # process each flowcell lane
     lanes = ((info, fc_name, fc_date, dirs, config) for info in run_items)
-    lane_items = _run_parallel("process_lane", lanes, dirs, config)
+    lane_items = _run_parallel("process_lane", lanes, dirs, config, config_file)
+    align_items = _run_parallel("process_alignment", lane_items, dirs, config,
+                                config_file)
     
     # Upload the demultiplex counts to Google Docs
+    # TODO: @b97bla refactor this out
     gdocs = config.get("gdocs_upload",None)
     if gdocs:
         upload_script = gdocs.get("gdocs_upload_script",None)
@@ -79,7 +82,7 @@ def run_main(config, config_file, fc_dir, run_info_yaml):
     else:
         log.info("No GDocs upload section specified in config file, will not upload demultiplex data")
     
-    _run_parallel("process_alignment", lane_items, dirs, config)
+    _run_parallel("process_alignment", lane_items, dirs, config, config_file)
     # process samples, potentially multiplexed across multiple lanes
     sample_files, sample_fastq, sample_info = \
                   organize_samples(dirs, fc_name, fc_date, run_items, align_items)
