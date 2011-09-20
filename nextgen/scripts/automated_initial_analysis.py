@@ -63,22 +63,7 @@ def run_main(config, config_file, fc_dir, run_info_yaml):
     lane_items = _run_parallel("process_lane", lanes, dirs, config)
     
     # Upload the demultiplex counts to Google Docs
-    gdocs = config.get("gdocs_upload",None)
-    if gdocs:
-        upload_script = gdocs.get("gdocs_upload_script",None)
-        destination_file = gdocs.get("gdocs_dmplx_file",None)
-        credentials = gdocs.get("gdocs_credentials",None)
-        if upload_script and destination_file and credentials:
-            dmplx_report_file = os.path.join(work_dir, "%s_%s_demultiplexed_read_counts.txt" % (fc_date,fc_name))
-            cl = [upload_script, dmplx_report_file, destination_file, credentials]
-            try:
-                subprocess.check_call(cl)
-            except Exception, e:
-                log.info("*** ERROR *** The script %s generated an exception: %s. Resuming pipeline...\n" % (upload_script,e))
-        else:
-            log.info("Not all required parameters to GDocs upload script were specified in config file")
-    else:
-        log.info("No GDocs upload section specified in config file, will not upload demultiplex data")
+    _upload_to_gdocs(config,fc_dir,run_info_yaml)
     
     _run_parallel("process_alignment", lane_items, dirs, config)
     # process samples, potentially multiplexed across multiple lanes
@@ -142,6 +127,35 @@ def _get_full_paths(fastq_dir, config, config_file):
     config_dir = utils.add_full_path(os.path.dirname(config_file))
     galaxy_config_file = utils.add_full_path(config["galaxy_config"], config_dir)
     return fastq_dir, os.path.dirname(galaxy_config_file), config_dir
+
+def _upload_to_gdocs(config,fc_dir,run_info_yaml):
+    """Upload the barcode demultiplex counts to spreadsheet on Google Docs
+    """
+    
+    # The run_name corresponds to the last part of the fc_dir
+    run_name = os.path.basename(fc_dir.rstrip('/'))
+    
+    # Get the required parameters from the post_process.yaml configuration file
+    gdocs = config.get("gdocs_upload",None)
+    if not gdocs:
+        log.info("No GDocs upload section specified in config file, will not upload demultiplex data")
+        return
+    
+    # Get the store dir and base dir from the configuration file
+    analysis = config.get("analysis",{})
+    base_dir = analysis.get("base_dir",None)
+    if not base_dir:
+        log.warn("Could not get base_dir from configuration file, will not upload barcode statistics to google docs")
+        return
+    
+    upload_script = gdocs.get("gdocs_upload_script",None)
+    destination_file = gdocs.get("gdocs_dmplx_file",None)
+    credentials = gdocs.get("gdocs_credentials",None)
+    cl = [upload_script, run_name, run_info_yaml, destination_file, credentials, "-b %s" % base_dir]
+    try:
+        subprocess.check_call(cl)
+    except Exception, e:
+        log.warn("The script %s generated an exception: %s. Resuming pipeline...\n" % (upload_script,e))
 
 if __name__ == "__main__":
     parser = OptionParser()
