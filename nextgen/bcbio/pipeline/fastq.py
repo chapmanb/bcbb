@@ -4,7 +4,7 @@ import os
 import glob
 import subprocess
 
-def get_fastq_files(directory, lane, fc_name, bc_name=None, glob_ext="_fastq.txt"):
+def get_fastq_files(directory, item, fc_name, bc_name=None, glob_ext="_fastq.txt"):
     """Retrieve fastq files for the given lane, ready to process.
     """
     if item.has_key("files") and bc_name is None:
@@ -12,26 +12,31 @@ def get_fastq_files(directory, lane, fc_name, bc_name=None, glob_ext="_fastq.txt
         if isinstance(names, str):
             names = [names]
         files = [os.path.join(directory, x) for x in names]
-
-    if bc_name:
-        assert fc_name is not None
-        glob_str = "%s_*%s_%s_*%s" % (lane, fc_name, bc_name, glob_ext)
+   
     else:
-        glob_str = "%s_*%s*%s" % (lane, fc_name, glob_ext)
-    files = glob.glob(os.path.join(directory, glob_str))
-    files.sort()
-    if len(files) > 2 or len(files) == 0:
-        raise ValueError("Did not find correct files for %s %s %s %s" %
-                (directory, lane, fc_name, files))
+        assert fc_name is not None
+        lane = item["lane"]
+        if bc_name:
+            glob_str = "%s_*%s_%s_*%s" % (lane, fc_name, bc_name, glob_ext)
+        else:
+            glob_str = "%s_*%s*%s" % (lane, fc_name, glob_ext)
+            print glob_str
+        files = glob.glob(os.path.join(directory, glob_str))
+        files.sort()
+        if len(files) > 2 or len(files) == 0:
+            raise ValueError("Did not find correct files for %s %s %s %s" %
+                    (directory, lane, fc_name, files))
     ready_files = []
     for fname in files:
         if fname.endswith(".gz"):
+            # TODO: Parallelize using pgzip
             cl = ["gunzip", fname]
             subprocess.check_call(cl)
             ready_files.append(os.path.splitext(fname)[0])
         else:
             assert os.path.exists(fname), fname
             ready_files.append(fname)
+
     return ready_files[0], (ready_files[1] if len(ready_files) > 1 else None)
 
 
