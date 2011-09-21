@@ -59,6 +59,7 @@ if __name__ == "__main__":
     parser.add_option("-s", "--split_on_project", action="store_true", dest="split_on_project", default=False)
     (options, args) = parser.parse_args()
     if len(args) < 1:
+        print parser.usage
         print __doc__
         sys.exit()
     kwargs = dict(
