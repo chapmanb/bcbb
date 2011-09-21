@@ -37,6 +37,7 @@ from bcbio.pipeline.merge import organize_samples
 from bcbio.pipeline.qcsummary import write_metrics
 from bcbio.pipeline import sample
 from bcbio.pipeline import lane
+from bcbio.google.bc_metrics import create_bc_report_on_gdocs
 
 def main(config_file, fc_dir, run_info_yaml=None):
     with open(config_file) as in_handle:
@@ -60,8 +61,9 @@ def run_main(config, config_file, fc_dir, run_info_yaml):
     # process each flowcell lane
     lanes = ((info, fc_name, fc_date, dirs, config) for info in run_items)
     lane_items = _run_parallel("process_lane", lanes, dirs, config, config_file)
-    # Upload the demultiplex counts to Google Docs
-    _upload_to_gdocs(config,fc_dir,run_info_yaml)
+    # upload the demultiplex counts to Google Docs
+    create_bc_report_on_gdocs(fc_date,fc_name,work_dir,run_info,config)
+    
     align_items = _run_parallel("process_alignment", lane_items, dirs, config,
                                 config_file)
     
@@ -126,36 +128,6 @@ def _get_run_info(fc_name, fc_date, config, run_info_yaml):
         log.info("Fetching run details from Galaxy instance")
         galaxy_api = GalaxyApiAccess(config['galaxy_url'], config['galaxy_api_key'])
         return galaxy_api.run_details(fc_name, fc_date)
-
-
-def _upload_to_gdocs(config,fc_dir,run_info_yaml):
-    """Upload the barcode demultiplex counts to spreadsheet on Google Docs
-    """
-    
-    # The run_name corresponds to the last part of the fc_dir
-    run_name = os.path.basename(fc_dir.rstrip('/'))
-    
-    # Get the required parameters from the post_process.yaml configuration file
-    gdocs = config.get("gdocs_upload",None)
-    if not gdocs:
-        log.info("No GDocs upload section specified in config file, will not upload demultiplex data")
-        return
-    
-    # Get the store dir and base dir from the configuration file
-    analysis = config.get("analysis",{})
-    base_dir = analysis.get("base_dir",None)
-    if not base_dir:
-        log.warn("Could not get base_dir from configuration file, will not upload barcode statistics to google docs")
-        return
-    
-    upload_script = gdocs.get("gdocs_upload_script",None)
-    destination_file = gdocs.get("gdocs_dmplx_file",None)
-    credentials = gdocs.get("gdocs_credentials",None)
-    cl = [upload_script, run_name, run_info_yaml, destination_file, credentials, "-b %s" % base_dir]
-    try:
-        subprocess.check_call(cl)
-    except Exception, e:
-        log.warn("The script %s generated an exception: %s. Resuming pipeline...\n" % (upload_script,e))
 
 if __name__ == "__main__":
     parser = OptionParser()
