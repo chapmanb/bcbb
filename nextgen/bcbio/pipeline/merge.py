@@ -45,6 +45,7 @@ def organize_samples(dirs, fc_name, fc_date, run_items, align_items):
     fastq_by_sample = collections.defaultdict(list)
     for lane_info in run_items:
         multiplex = lane_info.get("multiplex", None)
+        
         if multiplex:
             mfastq_dir = os.path.join(dirs["work"], "%s_%s_%s_barcode" %
                     (lane_info["lane"], fc_date, fc_name))

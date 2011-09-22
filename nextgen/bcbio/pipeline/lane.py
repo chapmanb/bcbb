@@ -31,7 +31,6 @@ def process_lane(info, fc_name, fc_date, dirs, config):
               info.get("researcher", ""), info.get("analysis", "")))
     if multiplex:
         log.debug("Sample %s is multiplexed as: %s" % (sample_name, multiplex))
-    print info
 
     full_fastq1, full_fastq2 = get_fastq_files(dirs["fastq"], info, fc_name)
     lane_name = "%s_%s_%s" % (info['lane'], fc_date, fc_name)
