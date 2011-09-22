@@ -43,6 +43,9 @@ def split_by_barcode(fastq1, fastq2, multiplex, base_name, dirs, config):
             with utils.file_transaction(out_files + [nomatch_file, metrics_file]):
                 cl = [os.path.expandvars(command) for command in cl]
                 subprocess.check_call(cl)
+    
+    # Prunes files that are not present in the filesystem
+    out_files = [(b, n, f1, f2) for (b, n, f1, f2) in out_files if os.path.exists(f1)]
     return out_files
 
 def _make_tag_file(barcodes):
