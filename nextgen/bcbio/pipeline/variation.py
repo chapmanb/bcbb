@@ -39,6 +39,18 @@ def _get_dbsnp_file(config, sam_ref):
         snp_file = os.path.join(base_dir, snp_file)
     return snp_file
 
+def _configured_ref_file(name, config, sam_ref):
+    """Full path to a reference file specified in the configuration.
+
+    Resolves non-absolute paths relative to the base genome reference directory.
+    """
+    ref_file = config["algorithm"].get(name, None)
+    if ref_file:
+        if not os.path.isabs(ref_file):
+            base_dir = os.path.dirname(os.path.dirname(sam_ref))
+            ref_file = os.path.join(base_dir, ref_file)
+    return ref_file
+
 # ## Genotyping
 
 def run_genotyper(bam_file, ref_file, config):
