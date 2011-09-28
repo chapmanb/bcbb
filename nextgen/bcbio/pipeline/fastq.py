@@ -50,14 +50,14 @@ def get_barcoded_project_files(multiplex, lane, fc_dir, fc_name):
         fq.append(get_fastq_files(fc_dir, lane, fc_name, bc['name'], ".fastq"))
     return fq
 
-def get_barcoded_fastq_files(multiplex, lane, fc_dir, fc_name, fc_date):
+def get_barcoded_fastq_files(multiplex, item, fc_dir, fc_name, fc_date):
     fq = list()
-    bc_dir = "%s_%s_%s_barcode" % (lane, fc_date, fc_name)
+    bc_dir = "%s_%s_%s_barcode" % (item["lane"], fc_date, fc_name)
     bc_dir = os.path.join(fc_dir, bc_dir)
     for bc in multiplex:
         if not os.path.exists(bc_dir):
             raise IOError("No barcode directory found: " + str(bc_dir))
-        fq.append(get_fastq_files(bc_dir, lane, fc_name, bc_name=bc['barcode_id']))
+        fq.append(get_fastq_files(bc_dir, item, fc_name, bc_name=bc['barcode_id']))
     return fq
 
 # TODO: these two could probably be handled much more efficiently
