@@ -108,6 +108,6 @@ def get_multiplex_items(multiplex, lane, fc_dir, fc_name, fc_date):
             msample = "%s---%s" % (sample_name, mname)
         if not os.path.exists(bc_dir):
             raise IOError("No barcode directory found: " + str(bc_dir))
-        fastq1, fastq2 = get_fastq_files(bc_dir, lane, fc_name, bc_name=bc['barcode_id'])
+        fastq1, fastq2 = get_fastq_files(bc_dir, {"lane" : lane}, fc_name, bc_name=bc['barcode_id'])
         mitems.append((fastq1, fastq2 , mlane_name, msample))
     return mitems
