@@ -65,6 +65,7 @@ class AutomatedAnalysisTest(unittest.TestCase):
     def test_3_run_full_pipeline(self):
         """Run full automated analysis pipeline.
         """
+        self.setUp()
         self._install_test_files(self.data_dir)
         with make_workdir():
             cl = ["automated_initial_analysis.py",
