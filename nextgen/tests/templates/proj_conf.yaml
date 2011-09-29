@@ -7,7 +7,7 @@ program:
   bwa: bwa
   ucsc_bigwig: wigToBigWig
   picard: /bubo/sw/apps/bioinfo/picard/1.41
-  gatk: /bubo/sw/apps/bioinfo/GATK/1.0.5365
+  gatk: /bubo/home/h10/vale/opt/GenomeAnalysisTK-1.1
   snpEff: /bubo/home/h1/perun/global/sw/snpeff
   fastqc: fastqc
   pdflatex: pdflatex
