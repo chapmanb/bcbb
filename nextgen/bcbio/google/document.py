@@ -5,6 +5,8 @@ import gdata.docs.service
 import os
 from gdata import MediaSource
 from gdata import GDataEntry
+import gdata.docs
+
 from bcbio.google.connection import authenticate
 from bcbio.google import (_from_unicode,_to_unicode)
 
@@ -19,6 +21,13 @@ def add_folder(client,folder_name,parent_folder=None):
     folder = client.CreateFolder(folder_name,parent_folder)
     return folder
 
+def add_permission(client,doc,user,role_type="reader"):
+    """Add the supplied permission to the document"""
+    scope = gdata.docs.Scope(value=user, type='user')
+    role = gdata.docs.Role(value=role_type)
+    acl_entry = gdata.docs.DocumentListAclEntry(scope=scope, role=role)
+    created_acl_entry = client.Post(acl_entry, doc.GetAclLink().href,converter=gdata.docs.DocumentListAclEntryFromString)
+    
 def add_spreadsheet(client,ssheet_title):
     """Create a new spreadsheet with the specified title"""
     new_entry = gdata.GDataEntry()

@@ -73,11 +73,17 @@ def create_bc_report_on_gdocs(fc_date, fc_name, work_dir, run_info, config):
         log.warn("Could not find Google Docs account credentials. No demultiplex report was written")
         return
     
+    # Get the projects parent folder
+    projects_folder = gdocs.get("gdocs_projects_folder","")
+    
     # Get the barcode statistics
     bc_metrics = get_bc_stats(fc_date,fc_name,work_dir,run_info)
     
     # Upload the data
     write_run_report_to_gdocs(fc_date,fc_name,bc_metrics,gdocs_spreadsheet,encoded_credentials)
+    
+    # Write the bc project summary report
+    write_project_report_to_gdocs(fc_date,fc_name,bc_metrics,encoded_credentials,projects_folder)
 
 def format_project_name(unformated_name):
     """Make the project name adhere to the formatting convention"""
@@ -260,12 +266,15 @@ def _structure_to_list(structure):
             
     return metrics_list
         
-def write_project_report_to_gdocs(fc_date,fc_name,project_bc_metrics,encoded_credentials):
+def write_project_report_to_gdocs(fc_date,fc_name,project_bc_metrics,encoded_credentials,gdocs_folder=""):
     """Upload the sample read distribution for a project to google docs"""
     
     # Create a client class which will make HTTP requests with Google Docs server.
     client = bcbio.google.spreadsheet.get_client(encoded_credentials)
     doc_client = bcbio.google.document.get_client(encoded_credentials)
+    
+    # Get a reference to the parent folder
+    parent_folder = bcbio.google.document.get_folder(doc_client,gdocs_folder)
     
     # Group the barcode data by project
     grouped = group_bc_stats(project_bc_metrics)
@@ -286,7 +295,7 @@ def write_project_report_to_gdocs(fc_date,fc_name,project_bc_metrics,encoded_cre
         folder = bcbio.google.document.get_folder(doc_client,folder_name)
         if not folder:
             log.info("creating folder '%s'" % _from_unicode(folder_name))
-            folder = bcbio.google.document.add_folder(doc_client,folder_name)
+            folder = bcbio.google.document.add_folder(doc_client,folder_name,parent_folder)
             
         ssheet = bcbio.google.document.move_to_folder(doc_client,ssheet,folder)
         log.info("'%s' spreadsheet written to folder '%s'" % (_from_unicode(ssheet.title.text),_from_unicode(folder_name)))
