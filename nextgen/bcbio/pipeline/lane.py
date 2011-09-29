@@ -31,7 +31,7 @@ def process_lane(info, fc_name, fc_date, dirs, config):
     if multiplex:
         log.debug("Sample %s is multiplexed as: %s" % (sample_name, multiplex))
 
-    full_fastq1, full_fastq2 = get_fastq_files(dirs["fastq"], info['lane'], fc_name)
+    full_fastq1, full_fastq2 = get_fastq_files(dirs["fastq"], info, fc_name)
     lane_name = "%s_%s_%s" % (info['lane'], fc_date, fc_name)
     lane_items = []
     for mname, msample, fastq1, fastq2 in split_by_barcode(full_fastq1,

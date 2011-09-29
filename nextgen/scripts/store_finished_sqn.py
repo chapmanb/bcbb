@@ -1,5 +1,5 @@
 """Transfer raw files from finished NGS runs for backup and storage.
-
+TODO: Remove
 This script runs on the analysis side, pulls the files from the dump
 machine via rsync.
 

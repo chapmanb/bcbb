@@ -68,7 +68,7 @@ def process_lane(info, config, dirs):
         if not os.path.exists(bc_dir):
             log.info("Making barcode directory %s" %(bc_dir))
             os.makedirs(bc_dir)
-        fq = get_barcoded_project_files(multiplex, info['lane'], dirs['fastq_dir'], config['fc_name'])
+        fq = get_barcoded_project_files(multiplex, info, dirs['fastq_dir'], config['fc_name'])
         for fqpair in fq:
             fqout = convert_name_to_barcode_id(multiplex, config['fc_name'], fqpair)
             [_link_fastq_file(fq_src, fq_tgt, bc_dir) for fq_src, fq_tgt in izip(fqpair, fqout)]

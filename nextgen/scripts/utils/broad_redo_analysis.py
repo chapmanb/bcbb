@@ -159,6 +159,7 @@ def get_genome_ref(genome_build, aligner, galaxy_base):
             maq = _remap_to_maq
             )
     out_info = []
+    
     for ref_get in [aligner, "samtools"]:
         ref_file = os.path.join(galaxy_base, "tool-data", ref_files[ref_get])
         with open(ref_file) as in_handle:

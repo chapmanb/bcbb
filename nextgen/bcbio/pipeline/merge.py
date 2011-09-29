@@ -45,23 +45,28 @@ def organize_samples(dirs, fc_name, fc_date, run_items, align_items):
     fastq_by_sample = collections.defaultdict(list)
     for lane_info in run_items:
         multiplex = lane_info.get("multiplex", None)
+        
         if multiplex:
             mfastq_dir = os.path.join(dirs["work"], "%s_%s_%s_barcode" %
                     (lane_info["lane"], fc_date, fc_name))
             for multi in multiplex:
                 name = (lane_info.get("name", ""), lane_info["description"],
                         multi["name"])
-                base = "%s_%s_%s" % (lane_info["lane"], fc_date, fc_name, multi["barcode_id"])
+                base = "%s_%s_%s_%s" % (lane_info["lane"], fc_date, fc_name, multi["barcode_id"])
                 fname = os.path.join(dirs["align"], "%s-sort.bam" % base)
+                has_bam = False
                 if os.path.exists(fname):
+                    has_bam = True
                     bams_by_sample[name].append(fname)
                 elif bams_by_lane.has_key(base):
+                    has_bam = True
                     bams_by_sample[name].append(bams_by_lane[base])
                 else:
-                    raise ValueError("Did not find BAM files for %s" % lane_info)
-                sample_info[name] = lane_info
-                fastq_by_sample[name].append(get_fastq_files(mfastq_dir, lane_info,
-                                                             fc_name, multi["barcode_id"]))
+                    pass # Not all barcodes may exist; would like a way to check here
+                if has_bam:
+                    sample_info[name] = lane_info
+                    fastq_by_sample[name].append(get_fastq_files(mfastq_dir, lane_info,
+                                                                 fc_name, multi["barcode_id"]))
         else:
             name = (lane_info.get("name", ""), lane_info["description"])
             base = "%s_%s_%s" % (lane_info["lane"], fc_date, fc_name)

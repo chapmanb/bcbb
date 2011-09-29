@@ -17,6 +17,7 @@ def split_by_barcode(fastq1, fastq2, multiplex, base_name, dirs, config):
     bc_dir = os.path.join(dirs["work"], "%s_barcode" % base_name)
     nomatch_file = "%s_unmatched_1_fastq.txt" % base_name
     metrics_file = "%s_bc.metrics" % base_name
+    out_files = []
     for info in multiplex:
         fq_fname = lambda x: os.path.join(bc_dir, "%s_%s_%s_fastq.txt" %
                             (base_name, info["barcode_id"], x))
@@ -42,6 +43,9 @@ def split_by_barcode(fastq1, fastq2, multiplex, base_name, dirs, config):
             with utils.file_transaction(out_files + [nomatch_file, metrics_file]):
                 cl = [os.path.expandvars(command) for command in cl]
                 subprocess.check_call(cl)
+    
+    # Prunes files that are not present in the filesystem
+    out_files = [(b, n, f1, f2) for (b, n, f1, f2) in out_files if os.path.exists(f1)]
     return out_files
 
 def _make_tag_file(barcodes):
