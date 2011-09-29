@@ -3,14 +3,6 @@
 
 import base64
 
-def _decode_credentials(credentials):
-    
-    if not credentials:
-        return None
-    
-    # Split the username and password
-    return base64.b64decode(credentials).split(':',1);
-    
 def authenticate(client,credentials):
     
     login,pwd = _decode_credentials(credentials)
@@ -23,3 +15,12 @@ def authenticate(client,credentials):
     client.ProgrammaticLogin()
     
     return True
+
+def _decode_credentials(credentials):
+    
+    if not credentials:
+        return None
+    
+    # Split the username and password
+    return base64.b64decode(credentials).split(':',1);
+ 
