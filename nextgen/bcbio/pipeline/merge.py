@@ -36,10 +36,14 @@ def _organize_bam_by_lane(align_items):
         out[a["lane"]] = a["out_bam"]
     return out
 
-def organize_samples(dirs, fc_name, fc_date, run_items, align_items):
+def organize_samples(dirs, fc_name, fc_date, run_items, align_items = None):
     """Organize BAM output files by sample name, handling multiplexing.
     """
-    bams_by_lane = _organize_bam_by_lane(align_items)
+    if align_items != None:
+        bams_by_lane = _organize_bam_by_lane(align_items)
+    else:
+        bams_by_lane = dict()
+    
     bams_by_sample = collections.defaultdict(list)
     sample_info = dict()
     fastq_by_sample = collections.defaultdict(list)
