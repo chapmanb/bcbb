@@ -19,7 +19,7 @@ algorithm:
   platform: illumina
   recalibrate: true
   snpcall: true
-  dbsnp: snps/dbSNP132.vcf
+  dbsnp: variation/dbsnp_132.vcf
   bc_mismatch: 2
   bc_read: 1
   bc_position: 3
@@ -36,6 +36,6 @@ custom_algorithms:
     aligner: bwa
     recalibrate: true
     snpcall: true
-    dbsnp: snps/dbSNP132.vcf
+    dbsnp: variation/dbsnp_132.vcf
   'Minimal':
     aligner: ""
