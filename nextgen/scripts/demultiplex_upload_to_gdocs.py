@@ -14,7 +14,7 @@ import yaml
 from optparse import OptionParser
 from bcbio.pipeline import log
 from bcbio.solexa.flowcell import get_flowcell_info
-from bcbio.google.bc_metrics import (get_bc_stats,write_bc_report_to_gdocs)
+from bcbio.google.bc_metrics import (get_bc_stats,write_run_report_to_gdocs,write_project_report_to_gdocs)
 
 def main(run_name, gdocs_spreadsheet, gdocs_credentials, run_info_yaml, analysis_dir, archive_dir, gdocs_worksheet, append, split_on_project):
 
@@ -37,7 +37,10 @@ def main(run_name, gdocs_spreadsheet, gdocs_credentials, run_info_yaml, analysis
     bc_metrics = get_bc_stats(fc_date,fc_name,analysis_dir,run_info)
     
     # Write the report
-    write_bc_report_to_gdocs(fc_date,fc_name,bc_metrics,gdocs_spreadsheet,gdocs_credentials,gdocs_worksheet,append,split_on_project)
+    write_run_report_to_gdocs(fc_date,fc_name,bc_metrics,gdocs_spreadsheet,gdocs_credentials,gdocs_worksheet,append,split_on_project)
+    
+    # Write the bc project summary report
+    write_project_report_to_gdocs(fc_date,fc_name,bc_metrics,gdocs_credentials)
     
 if __name__ == "__main__":
     usage = """
