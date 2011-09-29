@@ -88,7 +88,7 @@ def process_lane(info, dirs, config):
              (sample_name, info["lane"], genome_build))
     if multiplex:
         log.debug("Sample %s is multiplexed as: %s" % (sample_name, multiplex))
-        fq = get_barcoded_fastq_files(multiplex, info['lane'], dirs['fc_dir'], config['fc_name'], config['fc_date'])
+        fq = get_barcoded_fastq_files(multiplex, info, dirs['fc_dir'], config['fc_name'], config['fc_date'])
         for fqpair in fq:
             fqout = convert_barcode_id_to_name(multiplex, config['fc_name'], fqpair)
             [_deliver_fastq_file(fq_src, fq_tgt, config['fc_delivery_dir']) for fq_src, fq_tgt in izip(fqpair, fqout)]

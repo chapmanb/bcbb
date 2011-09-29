@@ -21,6 +21,7 @@ Workflow:
 """
 import os
 import sys
+import subprocess
 from optparse import OptionParser
 
 import yaml
@@ -61,6 +62,26 @@ def run_main(config, config_file, fc_dir, run_info_yaml):
     lane_items = _run_parallel("process_lane", lanes, dirs, config, config_file)
     align_items = _run_parallel("process_alignment", lane_items, dirs, config,
                                 config_file)
+    
+    # Upload the demultiplex counts to Google Docs
+    # TODO: @b97bla refactor this out
+    gdocs = config.get("gdocs_upload",None)
+    if gdocs:
+        upload_script = gdocs.get("gdocs_upload_script",None)
+        destination_file = gdocs.get("gdocs_dmplx_file",None)
+        credentials = gdocs.get("gdocs_credentials",None)
+        if upload_script and destination_file and credentials:
+            dmplx_report_file = os.path.join(work_dir, "%s_%s_demultiplexed_read_counts.txt" % (fc_date,fc_name))
+            cl = [upload_script, dmplx_report_file, destination_file, credentials]
+            try:
+                subprocess.check_call(cl)
+            except Exception, e:
+                log.info("*** ERROR *** The script %s generated an exception: %s. Resuming pipeline...\n" % (upload_script,e))
+        else:
+            log.info("Not all required parameters to GDocs upload script were specified in config file")
+    else:
+        log.info("No GDocs upload section specified in config file, will not upload demultiplex data")
+    
     # process samples, potentially multiplexed across multiple lanes
     sample_files, sample_fastq, sample_info = \
                   organize_samples(dirs, fc_name, fc_date, run_items, align_items)

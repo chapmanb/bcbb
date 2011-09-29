@@ -67,14 +67,14 @@ def _read_input_csv(in_file):
     #_sanitize(in_file)
 
     try:
-    with open(in_file, "rU") as in_handle:
-        reader = csv.reader(in_handle)
-        #reader = unicode_csv_reader(in_handle)
-        reader.next() # header
-        for line in reader:
-            if line: # empty lines
-                (fc_id, lane, sample_id, genome, barcode, description) = line[:6]
-                yield fc_id, lane, sample_id, genome, barcode, description
+        with open(in_file, "rU") as in_handle:
+            reader = csv.reader(in_handle)
+            #reader = unicode_csv_reader(in_handle)
+            reader.next() # header
+            for line in reader:
+                if line: # empty lines
+                    (fc_id, lane, sample_id, genome, barcode, description) = line[:6]
+                    yield fc_id, lane, sample_id, genome, barcode, description
     except ValueError:
         print "Corrupt samplesheet %s, please fix it" % in_file 
         pass

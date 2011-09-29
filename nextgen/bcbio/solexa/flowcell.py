@@ -25,6 +25,7 @@ def get_flowcell_info(fc_dir):
             except ValueError:
                 pass
     if name is None or date is None:
+        print fc_dir
         raise ValueError("Did not find flowcell name: %s" % fc_dir)
     return name, date
 

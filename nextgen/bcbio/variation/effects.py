@@ -44,7 +44,7 @@ def _run_snpeff(snp_in, genome, snpeff_jar, se_interval, java_memory):
         cl = ["java"]
         if java_memory:
             cl += ["-Xmx%s" % java_memory]
-        cl += ["-jar", snpeff_jar, "-1", "-vcf4", "-pass", "-c", snpeff_config,
+        cl += ["-jar", snpeff_jar, "-1", "-c", snpeff_config,
               genome, snp_in]
         if se_interval:
             cl.extend(["-filterInterval", se_interval])

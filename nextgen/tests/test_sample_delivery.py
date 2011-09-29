@@ -38,7 +38,6 @@ class SampleDeliveryTest(unittest.TestCase):
                     out_handle.write(tmpl.safe_substitute(d))
                           
 
-
     def test_deliver_data(self):
         """Test data delivery"""
         cl = ["sample_delivery.py",
@@ -48,13 +47,15 @@ class SampleDeliveryTest(unittest.TestCase):
 
     def test_dry_run(self):
         """Test dry run: don't do anything"""
+        self.setUp()
         cl = ["sample_delivery.py",
               os.path.join(self.file_dir, "templates", "run_info.yaml"),
               "J.Doe_00_01", self.fcdir, self.proj_dir, "-n"]
         subprocess.check_call(cl)
 
     def test_write_run_info_only(self):
-        """Test writing of pruned run info file"""
+	"""Test writing of pruned run info file"""
+        self.setUp()
         cl = ["sample_delivery.py",
               os.path.join(self.file_dir, "templates", "run_info.yaml"),
               "J.Doe_00_01", self.fcdir, self.proj_dir, "-I"]
