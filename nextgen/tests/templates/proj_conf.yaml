@@ -7,8 +7,8 @@ program:
   bwa: bwa
   ucsc_bigwig: wigToBigWig
   picard: /bubo/sw/apps/bioinfo/picard/1.41
-  gatk: /bubo/home/h10/vale/opt/GenomeAnalysisTK-1.1
-  snpEff: /bubo/home/h1/perun/global/sw/snpeff
+  gatk: /path/to/GenomeAnalysisTK-1.1
+  snpEff: /path/to/snpeff
   fastqc: fastqc
   pdflatex: pdflatex
   barcode: barcode_sort_trim.py

@@ -7,8 +7,8 @@ program:
   tophat: tophat
   ucsc_bigwig: /bubo/home/h10/vale/bin/wigToBigWig
   picard: /bubo/sw/apps/bioinfo/picard/1.41 
-  gatk: /bubo/home/h10/vale/opt/GenomeAnalysisTK-1.1
-  snpEff: /bubo/home/h10/vale/opt/snpEff_v2_0_2
+  gatk: /path/to/GenomeAnalysisTK-1.1
+  snpEff: /path/to/snpEff_v2_0_2
   fastqc: fastqc
   pdflatex: pdflatex
   barcode: barcode_sort_trim.py
