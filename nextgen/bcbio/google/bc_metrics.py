@@ -74,17 +74,19 @@ def create_bc_report_on_gdocs(fc_date, fc_name, work_dir, run_info, config):
         log.warn("Could not find Google Docs account credentials. No demultiplex report was written")
         return
     
-    # Get the projects parent folder
-    projects_folder = gdocs.get("gdocs_projects_folder","")
-    
     # Get the barcode statistics
     bc_metrics = get_bc_stats(fc_date,fc_name,work_dir,run_info)
     
     # Upload the data
     write_run_report_to_gdocs(fc_date,fc_name,bc_metrics,gdocs_spreadsheet,encoded_credentials)
     
+    # Get the projects parent folder
+    projects_folder = gdocs.get("gdocs_projects_folder",None)
+    
     # Write the bc project summary report
-    write_project_report_to_gdocs(fc_date,fc_name,bc_metrics,encoded_credentials,projects_folder)
+    if projects_folder:
+        write_project_report_to_gdocs(fc_date,fc_name,bc_metrics,encoded_credentials,projects_folder)
+
 
 def format_project_name(unformated_name):
     """Make the project name adhere to the formatting convention"""
@@ -109,8 +111,9 @@ def format_project_name(unformated_name):
    
 def get_bc_stats(fc_date, fc_name, work_dir, run_info):
     """Get a data structure with the run info coupled with the results from barcode demultiplexing"""
+    print "\n%s\n" % run_info
     bc_stats = []
-    for lane_run_info in run_info:
+    for lane_run_info in run_info.get("details",[]):
         lane_bc_stats = {}
         lane_id = unicode(lane_run_info['lane'])
         bc_dir = os.path.join(work_dir,"%s_%s_%s_barcode" % (lane_id,fc_date,fc_name))
@@ -174,7 +177,7 @@ def group_bc_stats(bc_metrics):
     projects = {}
     for lane in bc_metrics:
         project_name = lane.get("project_name","N/A")
-        lane_name = lane.get("lane","N/A")
+        lane_name = unicode(lane.get("lane","N/A"))
         
         # Get the project data already stored on this project
         project = projects.get(project_name,None)

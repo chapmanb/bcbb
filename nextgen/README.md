@@ -434,7 +434,7 @@ demultiplexing is performed by the [barcode_sort_trim.py][in3] script.
 
 ## Upload of barcode read counts to google docs account
 
-Optionally, the read count distribution for each barcode as recorded in the `_bc_metrics` file can be uploaded to a spreadsheet 
+Optionally, the read count distribution for each barcode as recorded in the `*_bc_metrics` file scan be uploaded to a spreadsheet 
 on Google Docs. If there exists a `gdocs_upload` section in the `post_process.py configuration file, the pipeline will attempt 
 to upload the read counts using the specified credentials. The `gdocs_upload` section should contain parameters specifying the 
 name of the remote spreadsheet on Google Docs and a base64-encoded string containing the concatenated credentials (on the form 
@@ -443,8 +443,12 @@ name of the remote spreadsheet on Google Docs and a base64-encoded string contai
     gdocs_upload:
         gdocs_dmplx_file: Demultiplex counts
         gdocs_credentials: ZXhhbXBsZUBnbWFpbC5jb206eW91cmdvb2dsZXBhc3N3b3Jk
+        gdocs_projects_folder: 'Project read counts'
 
-The barcode read count distribution will be written to a worksheet with title [date]_[flowcell id]
+The barcode read count distribution for the flowcell will be written to a worksheet with title [date]_[flowcell id]. Additionally, 
+the read count per project and sample can be summarized and written to a spreadsheet named [project name]_sequencing results. The 
+spreadsheet will be tagged with the project name and placed under the folder specified via the 'gdocs_projects_folder' configuration
+option.
 
 
         

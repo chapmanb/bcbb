@@ -41,7 +41,8 @@ def main(run_name, gdocs_spreadsheet, gdocs_credentials, run_info_yaml, analysis
     write_run_report_to_gdocs(fc_date,fc_name,bc_metrics,gdocs_spreadsheet,gdocs_credentials,gdocs_worksheet,append,split_on_project)
     
     # Write the bc project summary report
-    write_project_report_to_gdocs(fc_date,fc_name,bc_metrics,gdocs_credentials,gdocs_projects_folder)
+    if gdocs_projects_folder:
+        write_project_report_to_gdocs(fc_date,fc_name,bc_metrics,gdocs_credentials,gdocs_projects_folder)
     
 if __name__ == "__main__":
     usage = """
@@ -60,7 +61,7 @@ if __name__ == "__main__":
     parser.add_option("-d", "--analysis_dir", dest="analysis_dir", default=os.getcwd())
     parser.add_option("-r", "--archive_dir", dest="archive_dir", default=os.getcwd())
     parser.add_option("-w", "--gdocs_worksheet", dest="gdocs_worksheet", default=None)
-    parser.add_option("-p", "--gdocs_projects_folder", dest="gdocs_projects_folder", default="")
+    parser.add_option("-p", "--gdocs_projects_folder", dest="gdocs_projects_folder", default=None)
     parser.add_option("-a", "--append", action="store_true", dest="append", default=False)
     parser.add_option("-s", "--split_on_project", action="store_true", dest="split_on_project", default=False)
     (options, args) = parser.parse_args()
