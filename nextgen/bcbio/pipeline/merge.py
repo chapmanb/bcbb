@@ -1,8 +1,7 @@
 """Handle multiple samples present on a single flowcell
 
-This provides functionality for cases where you the same sample in multiple lanes
-on a flowcell. There can be combined from barcoded subsets and are identified
-based on unique sample names.
+Merges samples located in multiple lanes on a flowcell. Unique sample names identify
+items to combine within a group.
 """
 import os
 import shutil

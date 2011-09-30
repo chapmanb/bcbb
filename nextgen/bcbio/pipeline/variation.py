@@ -15,7 +15,7 @@ def recalibrate_quality(sort_bam_file, fastq1, fastq2, sam_ref,
                         dirs, config):
     """Recalibrate alignments with GATK and provide pdf summary.
     """
-    dbsnp_file = _get_dbsnp_file(config, sam_ref)
+    dbsnp_file = _configured_ref_file("dbsnp", config, sam_ref)
     recal_file = gatk_recalibrate(sort_bam_file, sam_ref, config, dbsnp_file)
     _analyze_recalibration(recal_file, fastq1, fastq2, dirs, config)
     return recal_file
@@ -32,12 +32,17 @@ def _analyze_recalibration(recal_file, fastq1, fastq2, dirs, config):
     cl.append("--input_format=%s" % qual_opts[qual_format])
     subprocess.check_call(cl)
 
-def _get_dbsnp_file(config, sam_ref):
-    snp_file = config["algorithm"].get("dbsnp", None)
-    if snp_file:
-        base_dir = os.path.dirname(os.path.dirname(sam_ref))
-        snp_file = os.path.join(base_dir, snp_file)
-    return snp_file
+def _configured_ref_file(name, config, sam_ref):
+    """Full path to a reference file specified in the configuration.
+
+    Resolves non-absolute paths relative to the base genome reference directory.
+    """
+    ref_file = config["algorithm"].get(name, None)
+    if ref_file:
+        if not os.path.isabs(ref_file):
+            base_dir = os.path.dirname(os.path.dirname(sam_ref))
+            ref_file = os.path.join(base_dir, ref_file)
+    return ref_file
 
 def _configured_ref_file(name, config, sam_ref):
     """Full path to a reference file specified in the configuration.
@@ -56,7 +61,7 @@ def _configured_ref_file(name, config, sam_ref):
 def run_genotyper(bam_file, ref_file, config):
     """Perform SNP genotyping and analysis using GATK.
     """
-    dbsnp_file = _get_dbsnp_file(config, ref_file)
+    dbsnp_file = _configured_ref_file("dbsnp", config, ref_file)
     realign_bam = gatk_realigner(bam_file, ref_file, config, dbsnp_file)
     filter_snp = gatk_genotyper(realign_bam, ref_file, config, dbsnp_file)
     _eval_genotyper(filter_snp, ref_file, dbsnp_file, config)
