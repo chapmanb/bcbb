@@ -7,8 +7,8 @@ program:
   bwa: bwa
   ucsc_bigwig: wigToBigWig
   picard: /bubo/sw/apps/bioinfo/picard/1.41
-  gatk: /bubo/sw/apps/bioinfo/GATK/1.0.5365
-  snpEff: /bubo/home/h1/perun/global/sw/snpeff
+  gatk: /path/to/GenomeAnalysisTK-1.1
+  snpEff: /path/to/snpeff
   fastqc: fastqc
   pdflatex: pdflatex
   barcode: barcode_sort_trim.py
@@ -19,7 +19,7 @@ algorithm:
   platform: illumina
   recalibrate: true
   snpcall: true
-  dbsnp: snps/dbSNP132.vcf
+  dbsnp: variation/dbsnp_132.vcf
   bc_mismatch: 2
   bc_read: 1
   bc_position: 3
@@ -36,6 +36,6 @@ custom_algorithms:
     aligner: bwa
     recalibrate: true
     snpcall: true
-    dbsnp: snps/dbSNP132.vcf
+    dbsnp: variation/dbsnp_132.vcf
   'Minimal':
     aligner: ""

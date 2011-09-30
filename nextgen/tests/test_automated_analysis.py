@@ -62,7 +62,7 @@ class AutomatedAnalysisTest(unittest.TestCase):
         os.rename(os.path.basename(dirname), dirname)
         os.remove(os.path.basename(url))
 
-    def test_3_run_full_pipeline(self):
+    def test_4_run_full_pipeline(self):
         """Run full automated analysis pipeline.
         """
         self.setUp()
@@ -74,7 +74,7 @@ class AutomatedAnalysisTest(unittest.TestCase):
                   os.path.join(self.data_dir, "run_info.yaml")]
             subprocess.check_call(cl)
 
-    def test_4_empty_fastq(self):
+    def test_3_empty_fastq(self):
         """Handle analysis of empty fastq inputs from failed runs.
         """
         with make_workdir():
