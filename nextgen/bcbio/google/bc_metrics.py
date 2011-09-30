@@ -34,6 +34,7 @@ SEQUENCING_RESULT_HEADER = [
                  ['Run','run'],
                  ['Lane','lane'],
                  ['Sample count','read_count'],
+                 ['Sample count (millions)','read_count_millions'],
                  ['Comment','comment'],
                  ['Pass','pass']
                 ]
@@ -139,7 +140,7 @@ def _get_unique_project_names(rows):
 
 def get_sample_name(barcode_name):
     """Extract the sample name by stripping the barcode index part of the sample description""" 
-    regexp = r'^(\S+?)[\.\-_]?ind?(?:ex)?[\.\-_]?\d+$'
+    regexp = r'^(.+?)[\.\-_]?ind?(?:ex)?[\.\-_]?\d+$'
     m = re.search(regexp,(barcode_name or ""),re.I)
     if not m or len(m.groups()) == 0:
         return barcode_name
@@ -210,10 +211,10 @@ def group_bc_stats(bc_metrics):
     for project in data:
         samples = project["samples"].values()
         for sample in samples:
-            lanes = sample["lane"]
+            lanes = dict.fromkeys(sample["lane"]).keys()
             sample["lane"] = ",".join(lanes)
             if "read_count_na" in sample:
-                sample["read_count"] = unicode(sample["read_count"]) + "+?"
+                sample["comment"] = unicode("Read count not available for some lanes")
         project["samples"] = samples
         
     return data
@@ -291,6 +292,12 @@ def write_project_report_to_gdocs(fc_date,fc_name,project_bc_metrics,encoded_cre
     
         _write_project_report_to_gdocs(client,ssheet,fc_date,fc_name,pdata)
         _write_project_report_summary_to_gdocs(client,ssheet)
+        
+        # Just to make it look a bit nicer, remove the default 'Sheet1' worksheet
+        wsheet = bcbio.google.spreadsheet.get_worksheet(client,ssheet,'Sheet 1')
+        if wsheet:
+            client.DeleteWorksheet(wsheet)
+            
         folder_name = project_name
         folder = bcbio.google.document.get_folder(doc_client,folder_name)
         if not folder:
@@ -310,7 +317,9 @@ def _write_project_report_to_gdocs(client, ssheet, fc_date, fc_name, project_dat
     # Flatten the project_data structure into a list
     rows = []
     for sample in project_data["samples"]:
-        row = (sample["sample_name"],"%s_%s" % (fc_date,fc_name),sample["lane"],sample["read_count"],"","")
+        scount = int(sample["read_count"])
+        mcount = round(scount/1000000.,2)
+        row = (sample["sample_name"],"%s_%s" % (fc_date,fc_name),sample["lane"],unicode(scount),unicode(mcount),sample.get("comment",""),"")
         rows.append(row)
     
     # Write the data to the worksheet
@@ -331,15 +340,32 @@ def _write_project_report_summary_to_gdocs(client, ssheet):
         wsheet_data = bcbio.google.spreadsheet.get_cell_content(client,ssheet,wsheet,'2')
         # Add the results from the worksheet to the summarized data    
         for wsheet_row in wsheet_data:
-            summary_row = summary_data.get(wsheet_row[0],None)
-            if summary_row:
-                for i in (1,2,4):
-                    summary_row[i] = "[" + "][".join((summary_row[i],wsheet_row[i])) + "]"
-                scount,sep,sunc = summary_row[3].partition("+")
-                wcount,sep,wunc = wsheet_row[3].partition("+")
-                summary_row[3] = unicode(int(scount) + int(wcount)) + sep + sunc + wunc
-            else:
-                summary_data[wsheet_row[0]] = list(wsheet_row)
+            sample_name = wsheet_row[0]
+            summary_row = summary_data.get(sample_name,None)
+            if not summary_row:
+                summary_row = [""]*len(wsheet_row)
+                summary_row[0] = sample_name
+                for i in range(1,len(wsheet_row)):
+                    summary_row[i] = []
+                summary_data[sample_name] = summary_row 
+            for i in range(1,len(wsheet_row)):
+                summary_row[i].append(wsheet_row[i])
+    
+    # Concatenate the data in the summary structure
+    for sample in summary_data.values():
+        # Concatenate the non-number columns using ';' as separator
+        for i in (1,2,5,6):
+            sample[i] = ";".join(sample[i])
+        
+        # Sum up the read counts
+        counts = sample[3]
+        sum = 0
+        for count in counts:
+            sum += int(count)
+        # Count the millions
+        msum = round(sum/1000000.,2)
+        sample[3] = unicode(sum)
+        sample[4] = unicode(msum)
         
     # Write the summary data to the worksheet
     wsheet_title = "Summary"
@@ -372,7 +398,7 @@ def write_run_report_to_gdocs(fc_date, fc_name, bc_metrics, ssheet_title, encode
     if brci >= 0 and brcmi >= 0:
         for row in rows:
             try:
-                row[brcmi] = unicode(round(row[brci]/1000000.,2))
+                row[brcmi] = unicode(round(int(row[brci])/1000000.,2))
             except ValueError:
                 pass
     
