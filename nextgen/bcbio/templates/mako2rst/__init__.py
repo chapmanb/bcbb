@@ -4,7 +4,7 @@ Mako templates for rst output
 
 import sys
 from texttable import *
-from bcbio.templates.version import get_version
+from bcbio.log.version import get_version
 
 def program_info(proj_conf):
     d = proj_conf['program']
