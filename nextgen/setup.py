@@ -2,6 +2,7 @@
 """Setup file and install script for NextGen sequencing analysis scripts.
 """
 from setuptools import setup, find_packages
+import os
 
 setup(name = "bcbio-nextgen",
       version = "0.2",
@@ -15,7 +16,6 @@ setup(name = "bcbio-nextgen",
       scripts = ['scripts/analyze_quality_recal.py',
                  'scripts/automated_initial_analysis.py',
                  'scripts/barcode_sort_trim.py',
-                 'scripts/demultiplex_upload_to_gdocs.py',
                  'scripts/distributed_nextgen_pipeline.py',
                  'scripts/bam_to_wiggle.py',
                  'scripts/barcode_sort_trim.py',
@@ -51,3 +51,5 @@ setup(name = "bcbio-nextgen",
           "gdata >= 2.0.14",
           #"rpy2 >= 2.0.7"
       ])
+os.system("git rev-parse --short --verify HEAD > ~/.bcbb_pipeline_version")
+ 

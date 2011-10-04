@@ -37,6 +37,7 @@ from bcbio.pipeline.merge import organize_samples
 from bcbio.pipeline.qcsummary import write_metrics
 from bcbio.pipeline import sample
 from bcbio.pipeline import lane
+from bcbio.google.bc_metrics import create_bc_report_on_gdocs
 
 def main(config_file, fc_dir, run_info_yaml=None):
     with open(config_file) as in_handle:
@@ -60,27 +61,12 @@ def run_main(config, config_file, fc_dir, run_info_yaml):
     # process each flowcell lane
     lanes = ((info, fc_name, fc_date, dirs, config) for info in run_items)
     lane_items = _run_parallel("process_lane", lanes, dirs, config, config_file)
+
+    # upload the demultiplex counts to Google Docs
+    create_bc_report_on_gdocs(fc_date,fc_name,work_dir,run_info,config)
+    
     align_items = _run_parallel("process_alignment", lane_items, dirs, config,
                                 config_file)
-    
-    # Upload the demultiplex counts to Google Docs
-    # TODO: @b97bla refactor this out
-    gdocs = config.get("gdocs_upload",None)
-    if gdocs:
-        upload_script = gdocs.get("gdocs_upload_script",None)
-        destination_file = gdocs.get("gdocs_dmplx_file",None)
-        credentials = gdocs.get("gdocs_credentials",None)
-        if upload_script and destination_file and credentials:
-            dmplx_report_file = os.path.join(work_dir, "%s_%s_demultiplexed_read_counts.txt" % (fc_date,fc_name))
-            cl = [upload_script, dmplx_report_file, destination_file, credentials]
-            try:
-                subprocess.check_call(cl)
-            except Exception, e:
-                log.info("*** ERROR *** The script %s generated an exception: %s. Resuming pipeline...\n" % (upload_script,e))
-        else:
-            log.info("Not all required parameters to GDocs upload script were specified in config file")
-    else:
-        log.info("No GDocs upload section specified in config file, will not upload demultiplex data")
     
     # process samples, potentially multiplexed across multiple lanes
     sample_files, sample_fastq, sample_info = \
@@ -143,7 +129,6 @@ def _get_run_info(fc_name, fc_date, config, run_info_yaml):
         log.info("Fetching run details from Galaxy instance")
         galaxy_api = GalaxyApiAccess(config['galaxy_url'], config['galaxy_api_key'])
         return galaxy_api.run_details(fc_name, fc_date)
-
 
 if __name__ == "__main__":
     parser = OptionParser()

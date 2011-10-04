@@ -4,15 +4,16 @@ Mako templates for rst output
 
 import sys
 from texttable import *
+from bcbio.log.version import get_version
 
 def program_info(proj_conf):
     d = proj_conf['program']
     tab = Texttable()
-    tab.set_cols_align(["l", "l"])
-    tab.set_cols_align(["b", "b"])
-    tab.header(["Program", "Value"])
+    tab.set_cols_align(["l", "l", "l"])
+    tab.set_cols_valign(["b", "b", "b"])
+    tab.header(["Program", "Value", "Version"])
     for k in d.keys():
-        tab.add_row([k, d[k]])
+        tab.add_row([k, d[k], get_version(k,d[k])])
     return tab.draw()
 
 def duplication_metrics(d):
