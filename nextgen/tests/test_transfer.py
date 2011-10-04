@@ -1,22 +1,22 @@
 """Testing using config files for transfer settings.
 """
 import os
-import sys
-import subprocess
 import fabric.api as fabric
 import fabric.contrib.files as fabric_files
 import time
 
-from analyze_finished_sqn import _remote_copy
+from bcbio.pipeline.storage import _copy_for_storage
 
 fabric.env.key_filename = ["/Users/val/.ssh/local_ssh"]
+
 
 def _remove_transferred_files(store_dir):
     """Remove the files transferred in a previous test.
     """
     copy_to = os.path.realpath("test_transfer_data/copy_to")
-    with fabric.settings(host_string = "val@localhost"):
+    with fabric.settings(host_string="val@localhost"):
         fabric.run("rm -r %s/%s" % (copy_to, store_dir))
+
 
 def get_transfer_function(transfer_config):
     """Returns a function to use for transfer where we will have set the
@@ -26,11 +26,12 @@ def get_transfer_function(transfer_config):
         configurations. For example which protocol to use.
     """
     def transfer_function(remote_info, config):
-        _remote_copy(remote_info, config, transfer_config = transfer_config)
+        _copy_for_storage(remote_info, config, transfer_config=transfer_config)
 
     return transfer_function
 
-def perform__remote_copy(transfer_function, remove_before_copy = True, should_overwrite = False):
+
+def perform__copy_for_storage(transfer_function, remove_before_copy=True, should_overwrite=False):
     """Sets up dictionaries simulating loaded remote_info and config
     from various sources. Then test transferring files with the function
     using the standard setting.
@@ -61,10 +62,10 @@ def perform__remote_copy(transfer_function, remove_before_copy = True, should_ov
     for test_file in remote_info["to_copy"]:
         test_file_path = "%s/%s" % (copy_dir, test_file)
         if not os.path.isdir(test_file_path):
-            with open(test_file_path , "w") as file_to_write:
+            with open(test_file_path, "w") as file_to_write:
                 # We just the current processor time as test data, the important
                 # part is that it will be different enough between tests just
-                # so we know we are not comparing with files copied in a 
+                # so we know we are not comparing with files copied in a
                 # previous test during the assertion.
                 test_data[test_file] = str(time.clock())
                 file_to_write.write(test_data[test_file])
@@ -100,33 +101,33 @@ def perform__remote_copy(transfer_function, remove_before_copy = True, should_ov
         if os.path.isdir(test_file_path):
             pass
 
-def test__remote_copy():
+def test__copy_for_storage():
     """Test using the copy function without any specification
     as to how to do it.
     """
-    perform__remote_copy(_remote_copy)
-    perform__remote_copy(_remote_copy, remove_before_copy = False)
+    perform__copy_for_storage(_copy_for_storage)
+    perform__copy_for_storage(_copy_for_storage, remove_before_copy = False)
 
-def test__remote_copy_scp():
+def test__copy_for_storage_scp():
     """Test using the copy function with scp.
     """
     transfer_config = {"transfer_protocol" : "scp"}
     copy_function = get_transfer_function(transfer_config)
-    perform__remote_copy(copy_function)
-    perform__remote_copy(copy_function, remove_before_copy = False)
+    perform__copy_for_storage(copy_function)
+    perform__copy_for_storage(copy_function, remove_before_copy = False)
 
-def test__remote_copy_rsync():
+def test__copy_for_storage_rsync():
     """Test using the copy function with rsync.
     """
     transfer_config = {"transfer_protocol" : "rsync"}
     copy_function = get_transfer_function(transfer_config)
-    perform__remote_copy(copy_function)
-    perform__remote_copy(copy_function, remove_before_copy = False, should_overwrite = True)
+    perform__copy_for_storage(copy_function)
+    perform__copy_for_storage(copy_function, remove_before_copy = False, should_overwrite = True)
 
-def test__remote_copy_rdiff_backup():
+def test__copy_for_storage_rdiff_backup():
     """Test using the copy function with rdiff-backup.
     """
     transfer_config = {"transfer_protocol" : "rdiff-backup"}
     copy_function = get_transfer_function(transfer_config)
-    perform__remote_copy(copy_function)
-    perform__remote_copy(copy_function, remove_before_copy = False, should_overwrite = True)
+    perform__copy_for_storage(copy_function)
+    perform__copy_for_storage(copy_function, remove_before_copy = False, should_overwrite = True)
