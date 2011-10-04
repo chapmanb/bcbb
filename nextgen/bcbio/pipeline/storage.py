@@ -23,13 +23,21 @@ def _copy_for_storage(remote_info, config):
     is necessary, Fabric is used to manage setting up copies on the remote
     storage server.
     """
+    try:
+        protocol = config["transfer_protocol"]
+    except KeyError:
+        protocol = None
+        pass
+
     log.info("Copying run data over to remote storage: %s" % config["store_host"])
     log.debug("The contents from AMQP for this dataset are:\n %s" % remote_info)
     base_dir = config["store_dir"]
     fabric.env.host_string = "%s@%s" % (config["store_user"], config["store_host"])
     fc_dir = os.path.join(base_dir, os.path.basename(remote_info['directory']))
+
     if not fabric_files.exists(fc_dir):
         fabric.run("mkdir %s" % fc_dir)
+        
     for fcopy in remote_info['to_copy']:
         target_loc = os.path.join(fc_dir, fcopy)
         if not fabric_files.exists(target_loc):
