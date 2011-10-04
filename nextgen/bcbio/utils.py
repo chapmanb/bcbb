@@ -8,6 +8,11 @@ import itertools
 import functools
 import ConfigParser
 import csv, codecs, cStringIO
+import subprocess
+import shlex
+import re
+import glob
+from sys import stderr
 
 try:
     import multiprocessing
@@ -234,3 +239,143 @@ class UnicodeWriter:
     def writerows(self, rows):
         for row in rows:
             self.writerow(row)
+
+class SoftwareVersion:
+    """A class that knows how to query external software used by the pipeline for
+    the version information."""
+    
+    # Regexp's defining how to extract the software version from each program's output
+    # The keys in the dictionary should match the keys under the 'program' section in
+    # the post-process.yaml configuration file. The regexp should contain one capturing 
+    # group that will capture the version string.
+    generic_regexp = r'Version:\s*(\S+)'
+    regexp = {
+              'pdflatex': r'(3\.14.*)',
+              'bowtie': r'bowtie\s+version\s+(\S+)',
+              'fastqc': r'v(\S+)',
+              'gatk': r'\(GATK\)\s+v(\S+?),',
+              'ucsc_bigwig': r'wigToBigWig\s+v\s+(.+?)\s+\-',
+              'picard': r'picard\-(\S+)'
+              }
+    
+    # The parameters to pass to each program in order for it to print the version. By default
+    # the program will be called with a -v option so if it needs to be invoked without arguments,
+    # specify an empty string here.
+    generic_parameter = '-v'
+    parameter = {
+                 'maq': '',
+                 'samtools': '',
+                 'bowtie': '--version',
+                 'bwa': '',
+                 'ucsc_bigwig': ''
+                 }
+    
+    # The name of a file in the user's home directory where the version of the bcbb pipeline was written in setup.py
+    pipeline_version_file = '.bcbb_pipeline_version'
+    
+    # A static method for writing the git commit hash to the pipeline_version_file
+    @classmethod
+    def export_git_commit_hash(cls):
+        args = shlex.split("git rev-parse --short --verify HEAD")
+        try:
+            v = (subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()[0].strip() or "N/A")
+            # Only export the returned value if it is a hexidecimal string
+            if re.search(r'[a-d0-9]+',v):
+                versionfile = os.path.join(os.getenv('HOME'),cls.pipeline_version_file)
+                with open(versionfile,'w') as vf:
+                    vf.write(v)
+        except Exception, e:
+            stderr.write("%s" % e)
+            return 1
+        return 0
+    
+    def __init__(self,config):
+        
+        self.version = {}
+        self.executable = {}
+        
+        # Parse the paths and executables in the supplied config and store them locally
+        for name, exe in config.get("program",{}).items():
+            name = name.lower()
+            self.executable[name] = exe
+            
+            # For GATK, store the non-static data in the regexp and parameter dictionaries
+            if name == 'gatk':
+                self.executable[name] = 'java'
+                self.parameter[name] = "-jar %s --help" % os.path.join(executable,"GenomeAnalysisTK.jar")
+            
+    def _get_executable(self,name):
+        return self.executable.get(name,None)
+    
+    def _get_generic_version(self,name):
+        
+        v = None
+        exe = self._get_executable(name)
+        if exe:
+            try:
+                args = shlex.split("%s %s" % (exe,self._get_parameter(name)))
+                output = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()[0].decode('UTF-8')
+                m = re.search(self._get_regexp(name),output,re.I)
+                if m and len(m.groups()) > 0:
+                    v = m.group(1)
+            except Exception, e:
+                stderr.write("Exception caught when trying to determine software version for %s: %s" % (exe,e))
+        
+        return v
+    
+    def _get_parameter(self,name):
+        return self.parameter.get(name,self.generic_parameter)
+    
+    def _get_picard_version(self,name):
+        
+        v = None
+        picard_home_dir = self._get_executable(name)
+        if picard_home_dir:
+            # Assume that the picard jarfile has the version number in the file name...
+            jars = glob.glob(os.path.join(picard_home_dir,'picard-*.jar'))
+            if len(jars) > 0:    
+                jarname = os.path.splitext(os.path.split(jars[0])[1])[0]
+                m = re.search(self._get_regexp(name),jarname,re.I)
+                if m and len(m.groups()) > 0:
+                    v = m.group(1)
+                    
+        return v
+
+    def _get_pipeline_version(self):
+        
+        v = 'N/A'
+        # Look for a pipeline version file in the user's home directory
+        versionfile = os.path.join(os.getenv('HOME'),self.pipeline_version_file)    
+        if os.path.exists(versionfile):
+            with open(versionfile) as vf:
+                v = vf.read().strip()
+        return v 
+   
+    def _get_regexp(self,name):
+        return self.regexp.get(name,self.generic_regexp)
+            
+    def version(self,name):
+        """Get the version of the named software"""
+        
+        # Check if the version has been looked up and cached 
+        name = name.lower()
+        v = self.version(name,None)
+        if v:
+            return v
+        
+        # Check the special cases that cannot be queried generically:
+        exe = self._get_executable(name)
+        
+        # Picard
+        if name == 'picard':
+            v = self._get_picard_version(name)
+        # If the executable is a python script, get the pipeline version
+        elif exe and os.path.splitext(exe)[1] == '.py':
+            v = self._get_pipeline_version()
+        else:
+            v = self._get_generic_version(name)
+        
+        # cache the result and return
+        self.version[name] = (v or 'N/A')
+        return self.version[name]
+    
