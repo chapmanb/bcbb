@@ -7,7 +7,7 @@ import time
 
 from bcbio.pipeline.storage import _copy_for_storage
 
-fabric.env.key_filename = ["/Users/val/.ssh/local_ssh"]
+#fabric.env.key_filename = ["/Users/val/.ssh/local_ssh"]
 
 
 def _remove_transferred_files(store_dir):
@@ -31,7 +31,7 @@ def get_transfer_function(transfer_config):
     return transfer_function
 
 
-def perform__copy_for_storage(transfer_function, remove_before_copy=True, should_overwrite=False):
+def perform__copy_for_storage(transfer_function, protocol_config, remove_before_copy=True, should_overwrite=False):
     """Sets up dictionaries simulating loaded remote_info and config
     from various sources. Then test transferring files with the function
     using the standard setting.
@@ -47,14 +47,19 @@ def perform__copy_for_storage(transfer_function, remove_before_copy=True, should
     """
     store_dir = os.path.realpath("test_transfer_data/copy_to")
 
-    config = {"analysis": {"store_dir": store_dir}}
+    config = {}
+    config["store_dir"] = store_dir
+    config["store_user"] = "valentinesvensson"
+    config["store_host"] = "localhost"
+
+    config.update(protocol_config)
 
     copy_dir = os.path.realpath("test_transfer_data/to_copy")
 
     remote_info = {}
     remote_info["directory"] = copy_dir
     remote_info["to_copy"] = ["file1", "file2", "file3", "dir1"]
-    remote_info["user"] = "val"
+    remote_info["user"] = "valentinesvensson"
     remote_info["hostname"] = "localhost"
 
     # Generate test files
@@ -63,7 +68,7 @@ def perform__copy_for_storage(transfer_function, remove_before_copy=True, should
         test_file_path = "%s/%s" % (copy_dir, test_file)
         if not os.path.isdir(test_file_path):
             with open(test_file_path, "w") as file_to_write:
-                # We just the current processor time as test data, the important
+                # We just use the current processor time as test data, the important
                 # part is that it will be different enough between tests just
                 # so we know we are not comparing with files copied in a
                 # previous test during the assertion.
@@ -71,8 +76,8 @@ def perform__copy_for_storage(transfer_function, remove_before_copy=True, should
                 file_to_write.write(test_data[test_file])
 
     # Perform copy with settings
-    with fabric.settings(host_string = "%s@%s" % (remote_info["user"], remote_info["hostname"])):
-        
+    with fabric.settings(host_string="%s@%s" % (remote_info["user"], remote_info["hostname"])):
+
         if fabric_files.exists("%s/%s" % (store_dir, os.path.split(copy_dir)[1])
         ) and remove_before_copy:
             _remove_transferred_files(os.path.split(copy_dir)[1])
@@ -81,7 +86,7 @@ def perform__copy_for_storage(transfer_function, remove_before_copy=True, should
         transfer_function(remote_info, config)
 
     # Check of the copy succeeded
-    for test_file in remote_info["to_copy"]:        
+    for test_file in remote_info["to_copy"]:
         test_file_path = "%s/%s/%s" % (store_dir, os.path.split(copy_dir)[1], test_file)
         # Did the files get copied correctly
         if os.path.isfile(test_file_path):
@@ -92,7 +97,7 @@ def perform__copy_for_storage(transfer_function, remove_before_copy=True, should
                 # Assertion that passes when:
                 #  - The files got copied if we removed the old files in the
                 # target directory before the copy.
-                #  - The new files did not replace the old files in the 
+                #  - The new files did not replace the old files in the
                 # target directory if they where not supposed to overwrite.
                 #  - The new files did replace the old files in the target
                 # directory of we specified that this should happen.
@@ -101,33 +106,35 @@ def perform__copy_for_storage(transfer_function, remove_before_copy=True, should
         if os.path.isdir(test_file_path):
             pass
 
+
 def test__copy_for_storage():
     """Test using the copy function without any specification
     as to how to do it.
     """
-    perform__copy_for_storage(_copy_for_storage)
-    perform__copy_for_storage(_copy_for_storage, remove_before_copy = False)
+    config = {}
+    perform__copy_for_storage(_copy_for_storage, config)
+    perform__copy_for_storage(_copy_for_storage, config, remove_before_copy=False)
+
 
 def test__copy_for_storage_scp():
     """Test using the copy function with scp.
     """
-    transfer_config = {"transfer_protocol" : "scp"}
-    copy_function = get_transfer_function(transfer_config)
-    perform__copy_for_storage(copy_function)
-    perform__copy_for_storage(copy_function, remove_before_copy = False)
+    config = {"transfer_protocol": "scp"}
+    perform__copy_for_storage(_copy_for_storage, config)
+    perform__copy_for_storage(_copy_for_storage, config, remove_before_copy=False)
+
 
 def test__copy_for_storage_rsync():
     """Test using the copy function with rsync.
     """
-    transfer_config = {"transfer_protocol" : "rsync"}
-    copy_function = get_transfer_function(transfer_config)
-    perform__copy_for_storage(copy_function)
-    perform__copy_for_storage(copy_function, remove_before_copy = False, should_overwrite = True)
+    config = {"transfer_protocol": "rsync"}
+    perform__copy_for_storage(_copy_for_storage, config)
+    perform__copy_for_storage(_copy_for_storage, config, remove_before_copy=False, should_overwrite=True)
+
 
 def test__copy_for_storage_rdiff_backup():
     """Test using the copy function with rdiff-backup.
     """
-    transfer_config = {"transfer_protocol" : "rdiff-backup"}
-    copy_function = get_transfer_function(transfer_config)
-    perform__copy_for_storage(copy_function)
-    perform__copy_for_storage(copy_function, remove_before_copy = False, should_overwrite = True)
+    config = {"transfer_protocol": "rdiff-backup"}
+    perform__copy_for_storage(_copy_for_storage, config)
+    perform__copy_for_storage(_copy_for_storage, config, remove_before_copy=False, should_overwrite=True)
