@@ -23,10 +23,10 @@ def _organize_lanes(info_iter, barcode_ids):
     """Organize flat lane information into nested YAML structure.
     """
     all_lanes = []
-    for (fcid, lane), info in itertools.groupby(info_iter, lambda x: (x[0], x[1])):
+    for lane, info in itertools.groupby(info_iter, lambda x: x[1]):
         info = list(info)
         sampleref = info[0][3].lower()
-        cur_lane = dict(flowcell_id=fcid, lane=lane, genome_build=sampleref, analysis="Standard")
+        cur_lane = dict(flowcell_id=info[0][0], lane=lane, genome_build=sampleref, analysis="Standard")
         
         cur_lane["description"] = "Lane %s, %s" % (lane, info[0][5])
         
@@ -47,7 +47,7 @@ def _has_barcode(sample):
     if sample[0][4]:
         return True
     else: # lane is not multiplexed
-       pass 
+       pass
 
 def _generate_barcode_ids(info_iter):
     """Create unique barcode IDs assigned to sequences
@@ -66,18 +66,18 @@ def _read_input_csv(in_file):
     # Sanitize raw file before opening with csv reader
     #_sanitize(in_file)
 
-#    try:
-    with open(in_file, "rU") as in_handle:
-        reader = csv.reader(in_handle)
-        #reader = unicode_csv_reader(in_handle)
-        reader.next() # header
-        for line in reader:
-            if line: # empty lines
-                (fc_id, lane, sample_id, genome, barcode, description) = line[:6]
-                yield fc_id, lane, sample_id, genome, barcode, description
-#    except ValueError:
-#        print "Corrupt samplesheet %s, please fix it" % in_file 
-#        pass
+    try:
+        with open(in_file, "rU") as in_handle:
+            reader = csv.reader(in_handle)
+            #reader = unicode_csv_reader(in_handle)
+            reader.next() # header
+            for line in reader:
+                if line: # empty lines
+                    (fc_id, lane, sample_id, genome, barcode, description) = line[:6]
+                    yield fc_id, lane, sample_id, genome, barcode, description
+    except ValueError:
+        print "Corrupt samplesheet %s, please fix it" % in_file 
+        pass
 
 def _get_flowcell_id(in_file, require_single=True):
     """Retrieve the unique flowcell id represented in the SampleSheet.
