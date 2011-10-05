@@ -7,15 +7,14 @@ import time
 
 from bcbio.pipeline.storage import _copy_for_storage
 
-#fabric.env.key_filename = ["/Users/val/.ssh/local_ssh"]
 
-
-def _remove_transferred_files(store_dir):
+def _remove_transferred_files(config):
     """Remove the files transferred in a previous test.
     """
     copy_to = os.path.realpath("test_transfer_data/copy_to")
-    with fabric.settings(host_string="val@localhost"):
-        fabric.run("rm -r %s/%s" % (copy_to, store_dir))
+    with fabric.settings(host_string="%s@%S" %
+        (config["store_user"], config["store_host"])):
+        fabric.run("rm -r %s/%s" % (copy_to, config["store_dir"]))
 
 
 def get_transfer_function(transfer_config):
