@@ -4,17 +4,18 @@ import os
 import fabric.api as fabric
 import fabric.contrib.files as fabric_files
 import time
-
+from bcbio.pipeline import log
 from bcbio.pipeline.storage import _copy_for_storage
 
 
-def _remove_transferred_files(config):
+def _remove_transferred_files(remote_info, config):
     """Remove the files transferred in a previous test.
     """
     copy_to = os.path.realpath("test_transfer_data/copy_to")
-    with fabric.settings(host_string="%s@%S" %
-        (config["store_user"], config["store_host"])):
-        fabric.run("rm -r %s/%s" % (copy_to, config["store_dir"]))
+    with fabric.settings(host_string="%s@%s" % (config["store_user"], config["store_host"])):
+        rm_str = "rm -r %s/%s" % (copy_to, os.path.split(remote_info["directory"])[1])
+        log.debug(rm_str)
+        fabric.run(rm_str)
 
 
 def get_transfer_function(transfer_config):
@@ -79,7 +80,7 @@ def perform__copy_for_storage(transfer_function, protocol_config, remove_before_
 
         if fabric_files.exists("%s/%s" % (store_dir, os.path.split(copy_dir)[1])
         ) and remove_before_copy:
-            _remove_transferred_files(os.path.split(copy_dir)[1])
+            _remove_transferred_files(remote_info, config)
 
         # Copy
         transfer_function(remote_info, config)
