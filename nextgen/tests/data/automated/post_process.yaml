@@ -25,6 +25,10 @@ algorithm:
   java_memory: 1g
   save_diskspace: true
 
+store_dir: test_transfer_data/copy_to
+store_user: valentinesvensson
+store_host: localhost
+
 analysis:
   towig_script: bam_to_wiggle.py
   process_program: automated_initial_analysis.py

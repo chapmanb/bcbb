@@ -5,6 +5,7 @@ import fabric.api as fabric
 import fabric.contrib.files as fabric_files
 import time
 from bcbio.pipeline import log
+from bcbio.pipeline.config_loader import load_config
 from bcbio.pipeline.storage import _copy_for_storage
 
 
@@ -45,12 +46,10 @@ def perform__copy_for_storage(transfer_function, protocol_config, remove_before_
         This function should accept the two dictionaries config and
         remote_info as parameters.
     """
-    store_dir = os.path.realpath("test_transfer_data/copy_to")
+    config = load_config("data/automated/post_process.yaml")
 
-    config = {}
+    store_dir = os.path.realpath("test_transfer_data/copy_to")
     config["store_dir"] = store_dir
-    config["store_user"] = "valentinesvensson"
-    config["store_host"] = "localhost"
 
     config.update(protocol_config)
 
@@ -59,8 +58,8 @@ def perform__copy_for_storage(transfer_function, protocol_config, remove_before_
     remote_info = {}
     remote_info["directory"] = copy_dir
     remote_info["to_copy"] = ["file1", "file2", "file3", "dir1"]
-    remote_info["user"] = "valentinesvensson"
-    remote_info["hostname"] = "localhost"
+    remote_info["user"] = config["store_user"]
+    remote_info["hostname"] = config["store_host"]
 
     # Generate test files
     test_data = {}
