@@ -5,10 +5,10 @@ program:
   bowtie: bowtie
   samtools: samtools
   bwa: bwa
-  ucsc_bigwig: wigToBigWig
-  picard: /bubo/sw/apps/bioinfo/picard/1.41
-  gatk: /path/to/GenomeAnalysisTK-1.1
-  snpEff: /path/to/snpeff
+  ucsc_bigwig: /home/peru/local/bioinfo/bin/wigToBigWig
+  picard: /home/peru/local/bioinfo/ngs/picard-tools-1.53
+  gatk: /home/peru/local/bioinfo/ngs/GenomeAnalysisTK
+  snpEff: /home/peru/local/bioinfo/ngs/snpeff
   fastqc: fastqc
   pdflatex: pdflatex
   barcode: barcode_sort_trim.py
@@ -19,7 +19,7 @@ algorithm:
   platform: illumina
   recalibrate: true
   snpcall: true
-  dbsnp: variation/dbsnp_132.vcf
+  dbsnp: /home/peru/data/reference/ncbi/snp/organisms/human_9606/dbsnp132.MT.vcf
   bc_mismatch: 2
   bc_read: 1
   bc_position: 3
@@ -36,6 +36,6 @@ custom_algorithms:
     aligner: bwa
     recalibrate: true
     snpcall: true
-    dbsnp: variation/dbsnp_132.vcf
+    dbsnp: /home/peru/data/reference/ncbi/snp/organisms/human_9606/dbsnp132.MT.vcf
   'Minimal':
     aligner: ""
