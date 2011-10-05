@@ -38,13 +38,16 @@ def perform__copy_for_storage(transfer_function, protocol_config, remove_before_
     using the standard setting.
 
     Note that there need to be passphrase free SSH between this machine
-    and what is set up as remote_info["hostname"]. If remote_info["hostname]
-    is "localhost"; SSH to localhost need to be set up to be passphrase free.
+    and what is set up as store_host in post_process.yaml.
+
+    The file post_process.yaml need the information "store_user" and "store_host".
 
     transfer_function : function - The function to use for transferring
     the files.
         This function should accept the two dictionaries config and
         remote_info as parameters.
+    protocol_config : dictionary - containing the key "transfer_protocol" which give the string
+    of a transfer protocol.
     """
     config = load_config("data/automated/post_process.yaml")
 
