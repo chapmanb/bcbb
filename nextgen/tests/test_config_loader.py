@@ -24,9 +24,9 @@ def test_variable_expansion():
             ), "The strings %s and %s doesn't match (variable %s)" % (
             os.environ[variable], value, variable)
 
-    # When the key isnn't in os.environ
+    # When the key isn't in os.environ
     except KeyError as e:
-        for variable, value in config[e.message].items():
+        for variable, value in config[e.args[0]].items():
             assert (os.environ[variable] == value
             ), "The strings %s and %s doesn't match (variable %s)" % (
             os.environ[variable], value, variable)
