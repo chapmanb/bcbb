@@ -1,0 +1,17 @@
+# Some environment variables which should be available 
+# on most systems.
+HOME: "~"
+
+# Note: 
+# A single ~ needs "" around it so it won't be considered a None.
+# But this is not required if there are more characters in the
+# string, so for example ~/bin is all right without the quotes.
+
+PATH: $PATH
+PWD: $PWD
+LANG: $LANG
+
+# Also, one level of nesting.
+nested:
+  HOME: "~"
+  LANG: $LANG

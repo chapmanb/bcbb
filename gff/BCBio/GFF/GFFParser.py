@@ -709,6 +709,13 @@ def parse(gff_files, base_dict=None, limit_info=None, target_lines=None):
             target_lines):
         yield rec
 
+def parse_simple(gff_files, limit_info=None):
+    """Parse GFF files as line by line dictionary of parts.
+    """
+    parser = GFFParser()
+    for rec in parser.parse_simple(gff_files, limit_info=limit_info):
+        yield rec["child"][0]
+
 def _file_or_handle(fn):
     """Decorator to handle either an input handle or a file.
     """
