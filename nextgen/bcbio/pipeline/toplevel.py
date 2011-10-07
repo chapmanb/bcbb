@@ -18,6 +18,8 @@ except ImportError:
 from bcbio.pipeline import log
 from bcbio.log import create_log_handler
 from bcbio import utils
+from bcbio.pipeline.transfer import remote_copy
+
 
 def analyze_and_upload(remote_info, config_file):
     """Main entry point for analysis and upload to Galaxy.
@@ -31,6 +33,7 @@ def analyze_and_upload(remote_info, config_file):
         _upload_to_galaxy(fc_dir, analysis_dir, remote_info,
                           config, config_file)
 
+
 # ## Copying over files from sequencer, if necessary
 
 def _copy_from_sequencer(remote_info, config):
@@ -43,8 +46,17 @@ def _copy_from_sequencer(remote_info, config):
         log.debug("Remote host information: %s" % remote_info)
         c_host_str = _config_hosts(config)
         with fabric.settings(host_string=c_host_str):
-            fc_dir = _remote_copy(remote_info, config)
+            base_dir = config["store_dir"]
+            try:
+                protocol = config["transfer_protocol"]
+            except KeyError:
+                protocol = None
+                pass
+
+            fc_dir = remote_copy(remote_info, base_dir, protocol)
+
     return fc_dir
+
 
 def _config_hosts(config):
     """Retrieve configured machines to perform analysis and copy on.
@@ -57,7 +69,8 @@ def _config_hosts(config):
     copy_host_str = "%s@%s" % (copy_user, copy_host)
     return copy_host_str
 
-def _remote_copy(remote_info, config):
+
+def old_remote_copy(remote_info, config):
     """Securely copy files from remote directory to the processing server.
 
     This requires ssh public keys to be setup so that no password entry

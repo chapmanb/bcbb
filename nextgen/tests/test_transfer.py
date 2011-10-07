@@ -6,7 +6,7 @@ import fabric.contrib.files as fabric_files
 import time
 from bcbio.pipeline import log
 from bcbio.pipeline.config_loader import load_config
-from bcbio.pipeline.storage import _copy_for_storage
+from bcbio.pipeline.transfer import _copy_for_storage
 
 
 def _remove_transferred_files(remote_info, config):

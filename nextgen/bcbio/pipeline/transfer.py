@@ -8,43 +8,11 @@ try:
 except ImportError:
     fabric, fabric_files = (None, None)
 
-from bcbio.pipeline.config_loader import load_config
 from bcbio.pipeline import log
-from bcbio.log import create_log_handler
 
 
-def long_term_storage(remote_info, config_file):
-    config = load_config(config_file)
-    log_handler = create_log_handler(config, log.name)
-    with log_handler.applicationbound():
-        log.info("Copying run data over to remote storage: %s" %
-        config["store_host"])
-        log.debug("The contents from AMQP for this dataset are:\n %s" %
-        remote_info)
-        _remote_copy(remote_info, config)
-
-
-def _remote_copy_storage(remote_info, config):
-    """
-    """
-    base_dir = config["store_dir"]
-    try:
-        protocol = config["transfer_protocol"]
-    except KeyError:
-        protocol = None
-        pass
-
-    fabric.env.host_string = "%s@%s" % \
-    (config["store_user"], config["store_host"])
-    _remote_copy(remote_info, base_dir, protocol)
-
-
-def _remote_copy(remote_info, base_dir, protocol):
-    """Securely copy files from remote directory to the storage server.
-
-    This requires ssh public keys to be setup so that no password entry
-    is necessary, Fabric is used to manage setting up copies on the remote
-    storage server.
+def remote_copy(remote_info, base_dir, protocol):
+    """Securely copy files between servers.
     """
     fc_dir = os.path.join(base_dir, os.path.basename(remote_info['directory']))
 
@@ -103,3 +71,5 @@ def _remote_copy(remote_info, base_dir, protocol):
 
         log.debug(cl)
         fabric.run(" ".join(cl))
+
+    return fc_dir
