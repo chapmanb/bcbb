@@ -48,9 +48,10 @@ def _copy_for_storage(remote_info, config):
                 if not fabric_files.exists(target_dir):
                     fabric.run("mkdir -p %s" % target_dir)
 
-                cl = ["scp", "-r", "%s@%s:%s/%s" % (
-                      remote_info["user"], remote_info["hostname"], remote_info["directory"],
-                      fcopy), target_loc]
+                cl = ["scp", "-r", "%s@%s:%s/%s" %
+                      (remote_info["user"], remote_info["hostname"],
+                      remote_info["directory"], fcopy),
+                      target_loc]
 
                 log.debug(cl)
                 fabric.run(" ".join(cl))

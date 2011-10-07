@@ -63,22 +63,26 @@ def _remote_copy(remote_info, config):
     This requires ssh public keys to be setup so that no password entry
     is necessary.
     """
-    fc_dir = os.path.join(config["analysis"]["store_dir"],
-                          os.path.basename(remote_info['directory']))
+    base_dir = config["analysis"]["store_dir"]
+    fc_dir = os.path.join(base_dir, os.path.basename(remote_info['directory']))
     log.info("Copying analysis files to %s" % fc_dir)
     if not fabric_files.exists(fc_dir):
         fabric.run("mkdir %s" % fc_dir)
+
     for fcopy in remote_info['to_copy']:
         target_loc = os.path.join(fc_dir, fcopy)
         if not fabric_files.exists(target_loc):
             target_dir = os.path.dirname(target_loc)
             if not fabric_files.exists(target_dir):
                 fabric.run("mkdir -p %s" % target_dir)
+
             cl = ["scp", "-r", "%s@%s:%s/%s" %
                   (remote_info["user"], remote_info["hostname"],
                    remote_info["directory"], fcopy),
                   target_loc]
+
             fabric.run(" ".join(cl))
+
     log.info("Analysis files copied")
     return fc_dir
 
