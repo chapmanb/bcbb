@@ -39,7 +39,7 @@ def analyze_and_upload(remote_info, config_file):
 def _copy_from_sequencer(remote_info, config):
     """Get local directory of flowcell info, or copy from sequencer.
     """
-    if remote_info.has_key("fc_dir"):
+    if "fc_dir" in remote_info:
         fc_dir = remote_info["fc_dir"]
         assert os.path.exists(fc_dir)
     else:
