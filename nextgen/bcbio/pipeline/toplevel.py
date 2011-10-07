@@ -70,35 +70,6 @@ def _config_hosts(config):
     return copy_host_str
 
 
-def old_remote_copy(remote_info, config):
-    """Securely copy files from remote directory to the processing server.
-
-    This requires ssh public keys to be setup so that no password entry
-    is necessary.
-    """
-    base_dir = config["analysis"]["store_dir"]
-    fc_dir = os.path.join(base_dir, os.path.basename(remote_info['directory']))
-    log.info("Copying analysis files to %s" % fc_dir)
-    if not fabric_files.exists(fc_dir):
-        fabric.run("mkdir %s" % fc_dir)
-
-    for fcopy in remote_info['to_copy']:
-        target_loc = os.path.join(fc_dir, fcopy)
-        if not fabric_files.exists(target_loc):
-            target_dir = os.path.dirname(target_loc)
-            if not fabric_files.exists(target_dir):
-                fabric.run("mkdir -p %s" % target_dir)
-
-            cl = ["scp", "-r", "%s@%s:%s/%s" %
-                  (remote_info["user"], remote_info["hostname"],
-                   remote_info["directory"], fcopy),
-                  target_loc]
-
-            fabric.run(" ".join(cl))
-
-    log.info("Analysis files copied")
-    return fc_dir
-
 def _run_analysis(fc_dir, remote_info, config, config_file):
     """Run local or distributed analysis, wait to finish.
     """
@@ -119,6 +90,7 @@ def _run_analysis(fc_dir, remote_info, config, config_file):
         subprocess.check_call(cl)
     return analysis_dir
 
+
 def _get_run_yaml(remote_info, fc_dir, config):
     """Retrieve YAML specifying run from configured or default location.
     """
@@ -130,6 +102,7 @@ def _get_run_yaml(remote_info, fc_dir, config):
     if not os.path.exists(run_yaml):
         run_yaml = None
     return run_yaml
+
 
 def _upload_to_galaxy(fc_dir, analysis_dir, remote_info, config, config_file):
     """Upload results from analysis directory to Galaxy data libraries.
