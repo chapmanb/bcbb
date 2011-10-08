@@ -126,17 +126,20 @@ def process_lane(info, dirs, config):
     sample_name = info.get("description", "")
     genome_build = info.get("genome_build", None)
     multiplex = info.get('multiplex', None)
+    fc_link_dir = None
     log.info("Processing sample: %s; lane %s; reference genome %s" %
              (sample_name, info["lane"], genome_build))
     if multiplex:
         log.debug("Sample %s is multiplexed as: %s" % (sample_name, multiplex))
     fq = get_barcoded_fastq_files(multiplex, info, dirs['fc_dir'], config['fc_name'], config['fc_date'])
-    for fqpair in fq:
-        fqout = convert_barcode_id_to_name(multiplex, config['fc_name'], fqpair)
-        [_deliver_fastq_file(fq_src, fq_tgt, config['fc_delivery_dir']) for fq_src, fq_tgt in izip(fqpair, fqout)]
     if not options.only_fastq:
+        fc_link_dir = config['data_delivery_dir']
         data, fastqc = _get_analysis_results(config, dirs, info['lane'])
         _deliver_data(data, fastqc, config['data_delivery_dir'])
+
+    for fqpair in fq:
+        fqout = convert_barcode_id_to_name(multiplex, config['fc_name'], fqpair)
+        [_deliver_fastq_file(fq_src, fq_tgt, config['fc_delivery_dir'], fc_link_dir) for fq_src, fq_tgt in izip(fqpair, fqout)]
 
 # TODO: Check for data in path so one could pass j_doe_00_01 or
 # j_doe_00_01/data/flowcell_alias as project_output_dir?
@@ -156,7 +159,7 @@ def _make_dir(dir, label):
         log.warn("%s already exists: not creating new directory" % (dir))
     
 
-def _deliver_fastq_file(fq_src, fq_tgt, outdir):
+def _deliver_fastq_file(fq_src, fq_tgt, outdir, fc_link_dir=None):
     if fq_src is None:
         return
     tgt = os.path.join(outdir, fq_tgt)
@@ -168,6 +171,10 @@ def _deliver_fastq_file(fq_src, fq_tgt, outdir):
             shutil.copyfile(fq_src, tgt)
     if options.dry_run:
         print "DRY_RUN: Delivering fastq file %s to %s as %s" % (os.path.basename(fq_src), outdir, fq_tgt)
+    if not fc_link_dir is None:
+        fq_link_tgt = os.path.baseame(fq_src)
+        if options.dry_run:
+            print "DRY_RUN: Linking fastq file %s to %s in barcode directory %s" % (fq_link_tgt, fq_tgt, "")
 
 def _deliver_data(data, fastqc, outdir):
     for d in data:
