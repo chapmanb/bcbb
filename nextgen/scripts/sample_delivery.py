@@ -134,10 +134,7 @@ def process_lane(info, config, dirs):
 
     ## Move data along with fastq files
     if not options.only_fastq:
-        if multiplex:
-            fc_link_dir = os.path.join(config['data_delivery_dir'], "%s_%s_%s_barcode" % (info['lane'], config['fc_date'], config['fc_name']))
-        else:
-            fc_link_dir = config['data_delivery_dir']
+        fc_link_dir = os.path.join(config['data_delivery_dir'], "%s_%s_%s_barcode" % (info['lane'], config['fc_date'], config['fc_name']))
         _make_dir(fc_link_dir, "fastq.txt to fastq link directory")
         data, fastqc = _get_analysis_results(config, dirs, info['lane'])
         _deliver_data(data, fastqc, config['data_delivery_dir'])
@@ -161,48 +158,32 @@ def _make_dir(dir, label):
     else:
         log.warn("%s already exists: not creating new directory" % (dir))
 
-def _copy_or_move_data(src, tgt):
+def _handle_data(src, tgt, f=shutil.copyfile):
     if src is None:
         return
     if os.path.exists(tgt):
-        log.warn("%s already exists: not overwriting" %(tgt))
+        log.warn("%s already exists: not doing anything!" %(tgt))
         return
-    if not options.dry_run:
-        if options.copy:
-            log.info("Copying file %s to %s" % (src, tgt))
-            shutil.copyfile(src, tgt)
-        else:
-            log.info("Moving file %s to %s" % (src, tgt))
-            shutil.move(src, tgt)
     if options.dry_run:
-        if options.copy:
-            print "DRY_RUN: Copying file %s to %s" % (src, tgt)
-        else:
-            print "DRY_RUN: Moving file %s to %s" % (src, tgt)
+        print "DRY_RUN: %s file %s to %s" % (f.__name__, src, tgt)
+    else:
+        log.info("%s file %s to %s" % (f.__name__, src, tgt))
+        f(src, tgt)
 
 def _deliver_fastq_file(fq_src, fq_tgt, outdir, fc_link_dir=None):
-    _copy_or_move_data(fq_src, os.path.join(outdir, fq_tgt))
+    _handle_data(fq_src, os.path.join(outdir, fq_tgt), f=shutil.copyfile if options.copy else shutil.move)
     if not fc_link_dir is None:
-        _link_data(os.path.join(outdir, fq_tgt), os.path.join(fc_link_dir, os.path.basename(fq_src)))
-
-def _link_data(src, tgt):
-    if src is None:
-        return
-    
-    if options.dry_run:
-        print "DRY_RUN: Linking file %s to %s" % (src, tgt)
-    else:
-        log.info("Linking file %s to %s" % (src, tgt))
-        os.symlink(src, tgt)
+        _handle_data(os.path.join(outdir, fq_tgt), os.path.join(fc_link_dir, os.path.basename(fq_src)), os.symlink)
 
 def _deliver_data(data, fastqc, outdir):
+    """Loop over data and fastqc and deliver files"""
     for src in data:
         tgt = os.path.join(outdir, os.path.basename(src))
-        _copy_or_move_data(src, tgt)
+        _handle_data(src, tgt, f=shutil.copyfile if options.copy else shutil.move)
 
     for src in fastqc:
         tgt = os.path.join(outdir, "fastqc", os.path.basename(src))
-        _copy_or_move_data(src, tgt)
+        _handle_data(src, tgt, f=shutil.copytree if options.copy else shutil.move)
         
 def _get_analysis_results(config, dirs, lane):
     """Get analysis results

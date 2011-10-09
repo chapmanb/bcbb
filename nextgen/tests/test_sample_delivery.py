@@ -64,6 +64,27 @@ class SampleDeliveryTest(unittest.TestCase):
               "--project_desc=%s" % "J.Doe_00_01"]
         subprocess.check_call(cl)
 
+    def test_deliver_data_copy(self):
+        """Test data delivery by copy"""
+        cl = ["sample_delivery.py",
+              "110106_FC70BUKAAXX", "j_doe_00_01",
+              "--analysis_base_dir=%s" % self.analysis_base_dir,
+              "--archive_base_dir=%s" % self.archive_base_dir,
+              "--project_base_dir=%s" % self.proj_dir, 
+              "--project_desc=%s" % "J.Doe_00_01", "--copy"]
+        subprocess.check_call(cl)
+
+    def test_deliver_fastq_files(self):
+        """Test data delivery. Only deliver fastq files"""
+        cl = ["sample_delivery.py",
+              "110106_FC70BUKAAXX", "j_doe_00_01",
+              "--analysis_base_dir=%s" % self.analysis_base_dir,
+              "--archive_base_dir=%s" % self.archive_base_dir,
+              "--project_base_dir=%s" % self.proj_dir, 
+              "--only_install_fastq",
+              "--project_desc=%s" % "J.Doe_00_01"]
+        subprocess.check_call(cl)
+
     def test_dry_run(self):
         """Test dry run: don't do anything"""
         self.setUp()
