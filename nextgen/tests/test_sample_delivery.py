@@ -18,7 +18,6 @@ class SampleDeliveryTest(unittest.TestCase):
         self.archive_base_dir  = os.path.join(self.file_dir, "scilife", "archive")
         self.analysis_base_dir  = os.path.join(self.file_dir, "scilife", "analysis")
         self.scilife_dir  = os.path.join(self.file_dir, "scilife")
-
         self._install_config_data()
         if os.path.exists(self.proj_dir):
             shutil.rmtree(self.proj_dir)
@@ -32,7 +31,6 @@ class SampleDeliveryTest(unittest.TestCase):
             shutil.copytree(src, dest)
         if not os.path.exists(self.archive_base_dir):
             os.makedirs(os.path.join(self.archive_base_dir, "110106_FC70BUKAAXX"))
-            src = os.path.abspath(os.path.join(self.file_dir, "data", "automated", "run_info.yaml"))
             src = os.path.abspath(os.path.join(self.file_dir, "templates", "run_info.yaml"))
             dest = os.path.join(self.archive_base_dir, "110106_FC70BUKAAXX", "run_info.yaml")
             os.symlink(src, dest)
@@ -83,6 +81,17 @@ class SampleDeliveryTest(unittest.TestCase):
               "--project_base_dir=%s" % self.proj_dir, 
               "--only_install_fastq",
               "--project_desc=%s" % "J.Doe_00_01"]
+        subprocess.check_call(cl)
+
+    def test_deliver_flowcell_alias(self):
+        """Test data delivery. Install as flowcell alias"""
+        cl = ["sample_delivery.py",
+              "110106_FC70BUKAAXX", "j_doe_00_01",
+              "--analysis_base_dir=%s" % self.analysis_base_dir,
+              "--archive_base_dir=%s" % self.archive_base_dir,
+              "--project_base_dir=%s" % self.proj_dir, 
+              "--project_desc=%s" % "J.Doe_00_01",
+              "--flowcell_alias=%s" % "wilderbeest"]
         subprocess.check_call(cl)
 
     def test_dry_run(self):

@@ -10,6 +10,7 @@ import shutil
 import contextlib
 import glob
 from string import Template
+#from test_sample_delivery import SampleDeliveryTest
 
 @contextlib.contextmanager
 def workdir():
@@ -29,33 +30,50 @@ class SampleBasedAnalysisTest(unittest.TestCase):
     """
     def setUp(self):
         self.file_dir = os.path.join(os.path.dirname(__file__))
-        self.proj_dir = os.path.join(self.file_dir, "projects", "j_doe_00_01")
+        self.proj_dir = os.path.join(self.file_dir, "projects")
         self.fcdir = os.path.join(os.path.dirname(__file__), "test_automated_output")
+        self.archive_base_dir  = os.path.join(self.file_dir, "scilife", "archive")
+        self.analysis_base_dir  = os.path.join(self.file_dir, "scilife", "analysis")
+
         if not os.path.exists(self.proj_dir):
             os.makedirs(self.proj_dir)
         self._install_project_config_files()
         self._install_config_data()
         if os.path.exists(os.path.join(self.proj_dir, "intermediate")):
             shutil.rmtree(os.path.join(self.proj_dir, "intermediate"))
+        if not os.path.exists(self.analysis_base_dir):
+            os.makedirs(self.analysis_base_dir)
+            src = self.fcdir
+            dest = os.path.abspath(os.path.join(self.analysis_base_dir, "110106_FC70BUKAAXX"))
+            shutil.copytree(src, dest)
+        if not os.path.exists(self.archive_base_dir):
+            os.makedirs(os.path.join(self.archive_base_dir, "110106_FC70BUKAAXX"))
+            src = os.path.abspath(os.path.join(self.file_dir, "templates", "run_info.yaml"))
+            dest = os.path.join(self.archive_base_dir, "110106_FC70BUKAAXX", "run_info.yaml")
+            os.symlink(src, dest)
         self._deliver_data()
-        self._setup_project()
+        #self._setup_project()
 
     def _deliver_data(self):
         print "Delivering data"
         cl = ["sample_delivery.py",
-              os.path.join(self.file_dir, "templates", "run_info.yaml"),
-              "J.Doe_00_01", self.fcdir, self.proj_dir,
+              "110106_FC70BUKAAXX", "j_doe_00_01",
+              #os.path.join(self.file_dir, "templates", "run_info.yaml"),
+              "--project_desc=%s" % "J.Doe_00_01",
+              "--analysis_base_dir=%s" % self.analysis_base_dir,
+              "--archive_base_dir=%s" % self.archive_base_dir,
+              "--project_base_dir=%s" % self.proj_dir, 
               "--flowcell_alias=20000101A_hiseq2000"]
         subprocess.check_call(cl)
         print "Finished delivering data..."
 
-    def _setup_project(self):
-        print "setting up project"
-        cl = ["setup_project_files.py",
-              os.path.join(self.proj_dir, "data", "20000101A_hiseq2000", "project_run_info.yaml"),
-              "20000101A_hiseq2000",
-              "--project_dir=%s" %(self.proj_dir)]
-        subprocess.check_call(cl)
+    # def _setup_project(self):
+    #     print "setting up project"
+    #     cl = ["setup_project_files.py",
+    #           os.path.join(self.proj_dir, "data", "nobackup", "20000101A_hiseq2000", "project_run_info.yaml"),
+    #           "20000101A_hiseq2000",
+    #           "--project_dir=%s" %(self.proj_dir)]
+    #     subprocess.check_call(cl)
 
         
     def _install_config_data(self):
@@ -90,7 +108,7 @@ class SampleBasedAnalysisTest(unittest.TestCase):
         with workdir():
             cl = ["exome_pipeline.py",
                   os.path.join(self.proj_dir, "proj_conf.yaml"),
-                  os.path.join(self.proj_dir, "intermediate", "nobackup", "110106_FC70BUKAAXX"),
-                  os.path.join(self.proj_dir, "data", "20000101A_hiseq2000", "project_run_info.yaml"),
+                  os.path.join(self.proj_dir, "j_doe_00_01", "intermediate", "nobackup", "110106_FC70BUKAAXX"),
+                  os.path.join(self.proj_dir, "j_doe_00_01", "data", "nobackup", "20000101A_hiseq2000", "project_run_info.yaml"),
                   "--project_dir=%s" %(self.proj_dir)]
             subprocess.check_call(cl)

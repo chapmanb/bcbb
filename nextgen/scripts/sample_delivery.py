@@ -101,7 +101,7 @@ def main(flowcell_id, project_id, fc_alias=None, project_desc=None, lanes=None):
     config.update(fc_name = fc_name, fc_date = fc_date)
     config.update(fc_alias = "%s_%s" % (fc_date, fc_name) if not fc_alias else fc_alias)
     dirs.update(fc_delivery_dir = os.path.join(dirs['project_dir'], "data", "nobackup", config['fc_alias'] ))
-    dirs.update(data_delivery_dir = os.path.join(dirs['project_dir'], "intermediate", "nobackup", config['fc_alias'] ))
+    dirs.update(data_delivery_dir = os.path.join(dirs['project_dir'], "intermediate", "nobackup", "%s_%s" %(fc_date, fc_name) ))
 
     if options.verbose:
         print "=" * 50 + "\nConfiguration:\n" + "=" * 50
@@ -147,6 +147,8 @@ def _make_delivery_directory(dirs, config):
     """Make the output directory"""
     _make_dir(dirs['fc_delivery_dir'], "flowcell delivery")
     _make_dir(dirs['data_delivery_dir'], "data delivery")
+    if (os.path.basename(dirs['data_delivery_dir']) != config['fc_alias']):
+        _handle_data(dirs['data_delivery_dir'], os.path.join(os.path.dirname(dirs['data_delivery_dir']), config['fc_alias']), os.symlink)
     config.update(fc_delivery_dir=dirs['fc_delivery_dir'])
     config.update(data_delivery_dir=dirs['data_delivery_dir'])
     return config
