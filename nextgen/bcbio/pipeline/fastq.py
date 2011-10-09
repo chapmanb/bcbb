@@ -20,9 +20,7 @@ def get_fastq_files(directory, item, fc_name, bc_name=None, glob_ext="_fastq.txt
             glob_str = "%s_*%s_%s_*%s" % (lane, fc_name, bc_name, glob_ext)
         else:
             glob_str = "%s_*%s_*%s" % (lane, fc_name, glob_ext)
-        print glob_str
         files = glob.glob(os.path.join(directory, glob_str))
-        print os.path.join(directory, glob_str)
         files.sort()
         if len(files) > 2 or len(files) == 0:
             raise ValueError("Did not find correct files for %s %s %s %s" %
@@ -55,7 +53,6 @@ def get_barcoded_fastq_files(multiplex, item, fc_dir, fc_name, fc_date):
     fq = list()
     bc_dir = "%s_%s_%s_barcode" % (item["lane"], fc_date, fc_name)
     bc_dir = os.path.join(fc_dir, bc_dir)
-    print bc_dir
     if multiplex is None:
         fq.append(get_fastq_files(bc_dir, item, fc_name))
     else:

@@ -7,7 +7,7 @@ Usage:
                         --archive_base_dir=<archive_base_dir>
                         --project_base_dir=<project_base_dir
                         --flowcell_alias=<flowcell alias>
-                        --project_yaml_id=<project yaml id>
+                        --project_desc=<project_desc>
                         --lanes=<lanes>
                         --copy_data
                         --only_install_run_info
@@ -15,7 +15,7 @@ Usage:
                         --make_delivery_report --dry_run --verbose]
 
 
-Given a flowcell_id, a project_yaml_id or a comma-separated list of lane numbers,
+Given a flowcell_id, a project_desc or a comma-separated list of lane numbers,
 and a project_id, all files in <analysis_base_dir>/<flowcell_id> related to the
 project defined in <archive_base_dir>/run_info.yaml will be moved to
 <project_base_dir>/<project_id>.
@@ -37,7 +37,7 @@ Options:
                                                 <flowcell_id>. This option changes output directory to
                                                 <flowcell_alias>.
 
-  -y, --project_yaml_id=<project_yaml_id>       Project description in description field of run_info file, or ALL.
+  -y, --project_desc=<project_desc>       Project description in description field of run_info file, or ALL.
   -l, --lanes=<lanes>                           Comma-separated list of integers corresponding to lanes
 
   -i, --only_install_run_info                   Only install pruned run_info file.
@@ -80,7 +80,6 @@ def main(flowcell_id, project_id, fc_alias=None, project_desc=None, lanes=None):
 
     ## Config file for sample_delivery.py
     config = dict(
-        fc_id = flowcell_id,
         log_dir=os.path.join(project_outdir, "log"),
         project_desc = project_desc,
         lanes = lanes
@@ -99,8 +98,8 @@ def main(flowcell_id, project_id, fc_alias=None, project_desc=None, lanes=None):
                 project_base_dir = options.project_base_dir
                 )
     fc_name, fc_date = get_flowcell_id(run_info, dirs['fc_dir'])
-    config.update( fc_name = fc_name, fc_date = fc_date)
-    config.update( fc_alias = "%s_%s" % (fc_date, fc_name) if not fc_alias else fc_alias)
+    config.update(fc_name = fc_name, fc_date = fc_date)
+    config.update(fc_alias = "%s_%s" % (fc_date, fc_name) if not fc_alias else fc_alias)
     dirs.update(fc_delivery_dir = os.path.join(dirs['project_dir'], "data", "nobackup", config['fc_alias'] ))
     dirs.update(data_delivery_dir = os.path.join(dirs['project_dir'], "intermediate", "nobackup", config['fc_alias'] ))
 
@@ -119,9 +118,9 @@ def main(flowcell_id, project_id, fc_alias=None, project_desc=None, lanes=None):
 
 def run_main(run_info, config, dirs):
     for info in run_info:
-        process_lane(info, dirs, config)
+        process_lane(info, config, dirs)
 
-def process_lane(info, dirs, config):
+def process_lane(info, config, dirs):
     """Models bcbio process lane"""
     sample_name = info.get("description", "")
     genome_build = info.get("genome_build", None)
@@ -132,8 +131,14 @@ def process_lane(info, dirs, config):
     if multiplex:
         log.debug("Sample %s is multiplexed as: %s" % (sample_name, multiplex))
     fq = get_barcoded_fastq_files(multiplex, info, dirs['fc_dir'], config['fc_name'], config['fc_date'])
+
+    ## Move data along with fastq files
     if not options.only_fastq:
-        fc_link_dir = config['data_delivery_dir']
+        if multiplex:
+            fc_link_dir = os.path.join(config['data_delivery_dir'], "%s_%s_%s_barcode" % (info['lane'], config['fc_date'], config['fc_name']))
+        else:
+            fc_link_dir = config['data_delivery_dir']
+        _make_dir(fc_link_dir, "fastq.txt to fastq link directory")
         data, fastqc = _get_analysis_results(config, dirs, info['lane'])
         _deliver_data(data, fastqc, config['data_delivery_dir'])
 
@@ -141,8 +146,6 @@ def process_lane(info, dirs, config):
         fqout = convert_barcode_id_to_name(multiplex, config['fc_name'], fqpair)
         [_deliver_fastq_file(fq_src, fq_tgt, config['fc_delivery_dir'], fc_link_dir) for fq_src, fq_tgt in izip(fqpair, fqout)]
 
-# TODO: Check for data in path so one could pass j_doe_00_01 or
-# j_doe_00_01/data/flowcell_alias as project_output_dir?
 def _make_delivery_directory(dirs, config):
     """Make the output directory"""
     _make_dir(dirs['fc_delivery_dir'], "flowcell delivery")
@@ -157,44 +160,56 @@ def _make_dir(dir, label):
         log.info("Creating %s directory %s" % (label, dir))
     else:
         log.warn("%s already exists: not creating new directory" % (dir))
-    
+
+def _copy_or_move_data(src, tgt):
+    if src is None:
+        return
+    if os.path.exists(tgt):
+        log.warn("%s already exists: not overwriting" %(tgt))
+        return
+    if not options.dry_run:
+        if options.copy:
+            log.info("Copying file %s to %s" % (src, tgt))
+            shutil.copyfile(src, tgt)
+        else:
+            log.info("Moving file %s to %s" % (src, tgt))
+            shutil.move(src, tgt)
+    if options.dry_run:
+        if options.copy:
+            print "DRY_RUN: Copying file %s to %s" % (src, tgt)
+        else:
+            print "DRY_RUN: Moving file %s to %s" % (src, tgt)
 
 def _deliver_fastq_file(fq_src, fq_tgt, outdir, fc_link_dir=None):
-    if fq_src is None:
-        return
-    tgt = os.path.join(outdir, fq_tgt)
-    if os.path.exists(tgt):
-        log.warn("%s already exists: delivery already made, not overwriting" %(tgt))
-    else:
-        if not options.dry_run:
-            log.info("Delivering fastq file %s to %s as %s" % (os.path.basename(fq_src), outdir, fq_tgt ))
-            shutil.copyfile(fq_src, tgt)
-    if options.dry_run:
-        print "DRY_RUN: Delivering fastq file %s to %s as %s" % (os.path.basename(fq_src), outdir, fq_tgt)
+    _copy_or_move_data(fq_src, os.path.join(outdir, fq_tgt))
     if not fc_link_dir is None:
-        fq_link_tgt = os.path.baseame(fq_src)
-        if options.dry_run:
-            print "DRY_RUN: Linking fastq file %s to %s in barcode directory %s" % (fq_link_tgt, fq_tgt, "")
+        _link_data(os.path.join(outdir, fq_tgt), os.path.join(fc_link_dir, os.path.basename(fq_src)))
+
+def _link_data(src, tgt):
+    if src is None:
+        return
+    
+    if options.dry_run:
+        print "DRY_RUN: Linking file %s to %s" % (src, tgt)
+    else:
+        log.info("Linking file %s to %s" % (src, tgt))
+        os.symlink(src, tgt)
 
 def _deliver_data(data, fastqc, outdir):
-    for d in data:
-        src = os.path.basename(d)
-        tgt = os.path.join(outdir, src)
-        if options.dry_run:
-            print "DRY_RUN: delivering data file %s to %s as %s" % (src, outdir, os.path.basename(tgt))
+    for src in data:
+        tgt = os.path.join(outdir, os.path.basename(src))
+        _copy_or_move_data(src, tgt)
 
-    for f in fastqc:
-        src = os.path.basename(f)
-        tgt = os.path.join(outdir, "fastqc", src)
-        if options.dry_run:
-            print "DRY_RUN: delivering fastqc directory %s to %s as %s" % (src, outdir, os.path.basename(tgt))
+    for src in fastqc:
+        tgt = os.path.join(outdir, "fastqc", os.path.basename(src))
+        _copy_or_move_data(src, tgt)
         
 def _get_analysis_results(config, dirs, lane):
     """Get analysis results
 
     For now just glob the analysis directory for fastqc output and files with the give flowcell name
     """
-    flowcell = "_".join([lane, config['fc_date'], config['fc_name']])
+    flowcell = "_".join([str(lane), config['fc_date'], config['fc_name']])
     glob_str = os.path.join(dirs['fc_dir'], flowcell + "*.*")
     data = glob.glob(glob_str)
     glob_str = os.path.join(dirs['fc_dir'], "fastqc", flowcell + "*")
@@ -220,7 +235,7 @@ if __name__ == "__main__":
                         --archive_base_dir=<archive_base_dir>
                         --project_base_dir=<project_base_dir
                         --flowcell_alias=<flowcell alias>
-                        --project_yaml_id=<project yaml id>
+                        --project_desc=<project yaml id>
                         --lanes=<lanes>
                         --copy_data
                         --only_install_run_info

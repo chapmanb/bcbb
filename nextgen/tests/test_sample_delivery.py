@@ -13,30 +13,28 @@ class SampleDeliveryTest(unittest.TestCase):
     
     def setUp(self):
         self.file_dir = os.path.dirname(os.path.abspath(__file__))
-        self.proj_dir = os.path.join(self.file_dir, "projects", "j_doe_00_01")
+        self.proj_dir = os.path.join(self.file_dir, "projects")
         self.fcdir = os.path.join(self.file_dir, "test_automated_output")
-        archive_dir  = os.path.join(self.file_dir, "scilife", "archive", "110106_FC70BUKAAXX")
-        analysis_dir  = os.path.join(self.file_dir, "scilife", "analysis")
-        scilife_dir  = os.path.join(self.file_dir, "scilife")
-        delivery_dir = os.path.join(self.proj_dir, "data", "110106_FC70BUKAAXX")
+        self.archive_base_dir  = os.path.join(self.file_dir, "scilife", "archive")
+        self.analysis_base_dir  = os.path.join(self.file_dir, "scilife", "analysis")
+        self.scilife_dir  = os.path.join(self.file_dir, "scilife")
 
         self._install_config_data()
-        if os.path.exists(delivery_dir):
-            shutil.rmtree(delivery_dir)
-        if os.path.exists(scilife_dir):
-            shutil.rmtree(scilife_dir)
-        if not os.path.exists(self.proj_dir):
-            os.makedirs(self.proj_dir)
-        if not os.path.exists(analysis_dir):
-            os.makedirs(analysis_dir)
-            src = os.path.join(self.file_dir, "test_automated_output")
-            dest = os.path.abspath(os.path.join(analysis_dir, "110106_FC70BUKAAXX"))
-            os.symlink(src, dest)
-
-        if not os.path.exists(archive_dir):
-            os.makedirs(archive_dir)
+        if os.path.exists(self.proj_dir):
+            shutil.rmtree(self.proj_dir)
+        os.makedirs(self.proj_dir)
+        if os.path.exists(self.scilife_dir):
+            shutil.rmtree(self.scilife_dir)
+        if not os.path.exists(self.analysis_base_dir):
+            os.makedirs(self.analysis_base_dir)
+            src = self.fcdir
+            dest = os.path.abspath(os.path.join(self.analysis_base_dir, "110106_FC70BUKAAXX"))
+            shutil.copytree(src, dest)
+        if not os.path.exists(self.archive_base_dir):
+            os.makedirs(os.path.join(self.archive_base_dir, "110106_FC70BUKAAXX"))
             src = os.path.abspath(os.path.join(self.file_dir, "data", "automated", "run_info.yaml"))
-            dest = os.path.join(archive_dir, "run_info.yaml")
+            src = os.path.abspath(os.path.join(self.file_dir, "templates", "run_info.yaml"))
+            dest = os.path.join(self.archive_base_dir, "110106_FC70BUKAAXX", "run_info.yaml")
             os.symlink(src, dest)
 
 
@@ -59,22 +57,33 @@ class SampleDeliveryTest(unittest.TestCase):
     def test_deliver_data(self):
         """Test data delivery"""
         cl = ["sample_delivery.py",
-              os.path.join(self.file_dir, "templates", "run_info.yaml"),
-              "J.Doe_00_01", self.fcdir, self.proj_dir]
+              "110106_FC70BUKAAXX", "j_doe_00_01",
+              "--analysis_base_dir=%s" % self.analysis_base_dir,
+              "--archive_base_dir=%s" % self.archive_base_dir,
+              "--project_base_dir=%s" % self.proj_dir, 
+              "--project_desc=%s" % "J.Doe_00_01"]
         subprocess.check_call(cl)
 
     def test_dry_run(self):
         """Test dry run: don't do anything"""
         self.setUp()
         cl = ["sample_delivery.py",
-              os.path.join(self.file_dir, "templates", "run_info.yaml"),
-              "J.Doe_00_01", self.fcdir, self.proj_dir, "-n"]
+              "110106_FC70BUKAAXX", "j_doe_00_01",
+              "--analysis_base_dir=%s" % self.analysis_base_dir,
+              "--archive_base_dir=%s" % self.archive_base_dir,
+              "--project_base_dir=%s" % self.proj_dir, 
+              "--project_desc=%s" % "J.Doe_00_01",
+              "--dry_run"]
         subprocess.check_call(cl)
 
     def test_write_run_info_only(self):
 	"""Test writing of pruned run info file"""
         self.setUp()
         cl = ["sample_delivery.py",
-              os.path.join(self.file_dir, "templates", "run_info.yaml"),
-              "J.Doe_00_01", self.fcdir, self.proj_dir, "-I"]
+              "110106_FC70BUKAAXX", "j_doe_00_01",
+              "--analysis_base_dir=%s" % self.analysis_base_dir,
+              "--archive_base_dir=%s" % self.archive_base_dir,
+              "--project_base_dir=%s" % self.proj_dir, 
+              "--project_desc=%s" % "J.Doe_00_01",
+              "--only_install_run_info"]
         subprocess.check_call(cl)
