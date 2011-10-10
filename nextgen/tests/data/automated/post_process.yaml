@@ -6,9 +6,9 @@ program:
   bwa: bwa
   tophat: tophat
   ucsc_bigwig: /bubo/home/h10/vale/bin/wigToBigWig
-  picard: /bubo/sw/apps/bioinfo/picard/1.41 
-  gatk: /path/to/GenomeAnalysisTK-1.1
-  snpEff: /path/to/snpEff_v2_0_2
+  picard: $PICARD_HOME 
+  gatk: $GATK_HOME 
+  snpEff: $SNPEFF_HOME 
   fastqc: fastqc
   pdflatex: pdflatex
   barcode: barcode_sort_trim.py
