@@ -7,8 +7,8 @@ import time
 from bcbio.pipeline import log
 from bcbio.pipeline.config_loader import load_config
 
-from bcbio.pipeline.toplevl import _copy_from_sequencer
-from bcbio.pipeline.transfer import _copy_for_storage
+from bcbio.pipeline.toplevel import _copy_from_sequencer
+from bcbio.pipeline.storage import _copy_for_storage
 
 
 def _remove_transferred_files(remote_info, config):
@@ -23,7 +23,7 @@ def _remove_transferred_files(remote_info, config):
         fabric.run(rm_str)
 
 
-def perform__copy_for_storage(transfer_function, protocol_config, \
+def perform_transfer(transfer_function, protocol_config, \
         remove_before_copy=True, should_overwrite=False):
     """Sets up dictionaries simulating loaded remote_info and config
     from various sources. Then test transferring files with the function
@@ -90,11 +90,11 @@ def perform__copy_for_storage(transfer_function, protocol_config, \
         if os.path.isfile(test_file_path):
             with open(test_file_path, "r") as copied_file:
                 read_data = copied_file.read()
-                fail_string = "File copy failed: " + \
-                "%s doesn't equal %s (for %s). " + \
+                fail_string = "File copy failed: %s " % read_data + \
+                "doesn't equal %s (for %s). " % \
+                (test_data[test_file], test_file_path) + \
                 "Remove is %s and Overwrite is %s." % \
-                (read_data, test_data[test_file], test_file_path,
-                str(remove_before_copy), str(should_overwrite))
+                (str(remove_before_copy), str(should_overwrite))
                 # Assertion that passes when:
                 #  - The files got copied if we removed the old files in the
                 # target directory before the copy.
@@ -114,8 +114,8 @@ def test__copy_for_storage():
     as to how to do it.
     """
     config = {}
-    perform__copy_for_storage(_copy_for_storage, config)
-    perform__copy_for_storage(_copy_for_storage, config,
+    perform_transfer(_copy_for_storage, config)
+    perform_transfer(_copy_for_storage, config,
     remove_before_copy=False)
 
 
@@ -123,8 +123,8 @@ def test__copy_for_storage_scp():
     """Test using the copy function with scp.
     """
     config = {"transfer_protocol": "scp"}
-    perform__copy_for_storage(_copy_for_storage, config)
-    perform__copy_for_storage(_copy_for_storage, config,
+    perform_transfer(_copy_for_storage, config)
+    perform_transfer(_copy_for_storage, config,
     remove_before_copy=False)
 
 
@@ -132,8 +132,8 @@ def test__copy_for_storage_rsync():
     """Test using the copy function with rsync.
     """
     config = {"transfer_protocol": "rsync"}
-    perform__copy_for_storage(_copy_for_storage, config)
-    perform__copy_for_storage(_copy_for_storage, config,
+    perform_transfer(_copy_for_storage, config)
+    perform_transfer(_copy_for_storage, config,
     remove_before_copy=False, should_overwrite=True)
 
 
@@ -141,6 +141,6 @@ def test__copy_for_storage_rdiff_backup():
     """Test using the copy function with rdiff-backup.
     """
     config = {"transfer_protocol": "rdiff-backup"}
-    perform__copy_for_storage(_copy_for_storage, config)
-    perform__copy_for_storage(_copy_for_storage, config,
+    perform_transfer(_copy_for_storage, config)
+    perform_transfer(_copy_for_storage, config,
     remove_before_copy=False, should_overwrite=True)
