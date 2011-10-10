@@ -39,8 +39,8 @@ class SampleBasedAnalysisTest(unittest.TestCase):
             os.makedirs(self.proj_dir)
         self._install_project_config_files()
         self._install_config_data()
-        if os.path.exists(os.path.join(self.proj_dir, "intermediate")):
-            shutil.rmtree(os.path.join(self.proj_dir, "intermediate"))
+        # if os.path.exists(os.path.join(self.proj_dir, "intermediate")):
+        #     shutil.rmtree(os.path.join(self.proj_dir, "intermediate"))
         if not os.path.exists(self.analysis_base_dir):
             os.makedirs(self.analysis_base_dir)
             src = self.fcdir
