@@ -6,6 +6,8 @@ import fabric.contrib.files as fabric_files
 import time
 from bcbio.pipeline import log
 from bcbio.pipeline.config_loader import load_config
+
+from bcbio.pipeline.toplevl import _copy_from_sequencer
 from bcbio.pipeline.transfer import _copy_for_storage
 
 
@@ -19,19 +21,6 @@ def _remove_transferred_files(remote_info, config):
          (copy_to, os.path.split(remote_info["directory"])[1])
         log.debug(rm_str)
         fabric.run(rm_str)
-
-
-def get_transfer_function(transfer_config):
-    """Returns a function to use for transfer where we will have set the
-    parameter protocol=setting
-
-    transfer_config : dictionary - The dictionary containing transfer
-        configurations. For example which protocol to use.
-    """
-    def transfer_function(remote_info, config):
-        _copy_for_storage(remote_info, config, transfer_config=transfer_config)
-
-    return transfer_function
 
 
 def perform__copy_for_storage(transfer_function, protocol_config, \

@@ -74,8 +74,8 @@ def _run_analysis(fc_dir, remote_info, config, config_file):
     """Run local or distributed analysis, wait to finish.
     """
     run_yaml = _get_run_yaml(remote_info, fc_dir, config)
-    analysis_dir = os.path.join(config["analysis"].get("base_dir", os.getcwd()),
-                                os.path.basename(remote_info["directory"]))
+    analysis_dir = os.path.join(config["analysis"].get("base_dir",
+                    os.getcwd()), os.path.basename(remote_info["directory"]))
     if not os.path.exists(analysis_dir):
         os.makedirs(analysis_dir)
     with utils.chdir(analysis_dir):
