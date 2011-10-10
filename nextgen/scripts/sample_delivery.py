@@ -45,7 +45,6 @@ from optparse import OptionParser
 import yaml
 import glob
 import shutil
-import pprint
 from itertools import izip
 
 from bcbio.log import create_log_handler
@@ -55,8 +54,6 @@ from bcbio.pipeline.lane import get_flowcell_id
 from bcbio.pipeline.fastq import get_single_fastq_files, get_barcoded_fastq_files, convert_barcode_id_to_name, get_fastq_files
 
 from bcbio import utils
-
-pp = pprint.PrettyPrinter(indent=4)
 
 def main(config_file, flowcell_id, project_id, fc_alias=None, project_desc=None, lanes=None):
     if project_desc is None and lanes is None:
@@ -164,7 +161,7 @@ def _deliver_data(data, fastqc, outdir):
 
     for src in fastqc:
         tgt = os.path.join(outdir, "fastqc", os.path.basename(src))
-        _handle_data(src, tgt, f=shutil.move if options.move else shutil.copyfile)
+        _handle_data(src, tgt, f=shutil.move if options.move else shutil.copytree)
         
 def _get_analysis_results(config, dirs, lane):
     """Get analysis results
