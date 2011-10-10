@@ -144,3 +144,40 @@ def test__copy_for_storage_rdiff_backup():
     perform_transfer(_copy_for_storage, config)
     perform_transfer(_copy_for_storage, config,
     remove_before_copy=False, should_overwrite=True)
+
+
+def test__copy_from_sequencer():
+    """Test using the copy function without any specification
+    as to how to do it.
+    """
+    config = {}
+    perform_transfer(_copy_from_sequencer, config)
+    perform_transfer(_copy_from_sequencer, config,
+    remove_before_copy=False)
+
+
+def test__copy_from_sequencer_scp():
+    """Test using the copy function with scp.
+    """
+    config = {"transfer_protocol": "scp"}
+    perform_transfer(_copy_from_sequencer, config)
+    perform_transfer(_copy_from_sequencer, config,
+    remove_before_copy=False)
+
+
+def test__copy_from_sequencer_rsync():
+    """Test using the copy function with rsync.
+    """
+    config = {"transfer_protocol": "rsync"}
+    perform_transfer(_copy_from_sequencer, config)
+    perform_transfer(_copy_from_sequencer, config,
+    remove_before_copy=False, should_overwrite=True)
+
+
+def test__copy_from_sequencer_rdiff_backup():
+    """Test using the copy function with rdiff-backup.
+    """
+    config = {"transfer_protocol": "rdiff-backup"}
+    perform_transfer(_copy_from_sequencer, config)
+    perform_transfer(_copy_from_sequencer, config,
+    remove_before_copy=False, should_overwrite=True)
