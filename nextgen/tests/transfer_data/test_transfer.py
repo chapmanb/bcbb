@@ -14,7 +14,7 @@ from bcbio.pipeline.storage import _copy_for_storage
 def _remove_transferred_files(remote_info, config):
     """Remove the files transferred in a previous test.
     """
-    copy_to = os.path.realpath("../test_transfer_data/copy_to")
+    copy_to = os.path.realpath("../transfer_data/copy_to")
     with fabric.settings(host_string="%s@%s" % \
          (config["store_user"], config["store_host"])):
         rm_str = "rm -r %s/%s" % \
@@ -45,12 +45,12 @@ def perform_transfer(transfer_function, protocol_config, \
     """
     config = load_config("../data/automated/post_process.yaml")
 
-    store_dir = os.path.realpath("../test_transfer_data/copy_to")
+    store_dir = os.path.realpath("../transfer_data/copy_to")
     config["store_dir"] = store_dir
 
     config.update(protocol_config)
 
-    copy_dir = os.path.realpath("../test_transfer_data/to_copy")
+    copy_dir = os.path.realpath("../transfer_data/to_copy")
 
     remote_info = {}
     remote_info["directory"] = copy_dir
