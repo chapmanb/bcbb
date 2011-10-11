@@ -1,0 +1,3 @@
+[submodule "nextgen/bcbio/scilifelab"]
+	path = nextgen/bcbio/scilifelab
+	url = git://github.com/SciLifeLab/scilifelab_bcbio.git 
