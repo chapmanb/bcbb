@@ -96,11 +96,17 @@ def _unique_flowcell_info():
         if n == 0: break
     return ''.join(reversed(s)), fc_date
 
-def prune_run_info_by_description(run_info, desc):
+def prune_run_info_by_description(run_info, desc, lanes):
     """Prune a run_info file by lane description"""
     run_info_ret = list()
     for info in run_info:
-        if info['description'].find(desc) > -1:
-            log.info("Found %s in run_info for lane %s, description: %s" %(desc, info['lane'], info['description'] ))
-            run_info_ret.append(info)
+        if not desc is None:
+            if info['description'].find(desc) > -1 or desc=="ALL":
+                log.info("Found %s in run_info for lane %s, description: %s" %(desc, info['lane'], info['description'] ))
+                run_info_ret.append(info)
+        elif not lanes is None:
+            if info['lane'] in lanes.split(","):
+                log.info("Appending lane %s to output" %(info['lane']))
+                run_info_ret.append(info)
+
     return run_info_ret     

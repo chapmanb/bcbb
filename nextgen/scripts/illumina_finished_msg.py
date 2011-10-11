@@ -269,6 +269,7 @@ def _update_reported(msg_db, new_dname):
     """
     with open(msg_db, "a") as out_handle:
         out_handle.write("%s\n" % new_dname)
+        out_handle.close()
 
 def finished_message(fn_name, directory, files_to_copy, config, config_file):
     """Wait for messages with the give tag, passing on to the supplied handler.
