@@ -18,6 +18,8 @@ except ImportError:
 from bcbio.pipeline import log
 from bcbio.log import create_log_handler
 from bcbio import utils
+from bcbio.pipeline.transfer import remote_copy
+
 
 def analyze_and_upload(remote_info, config_file):
     """Main entry point for analysis and upload to Galaxy.
@@ -31,20 +33,30 @@ def analyze_and_upload(remote_info, config_file):
         _upload_to_galaxy(fc_dir, analysis_dir, remote_info,
                           config, config_file)
 
+
 # ## Copying over files from sequencer, if necessary
 
 def _copy_from_sequencer(remote_info, config):
     """Get local directory of flowcell info, or copy from sequencer.
     """
-    if remote_info.has_key("fc_dir"):
+    if "fc_dir" in remote_info:
         fc_dir = remote_info["fc_dir"]
         assert os.path.exists(fc_dir)
     else:
         log.debug("Remote host information: %s" % remote_info)
         c_host_str = _config_hosts(config)
         with fabric.settings(host_string=c_host_str):
-            fc_dir = _remote_copy(remote_info, config)
+            base_dir = config["store_dir"]
+            try:
+                protocol = config["transfer_protocol"]
+            except KeyError:
+                protocol = None
+                pass
+
+            fc_dir = remote_copy(remote_info, base_dir, protocol)
+
     return fc_dir
+
 
 def _config_hosts(config):
     """Retrieve configured machines to perform analysis and copy on.
@@ -57,37 +69,13 @@ def _config_hosts(config):
     copy_host_str = "%s@%s" % (copy_user, copy_host)
     return copy_host_str
 
-def _remote_copy(remote_info, config):
-    """Securely copy files from remote directory to the processing server.
-
-    This requires ssh public keys to be setup so that no password entry
-    is necessary.
-    """
-    fc_dir = os.path.join(config["analysis"]["store_dir"],
-                          os.path.basename(remote_info['directory']))
-    log.info("Copying analysis files to %s" % fc_dir)
-    if not fabric_files.exists(fc_dir):
-        fabric.run("mkdir %s" % fc_dir)
-    for fcopy in remote_info['to_copy']:
-        target_loc = os.path.join(fc_dir, fcopy)
-        if not fabric_files.exists(target_loc):
-            target_dir = os.path.dirname(target_loc)
-            if not fabric_files.exists(target_dir):
-                fabric.run("mkdir -p %s" % target_dir)
-            cl = ["scp", "-r", "%s@%s:%s/%s" %
-                  (remote_info["user"], remote_info["hostname"],
-                   remote_info["directory"], fcopy),
-                  target_loc]
-            fabric.run(" ".join(cl))
-    log.info("Analysis files copied")
-    return fc_dir
 
 def _run_analysis(fc_dir, remote_info, config, config_file):
     """Run local or distributed analysis, wait to finish.
     """
     run_yaml = _get_run_yaml(remote_info, fc_dir, config)
-    analysis_dir = os.path.join(config["analysis"].get("base_dir", os.getcwd()),
-                                os.path.basename(remote_info["directory"]))
+    analysis_dir = os.path.join(config["analysis"].get("base_dir",
+                    os.getcwd()), os.path.basename(remote_info["directory"]))
     if not os.path.exists(analysis_dir):
         os.makedirs(analysis_dir)
     with utils.chdir(analysis_dir):
@@ -102,6 +90,7 @@ def _run_analysis(fc_dir, remote_info, config, config_file):
         subprocess.check_call(cl)
     return analysis_dir
 
+
 def _get_run_yaml(remote_info, fc_dir, config):
     """Retrieve YAML specifying run from configured or default location.
     """
@@ -113,6 +102,7 @@ def _get_run_yaml(remote_info, fc_dir, config):
     if not os.path.exists(run_yaml):
         run_yaml = None
     return run_yaml
+
 
 def _upload_to_galaxy(fc_dir, analysis_dir, remote_info, config, config_file):
     """Upload results from analysis directory to Galaxy data libraries.

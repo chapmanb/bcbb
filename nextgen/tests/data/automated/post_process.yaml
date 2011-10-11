@@ -1,8 +1,9 @@
+galaxy_url: http://your/galaxy/url
+galaxy_api_key: your_galaxy_api_key
 galaxy_config: universe_wsgi.ini
-#galaxy_url: foobar
-#galaxy_api_key: fobar
 program:
   bowtie: bowtie
+  samtools: samtools
   bwa: bwa
   tophat: tophat
   ucsc_bigwig: /bubo/home/h10/vale/bin/wigToBigWig
@@ -15,23 +16,39 @@ program:
 algorithm:
   aligner: bowtie
   max_errors: 2
-  num_cores: 8
+  num_cores: 1
   platform: illumina
   recalibrate: false
   snpcall: false
   bc_mismatch: 2
+  bc_allow_indels: true
   bc_read: 1
   bc_position: 3
-  java_memory: 3g
+  java_memory: 6g
+  upload_fastq: false
   save_diskspace: true
 
+log_dir: log
+msg_process_tag: sqn_finished_process
+msg_store_tag: sqn_finished_store
+store_dir: /mad/store/clients/cscshared/solexadata
+store_user: cscshared
+store_host: bricklayer01.partners.org
+
 analysis:
+  # Can specify a different remote host to initiate
+  # the copy from. This is useful for NFS shared filesystems
+  # where you want to manage the copy from the base machine.
+  copy_user:
+  copy_host:
+  store_dir: /store4/solexadata
+  base_dir: /array0/projects/Sequencing
   towig_script: bam_to_wiggle.py
-  process_program: automated_initial_analysis.py
-  distributed_process_program: distributed_nextgen_pipeline.py
-  upload_program: upload_to_galaxy.py
-  worker_program: nextgen_analysis_server.py
 distributed:
+  cluster_platform: lsf
+  platform_args: '-q your_queue_name'
+  cores_per_host: 1 # 0 uses all cores, otherwise can configure for architecture
+  # num_workers: 2 # only required if cores_per_host is 0, otherwise use all needed
   rabbitmq_vhost: bionextgen
 # configuration algorithm changes for custom post-processing steps
 custom_algorithms:
