@@ -26,12 +26,12 @@ algorithm:
   save_diskspace: true
 
 store_dir: test_transfer_data/copy_to
-store_user: valentinesvensson
-store_host: localhost
+store_user: vale 
+store_host: biologin
 
 analysis:
-  copy_user: valentinesvensson
-  copy_host: localhost
+  copy_user: vale
+  copy_host: biologin 
   towig_script: bam_to_wiggle.py
   process_program: automated_initial_analysis.py
   distributed_process_program: distributed_nextgen_pipeline.py
