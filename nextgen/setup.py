@@ -37,7 +37,6 @@ setup(name = "bcbio-nextgen",
           'config' : ['*.yaml'],
           },
       install_requires = [
-          "numpy >= 1.5.1",
           "biopython >= 1.58",
           "Mako >= 0.3.6",
           "PyYAML >= 3.09",
