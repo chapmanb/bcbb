@@ -165,7 +165,7 @@ def get_spreadsheet(ssheet_title,encoded_credentials):
     # Check that we got a result back
     if not ssheet:
         log.warn("No document with specified title '%s' found in GoogleDocs repository" % ssheet_title)
-        return None
+        return (None,None)
     
     log.info("Found spreadsheet matching the supplied title: '%s'" % (ssheet.title.text))
     
