@@ -9,6 +9,7 @@ import shutil
 import contextlib
 import collections
 
+
 @contextlib.contextmanager
 def make_workdir():
     dirname = os.path.join(os.path.dirname(__file__), "test_automated_output")
@@ -21,6 +22,7 @@ def make_workdir():
         yield
     finally:
         os.chdir(orig_dir)
+
 
 class AutomatedAnalysisTest(unittest.TestCase):
     """Setup a full automated analysis and run the pipeline.
