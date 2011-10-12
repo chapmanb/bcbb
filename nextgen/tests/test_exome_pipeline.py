@@ -12,17 +12,31 @@ import glob
 import yaml
 
 @contextlib.contextmanager
-def workdir():
+def make_workdir():
     dirname = os.path.join(os.path.dirname(__file__), "projects", "j_doe_00_01", "intermediate", "nobackup", "20000101A_hiseq2000")
-    # if os.path.exists(dirname):
-    #     shutil.rmtree(dirname)
-    # os.makedirs(dirname)
+    if os.path.exists(dirname):
+        if os.path.islink(dirname):
+            os.remove(dirname)
+        else:
+            shutil.rmtree(dirname)
+    os.makedirs(dirname)
     orig_dir = os.getcwd()
     try:
         os.chdir(dirname)
         yield
     finally:
         os.chdir(orig_dir)
+
+def init_flowcell_dir():
+    dirname = os.path.join(os.path.dirname(__file__), "110106_FC70BUKAAXX")
+    fcdir = os.path.join(os.path.dirname(__file__), "test_automated_output")
+    if os.path.exists(dirname):
+        if os.path.islink(dirname):
+            os.remove(dirname)
+        else:
+            shutil.rmtree(dirname)
+    os.symlink(fcdir, dirname)
+    
 
 class SampleBasedAnalysisTest(unittest.TestCase):
     """Setup a sample based scilife analysis
@@ -35,10 +49,10 @@ class SampleBasedAnalysisTest(unittest.TestCase):
         self.archive_base_dir  = os.path.join(self.file_dir)
         self.analysis_base_dir = os.path.join(self.file_dir)
 
+        # Remove fcdir if exists and setup new link
+        init_flowcell_dir()
         if not os.path.exists(self.proj_dir):
             os.makedirs(self.proj_dir)
-        if not os.path.exists(os.path.join(self.file_dir, self.fcid)):
-            os.symlink(os.path.join(self.file_dir, "test_automated_output"), os.path.join(self.file_dir, self.fcid))
         if not os.path.exists(os.path.join(self.file_dir, "test_automated_output", "run_info.yaml")):
             os.symlink(os.path.join(self.file_dir, "data", "automated", "run_info-project.yaml"), os.path.join(self.file_dir, "test_automated_output", "run_info.yaml"))
         if not os.path.exists(os.path.join(self.file_dir, "test_automated_output", "tool-data")):
@@ -53,8 +67,7 @@ class SampleBasedAnalysisTest(unittest.TestCase):
         post_process["algorithm"]["dbsnp"] = os.path.join("data", "genomes", "hg19", "variation", "dbsnp_132.vcf")
         with open(os.path.join(self.analysis_base_dir, self.fcid, "post_process.yaml"), "w") as fh:
             yaml.dump(post_process, stream=fh)
-        self._deliver_data()
-        
+
     def _deliver_data(self):
         print "Delivering data"
         cl = ["sample_delivery.py",
@@ -66,9 +79,11 @@ class SampleBasedAnalysisTest(unittest.TestCase):
         subprocess.check_call(cl)
         print "Finished delivering data..."
 
-    def test_run_samplebased_pipeline(self):
-        """Test a sample based pipeline"""
-        with workdir():
+    def test_targeted_resequencing_pipeline(self):
+        """Test a sample based targeted resequencing pipeline"""
+        with make_workdir():
+            print "Going to deliver data"
+            self._deliver_data()
             cl = ["exome_pipeline.py",
                   os.path.join(self.analysis_base_dir, self.fcid, "post_process.yaml"),
                   os.path.join(self.proj_dir, "j_doe_00_01", "intermediate", "nobackup", "110106_FC70BUKAAXX"),
