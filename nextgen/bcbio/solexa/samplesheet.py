@@ -27,9 +27,9 @@ def _organize_lanes(info_iter, barcode_ids):
         info = list(info)
         sampleref = info[0][3].lower()
         cur_lane = dict(flowcell_id=info[0][0], lane=lane, genome_build=sampleref, analysis="Standard")
-        
+
         cur_lane["description"] = "Lane %s, %s" % (lane, info[0][5])
-        
+
         if _has_barcode(info):
             multiplex = []
             for (_, _, sample_id, _, bc_seq, descr) in info:
@@ -43,11 +43,13 @@ def _organize_lanes(info_iter, barcode_ids):
         all_lanes.append(cur_lane)
     return all_lanes
 
+
 def _has_barcode(sample):
     if sample[0][4]:
         return True
     else: # lane is not multiplexed
        pass
+
 
 def _generate_barcode_ids(info_iter):
     """Create unique barcode IDs assigned to sequences
@@ -59,6 +61,7 @@ def _generate_barcode_ids(info_iter):
     for i, bc in enumerate(barcodes):
         barcode_ids[bc] = (bc_type, i+1)
     return barcode_ids
+
 
 def _read_input_csv(in_file):
     """Parse useful details from SampleSheet CSV file.
@@ -79,6 +82,7 @@ def _read_input_csv(in_file):
         print "Corrupt samplesheet %s, please fix it" % in_file 
         pass
 
+
 def _get_flowcell_id(in_file, require_single=True):
     """Retrieve the unique flowcell id represented in the SampleSheet.
     """
@@ -87,6 +91,7 @@ def _get_flowcell_id(in_file, require_single=True):
         raise ValueError("There are several FCIDs in the same samplesheet file: %s" % in_file)
     else:
         return fc_ids
+
 
 def _sanitize(in_file):
     """Removes badly balanced quotes and other possible future
