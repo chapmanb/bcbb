@@ -19,7 +19,7 @@ def get_fastq_files(directory, item, fc_name, bc_name=None, glob_ext="_fastq.txt
         if bc_name:
             glob_str = "%s_*%s_%s_*%s" % (lane, fc_name, bc_name, glob_ext)
         else:
-            glob_str = "%s_*%s_*%s" % (lane, fc_name, glob_ext)
+            glob_str = "%s_*%s*%s" % (lane, fc_name, glob_ext)
         files = glob.glob(os.path.join(directory, glob_str))
         files.sort()
         if len(files) > 2 or len(files) == 0:
