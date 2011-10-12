@@ -103,8 +103,13 @@ def picard_sam_to_bam(picard, align_sam, fastq_bam, ref_file,
     return out_bam
 
 def picard_mark_duplicates(picard, align_bam):
-    base, ext = os.path.splitext(align_bam)
+    fname = os.path.basename(align_bam)
+    dname = os.path.dirname(align_bam)
+    # Only replace the fname dots, not the full path
+    base, ext = os.path.splitext(fname)
     base = base.replace(".", "-")
+    base = dname+base
+
     dup_bam = "%s-dup%s" % (base, ext)
     dup_metrics = "%s-dup.dup_metrics" % base
     if not os.path.exists(dup_bam):
