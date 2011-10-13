@@ -4,14 +4,11 @@ This allows running the analysis pipeline without Galaxy, using CSV input
 files from Illumina SampleSheet or Genesifter.
 """
 import os
-import sys
 import fileinput
 import csv
-import codecs
 import itertools
 import difflib
 import glob
-from Bio.Seq import Seq
 
 import yaml
 
