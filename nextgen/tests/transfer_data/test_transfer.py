@@ -179,8 +179,8 @@ def test__copy_from_sequencer_rsync():
     """
     config = {"transfer_protocol": "rsync"}
     perform_transfer(_copy_from_sequencer, config)
-    # perform_transfer(_copy_from_sequencer, config,
-    # remove_before_copy=False, should_overwrite=True)
+    perform_transfer(_copy_from_sequencer, config,
+    remove_before_copy=False, should_overwrite=True)
 
 # NOTE: rdiff-backup not available
 # def test__copy_from_sequencer_rdiff_backup():
