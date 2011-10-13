@@ -73,13 +73,13 @@ def _read_input_csv(in_file):
         with open(in_file, "rU") as in_handle:
             reader = csv.reader(in_handle)
             #reader = unicode_csv_reader(in_handle)
-            reader.next() # header
+            reader.next()  # header
             for line in reader:
-                if line: # empty lines
+                if line:  # empty lines
                     (fc_id, lane, sample_id, genome, barcode, description) = line[:6]
                     yield fc_id, lane, sample_id, genome, barcode, description
     except ValueError:
-        print "Corrupt samplesheet %s, please fix it" % in_file 
+        print "Corrupt samplesheet %s, please fix it" % in_file
         pass
 
 
@@ -98,7 +98,7 @@ def _sanitize(in_file):
        cruft introduced on the samplesheets
     """
     for line in fileinput.FileInput(in_file, inplace=1):
-        line = line.replace('"','')
+        line = line.replace('"', '')
         # print adds line in place, not stdout
         print line.replace("\n", '')
 
