@@ -108,6 +108,34 @@ Copy the YAML & ini files in config and adjust them to match your
 environment. It is also a good idea to set your $PATH pointing to
 any third-party binaries you are using.
 
+### Configuration
+
+#### File transfer
+
+When the pipeline moves files between machines, e.g. from the sequencing
+machine to the analysis machine they are by default transferred using scp.
+In post_process.yaml you can specify to use a different protocol by adding
+the key
+
+        protocol: a_protocol
+
+where "a_protocol" is one of "scp", "rsync" and "rdiff-backup".
+
+Note that there are some behavioral differences between the protocols:
+
+* scp -- If a file exists on the destination machine, it will not be 
+  transferred.
+
+* rsync -- If a file exists on the destination machine, it will be 'resumed',
+  so in case there was a loss of connection during a transfer the file will
+  be mended. If the file exists but doesn't match the file being transferred
+  it will be replaced.
+
+* rdiff-backup -- If a file exists on the destination but there is no rdiff
+  data, it will be overwritten. However, if the file is modified on the
+  source somehow after the first transfer, the next transfer will simply
+  update the file.
+
 ### Parallel execution
 
 The pipeline runs in parallel in two different ways:

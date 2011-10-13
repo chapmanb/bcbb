@@ -137,8 +137,8 @@ def _get_run_info(fc_name, fc_date, config, run_info_yaml):
         return dict(details=run_details, run_id="")
     else:
         log.info("Fetching run details from Galaxy instance")
-        galaxy_api = GalaxyApiAccess(config['galaxy_url'], config['galaxy_api_key'])
-        return galaxy_api.run_details(fc_name, fc_date)
+        #galaxy_api = GalaxyApiAccess(config['galaxy_url'], config['galaxy_api_key'])
+        #return galaxy_api.run_details(fc_name, fc_date)
 
 
 def _run_parallel(fn_name, items, dirs, config):
