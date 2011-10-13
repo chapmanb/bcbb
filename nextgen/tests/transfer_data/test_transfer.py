@@ -59,8 +59,12 @@ def perform_transfer(transfer_function, protocol_config, \
     remote_info["hostname"] = config["store_host"]
 
     # Generate test files
+    for file_dir in store_dir, copy_dir:
+        if not os.path.isdir(file_dir):
+            os.mkdir(file_dir)
+
     test_data = {}
-    for test_file in remote_info["to_copy"]:
+    for test_file in remote_info["to_copy"][:3]:
         test_file_path = "%s/%s" % (copy_dir, test_file)
         if not os.path.isdir(test_file_path):
             with open(test_file_path, 'w+') as file_to_write:
@@ -70,6 +74,9 @@ def perform_transfer(transfer_function, protocol_config, \
                 # in a previous test during the assertion.
                 test_data[test_file] = str(time.clock())
                 file_to_write.write(test_data[test_file])
+
+    if not os.path.isdir("%s/%s" % (copy_dir, remote_info["to_copy"][3])):
+        os.mkdir("%s/%s" % (copy_dir, remote_info["to_copy"][3]))
 
     # Perform copy with settings
     with fabric.settings(host_string="%s@%s" % \
@@ -83,10 +90,11 @@ def perform_transfer(transfer_function, protocol_config, \
         transfer_function(remote_info, config)
 
     # Check of the copy succeeded
-    for test_file in remote_info["to_copy"]:
+    for test_file in remote_info["to_copy"][:3]:
         test_file_path = "%s/%s/%s" % \
                          (store_dir, os.path.split(copy_dir)[1], test_file)
         # Did the files get copied correctly
+        assert os.path.isfile(test_file_path), "File not copied: %s" % test_file
         if os.path.isfile(test_file_path):
             with open(test_file_path, "r") as copied_file:
                 read_data = copied_file.read()
@@ -106,6 +114,7 @@ def perform_transfer(transfer_function, protocol_config, \
                 (remove_before_copy or should_overwrite), fail_string
         # Did the directories get copied correcty
         if os.path.isdir(test_file_path):
+            # Not tested for yet
             pass
 
 
