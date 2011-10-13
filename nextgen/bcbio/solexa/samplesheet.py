@@ -23,32 +23,35 @@ def _organize_lanes(info_iter, barcode_ids):
     """Organize flat lane information into nested YAML structure.
     """
     all_lanes = []
-    for lane, info in itertools.groupby(info_iter, lambda x: x[1]):
-        info = list(info)
-        sampleref = info[0][3].lower()
-        cur_lane = dict(flowcell_id=info[0][0], lane=lane, genome_build=sampleref, analysis="Standard")
+    for lane, lane_info in itertools.groupby(info_iter, lambda x: x[1]):
+        for description, info in itertools.groupby(lane_info, lambda x: x[5]):
+            info = list(info)
+            sampleref = info[0][3].lower()
+            cur_lane = dict(flowcell_id=info[0][0], lane=lane,
+                            genome_build=sampleref, analysis="Standard")
 
-        cur_lane["description"] = "Lane %s, %s" % (lane, info[0][5])
+            cur_lane["description"] = "Lane %s, %s" % (lane, description)
 
-        if _has_barcode(info):
-            multiplex = []
-            for (_, _, sample_id, _, bc_seq, descr) in info:
-                bc_type, bc_id = barcode_ids[bc_seq]
-                multiplex.append(dict(barcode_type=bc_type,
-                                      barcode_id=bc_id,
-                                      sequence=bc_seq,
-                                      name=sample_id))
-            cur_lane["multiplex"] = multiplex
+            if _has_barcode(info):
+                multiplex = []
+                for (_, _, sample_id, _, bc_seq, descr) in info:
+                    bc_type, bc_id = barcode_ids[bc_seq]
+                    multiplex.append(dict(barcode_type=bc_type,
+                                          barcode_id=bc_id,
+                                          sequence=bc_seq,
+                                          name=sample_id))
+                cur_lane["multiplex"] = multiplex
 
-        all_lanes.append(cur_lane)
+            all_lanes.append(cur_lane)
+
     return all_lanes
 
 
 def _has_barcode(sample):
     if sample[0][4]:
         return True
-    else: # lane is not multiplexed
-       pass
+    else:  # lane is not multiplexed
+        pass
 
 
 def _generate_barcode_ids(info_iter):
@@ -59,7 +62,7 @@ def _generate_barcode_ids(info_iter):
     barcodes.sort()
     barcode_ids = {}
     for i, bc in enumerate(barcodes):
-        barcode_ids[bc] = (bc_type, i+1)
+        barcode_ids[bc] = (bc_type, i + 1)
     return barcode_ids
 
 
