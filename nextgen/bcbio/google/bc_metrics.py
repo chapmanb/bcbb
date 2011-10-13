@@ -111,7 +111,6 @@ def format_project_name(unformated_name):
    
 def get_bc_stats(fc_date, fc_name, work_dir, run_info):
     """Get a data structure with the run info coupled with the results from barcode demultiplexing"""
-    print "\n%s\n" % run_info
     bc_stats = []
     for lane_run_info in run_info.get("details",[]):
         lane_bc_stats = {}
@@ -165,7 +164,7 @@ def get_spreadsheet(ssheet_title,encoded_credentials):
     # Check that we got a result back
     if not ssheet:
         log.warn("No document with specified title '%s' found in GoogleDocs repository" % ssheet_title)
-        return None
+        return (None,None)
     
     log.info("Found spreadsheet matching the supplied title: '%s'" % (ssheet.title.text))
     

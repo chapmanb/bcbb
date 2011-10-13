@@ -30,7 +30,7 @@ def main(run_name, gdocs_spreadsheet, gdocs_credentials, run_info_yaml, analysis
         log.warn("Could not find required run_info.yaml configuration file at '%s'" % run_info_yaml)
         return
     with open(run_info_yaml) as in_handle:
-        run_info = yaml.load(in_handle)
+        run_info = {'details': yaml.load(in_handle)}
 
     fc_name, fc_date = get_flowcell_info(run_name)
     
