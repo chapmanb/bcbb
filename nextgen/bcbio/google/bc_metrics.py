@@ -111,7 +111,6 @@ def format_project_name(unformated_name):
    
 def get_bc_stats(fc_date, fc_name, work_dir, run_info):
     """Get a data structure with the run info coupled with the results from barcode demultiplexing"""
-    print "\n%s\n" % run_info
     bc_stats = []
     for lane_run_info in run_info.get("details",[]):
         lane_bc_stats = {}
