@@ -14,7 +14,7 @@ from bcbio.pipeline.storage import _copy_for_storage
 def _remove_transferred_files(remote_info, config):
     """Remove the files transferred in a previous test.
     """
-    copy_to = os.path.realpath("test_transfer_data/copy_to")
+    copy_to = os.path.realpath("../transfer_data/copy_to")
     with fabric.settings(host_string="%s@%s" % \
          (config["store_user"], config["store_host"])):
         rm_str = "rm -r %s/%s" % \
@@ -43,14 +43,14 @@ def perform_transfer(transfer_function, protocol_config, \
     which give the string
     of a transfer protocol.
     """
-    config = load_config("data/automated/post_process.yaml")
+    config = load_config("../data/automated/post_process.yaml")
 
-    store_dir = os.path.realpath("test_transfer_data/copy_to")
+    store_dir = os.path.realpath("../transfer_data/copy_to")
     config["store_dir"] = store_dir
 
     config.update(protocol_config)
 
-    copy_dir = os.path.realpath("test_transfer_data/to_copy")
+    copy_dir = os.path.realpath("../transfer_data/to_copy")
 
     remote_info = {}
     remote_info["directory"] = copy_dir
@@ -63,7 +63,7 @@ def perform_transfer(transfer_function, protocol_config, \
     for test_file in remote_info["to_copy"]:
         test_file_path = "%s/%s" % (copy_dir, test_file)
         if not os.path.isdir(test_file_path):
-            with open(test_file_path, "w") as file_to_write:
+            with open(test_file_path, 'w+') as file_to_write:
                 # We just use the current processor time as test data, the
                 # important part is that it will be different enough between
                 # test just so we know we are not comparing with files copied
