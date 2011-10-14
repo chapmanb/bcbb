@@ -43,7 +43,7 @@ def split_by_barcode(fastq1, fastq2, multiplex, base_name, dirs, config):
             with utils.file_transaction(out_files + [nomatch_file, metrics_file]):
                 cl = [os.path.expandvars(command) for command in cl]
                 subprocess.check_call(cl)
-    
+
     # Prunes files that are not present in the filesystem
     out_files = [(b, n, f1, f2) for (b, n, f1, f2) in out_files if os.path.exists(f1)]
     return out_files
@@ -81,6 +81,7 @@ def _adjust_illumina_tags(barcodes):
         barcodes = new
     return barcodes
 
+
 def add_multiplex_across_lanes(run_items, fastq_dir, fc_name):
     """Add multiplex information to control and non-multiplexed lanes.
 
@@ -98,7 +99,7 @@ def add_multiplex_across_lanes(run_items, fastq_dir, fc_name):
             has_barcodes = True
             tag_sizes.extend([len(b["sequence"]) for b in item["multiplex"]])
             fastq_sizes.append(_get_fastq_size(item, fastq_dir, fc_name))
-    if not has_barcodes: # nothing to worry about
+    if not has_barcodes:  # nothing to worry about
         return run_items
     fastq_sizes = list(set(fastq_sizes))
 

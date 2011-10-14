@@ -8,17 +8,18 @@ import unittest
 import shutil
 import yaml
 
+
 class SampleDeliveryTest(unittest.TestCase):
     """Deliver samples from bcbio-processed data to John Doe"""
-    
+
     def setUp(self):
         self.fcid = "110106_FC70BUKAAXX"
         self.file_dir = os.path.dirname(os.path.abspath(__file__))
         self.proj_dir = os.path.join(self.file_dir, "projects")
         self.fcdir = os.path.join(self.file_dir, "test_automated_output")
-        self.ngsdata_dir  = os.path.join(self.file_dir, "ngsdata")
-        self.archive_base_dir  = os.path.join(self.ngsdata_dir, "archive")
-        self.analysis_base_dir  = os.path.join(self.ngsdata_dir, "analysis")
+        self.ngsdata_dir = os.path.join(self.file_dir, "ngsdata")
+        self.archive_base_dir = os.path.join(self.ngsdata_dir, "archive")
+        self.analysis_base_dir = os.path.join(self.ngsdata_dir, "analysis")
         self.post_process = os.path.join(self.analysis_base_dir, self.fcid, "post_process.yaml")
         if os.path.exists(self.proj_dir):
             shutil.rmtree(self.proj_dir)
@@ -48,17 +49,17 @@ class SampleDeliveryTest(unittest.TestCase):
         cl = ["sample_delivery.py",
               self.post_process,
               self.fcid, "j_doe_00_01",
-              "--project_base_dir=%s" % self.proj_dir, 
+              "--project_base_dir=%s" % self.proj_dir,
               "--project_desc=%s" % "J.Doe_00_01",
               "--dry_run"]
         subprocess.check_call(cl)
 
     def test_a_write_run_info_only(self):
-	"""Test writing of pruned run info file"""
+        """Test writing of pruned run info file"""
         cl = ["sample_delivery.py",
               self.post_process,
               self.fcid, "j_doe_00_01",
-              "--project_base_dir=%s" % self.proj_dir, 
+              "--project_base_dir=%s" % self.proj_dir,
               "--project_desc=%s" % "J.Doe_00_01",
               "--only_install_run_info"]
         subprocess.check_call(cl)
@@ -68,7 +69,7 @@ class SampleDeliveryTest(unittest.TestCase):
         cl = ["sample_delivery.py",
               self.post_process,
               self.fcid, "j_doe_00_01",
-              "--project_base_dir=%s" % self.proj_dir, 
+              "--project_base_dir=%s" % self.proj_dir,
               "--project_desc=%s" % "J.Doe_00_01"]
         subprocess.check_call(cl)
 
@@ -77,7 +78,6 @@ class SampleDeliveryTest(unittest.TestCase):
         cl = ["sample_delivery.py",
               self.post_process,
               self.fcid, "j_doe_00_01",
-              "--project_base_dir=%s" % self.proj_dir, 
+              "--project_base_dir=%s" % self.proj_dir,
               "--project_desc=%s" % "J.Doe_00_01", "--move_data"]
         subprocess.check_call(cl)
-

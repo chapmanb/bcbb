@@ -39,12 +39,14 @@ from bcbio.pipeline import sample
 from bcbio.pipeline import lane
 from bcbio.google.bc_metrics import create_bc_report_on_gdocs
 
+
 def main(config_file, fc_dir, run_info_yaml=None):
     with open(config_file) as in_handle:
         config = yaml.load(in_handle)
     log_handler = create_log_handler(config, log.name)
     with log_handler.applicationbound():
         run_main(config, config_file, fc_dir, run_info_yaml)
+
 
 def run_main(config, config_file, fc_dir, run_info_yaml):
     work_dir = os.getcwd()
@@ -63,14 +65,14 @@ def run_main(config, config_file, fc_dir, run_info_yaml):
     lane_items = _run_parallel("process_lane", lanes, dirs, config, config_file)
 
     # upload the demultiplex counts to Google Docs
-    create_bc_report_on_gdocs(fc_date,fc_name,work_dir,run_info,config)
-    
+    create_bc_report_on_gdocs(fc_date, fc_name, work_dir, run_info, config)
+
     align_items = _run_parallel("process_alignment", lane_items, dirs, config,
                                 config_file)
-    
+
     # process samples, potentially multiplexed across multiple lanes
     sample_files, sample_fastq, sample_info = \
-                  organize_samples(dirs, fc_name, fc_date, run_items, align_items)
+            organize_samples(dirs, fc_name, fc_date, run_items, align_items)
     samples = ((n, sample_fastq[n], sample_info[n], bam_files, dirs, config, config_file)
                for n, bam_files in sample_files)
     sample_items = _run_parallel("process_sample", samples, dirs, config, config_file)
