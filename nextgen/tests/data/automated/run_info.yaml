@@ -1,5 +1,5 @@
 - analysis: SNP calling
-  description: Test1
+  description: Test1A
   genome_build: hg19
   lane: 1
   multiplex:
@@ -25,6 +25,11 @@
     sequence: ACAGTG
   - barcode_id: '6'
     barcode_type: Illumina
+- analysis: SNP calling
+  description: Test1B
+  genome_build: hg19
+  lane: 1
+  multiplex:
     name: BAC66
     sequence: GCCAAT
   - barcode_id: '7'
