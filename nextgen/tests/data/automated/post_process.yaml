@@ -6,7 +6,7 @@ program:
   samtools: samtools
   bwa: bwa
   tophat: tophat
-  ucsc_bigwig: /bubo/home/h10/vale/bin/wigToBigWig
+  ucsc_bigwig: wigToBigWig
   picard: $PICARD_HOME 
   gatk: $GATK_HOME 
   snpEff: $SNPEFF_HOME 
