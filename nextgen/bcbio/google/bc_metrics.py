@@ -255,7 +255,11 @@ def _merge_bc_stats(lane_run_info,lane_bc_stats,fc_date="N/A",fc_name="N/A"):
     
     # Add entries for barcodes not specified in the configuration file
     for bc_index, bc_count in lane_bc_stats.items():
-        multiplex.append({'barcode_id': _from_unicode(bc_index), 'barcode_read_count': bc_count})
+        bc = {'barcode_id': _from_unicode(bc_index), 'barcode_read_count': bc_count}
+        # In case the barcode index is 'unmatched', use this as the sample name as well
+        if bc_index == 'unmatched':
+            bc['sample_name'] = 'Unmatched'
+        multiplex.append(bc)
         
     return lane_info
  
