@@ -104,7 +104,6 @@ def picard_sam_to_bam(picard, align_sam, fastq_bam, ref_file,
 
 def picard_mark_duplicates(picard, align_bam):
     base, ext = os.path.splitext(align_bam)
-    base = base.replace(".", "-")
     dup_bam = "%s-dup%s" % (base, ext)
     dup_metrics = "%s-dup.dup_metrics" % base
     if not os.path.exists(dup_bam):

@@ -69,10 +69,17 @@ def create_bc_report_on_gdocs(fc_date, fc_name, work_dir, run_info, config):
         return
     
     # Get the account credentials
-    encoded_credentials = gdocs.get("gdocs_credentials",None)
-    if not encoded_credentials:
+    encoded_credentials = ""
+    encoded_credentials_file = gdocs.get("gdocs_credentials",None)
+    if not encoded_credentials_file:
         log.warn("Could not find Google Docs account credentials. No demultiplex report was written")
         return
+    # Check if the credentials file exists
+    if not os.path.exists(encoded_credentials_file):
+        log.warn("The Google Docs credentials file could not be found. No demultiplex data was written")
+        return
+    with open(encoded_credentials_file) as fh:
+        encoded_credentials = fh.read().strip()
     
     # Get the barcode statistics
     bc_metrics = get_bc_stats(fc_date,fc_name,work_dir,run_info)
@@ -111,7 +118,6 @@ def format_project_name(unformated_name):
    
 def get_bc_stats(fc_date, fc_name, work_dir, run_info):
     """Get a data structure with the run info coupled with the results from barcode demultiplexing"""
-    print "\n%s\n" % run_info
     bc_stats = []
     for lane_run_info in run_info.get("details",[]):
         lane_bc_stats = {}
@@ -165,7 +171,7 @@ def get_spreadsheet(ssheet_title,encoded_credentials):
     # Check that we got a result back
     if not ssheet:
         log.warn("No document with specified title '%s' found in GoogleDocs repository" % ssheet_title)
-        return None
+        return (None,None)
     
     log.info("Found spreadsheet matching the supplied title: '%s'" % (ssheet.title.text))
     

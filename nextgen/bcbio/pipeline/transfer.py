@@ -51,7 +51,7 @@ def remote_copy(remote_info, base_dir, protocol):
             # partial transfers.
             cl = ["rsync", "-craz", "-P", "--append", "%s@%s:%s/%s" %
                   (remote_info["user"], remote_info["hostname"],
-                   remote_info["directory"], fcopy)]
+                   remote_info["directory"], fcopy), fc_dir]
 
             log.debug(cl)
             fabric.run(" ".join(cl))

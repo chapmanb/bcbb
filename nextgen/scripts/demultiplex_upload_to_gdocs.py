@@ -17,7 +17,7 @@ from bcbio.pipeline import log
 from bcbio.solexa.flowcell import get_flowcell_info
 from bcbio.google.bc_metrics import (get_bc_stats,write_run_report_to_gdocs,write_project_report_to_gdocs)
 
-def main(run_name, gdocs_spreadsheet, gdocs_credentials, run_info_yaml, analysis_dir, archive_dir, gdocs_worksheet, gdocs_projects_folder, append, split_on_project):
+def main(run_name, gdocs_spreadsheet, encoded_credentials_file, run_info_yaml, analysis_dir, archive_dir, gdocs_worksheet, gdocs_projects_folder, append, split_on_project):
 
     log.info("Processing run: %s" % run_name)
     
@@ -30,7 +30,16 @@ def main(run_name, gdocs_spreadsheet, gdocs_credentials, run_info_yaml, analysis
         log.warn("Could not find required run_info.yaml configuration file at '%s'" % run_info_yaml)
         return
     with open(run_info_yaml) as in_handle:
-        run_info = yaml.load(in_handle)
+        run_info = {'details': yaml.load(in_handle)}
+
+    # Get the google docs crdentials
+    gdocs_credentials = ""
+    if not os.path.exists(encoded_credentials_file):
+        log.warn("The Google Docs credentials file could not be found. No demultiplex data was written")
+        return
+    with open(encoded_credentials_file) as fh:
+        gdocs_credentials = fh.read().strip()
+    
 
     fc_name, fc_date = get_flowcell_info(run_name)
     
@@ -46,7 +55,7 @@ def main(run_name, gdocs_spreadsheet, gdocs_credentials, run_info_yaml, analysis
     
 if __name__ == "__main__":
     usage = """
-    demultiplex_upload_to_gdocs.py <run name> <gdocs_spreadsheet> <gdocs_credentials>
+    demultiplex_upload_to_gdocs.py <run name> <gdocs_spreadsheet> <gdocs_credentials_file>
                            [--config=<run configuration file>
                             --analysis_dir=<analysis directory>
                             --archive_dir=<archive directory>
