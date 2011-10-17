@@ -108,4 +108,3 @@ class AutomatedAnalysisTest(unittest.TestCase):
     #               os.path.join(self.data_dir, os.pardir, "100326_FC6107FAAXX"),
     #               os.path.join(self.data_dir, "run_info-variantcall.yaml")]
     #         subprocess.check_call(cl)
-

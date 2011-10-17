@@ -25,13 +25,13 @@
     sequence: ACAGTG
   - barcode_id: '6'
     barcode_type: Illumina
+    name: BAC66
+    sequence: GCCAAT
 - analysis: SNP calling
   description: Test1B
   genome_build: hg19
   lane: 1
   multiplex:
-    name: BAC66
-    sequence: GCCAAT
   - barcode_id: '7'
     barcode_type: Illumina
     name: BAC77
