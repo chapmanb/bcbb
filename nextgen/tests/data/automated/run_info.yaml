@@ -27,35 +27,37 @@
     barcode_type: Illumina
     name: BAC66
     sequence: GCCAAT
-- analysis: SNP calling
-  description: Test1B
-  genome_build: hg19
-  lane: 1
-  multiplex:
+    # From here there is another project; Test1B.
   - barcode_id: '7'
     barcode_type: Illumina
     name: BAC77
     sequence: CAGATC
+    description: Test1B
   - barcode_id: '8'
     barcode_type: Illumina
     name: BAC88
     sequence: ACTTGA
+    description: Test1B
   - barcode_id: '9'
     barcode_type: Illumina
     name: BAC99
     sequence: GATCAG
+    description: Test1B
   - barcode_id: '10'
     barcode_type: Illumina
     name: BAC00
     sequence: TAGCTT
+    description: Test1B
   - barcode_id: '11'
     barcode_type: Illumina
     name: BAC01
     sequence: GGCTAC
+    description: Test1B
   - barcode_id: '12'
     barcode_type: Illumina
     name: BAC02
     sequence: CTTGTA
+    description: Test1B
 - analysis: SNP calling
   description: Test2
   genome_build: hg19

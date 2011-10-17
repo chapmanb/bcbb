@@ -21,7 +21,6 @@ Workflow:
 """
 import os
 import sys
-import subprocess
 from optparse import OptionParser
 
 import yaml

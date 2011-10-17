@@ -20,26 +20,28 @@ def _organize_lanes(info_iter, barcode_ids):
     """Organize flat lane information into nested YAML structure.
     """
     all_lanes = []
-    for lane, lane_info in itertools.groupby(info_iter, lambda x: x[1]):
-        for description, info in itertools.groupby(lane_info, lambda x: x[5]):
-            info = list(info)
-            sampleref = info[0][3].lower()
-            cur_lane = dict(flowcell_id=info[0][0], lane=lane,
-                            genome_build=sampleref, analysis="Standard")
+    for lane, info in itertools.groupby(info_iter, lambda x: x[1]):
+        info = list(info)
+        sampleref = info[0][3].lower()
+        cur_lane = dict(flowcell_id=info[0][0], lane=lane,
+                        genome_build=sampleref, analysis="Standard")
 
-            cur_lane["description"] = "Lane %s, %s" % (lane, description)
+        cur_lane["description"] = "Lane %s, %s" % (lane, info[0][5])
 
-            if _has_barcode(info):
-                multiplex = []
-                for (_, _, sample_id, _, bc_seq, descr) in info:
-                    bc_type, bc_id = barcode_ids[bc_seq]
-                    multiplex.append(dict(barcode_type=bc_type,
-                                          barcode_id=bc_id,
-                                          sequence=bc_seq,
-                                          name=sample_id))
-                cur_lane["multiplex"] = multiplex
+        if _has_barcode(info):
+            multiplex = []
+            for (_, _, sample_id, _, bc_seq, descr) in info:
+                bc_type, bc_id = barcode_ids[bc_seq]
+                bc_dict = dict(barcode_type=bc_type,
+                              barcode_id=bc_id,
+                              sequence=bc_seq,
+                              name=sample_id)
+                if descr != info[0][5]:
+                    bc_dict["description"] = descr
+                multiplex.append(bc_dict)
+            cur_lane["multiplex"] = multiplex
 
-            all_lanes.append(cur_lane)
+        all_lanes.append(cur_lane)
 
     return all_lanes
 
