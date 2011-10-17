@@ -13,6 +13,8 @@ import difflib
 import glob
 from Bio.Seq import Seq
 
+import operator
+
 import yaml
 
 from bcbio.solexa.flowcell import (get_flowcell_info)
@@ -23,13 +25,14 @@ def _organize_lanes(info_iter, barcode_ids):
     """Organize flat lane information into nested YAML structure.
     """
     all_lanes = []
-    for lane, info in itertools.groupby(info_iter, lambda x: x[1]):
+    sorted_info = sorted(info_iter, key=operator.itemgetter(1))
+    for lane, info in itertools.groupby(sorted_info, lambda x: x[1]):
         info = list(info)
         sampleref = info[0][3].lower()
         cur_lane = dict(flowcell_id=info[0][0], lane=lane, genome_build=sampleref, analysis="Standard")
-        
+
         cur_lane["description"] = "Lane %s, %s" % (lane, info[0][5])
-        
+
         if _has_barcode(info):
             multiplex = []
             for (_, _, sample_id, _, bc_seq, descr) in info:
