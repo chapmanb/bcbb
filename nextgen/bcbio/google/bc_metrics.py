@@ -121,14 +121,14 @@ def get_bc_stats(fc_date, fc_name, work_dir, run_info):
     bc_stats = []
     for lane_run_info in run_info.get("details",[]):
         lane_bc_stats = {}
-        lane_id = unicode(lane_run_info['lane'])
+        lane_id = str(lane_run_info['lane'])
         bc_dir = os.path.join(work_dir,"%s_%s_%s_barcode" % (lane_id,fc_date,fc_name))
         bc_file = os.path.join(bc_dir,"%s_%s_%s_bc.metrics" % (lane_id,fc_date,fc_name))
         if os.path.exists(bc_file):
             with open(bc_file) as bch:
                 csvr = UnicodeReader(bch,dialect='excel-tab')
                 for row in csvr:
-                    lane_bc_stats[row[0]] = int(row[1])
+                    lane_bc_stats[str(row[0])] = int(row[1])
         bc_stats.append(_merge_bc_stats(lane_run_info,lane_bc_stats,fc_date,fc_name))
         
     return bc_stats
@@ -183,7 +183,7 @@ def group_bc_stats(bc_metrics):
     projects = {}
     for lane in bc_metrics:
         project_name = lane.get("project_name","N/A")
-        lane_name = unicode(lane.get("lane","N/A"))
+        lane_name = str(lane.get("lane","N/A"))
         
         # Get the project data already stored on this project
         project = projects.get(project_name,None)
@@ -244,7 +244,7 @@ def _merge_bc_stats(lane_run_info,lane_bc_stats,fc_date="N/A",fc_name="N/A"):
          
     multiplex = lane_info['multiplex']
     for bc in multiplex:
-        bc_index = unicode(bc['barcode_id'])
+        bc_index = str(bc['barcode_id'])
         bc['sample_name'] = get_sample_name(bc['name'])
         bc_count = lane_bc_stats.get(bc_index,None)
         if bc_count:
@@ -255,7 +255,7 @@ def _merge_bc_stats(lane_run_info,lane_bc_stats,fc_date="N/A",fc_name="N/A"):
     
     # Add entries for barcodes not specified in the configuration file
     for bc_index, bc_count in lane_bc_stats.items():
-        bc = {'barcode_id': _from_unicode(bc_index), 'barcode_read_count': bc_count}
+        bc = {'barcode_id': bc_index, 'barcode_read_count': bc_count}
         # In case the barcode index is 'unmatched', use this as the sample name as well
         if bc_index == 'unmatched':
             bc['sample_name'] = 'Unmatched'
