@@ -22,29 +22,31 @@ class GDocsUploadTest(unittest.TestCase):
         self.workdir = os.path.join(os.path.dirname(__file__), "test_automated_output")
         self.data_dir = os.path.join(os.path.dirname(__file__), "data", "automated")
         
-        if os.path.exists(self.workdir):
-            shutil.rmtree(self.workdir)
-        os.makedirs(self.workdir)
-        
-        # Make up a bogus run name
-        self.runname = "111014_SN0000_0000_AB0AAAACXX"
-        
         # Parse the run_info
         run_info_file = os.path.join(self.data_dir, "run_info-gdocs.yaml")
         with open(run_info_file) as fh:
             self.run_info = yaml.load(fh)
             
-        self._make_bc_metrics()
+        # Make up bogus run names
+        self.runname = ("111014_SN0000_0001_AB0AAAACXX","111014_SN0000_0002_BB0AAAACXX")
+        
+        # Create the run directories (create them if necessary)
+        for name in self.runname:
+            analysisdir = os.path.join(self.workdir, name)
+            if os.path.exists(analysisdir):
+                shutil.rmtree(analysisdir)
+            os.makedirs(analysisdir)
+            self._make_bc_metrics(name,analysisdir)
         
 
-    def _make_bc_metrics(self):
+    def _make_bc_metrics(self, runname, analysisdir):
         """Parses the run_info and generates lane folders and barcode metrics corresponding to the lanes and barcodes used"""
-        fc_name, fc_date = get_flowcell_info(self.runname)
+        fc_name, fc_date = get_flowcell_info(runname)
         barcode_dir_suffix = "_%s_%s_barcode" % (fc_date,fc_name)
         
         for lane in self.run_info:
             lane_name = str(lane['lane'])
-            bc_dir = os.path.join(self.workdir,"%s%s" % (lane_name,barcode_dir_suffix))
+            bc_dir = os.path.join(analysisdir,"%s%s" % (lane_name,barcode_dir_suffix))
             
             # Create the directory if it doesn't exist
             if not os.path.exists(bc_dir):      
@@ -71,12 +73,15 @@ class GDocsUploadTest(unittest.TestCase):
     def test_create_bc_report(self):
         """Create a demultiplex report and upload it to gdocs
         """
-        fc_name, fc_date = get_flowcell_info(self.runname)
-        
         # Parse the config
         config_file = os.path.join(self.data_dir, "post_process.yaml")
         with open(config_file) as fh:
             self.config = yaml.load(fh)
             
-        create_bc_report_on_gdocs(fc_date, fc_name, self.workdir, {'details': self.run_info}, self.config)
+        # Loop over the runs
+        for name in self.runname:
+            print "\nProcessing %s" % name
+            fc_name, fc_date = get_flowcell_info(name)
+            analysisdir = os.path.join(self.workdir, name)
+            create_bc_report_on_gdocs(fc_date, fc_name, analysisdir, {'details': self.run_info}, self.config)
         
