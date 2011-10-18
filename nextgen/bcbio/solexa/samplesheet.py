@@ -34,25 +34,16 @@ def _organize_lanes(info_iter, barcode_ids):
             multiplex = []
             for (_, _, sample_id, _, bc_seq, descr) in info:
                 bc_type, bc_id = barcode_ids[bc_seq]
-                multiplex.append(dict(barcode_type=bc_type,
-                                      barcode_id=bc_id,
-                                      sequence=bc_seq,
-                                      name=sample_id))
+                bc_dict = dict(barcode_type=bc_type,
+                              barcode_id=bc_id,
+                              sequence=bc_seq,
+                              name=sample_id)
+                if descr != info[0][5]:
+                    bc_dict["description"] = descr
+                multiplex.append(bc_dict)
             cur_lane["multiplex"] = multiplex
 
-            cur_lane["description"] = "Lane %s, %s" % (lane, description)
-
-            if _has_barcode(info):
-                multiplex = []
-                for (_, _, sample_id, _, bc_seq, descr) in info:
-                    bc_type, bc_id = barcode_ids[bc_seq]
-                    multiplex.append(dict(barcode_type=bc_type,
-                                          barcode_id=bc_id,
-                                          sequence=bc_seq,
-                                          name=sample_id))
-                cur_lane["multiplex"] = multiplex
-
-            all_lanes.append(cur_lane)
+        all_lanes.append(cur_lane)
 
     return all_lanes
 
