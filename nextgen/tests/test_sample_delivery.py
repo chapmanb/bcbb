@@ -31,7 +31,7 @@ def make_workdir(link=True):
     
 class SampleDeliveryTest(unittest.TestCase):
     """Deliver samples from bcbio-processed data to John Doe"""
-    
+
     def setUp(self):
         self.fcid = "110106_FC70BUKAAXX"
         self.file_dir = os.path.dirname(os.path.abspath(__file__))
@@ -74,7 +74,7 @@ class SampleDeliveryTest(unittest.TestCase):
         cl = ["sample_delivery.py",
               self.post_process,
               self.fcid, "j_doe_00_01",
-              "--project_base_dir=%s" % self.proj_dir, 
+              "--project_base_dir=%s" % self.proj_dir,
               "--project_desc=%s" % "J.Doe_00_01",
               "--only_install_run_info"]
         subprocess.check_call(cl)
@@ -84,7 +84,7 @@ class SampleDeliveryTest(unittest.TestCase):
         cl = ["sample_delivery.py",
               self.post_process,
               self.fcid, "j_doe_00_01",
-              "--project_base_dir=%s" % self.proj_dir, 
+              "--project_base_dir=%s" % self.proj_dir,
               "--project_desc=%s" % "J.Doe_00_01"]
         subprocess.check_call(cl)
 
