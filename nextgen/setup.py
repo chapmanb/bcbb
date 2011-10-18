@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 import os
 
 setup(name = "bcbio-nextgen",
-      version = "0.2",
+      version = "0.3a",
       author = "Brad Chapman",
       author_email = "chapmanb@50mail.com",
       description = "Automated, distributed next-gen sequencing pipeline; includes Galaxy interaction",
