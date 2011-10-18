@@ -3,6 +3,7 @@
 
 import os
 import re
+import copy
 from bcbio.utils import UnicodeReader
 import bcbio.google.connection
 import bcbio.google.document
@@ -81,8 +82,8 @@ def create_bc_report_on_gdocs(fc_date, fc_name, work_dir, run_info, config):
     with open(encoded_credentials_file) as fh:
         encoded_credentials = fh.read().strip()
     
-    # Get the barcode statistics
-    bc_metrics = get_bc_stats(fc_date,fc_name,work_dir,run_info)
+    # Get the barcode statistics. Get a deep copy of the run_info since we will modify it
+    bc_metrics = get_bc_stats(fc_date,fc_name,work_dir,copy.deepcopy(run_info))
     
     # Upload the data
     write_run_report_to_gdocs(fc_date,fc_name,bc_metrics,gdocs_spreadsheet,encoded_credentials)
@@ -121,21 +122,21 @@ def get_bc_stats(fc_date, fc_name, work_dir, run_info):
     bc_stats = []
     for lane_run_info in run_info.get("details",[]):
         lane_bc_stats = {}
-        lane_id = unicode(lane_run_info['lane'])
+        lane_id = str(lane_run_info['lane'])
         bc_dir = os.path.join(work_dir,"%s_%s_%s_barcode" % (lane_id,fc_date,fc_name))
         bc_file = os.path.join(bc_dir,"%s_%s_%s_bc.metrics" % (lane_id,fc_date,fc_name))
         if os.path.exists(bc_file):
             with open(bc_file) as bch:
                 csvr = UnicodeReader(bch,dialect='excel-tab')
                 for row in csvr:
-                    lane_bc_stats[row[0]] = int(row[1])
+                    lane_bc_stats[str(row[0])] = int(row[1])
         bc_stats.append(_merge_bc_stats(lane_run_info,lane_bc_stats,fc_date,fc_name))
-        
+    
     return bc_stats
 
 def get_project_name(description):
     """Parse out the project name from the lane description"""
-    m = re.match(r'Lane\s+\S+\s*,\s*(.*)',description,re.I)
+    m = re.match(r'(?:.*\s+)?(\S+)',description,re.I)
     if m and len(m.groups()) > 0:
         return format_project_name(m.group(1).strip())
     return "N/A"
@@ -182,19 +183,21 @@ def group_bc_stats(bc_metrics):
     
     projects = {}
     for lane in bc_metrics:
-        project_name = lane.get("project_name","N/A")
-        lane_name = unicode(lane.get("lane","N/A"))
+        lane_project_name = lane.get("project_name","N/A")
+        lane_name = str(lane.get("lane","N/A"))
         
-        # Get the project data already stored on this project
-        project = projects.get(project_name,None)
-        if not project:
-            project = {}
-            project["project_name"] = project_name
-            project["samples"] = {}
-            projects[project_name] = project
-        
-        samples = project["samples"]
         for bc in lane.get("multiplex",[]):
+            # If a project name is specified for the sample, use that instead of the lane project
+            project_name = bc.get("project_name",lane_project_name)
+            # Get the project data already stored on this project
+            project = projects.get(project_name,None)
+            if not project:
+                project = {}
+                project["project_name"] = project_name
+                project["samples"] = {}
+                projects[project_name] = project
+            samples = project["samples"]
+            
             sample_count = bc.get("barcode_read_count",0)
             sample_name = bc.get("sample_name","N/A")
             # Get the sample info already stored
@@ -233,7 +236,7 @@ def _merge_bc_stats(lane_run_info,lane_bc_stats,fc_date="N/A",fc_name="N/A"):
     
     lane_info = dict(lane_run_info)
     
-    # Parse the project name based on the assumption that the description is on the form "[Lane id], [Project name]"
+    # Parse the project name
     lane_info['project_name'] = get_project_name(lane_info.get("description",""))
     lane_info['date'] = lane_info.get("date",fc_date)
     lane_info['flowcell_id'] = lane_info.get("flowcell_id",fc_name)
@@ -244,8 +247,10 @@ def _merge_bc_stats(lane_run_info,lane_bc_stats,fc_date="N/A",fc_name="N/A"):
          
     multiplex = lane_info['multiplex']
     for bc in multiplex:
-        bc_index = unicode(bc['barcode_id'])
+        bc_index = str(bc['barcode_id'])
         bc['sample_name'] = get_sample_name(bc['name'])
+        # set the project name based on the sample description or, if not present, the lane description
+        bc['project_name'] = get_project_name(bc.get('description',lane_info.get("description","")))
         bc_count = lane_bc_stats.get(bc_index,None)
         if bc_count:
             bc['barcode_read_count'] = bc_count
@@ -255,7 +260,11 @@ def _merge_bc_stats(lane_run_info,lane_bc_stats,fc_date="N/A",fc_name="N/A"):
     
     # Add entries for barcodes not specified in the configuration file
     for bc_index, bc_count in lane_bc_stats.items():
-        multiplex.append({'barcode_id': _from_unicode(bc_index), 'barcode_read_count': bc_count})
+        bc = {'barcode_id': bc_index, 'barcode_read_count': bc_count}
+        # In case the barcode index is 'unmatched', use this as the sample name as well
+        if bc_index == 'unmatched':
+            bc['sample_name'] = 'Unmatched'
+        multiplex.append(bc)
         
     return lane_info
  
@@ -269,6 +278,8 @@ def _structure_to_list(structure):
             row[i] = lane.get(BARCODE_STATS_HEADER[i][1],"")
 
         for m in lane.get("multiplex",[]):
+            # use the sample-specific project names if present
+            row[0] = m.get(BARCODE_STATS_HEADER[0][1],row[0])
             for i in range(5,len(BARCODE_STATS_HEADER)):
                 row[i] = m.get(BARCODE_STATS_HEADER[i][1],"")
                 
