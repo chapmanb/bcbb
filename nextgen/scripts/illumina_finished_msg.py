@@ -38,19 +38,21 @@ from bcbio.log import create_log_handler
 from bcbio import utils
 from bcbio.distributed import messaging
 from bcbio.solexa.flowcell import (get_flowcell_info, get_fastq_dir, get_qseq_dir)
+from bcbio.pipeline.config_loader import load_config
 
 LOG_NAME = os.path.splitext(os.path.basename(__file__))[0]
 log = logbook.Logger(LOG_NAME)
 
+
 def main(local_config, post_config_file=None,
          process_msg=True, store_msg=True, qseq=True, fastq=True):
-    with open(local_config) as in_handle:
-        config = yaml.load(in_handle)
+    config = load_config(local_config)
     log_handler = create_log_handler(config, LOG_NAME)
 
     with log_handler.applicationbound():
         search_for_new(config, local_config, post_config_file,
                        process_msg, store_msg, qseq, fastq)
+
 
 def search_for_new(config, config_file, post_config_file,
                    process_msg, store_msg, qseq, fastq):

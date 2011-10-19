@@ -15,10 +15,11 @@ import pysam
 from Bio import Seq
 
 from bcbio import broad
+from bcbio.pipeline.config_loader import load_config
+
 
 def main(config_file, in_file, space, start, end):
-    with open(config_file) as in_handle:
-        config = yaml.load(in_handle)
+    config = load_config(config_file)
     runner = broad.runner_from_config(config)
     target_region = (space, int(start), int(end))
     for pair in [1, 2]:
@@ -28,6 +29,7 @@ def main(config_file, in_file, space, start, end):
             for name, seq, qual in bam_to_fastq_pair(in_file, target_region, pair):
                 out_handle.write("@%s/%s\n%s\n+\n%s\n" % (name, pair, seq, qual))
         sort_fastq(out_file, runner)
+
 
 def bam_to_fastq_pair(in_file, target_region, pair):
     """Generator to convert BAM files into name, seq, qual in a region.

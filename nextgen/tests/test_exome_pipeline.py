@@ -10,6 +10,7 @@ import shutil
 import contextlib
 import glob
 import yaml
+from bcbio.pipeline.config_loader import load_config
 
 @contextlib.contextmanager
 def make_workdir():
@@ -59,8 +60,7 @@ class SampleBasedAnalysisTest(unittest.TestCase):
             os.symlink(os.path.join(self.file_dir, "data", "automated", "tool-data"), os.path.join(self.file_dir, "test_automated_output", "tool-data"))
 
         # Post_process.yaml
-        with open(os.path.join(self.file_dir, "data", "automated", "post_process.yaml"), "r") as fh:
-            post_process = yaml.load(fh)
+        post_process = load_config(os.path.join(self.file_dir, "data", "automated", "post_process.yaml"))
         post_process["analysis"]["store_dir"] = os.path.join(self.archive_base_dir)
         post_process["analysis"]["base_dir"] = os.path.join(self.analysis_base_dir)
         post_process["algorithm"]["snpcall"] = "true"
