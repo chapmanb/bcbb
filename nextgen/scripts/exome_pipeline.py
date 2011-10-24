@@ -4,7 +4,7 @@
 This script works on delivered project data. In a project 
 folder sequence data is stored as fastq files in the data 
 directory, grouped by flow cell like names. Optionally, 
-it is possible to provide a directory containing bam 
+it is possible to provide a directory containing bam
 files. 
 
 Usage:
@@ -118,11 +118,12 @@ def run_main(config, config_file, fc_dir, project_dir, run_info_yaml):
     for info in run_items:
         lane_items.extend(make_lane_items(info, fc_date, fc_name, dirs, config))
 
-    _run_parallel("process_alignment", lane_items, dirs, config)
-    
+    align_items = _run_parallel("process_alignment", lane_items, dirs, config)
+
     # Process samples
     sample_files, sample_fastq, sample_info = \
-                  organize_samples(dirs, fc_name, fc_date, run_items)
+    organize_samples(align_items, dirs, config_file)
+    #              organize_samples(dirs, fc_name, fc_date, run_items)
     samples = ((n, sample_fastq[n], sample_info[n], bam_files, dirs, config, config_file)
                for n, bam_files in sample_files)
     _run_parallel("process_sample", samples, dirs, config)
@@ -152,6 +153,7 @@ def _run_parallel(fn_name, items, dirs, config):
         out = []
         fn = globals()[fn_name]
         with utils.cpmap(int(parallel)) as cpmap:
+ #           import pdb; pdb.set_trace()
             for data in cpmap(fn, items):
                 if data:
                     out.extend(data)
@@ -195,4 +197,3 @@ if __name__ == "__main__":
         project_dir = options.project_dir
         )
     main(*args, **kwargs)
-

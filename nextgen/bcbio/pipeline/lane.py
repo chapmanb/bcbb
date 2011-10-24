@@ -37,6 +37,7 @@ def process_lane(lane_items, fc_name, fc_date, dirs, config):
                         dirs, config))
     return out
 
+
 def process_alignment(fastq1, fastq2, info, lane_name, lane_desc,
                       dirs, config):
     """Do an alignment of fastq files, preparing a sorted BAM output file.
@@ -49,6 +50,7 @@ def process_alignment(fastq1, fastq2, info, lane_name, lane_desc,
                                     lane_name, lane_desc, dirs, config)
     return [{"fastq": [fastq1, fastq2], "out_bam": out_bam, "info": info,
              "config": config}]
+
 
 def _update_config_w_custom(config, lane_info):
     """Update the configuration for this lane if a custom analysis is specified.

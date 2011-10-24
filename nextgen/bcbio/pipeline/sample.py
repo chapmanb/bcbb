@@ -18,6 +18,7 @@ from bcbio.pipeline.variation import (recalibrate_quality, finalize_genotyper,
 from bcbio.rnaseq.cufflinks import assemble_transcripts
 from bcbio.pipeline.shared import ref_genome_info
 
+
 def merge_sample(data):
     """Merge fastq and BAM files for multiple samples.
     """
@@ -32,6 +33,7 @@ def merge_sample(data):
               "dirs": data["dirs"], "config": config,
               "config_file": data["config_file"]}]]
 
+
 def recalibrate_sample(data):
     """Recalibrate quality values from aligned sample BAM file.
     """
@@ -42,6 +44,7 @@ def recalibrate_sample(data):
                                                data["dirs"], data["config"])
     return [[data]]
 
+
 # ## General processing
 
 def process_sample(data):
@@ -49,7 +52,8 @@ def process_sample(data):
     """
     if data["config"]["algorithm"]["snpcall"]:
         log.info("Finalizing variant calls %s with GATK" % str(data["name"]))
-        data["vrn_file"] = finalize_genotyper(data["vrn_file"], data["sam_ref"],
+        data["vrn_file"] = finalize_genotyper(data["vrn_file"],
+                                              data["sam_ref"],
                                               data["config"])
         log.info("Calculating variation effects for %s" % str(data["name"]))
         ann_vrn_file, effects_file = variation_effects(data["vrn_file"],
@@ -60,14 +64,16 @@ def process_sample(data):
             data["vrn_file"] = ann_vrn_file
             data["effects_file"] = effects_file
     if data["config"]["algorithm"].get("transcript_assemble", False):
-        data["tx_file"] = assemble_transcripts(data["work_bam"], data["sam_ref"],
+        data["tx_file"] = assemble_transcripts(data["work_bam"],
+                                               data["sam_ref"],
                                                data["config"])
     if data["sam_ref"] is not None:
         log.info("Generating summary files: %s" % str(data["name"]))
         generate_align_summary(data["work_bam"], data["fastq2"] is not None,
-                               data["sam_ref"], data["name"],
-                               data["config"], data["dirs"])
+                               data["sam_ref"],  data["name"],
+                               data["config"],   data["dirs"])
     return [[data]]
+
 
 def generate_bigwig(data):
     """Provide a BigWig coverage file of the sorted alignments.
@@ -82,4 +88,3 @@ def generate_bigwig(data):
             subprocess.check_call(cl)
     data["bigwig_file"] = wig_file
     return [[data]]
-

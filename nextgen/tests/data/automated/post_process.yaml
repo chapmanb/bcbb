@@ -7,16 +7,16 @@ program:
   bwa: bwa
   tophat: tophat
   ucsc_bigwig: wigToBigWig
-  picard: $PICARD_HOME 
-  gatk: $GATK_HOME 
-  snpEff: $SNPEFF_HOME 
+  picard: /bubo/sw/apps/bioinfo/picard/1.41
+  gatk: /bubo/sw/apps/bioinfo/GATK/1.2.12
+  snpEff: /bubo/home/h10/vale/opt/snpEff_v2_0_2
   fastqc: fastqc
   pdflatex: pdflatex
   barcode: barcode_sort_trim.py
 algorithm:
   aligner: bowtie
   max_errors: 2
-  num_cores: 1
+  num_cores: 8
   platform: illumina
   recalibrate: false
   snpcall: false

@@ -15,11 +15,12 @@ from bcbio.distributed.transaction import file_transaction
 # remap Galaxy genome names to the ones used by snpEff. Not nice code.
 SNPEFF_GENOME_REMAP = {
         "GRCh37": "GRCh37.63",
-        "hg19" : "GRCh37.63",
-        "mm9" : "NCBIM37.63",
+        "hg19": "GRCh37.63",
+        "mm9": "NCBIM37.63",
         "araTha_tair9": "athalianaTair10",
         "araTha_tair10": "athalianaTair10",
         }
+
 
 def snpeff_effects(vcf_in, genome, config):
     """Prepare tab-delimited file for variant effects using snpEff.
@@ -39,6 +40,7 @@ def snpeff_effects(vcf_in, genome, config):
         return vcf_file, effects_file
     else:
         return None, None
+
 
 def _run_snpeff(snp_in, genome, se_interval, out_format, config):
     snpeff_jar = os.path.join(config["program"]["snpEff"], "snpEff.jar")
@@ -60,6 +62,7 @@ def _run_snpeff(snp_in, genome, se_interval, out_format, config):
                 subprocess.check_call(cl, stdout=out_handle)
     return out_file
 
+
 def _vcf_has_items(in_file):
     if os.path.exists(in_file):
         with open(in_file) as in_handle:
@@ -67,6 +70,7 @@ def _vcf_has_items(in_file):
                 if line.strip() and not line.startswith("#"):
                     return True
     return False
+
 
 def _convert_to_snpeff_interval(in_file, base_file):
     """Handle wide variety of BED-like inputs, converting to BED-3.

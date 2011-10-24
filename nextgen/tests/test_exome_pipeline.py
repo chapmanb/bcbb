@@ -74,7 +74,7 @@ class SampleBasedAnalysisTest(unittest.TestCase):
               os.path.join(self.file_dir, self.fcid, "post_process.yaml"),
               self.fcid, "j_doe_00_01",
               "--project_desc=%s" % "J.Doe_00_01",
-              "--project_base_dir=%s" % self.proj_dir, 
+              "--project_base_dir=%s" % self.proj_dir,
               "--flowcell_alias=20000101A_hiseq2000"]
         subprocess.check_call(cl)
         print "Finished delivering data..."
@@ -88,5 +88,5 @@ class SampleBasedAnalysisTest(unittest.TestCase):
                   os.path.join(self.analysis_base_dir, self.fcid, "post_process.yaml"),
                   os.path.join(self.proj_dir, "j_doe_00_01", "intermediate", "nobackup", "110106_FC70BUKAAXX"),
                   os.path.join(self.proj_dir, "j_doe_00_01", "data", "nobackup", "20000101A_hiseq2000", "project_run_info.yaml"),
-                  "--project_dir=%s" %(self.proj_dir)]
+                  "--project_dir=%s" % (self.proj_dir)]
             subprocess.check_call(cl)

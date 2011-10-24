@@ -87,4 +87,3 @@ def _gatk_count_covariates(picard, dup_align_bam, ref_file, platform,
                     params += ["--knownSites", snp_file]
                 picard.run_gatk(params, tmp_dir)
     return out_file
-

@@ -52,6 +52,7 @@ def _has_barcode(sample):
     else: # lane is not multiplexed
        pass
 
+
 def _generate_barcode_ids(info_iter):
     """Create unique barcode IDs assigned to sequences
     """
@@ -60,8 +61,9 @@ def _generate_barcode_ids(info_iter):
     barcodes.sort()
     barcode_ids = {}
     for i, bc in enumerate(barcodes):
-        barcode_ids[bc] = (bc_type, i+1)
+        barcode_ids[bc] = (bc_type, i + 1)
     return barcode_ids
+
 
 def _read_input_csv(in_file):
     """Parse useful details from SampleSheet CSV file.

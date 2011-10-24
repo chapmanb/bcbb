@@ -7,12 +7,15 @@ import os
 import sys
 import time
 import contextlib
-import multiprocessing
+import multiprocessing, logging
 import subprocess
+logger = multiprocessing.log_to_stderr()
+logger.setLevel(multiprocessing.SUBDEBUG)
 
 from mako.template import Template
 
 from bcbio import utils
+
 
 def parallel_runner(module, dirs, config, config_file):
     """Process a supplied function: single, multi-processor or distributed.
@@ -35,6 +38,7 @@ def parallel_runner(module, dirs, config, config_file):
                         out.extend(data)
         return out
     return run_parallel
+
 
 def runner(task_module, dirs, config, config_file, wait=True):
     """Run a set of tasks using Celery, waiting for results or asynchronously.
