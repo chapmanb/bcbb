@@ -97,15 +97,13 @@ class AutomatedAnalysisTest(unittest.TestCase):
                   os.path.join(self.data_dir, "run_info-rnaseq.yaml")]
             subprocess.check_call(cl)
 
-    # TODO: We will install SNPEff later with all needed files
-    # def test_1_variantcall(self):
-    #     """Test variant calling with GATK pipeline.
-    #     """
-    #     self._install_test_files(self.data_dir)
-    #     with make_workdir():
-    #         cl = ["automated_initial_analysis.py",
-    #               os.path.join(self.data_dir, "post_process.yaml"),
-    #               os.path.join(self.data_dir, os.pardir, "100326_FC6107FAAXX"),
-    #               os.path.join(self.data_dir, "run_info-variantcall.yaml")]
-    #         subprocess.check_call(cl)
-
+    def test_1_variantcall(self):
+        """Test variant calling with GATK pipeline.
+        """
+        self._install_test_files(self.data_dir)
+        with make_workdir():
+            cl = ["automated_initial_analysis.py",
+                  os.path.join(self.data_dir, "post_process.yaml"),
+                  os.path.join(self.data_dir, os.pardir, "100326_FC6107FAAXX"),
+                  os.path.join(self.data_dir, "run_info-variantcall.yaml")]
+            subprocess.check_call(cl)

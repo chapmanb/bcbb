@@ -55,6 +55,7 @@ def _eval_genotyper(vrn_file, ref_file, dbsnp_file, config):
             json.dump(stats, out_handle)
     return metrics_file
 
+
 # ## Calculate variation effects
 
 def variation_effects(vrn_file, genome_file, genome_build, config):

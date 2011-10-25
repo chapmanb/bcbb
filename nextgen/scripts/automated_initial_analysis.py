@@ -74,10 +74,6 @@ def run_main(config, config_file, fc_dir, run_info_yaml):
     samples = run_parallel("recalibrate_sample", samples)
     samples = parallel_realign_sample(samples, run_parallel)
     samples = parallel_unified_genotyper(samples, run_parallel)
-    # TESTING switching to single core
-    config["algorithm"]["num_cores"] = 1
-    run_parallel = parallel_runner(run_module, dirs, config, config_file)
-    # -------
     samples = run_parallel("process_sample", samples)
     samples = run_parallel("generate_bigwig", samples, {"programs": ["ucsc_bigwig"]})
 
