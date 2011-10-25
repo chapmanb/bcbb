@@ -381,7 +381,11 @@ def _write_project_report_summary_to_gdocs(client, ssheet):
         counts = sample[3]
         sum = 0
         for count in counts:
-            sum += int(count)
+            try:
+                c = int(count)
+            except ValueError:
+                c = 0
+            sum += c
         # Count the millions
         msum = round(sum/1000000.,2)
         sample[3] = unicode(sum)
