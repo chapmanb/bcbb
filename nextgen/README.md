@@ -508,6 +508,30 @@ the read count per project and sample can be summarized and written to a spreads
 spreadsheet will be tagged with the project name and placed under the folder specified via the 'gdocs_projects_folder' configuration
 option.
 
+## Getting v 0.3 a working
 
-        
- 
+There is some required software which need be installed locally.
+
+* snpEff 2.0.2
+
+Version 2.0.3 is not compatible with GATK, make sure it is 2.0.2.
+Also get the following data for snpEff 2.0.2
+
+* GRCH37.63
+* NCBIM37.73
+* athalianaTair10
+
+All for snpEff 2.0.2! It is all available on the snpEff download page.
+
+Make sure to have the environment variable LC_ALL set to en_US.utf-8 by doing
+
+    export LC_ALL=en_US.utf-8
+
+Only changing LC_NUMERIC or LC_MONETARY does not work.
+
+Also make sure to use
+
+* tophat 1.3.0
+
+or later.
+      
