@@ -22,16 +22,18 @@ import yaml
 
 from bcbio import utils
 from bcbio.distributed.messaging import create_celeryconfig
+from bcbio.pipeline.config_loader import load_config
+
 
 def main(config_file, queues=None):
     task_module = "bcbio.distributed.tasks"
-    with open(config_file) as in_handle:
-        config = yaml.load(in_handle)
+    config = load_config(config_file)
     with utils.curdir_tmpdir() as work_dir:
         dirs = {"work": work_dir, "config": os.path.dirname(config_file)}
         with create_celeryconfig(task_module, dirs, config,
                                  os.path.abspath(config_file)):
             run_celeryd(work_dir, queues)
+
 
 def run_celeryd(work_dir, queues):
     with utils.chdir(work_dir):

@@ -52,8 +52,10 @@ from bcbio.pipeline import log
 from bcbio.pipeline.run_info import prune_run_info_by_description
 from bcbio.pipeline.lane import get_flowcell_id
 from bcbio.pipeline.fastq import get_single_fastq_files, get_barcoded_fastq_files, convert_barcode_id_to_name, get_fastq_files
+from bcbio.pipeline.config_loader import load_config
 
 from bcbio import utils
+
 
 def main(config_file, flowcell_id, project_id, fc_alias=None, project_desc=None, lanes=None):
     if project_desc is None and lanes is None:
@@ -61,8 +63,7 @@ def main(config_file, flowcell_id, project_id, fc_alias=None, project_desc=None,
         sys.exit()
 
     project_outdir = os.path.join(options.project_base_dir, project_id)
-    with open(config_file) as in_handle:
-        config = yaml.load(in_handle)
+    config = load_config(config_file)
     ## Set log file in project output directory
     config.update(log_dir=os.path.join(project_outdir, "log"))
     log_handler = create_log_handler(config, log.name)
@@ -79,7 +80,7 @@ def main(config_file, flowcell_id, project_id, fc_alias=None, project_desc=None,
         sys.exit()
 
     dirs = dict(fc_dir=fc_dir, project_dir=project_outdir,
-                project_base_dir = options.project_base_dir
+                project_base_dir=options.project_base_dir
                 )
     fc_name, fc_date = get_flowcell_id(run_info, dirs['fc_dir'])
     config.update(fc_name = fc_name, fc_date = fc_date)

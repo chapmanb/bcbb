@@ -12,8 +12,17 @@ from bcbio.pipeline.demultiplex import split_by_barcode
 from bcbio.pipeline.alignment import align_to_sort_bam
 from bcbio.solexa.flowcell import get_flowcell_info
 
+
 def process_lane(info, fc_name, fc_date, dirs, config):
     """Prepare lanes, potentially splitting based on barcodes.
+
+    Parameters
+    ----------
+    info : dict
+    fc_name : str
+    fc_date : str
+    dirs : dict
+    config : dict
     """
     config = _update_config_w_custom(config, info)
 
@@ -41,7 +50,7 @@ def process_lane(info, fc_name, fc_date, dirs, config):
             msample = "%s---%s" % (sample_name, mname)
         lane_items.append((fastq1, fastq2, genome_build, mlane_name, msample,
                            dirs, config))
-     
+
     return lane_items
 
 def process_alignment(fastq1, fastq2, genome_build, lane_name, sample, dirs, config):

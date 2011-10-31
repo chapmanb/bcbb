@@ -4,6 +4,7 @@ import os
 import glob
 import subprocess
 
+
 def get_fastq_files(directory, item, fc_name, bc_name=None, glob_ext="_fastq.txt"):
     """Retrieve fastq files for the given lane, ready to process.
     """

@@ -12,6 +12,7 @@ from test_automated_analysis import make_workdir
 from bcbio.solexa.flowcell import get_flowcell_info
 from bcbio.utils import UnicodeWriter
 from bcbio.google.bc_metrics import create_bc_report_on_gdocs
+from bcbio.pipeline.config_loader import load_config
 
 class GDocsUploadTest(unittest.TestCase):
     """Setup a full automated analysis and run the pipeline.
@@ -68,20 +69,17 @@ class GDocsUploadTest(unittest.TestCase):
                     bcw.writerow(['unmatched',random.randint(1,10000000)])
                 else:
                     bcw.writerow(['trim',random.randint(1,100000000)])
-        
-         
+
     def test_create_bc_report(self):
         """Create a demultiplex report and upload it to gdocs
         """
         # Parse the config
         config_file = os.path.join(self.data_dir, "post_process.yaml")
-        with open(config_file) as fh:
-            self.config = yaml.load(fh)
-            
+        self.config = load_config(config_file)
+
         # Loop over the runs
         for name in self.runname:
             print "\nProcessing %s" % name
             fc_name, fc_date = get_flowcell_info(name)
             analysisdir = os.path.join(self.workdir, name)
             create_bc_report_on_gdocs(fc_date, fc_name, analysisdir, {'details': self.run_info}, self.config)
-        
