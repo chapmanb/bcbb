@@ -1,19 +1,20 @@
 - analysis: SNP calling
-  description: Test1A
+  description: Lane 1, J.Doe_11_10
   genome_build: hg19
   lane: 1
   multiplex:
-  - barcode_id: '1'
+  - barcode_id: 1
     barcode_type: Illumina
     name: BAC11
     sequence: ATCACG
-  - barcode_id: '2'
+  - barcode_id: 2
     barcode_type: Illumina
     name: BAC22
     sequence: CGATGT
   - barcode_id: '3'
     barcode_type: Illumina
     name: BAC33
+    description: K.Hoe_11_10
     sequence: TTAGGC
   - barcode_id: '4'
     barcode_type: Illumina
@@ -27,39 +28,34 @@
     barcode_type: Illumina
     name: BAC66
     sequence: GCCAAT
-    # From here there is another project; Test1B.
   - barcode_id: '7'
     barcode_type: Illumina
     name: BAC77
+    description: K.Hoe_11_10
     sequence: CAGATC
-    description: Test1B
   - barcode_id: '8'
     barcode_type: Illumina
     name: BAC88
     sequence: ACTTGA
-    description: Test1B
   - barcode_id: '9'
     barcode_type: Illumina
     name: BAC99
     sequence: GATCAG
-    description: Test1B
   - barcode_id: '10'
     barcode_type: Illumina
     name: BAC00
     sequence: TAGCTT
-    description: Test1B
   - barcode_id: '11'
     barcode_type: Illumina
     name: BAC01
     sequence: GGCTAC
-    description: Test1B
+    description: L.Moe_11_10
   - barcode_id: '12'
     barcode_type: Illumina
     name: BAC02
     sequence: CTTGTA
-    description: Test1B
 - analysis: SNP calling
-  description: Test2
+  description: M.Toe_11_10
   genome_build: hg19
   lane: 2
   multiplex:
@@ -82,9 +78,11 @@
   - barcode_id: '5'
     barcode_type: Illumina
     name: BAC55
+    description: N.Woe_11_10
     sequence: ACAGTG
   - barcode_id: '6'
     barcode_type: Illumina
+    description: N.Woe_11_10
     name: BAC66
     sequence: GCCAAT
   - barcode_id: '7'
@@ -94,6 +92,7 @@
   - barcode_id: '8'
     barcode_type: Illumina
     name: BAC88
+    description: N.Woe_11_10
     sequence: ACTTGA
   - barcode_id: '9'
     barcode_type: Illumina
@@ -102,6 +101,7 @@
   - barcode_id: '10'
     barcode_type: Illumina
     name: BAC00
+    description: K.Hoe_11_10
     sequence: TAGCTT
   - barcode_id: '11'
     barcode_type: Illumina

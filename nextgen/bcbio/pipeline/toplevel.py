@@ -19,13 +19,13 @@ from bcbio.pipeline import log
 from bcbio.log import create_log_handler
 from bcbio import utils
 from bcbio.pipeline.transfer import remote_copy
+from bcbio.pipeline.config_loader import load_config
 
 
 def analyze_and_upload(remote_info, config_file):
     """Main entry point for analysis and upload to Galaxy.
     """
-    with open(config_file) as in_handle:
-        config = yaml.load(in_handle)
+    config = load_config(config_file)
     log_handler = create_log_handler(config, log.name)
     with log_handler.applicationbound():
         fc_dir = _copy_from_sequencer(remote_info, config)

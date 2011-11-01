@@ -16,6 +16,7 @@ import pysam
 
 from bcbio.broad.metrics import PicardMetricsParser, PicardMetrics
 from bcbio import utils, broad
+from bcbio.pipeline.config_loader import load_config
 
 WANT_METRICS = [
 "AL_TOTAL_READS",
@@ -132,12 +133,12 @@ def lane_stats(lane, bc_id, bam_fname, run_name, parser,
     metrics = parser.extract_metrics(metrics_files)
     return metrics
 
+
 def _generate_metrics(bam_fname, config_file, ref_file,
                       bait_file, target_file):
     """Run Picard commands to generate metrics files when missing.
     """
-    with open(config_file) as in_handle:
-        config = yaml.load(in_handle)
+    config = load_config(config_file)
     broad_runner = broad.runner_from_config(config)
     bam_fname = os.path.abspath(bam_fname)
     path = os.path.dirname(bam_fname)
@@ -153,6 +154,7 @@ def _generate_metrics(bam_fname, config_file, ref_file,
                                _bam_is_paired(bam_fname),
                                bait_file, target_file)
     return out_dir
+
 
 def _bam_is_paired(bam_fname):
     with contextlib.closing(pysam.Samfile(bam_fname, "rb")) as work_bam:

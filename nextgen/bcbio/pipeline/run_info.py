@@ -14,6 +14,7 @@ from bcbio.pipeline import log
 from bcbio.galaxy.api import GalaxyApiAccess
 from bcbio.solexa.flowcell import get_flowcell_info
 
+
 def get_run_info(fc_dir, config, run_info_yaml):
     """Retrieve run information from a passed YAML file or the Galaxy API.
     """
@@ -26,6 +27,7 @@ def get_run_info(fc_dir, config, run_info_yaml):
         galaxy_api = GalaxyApiAccess(config['galaxy_url'], config['galaxy_api_key'])
         run_info = galaxy_api.run_details(fc_name, fc_date)
     return fc_name, fc_date, run_info
+
 
 def _run_info_from_yaml(fc_dir, run_info_yaml):
     """Read run information from a passed YAML file.
@@ -52,9 +54,11 @@ def _run_info_from_yaml(fc_dir, run_info_yaml):
             item["description"] = str(item["lane"])
         run_details.append(item)
     lanes = [x["lane"] for x in run_details]
-    assert len(lanes) == len(set(lanes)), "Non unique lanes: %s" % lanes
+#  WARNING! Commented to figure out a way to fix multiple projects per lane
+#    assert len(lanes) == len(set(lanes)), "Non unique lanes: %s" % lanes
     run_info = dict(details=run_details, run_id="")
     return fc_name, fc_date, run_info
+
 
 def _clean_extra_whitespace(s):
     while s.endswith(("_", "-", " ", ".")):

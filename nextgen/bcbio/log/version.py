@@ -17,6 +17,7 @@ import subprocess
 import shlex
 import re
 import glob
+import pkg_resources
 from sys import stderr
 
 # Regexp's defining how to extract the software version from each program's output
@@ -89,13 +90,8 @@ def _generic_version(exe,param,regx):
     if m and len(m.groups()) > 0:
         return m.group(1)
     return "N/A"
-    
-def _get_output(exe,param=''):
-    args = shlex.split("%s %s" % (exe,param))
-    output = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()[0]
-    return output
-     
-def _get_pipeline_version():
+
+def _get_git_commit():
     
     v = 'N/A'
     # Look for a pipeline version file in the user's home directory
@@ -104,7 +100,22 @@ def _get_pipeline_version():
         with open(versionfile) as vf:
             v = vf.read().strip()
     return v 
-   
+
+def _get_output(exe,param=''):
+    args = shlex.split("%s %s" % (exe,param))
+    output = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()[0]
+    return output
+    
+def _get_pipeline_version():
+    v = 'N/A'
+    try:
+        dist = pkg_resources.get_distribution("bcbio-nextgen")
+    except:
+        pass
+    if dist:
+        v = dist.version
+    return v
+ 
 def get_version(name,exe):
  
     """Get the software version of a named program and the corresponding executable"""

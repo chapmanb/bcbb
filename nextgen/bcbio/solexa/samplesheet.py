@@ -4,14 +4,13 @@ This allows running the analysis pipeline without Galaxy, using CSV input
 files from Illumina SampleSheet or Genesifter.
 """
 import os
-import sys
 import fileinput
 import csv
-import codecs
 import itertools
 import difflib
 import glob
-from Bio.Seq import Seq
+
+import operator
 
 import yaml
 
@@ -23,31 +22,38 @@ def _organize_lanes(info_iter, barcode_ids):
     """Organize flat lane information into nested YAML structure.
     """
     all_lanes = []
-    for lane, info in itertools.groupby(info_iter, lambda x: x[1]):
+    sorted_info = sorted(info_iter, key=operator.itemgetter(1))
+    for lane, info in itertools.groupby(sorted_info, lambda x: x[1]):
         info = list(info)
         sampleref = info[0][3].lower()
         cur_lane = dict(flowcell_id=info[0][0], lane=lane, genome_build=sampleref, analysis="Standard")
-        
+
         cur_lane["description"] = "Lane %s, %s" % (lane, info[0][5])
-        
+
         if _has_barcode(info):
             multiplex = []
             for (_, _, sample_id, _, bc_seq, descr) in info:
                 bc_type, bc_id = barcode_ids[bc_seq]
-                multiplex.append(dict(barcode_type=bc_type,
-                                      barcode_id=bc_id,
-                                      sequence=bc_seq,
-                                      name=sample_id))
+                bc_dict = dict(barcode_type=bc_type,
+                              barcode_id=bc_id,
+                              sequence=bc_seq,
+                              name=sample_id)
+                if descr != info[0][5]:
+                    bc_dict["description"] = descr
+                multiplex.append(bc_dict)
             cur_lane["multiplex"] = multiplex
 
         all_lanes.append(cur_lane)
+
     return all_lanes
+
 
 def _has_barcode(sample):
     if sample[0][4]:
         return True
-    else: # lane is not multiplexed
-       pass
+    else:  # lane is not multiplexed
+        pass
+
 
 def _generate_barcode_ids(info_iter):
     """Create unique barcode IDs assigned to sequences
@@ -57,8 +63,9 @@ def _generate_barcode_ids(info_iter):
     barcodes.sort()
     barcode_ids = {}
     for i, bc in enumerate(barcodes):
-        barcode_ids[bc] = (bc_type, i+1)
+        barcode_ids[bc] = (bc_type, i + 1)
     return barcode_ids
+
 
 def _read_input_csv(in_file):
     """Parse useful details from SampleSheet CSV file.
@@ -70,14 +77,15 @@ def _read_input_csv(in_file):
         with open(in_file, "rU") as in_handle:
             reader = csv.reader(in_handle)
             #reader = unicode_csv_reader(in_handle)
-            reader.next() # header
+            reader.next()  # header
             for line in reader:
-                if line: # empty lines
+                if line:  # empty lines
                     (fc_id, lane, sample_id, genome, barcode, description) = line[:6]
                     yield fc_id, lane, sample_id, genome, barcode, description
     except ValueError:
-        print "Corrupt samplesheet %s, please fix it" % in_file 
+        print "Corrupt samplesheet %s, please fix it" % in_file
         pass
+
 
 def _get_flowcell_id(in_file, require_single=True):
     """Retrieve the unique flowcell id represented in the SampleSheet.
@@ -88,12 +96,13 @@ def _get_flowcell_id(in_file, require_single=True):
     else:
         return fc_ids
 
+
 def _sanitize(in_file):
     """Removes badly balanced quotes and other possible future
        cruft introduced on the samplesheets
     """
     for line in fileinput.FileInput(in_file, inplace=1):
-        line = line.replace('"','')
+        line = line.replace('"', '')
         # print adds line in place, not stdout
         print line.replace("\n", '')
 

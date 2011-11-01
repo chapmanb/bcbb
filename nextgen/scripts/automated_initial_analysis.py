@@ -21,7 +21,6 @@ Workflow:
 """
 import os
 import sys
-import subprocess
 from optparse import OptionParser
 
 import yaml
@@ -37,14 +36,17 @@ from bcbio.pipeline.merge import organize_samples
 from bcbio.pipeline.qcsummary import write_metrics
 from bcbio.pipeline import sample
 from bcbio.pipeline import lane
+from bcbio.galaxy.api import GalaxyApiAccess
 from bcbio.google.bc_metrics import create_bc_report_on_gdocs
+from bcbio.pipeline.config_loader import load_config
+
 
 def main(config_file, fc_dir, run_info_yaml=None):
-    with open(config_file) as in_handle:
-        config = yaml.load(in_handle)
+    config = load_config(config_file)
     log_handler = create_log_handler(config, log.name)
     with log_handler.applicationbound():
         run_main(config, config_file, fc_dir, run_info_yaml)
+
 
 def run_main(config, config_file, fc_dir, run_info_yaml):
     work_dir = os.getcwd()
@@ -63,19 +65,20 @@ def run_main(config, config_file, fc_dir, run_info_yaml):
     lane_items = _run_parallel("process_lane", lanes, dirs, config, config_file)
 
     # upload the demultiplex counts to Google Docs
-    create_bc_report_on_gdocs(fc_date,fc_name,work_dir,run_info,config)
-    
+    create_bc_report_on_gdocs(fc_date, fc_name, work_dir, run_info, config)
+
     align_items = _run_parallel("process_alignment", lane_items, dirs, config,
                                 config_file)
-    
+
     # process samples, potentially multiplexed across multiple lanes
     sample_files, sample_fastq, sample_info = \
-                  organize_samples(dirs, fc_name, fc_date, run_items, align_items)
+            organize_samples(dirs, fc_name, fc_date, run_items, align_items)
     samples = ((n, sample_fastq[n], sample_info[n], bam_files, dirs, config, config_file)
                for n, bam_files in sample_files)
     sample_items = _run_parallel("process_sample", samples, dirs, config, config_file)
 
     write_metrics(run_info, fc_name, fc_date, dirs)
+
 
 def _run_parallel(fn_name, items, dirs, config, config_file):
     """Process a supplied function: single, multi-processor or distributed.
@@ -93,19 +96,23 @@ def _run_parallel(fn_name, items, dirs, config, config_file):
                     out.extend(data)
         return out
 
+
 # ## multiprocessing ready entry points
 
 @utils.map_wrap
 def process_lane(*args):
     return lane.process_lane(*args)
 
+
 @utils.map_wrap
 def process_alignment(*args):
     return lane.process_alignment(*args)
 
+
 @utils.map_wrap
 def process_sample(*args):
     return sample.process_sample(*args)
+
 
 # ## Utility functions
 
@@ -116,6 +123,7 @@ def _get_full_paths(fastq_dir, config, config_file):
     config_dir = utils.add_full_path(os.path.dirname(config_file))
     galaxy_config_file = utils.add_full_path(config["galaxy_config"], config_dir)
     return fastq_dir, os.path.dirname(galaxy_config_file), config_dir
+
 
 def _get_run_info(fc_name, fc_date, config, run_info_yaml):
     """Retrieve run information from a passed YAML file or the Galaxy API.

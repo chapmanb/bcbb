@@ -76,7 +76,7 @@ class AutomatedAnalysisTest(unittest.TestCase):
                   os.path.join(self.data_dir, "run_info.yaml")]
             subprocess.check_call(cl)
 
-    def test_4_empty_fastq(self):
+    def test_3_empty_fastq(self):
         """Handle analysis of empty fastq inputs from failed runs.
         """
         with make_workdir():
@@ -108,4 +108,3 @@ class AutomatedAnalysisTest(unittest.TestCase):
     #               os.path.join(self.data_dir, os.pardir, "100326_FC6107FAAXX"),
     #               os.path.join(self.data_dir, "run_info-variantcall.yaml")]
     #         subprocess.check_call(cl)
-

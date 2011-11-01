@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 """Provide SNP and indel calling.
 
-This script works on delivered project data. In a project 
-folder sequence data is stored as fastq files in the data 
-directory, grouped by flow cell like names. Optionally, 
-it is possible to provide a directory containing bam 
-files. 
+This script works on delivered project data. In a project
+folder sequence data is stored as fastq files in the data
+directory, grouped by flow cell like names. Optionally,
+it is possible to provide a directory containing bam
+files.
 
 Usage:
-    exome_pipeline.py <exome pipeline YAML config file> 
+    exome_pipeline.py <exome pipeline YAML config file>
                       <flow cell dir>  <pruned YAML run information>
                       [--project_dir=<project directory>]
 
@@ -22,18 +22,18 @@ The exome pipeline is similar to the post_processing.yaml file in that it holds
 information about programs, algorithms and analyses. The contents are more loosely
 defined than for post_processing.
 
-The pruned YAML run information file contains run_info about the samples in this 
-project only, and also contains the necessary information for conversion between 
+The pruned YAML run information file contains run_info about the samples in this
+project only, and also contains the necessary information for conversion between
 barcode ids and barcode names, should the lanes have been multiplexed.
 
 LANE_DATE_FC[_BCI][_1/2]_fastq.txt -> LANE_DATE_FC[_RUNINFONAME][_1/2].fastq
 
-In general, data is delivered as fastq files to a project. Generally, we adopt 
+In general, data is delivered as fastq files to a project. Generally, we adopt
 the following convention:
 
 j_doe_00_01/data/fastq_dir
 
-where j_doe_00_01 is the project name to be provided at the command line. 
+where j_doe_00_01 is the project name to be provided at the command line.
 
 The <flow cell dir> names a flowcell directory:
 
@@ -45,7 +45,7 @@ In this directory, the delivered fastq files have been renamed to their original
 and link back to the files in j_doe_00_01/data/fastq_dir directory. Hence,
 the bcbio modules can be directly applied to the file names in flow_cell_dir.
 
-If sample delivery was done to a fastq directory named differently than the 
+If sample delivery was done to a fastq directory named differently than the
 flowcell id, there will also be a link to <fc_alias_dir>
 
 j_doe_00_01/intermediate/nobackup/fc_alias_dir -> j_doe_00_01/intermediate/nobackup/flow_cell_dir
@@ -81,6 +81,7 @@ from bcbio.ngsalign import bwa
 from bcbio.pipeline import lane
 from bcbio.pipeline import sample
 from bcbio.pipeline.merge import organize_samples
+from bcbio.pipeline.config_loader import load_config
 
 def main(config_file, fc_dir, run_info_yaml=None, project_dir=None):
     if project_dir == None:
@@ -88,8 +89,7 @@ def main(config_file, fc_dir, run_info_yaml=None, project_dir=None):
     else:
         project_dir = os.path.normpath(project_dir)
     fc_dir = os.path.normpath(fc_dir)
-    with open(config_file) as in_handle:
-        config = yaml.load(in_handle)
+    config = load_config(config_file)
     log_handler = create_log_handler(config, log.name)
     with log_handler.applicationbound():
         run_main(config, config_file, fc_dir, project_dir, run_info_yaml)
