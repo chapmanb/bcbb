@@ -8,7 +8,7 @@ program:
   tophat: tophat
   ucsc_bigwig: wigToBigWig
   picard: /bubo/sw/apps/bioinfo/picard/1.41
-  gatk: /bubo/home/h10/vale/opt/GenomeAnalysisTK-1.1
+  gatk: /bubo/sw/apps/bioinfo/GATK/1.2.12
   snpEff: /bubo/home/h10/vale/opt/snpEff_v2_0_2
   fastqc: fastqc
   pdflatex: pdflatex
@@ -55,8 +55,14 @@ custom_algorithms:
   'SNP calling':
     aligner: bwa
     recalibrate: true
+    recalibration_plots: false
     snpcall: true
+    coverage_depth: "low" # Options: low, high
+    coverage_interval: "exome" # Options: exome, genome
     dbsnp: variation/dbsnp_132.vcf
+    train_hapmap: variation/hapmap_3.3.vcf
+    train_1000g_omni: variation/1000G_omni2.5.vcf
+    train_indels: variation/Mills_Devine_2hit.indels.vcf
   'RNA-seq':
     aligner: tophat
     transcript_assemble: true
@@ -64,3 +70,7 @@ custom_algorithms:
     transcripts_mask: rnaseq/ref-transcripts-mask.gtf
   'Minimal':
     aligner: ""
+# Requirements for memory-bound processes
+resources:
+  ucsc_bigwig:
+    memory: 36g

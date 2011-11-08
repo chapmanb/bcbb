@@ -2,3 +2,15 @@
 nextgen/bcbio_nextgen.egg-info/
 nextgen/build/
 nextgen/dist/
+nextgen/tests/data/100326*
+nextgen/tests/data/110106*
+nextgen/tests/data/110221*
+nextgen/tests/data/110907*
+nextgen/tests/data/genomes*
+nextgen/tests/test_automated_output/
+distblast/*.egg-info/
+distblast/build/
+distblast/dist/
+gff/*.egg-info/
+gff/build/
+gff/dist/

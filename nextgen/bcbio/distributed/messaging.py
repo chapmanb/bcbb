@@ -7,13 +7,40 @@ import os
 import sys
 import time
 import contextlib
-import multiprocessing
+import multiprocessing, logging
+import subprocess
+logger = multiprocessing.log_to_stderr()
+logger.setLevel(multiprocessing.SUBDEBUG)
 
 from mako.template import Template
 
 from bcbio import utils
 
-def runner(dirs, config, config_file, wait=True):
+
+def parallel_runner(module, dirs, config, config_file):
+    """Process a supplied function: single, multi-processor or distributed.
+    """
+    def run_parallel(fn_name, items, metadata=None):
+        parallel = config["algorithm"]["num_cores"]
+        if str(parallel).lower() == "messaging":
+            task_module = "{base}.tasks".format(base=module)
+            runner_fn = runner(task_module, dirs, config, config_file)
+            return runner_fn(fn_name, items)
+        else:
+            out = []
+            fn = getattr(__import__("{base}.multitasks".format(base=module),
+                                    fromlist=["multitasks"]),
+                         fn_name)
+            cores = cores_including_resources(int(parallel), metadata, config)
+            with utils.cpmap(cores) as cpmap:
+                for data in cpmap(fn, items):
+                    if data:
+                        out.extend(data)
+        return out
+    return run_parallel
+
+
+def runner(task_module, dirs, config, config_file, wait=True):
     """Run a set of tasks using Celery, waiting for results or asynchronously.
 
     Initialize with the configuration and directory information,
@@ -25,7 +52,6 @@ def runner(dirs, config, config_file, wait=True):
     can be remote or local but must have access to a shared filesystem. The
     function polls if wait is True, returning when all results are available.
     """
-    task_module = "bcbio.distributed.tasks"
     with create_celeryconfig(task_module, dirs, config, config_file):
         __import__(task_module)
         tasks = sys.modules[task_module]
@@ -44,6 +70,39 @@ def runner(dirs, config, config_file, wait=True):
             return out
         return _run
 
+# ## Handle memory bound processes on multi-core machines
+
+def cores_including_resources(cores, metadata, config):
+    """Retrieve number of cores to use, considering program resources.
+    """
+    if metadata is None: metadata = {}
+    required_memory = -1
+    for program in metadata.get("programs", []):
+        presources = config.get("resources", {}).get(program, {})
+        memory = presources.get("memory", None)
+        if memory:
+            if memory.endswith("g"):
+                memory = int(memory[:-1])
+            else:
+                raise NotImplementedError("Unpexpected units on memory: %s", memory)
+            if memory > required_memory:
+                required_memory = memory
+    if required_memory > 0:
+        cur_memory = _machine_memory()
+        cores = int(round(float(cur_memory) / float(required_memory)))
+    if cores < 1:
+        cores = 1
+    return cores
+
+def _machine_memory():
+    """Retrieve available memory on current machine using 'free.'
+    """
+    with contextlib.closing(subprocess.Popen(["free", "-g"],
+                                             stdout=subprocess.PIPE).stdout) as stdout:
+        for line in stdout:
+            if line.startswith("Mem:"):
+                return int(line.split()[1])
+
 # ## Utility functions
 
 _celeryconfig_tmpl = """
@@ -59,8 +118,6 @@ CELERY_TASK_SERIALIZER = "json"
 CELERYD_CONCURRENCY = ${cores}
 CELERY_ACKS_LATE = False
 CELERYD_PREFETCH_MULTIPLIER = 1
-CELERY_ROUTES = {"bcbio.distributed.tasks.analyze_and_upload": {"queue": "toplevel"},
-                 "bcbio.distributed.tasks.long_term_storage" : {"queue": "storage"}}
 BCBIO_CONFIG_FILE = "${config_file}"
 """
 
