@@ -4,7 +4,6 @@ Uses best e-value as a threshold to identify best cross-species hits in a number
 of organism databases.
 """
 import os
-import csv
 import codecs
 import subprocess
 import contextlib
@@ -105,14 +104,19 @@ def _compare_by_blast(input_ref, xref_db, blast_out, subject_blast=False):
     """
     cl = NcbiblastpCommandline(query=input_ref, db=xref_db, out=blast_out,
             outfmt=5, num_descriptions=1, num_alignments=0)
-    subprocess.check_call(str(cl).split())
+    try:
+        subprocess.check_call(str(cl).split())
+    # handle BLAST errors cleanly; write an empty file and keep moving
+    except (OSError, subprocess.CalledProcessError):
+        with open(blast_out, "w") as out_handle:
+            out_handle.write("\n")
     with codecs.open(blast_out, encoding="utf-8", errors="replace") as blast_handle:
         result = blast_handle.read()
         for problem in [u"\ufffd"]:
             result = result.replace(problem, " ")
         try:
             rec = NCBIXML.read(StringIO.StringIO(result))
-        except xml.parsers.expat.ExpatError:
+        except (xml.parsers.expat.ExpatError, ValueError):
             rec = None
         if rec and len(rec.descriptions) > 0:
             id_info = _normalize_id(rec.descriptions[0].title.split()[1])
