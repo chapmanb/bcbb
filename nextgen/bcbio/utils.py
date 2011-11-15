@@ -15,6 +15,8 @@ try:
 except ImportError:
     multiprocessing = None
 
+import yaml
+
 @contextlib.contextmanager
 def cpmap(cores=1):
     """Configurable parallel map context manager.
@@ -122,41 +124,10 @@ def tmpfile(*args, **kwargs):
         if os.path.exists(fname):
             os.remove(fname)
 
-@contextlib.contextmanager
-def file_transaction(*rollback_files):
-    """Wrap file generation in a transaction, removing partial files on failure.
-
-   This allows a safe restart at any point, helping to deal with interrupted
-   pipelines.
-   """
-    try:
-        yield None
-    except:
-        for fnames in rollback_files:
-            if isinstance(fnames, str):
-                fnames = [fnames]
-            for fname in fnames:
-                if fname and os.path.exists(fname) and os.path.isfile(fname):
-                    os.remove(fname)
-        raise
-
-@contextlib.contextmanager
-def file_transaction(*rollback_files):
-    """Wrap file generation in a transaction, removing partial files on failure.
-
-    This allows a safe restart at any point, helping to deal with interrupted
-    pipelines.
+def file_exists(fname):
+    """Check if a file exists and is non-empty.
     """
-    try:
-        yield None
-    except:
-        for fnames in rollback_files:
-            if isinstance(fnames, str):
-                fnames = [fnames]
-            for fname in fnames:
-                if fname and os.path.exists(fname) and os.path.isfile(fname):
-                    os.remove(fname)
-        raise
+    return os.path.exists(fname) and os.path.getsize(fname) > 0
 
 def create_dirs(config, names=None):
     if names is None:
@@ -192,6 +163,25 @@ def add_full_path(dirname, basedir=None):
     if not dirname.startswith("/"):
         dirname = os.path.join(basedir, dirname)
     return dirname
+
+# ## Dealing with configuration files
+
+def merge_config_files(fnames):
+    """Merge configuration files, preferring definitions in latter files.
+    """
+    def _load_yaml(fname):
+        with open(fname) as in_handle:
+            config = yaml.load(in_handle)
+        return config
+    out = _load_yaml(fnames[0])
+    for fname in fnames[1:]:
+        cur = _load_yaml(fname)
+        for k, v in cur.iteritems():
+            if out.has_key(k) and isinstance(out[k], dict):
+                out[k].update(v)
+            else:
+                out[k] = v
+    return out
 
 # UTF-8 methods for csv module (does not support it in python >2.7)
 # http://docs.python.org/library/csv.html#examples

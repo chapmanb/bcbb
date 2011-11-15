@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 import os
 
 setup(name = "bcbio-nextgen",
-      version = "0.2",
+      version = "0.3a",
       author = "Brad Chapman",
       author_email = "chapmanb@50mail.com",
       description = "Automated, distributed next-gen sequencing pipeline; includes Galaxy interaction",
@@ -44,6 +44,7 @@ setup(name = "bcbio-nextgen",
           "Logbook >= 0.3",
           "pysam >= 0.4.1",
           "fabric >= 1.2",
+          "pycrypto >= 2.1, < 2.4",
           "paramiko >= 1.7.7.1",
           "setuptools",
           "celery >= 2.2.7",

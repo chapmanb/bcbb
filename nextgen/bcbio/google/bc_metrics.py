@@ -20,12 +20,12 @@ BARCODE_STATS_HEADER = [
                  ['Lane','lane'],
                  ['Description','description'],
                  ['Sample name','sample_name'],
-                 ['Internal barcode index','barcode_id'],
+                 ['bcbb internal barcode index','barcode_id'],
                  ['Barcode name','name'],
                  ['Barcode sequence','sequence'],
                  ['Barcode type','barcode_type'],
-                 ['Demultiplexed read count','barcode_read_count'],
-                 ['Demultiplexed read count (millions)','barcode_read_count_millions'],
+                 ['Demultiplexed read (pair) count','barcode_read_count'],
+                 ['Demultiplexed read (pair) count (millions)','barcode_read_count_millions'],
                  ['Comment','comment']
                 ]
   
@@ -34,8 +34,8 @@ SEQUENCING_RESULT_HEADER = [
                  ['Sample name','sample_name'],
                  ['Run','run'],
                  ['Lane','lane'],
-                 ['Sample count','read_count'],
-                 ['Sample count (millions)','read_count_millions'],
+                 ['Read (pair) count','read_count'],
+                 ['Read (pair) count (millions)','read_count_millions'],
                  ['Comment','comment'],
                  ['Pass','pass']
                 ]
@@ -381,7 +381,11 @@ def _write_project_report_summary_to_gdocs(client, ssheet):
         counts = sample[3]
         sum = 0
         for count in counts:
-            sum += int(count)
+            try:
+                c = int(count)
+            except ValueError:
+                c = 0
+            sum += c
         # Count the millions
         msum = round(sum/1000000.,2)
         sample[3] = unicode(sum)

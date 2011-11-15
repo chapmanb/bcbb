@@ -83,15 +83,16 @@ def _post_process_run(dname, config, config_file, fastq_dir, post_config_file,
                       process_msg, store_msg):
     """With a finished directory, send out message or process directly.
     """
+    run_module = "bcbio.distributed.tasks"
     # without a configuration file, send out message for processing
     if post_config_file is None:
         store_files, process_files = _files_to_copy(dname)
         if process_msg:
-            finished_message("analyze_and_upload", dname,
+            finished_message("analyze_and_upload", run_module, dname,
                              process_files, config, config_file)
         if store_msg:
             raise NotImplementedError("Storage server needs update.")
-            finished_message("long_term_storage", dname,
+            finished_message("long_term_storage", run_module, dname,
                              store_files, config, config_file)
     # otherwise process locally
     else:
@@ -101,8 +102,7 @@ def analyze_locally(dname, post_config_file, fastq_dir):
     """Run analysis directly on the local machine.
     """
     assert fastq_dir is not None
-    with open(post_config_file) as in_handle:
-        post_config = yaml.load(in_handle)
+    post_config = load_config(post_config_file)
     run_yaml = os.path.join(dname, "run_info.yaml")
     analysis_dir = os.path.join(fastq_dir, os.pardir, "analysis")
     utils.safe_makedir(analysis_dir)
@@ -273,7 +273,8 @@ def _update_reported(msg_db, new_dname):
         out_handle.write("%s\n" % new_dname)
         out_handle.close()
 
-def finished_message(fn_name, directory, files_to_copy, config, config_file):
+def finished_message(fn_name, run_module, directory, files_to_copy,
+                     config, config_file):
     """Wait for messages with the give tag, passing on to the supplied handler.
     """
     log.debug("Calling remote function: %s" % fn_name)
@@ -288,7 +289,7 @@ def finished_message(fn_name, directory, files_to_copy, config, config_file):
             )
     dirs = {"work": os.getcwd(),
             "config": os.path.dirname(config_file)}
-    runner = messaging.runner(dirs, config, config_file, wait=False)
+    runner = messaging.runner(run_module, dirs, config, config_file, wait=False)
     runner(fn_name, [[data]])
 
 if __name__ == "__main__":

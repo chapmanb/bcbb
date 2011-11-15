@@ -28,26 +28,20 @@ import json
 
 import yaml
 
-from bcbio.solexa.flowcell import get_flowcell_info, get_fastq_dir
+from bcbio.solexa.flowcell import get_fastq_dir
+from bcbio.pipeline.run_info import get_run_info
 from bcbio.galaxy.api import GalaxyApiAccess
 from bcbio import utils
 from bcbio.pipeline.config_loader import load_config
 
 def main(config_file, fc_dir, analysis_dir, run_info_yaml=None):
     config = load_config(config_file)
-    fc_name, fc_date = get_flowcell_info(fc_dir)
-    galaxy_api = GalaxyApiAccess(config['galaxy_url'], config['galaxy_api_key'])
-
-    # run_info will override some galaxy details, if present
-    if run_info_yaml:
-        with open(run_info_yaml) as in_handle:
-            run_details = yaml.load(in_handle)
-        run_info = dict(details=run_details, run_id="")
-    else:
-        run_info = galaxy_api.run_details(fc_name, fc_date)
+    galaxy_api = (GalaxyApiAccess(config['galaxy_url'], config['galaxy_api_key'])
+                  if config.has_key("galaxy_api_key") else None)
+    fc_name, fc_date, run_info = get_run_info(fc_dir, config, run_info_yaml)
 
     base_folder_name = "%s_%s" % (fc_date, fc_name)
-    run_details = lims_run_details(run_info, fc_name, base_folder_name)
+    run_details = lims_run_details(run_info, base_folder_name)
     for (library_name, access_role, dbkey, lane, bc_id, name, desc,
             local_name) in run_details:
         library_id = (get_galaxy_library(library_name, galaxy_api)
@@ -64,12 +58,12 @@ def main(config_file, fc_dir, analysis_dir, run_info_yaml=None):
             else:
                 cur_galaxy_files = []
             store_dir = move_to_storage(lane, bc_id, base_folder_name, upload_files,
-                                        cur_galaxy_files, config)
+                                        cur_galaxy_files, config, config_file)
             if store_dir and library_id:
                 print "Uploading directory of files to Galaxy"
                 print galaxy_api.upload_directory(library_id, folder['id'],
                                                   store_dir, dbkey, access_role)
-    if galaxy_api:
+    if galaxy_api and not run_info_yaml:
         add_run_summary_metrics(analysis_dir, galaxy_api)
 
 # LIMS specific code for retrieving information on what to upload from
@@ -78,31 +72,38 @@ def main(config_file, fc_dir, analysis_dir, run_info_yaml=None):
 # analysis directories.
 # These should be edited to match a local workflow if adjusting this.
 
-def lims_run_details(run_info, fc_name, base_folder_name):
+def lims_run_details(run_info, base_folder_name):
     """Retrieve run infomation on a flow cell from Next Gen LIMS.
     """
-    for lane_info in (l for l in run_info["details"] if l.has_key("researcher")
-                      or not run_info["run_id"]):
-        if lane_info.get("private_libs", None) is not None:
-            libname, role = _get_galaxy_libname(lane_info["private_libs"],
-                                                lane_info["lab_association"],
-                                                lane_info["researcher"])
-        else:
-	    libname, role = (lane_info.get("library_name", None), "sequencing")
-        for barcode in lane_info.get("multiplex", [None]):
-            remote_folder = lane_info.get("name", "")
-            description = "%s: %s" % (lane_info.get("researcher", ""),
-                    lane_info["description"])
-            local_name = "%s_%s" % (lane_info["lane"], base_folder_name)
-            if barcode:
-                remote_folder += "_%s" % barcode["barcode_id"]
-                description += ": %s" % barcode["name"]
-                local_name += "_%s" % barcode["barcode_id"]
-            yield (libname, role, lane_info["genome_build"],
-                    lane_info["lane"], barcode["barcode_id"] if barcode else "",
-                    remote_folder, description, local_name)
+    for lane_items in run_info["details"]:
+        for lane_info in lane_items:
+            if not run_info["run_id"] or lane_info.has_key("researcher"):
+                if lane_info.get("private_libs", None) is not None:
+                    libname, role = _get_galaxy_libname(lane_info["private_libs"],
+                                                        lane_info["lab_association"],
+                                                        lane_info["researcher"])
+                elif lane_info.has_key("galaxy_library"):
+                    libname = lane_info["galaxy_library"]
+                    role = lane_info["galaxy_role"]
+                else:
+                    libname, role = (None, None)
+                remote_folder = str(lane_info.get("name", lane_info["lane"]))
+                description = ": ".join([lane_info[n] for n in ["researcher", "description"]
+                                         if lane_info.has_key(n)])
+                local_name = "%s_%s" % (lane_info["lane"], base_folder_name)
+                if lane_info["barcode_id"] is not None:
+                    remote_folder += "_%s" % lane_info["barcode_id"]
+                    local_name += "_%s" % lane_info["barcode_id"]
+                yield (libname, role, lane_info["genome_build"],
+                       lane_info["lane"], lane_info["barcode_id"],
+                       remote_folder, description, local_name)
 
 def _get_galaxy_libname(private_libs, lab_association, researcher):
+    """Retrieve most appropriate Galaxy data library.
+
+    Gives preference to private data libraries associated with the user. If not
+    found will create a user specific library.
+    """
     print private_libs, lab_association
     # simple case -- one private library. Upload there
     if len(private_libs) == 1:
@@ -143,24 +144,26 @@ def select_upload_files(base, bc_id, fc_dir, analysis_dir, config):
                 yield (fname, os.path.basename(fname))
     for summary_file in base_glob("summary.pdf"):
         yield (summary_file, _name_with_ext(summary_file, "-summary.pdf"))
-    for bam_file in base_glob("sort-dup.bam"):
-        yield (bam_file, _name_with_ext(bam_file, ".bam"))
-    for wig_file in base_glob("sort.bigwig"):
+    for wig_file in base_glob(".bigwig"):
         yield (wig_file, _name_with_ext(wig_file, "-coverage.bigwig"))
-    # upload any recalibrated BAM files used for SNP calling
+    # upload BAM files, preferring recalibrated and realigned files
     found_recal = False
-    for bam_file in base_glob("gatkrecal-realign-sort.bam"):
+    for bam_file in base_glob("gatkrecal-realign-dup.bam"):
         found_recal = True
         yield (bam_file, _name_with_ext(bam_file, "-gatkrecal-realign.bam"))
     if not found_recal:
         for bam_file in base_glob("gatkrecal.bam"):
+            found_recal = True
             yield (bam_file, _name_with_ext(bam_file, "-gatkrecal.bam"))
+    if not found_recal:
+        for bam_file in base_glob("sort-dup.bam"):
+            yield (bam_file, _name_with_ext(bam_file, ".bam"))
     # Genotype files produced by SNP calling
-    for snp_file in base_glob("snp-filter.vcf"):
-        yield (snp_file, _name_with_ext(bam_file, "-snp-filter.vcf"))
+    for snp_file in base_glob("variants-combined-annotated.vcf"):
+        yield (snp_file, _name_with_ext(bam_file, "-variants.vcf"))
     # Effect information on SNPs
-    for snp_file in base_glob("snp-filter-effects.tsv"):
-        yield (snp_file, _name_with_ext(bam_file, "-snp-effects.tsv"))
+    for snp_file in base_glob("variants-combined-effects.tsv"):
+        yield (snp_file, _name_with_ext(bam_file, "-variants-effects.tsv"))
 
 def _dir_glob(base, work_dir):
     # Allowed characters that can trail the base. This prevents picking up

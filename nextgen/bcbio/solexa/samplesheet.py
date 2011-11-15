@@ -55,6 +55,7 @@ def _has_barcode(sample):
         pass
 
 
+
 def _generate_barcode_ids(info_iter):
     """Create unique barcode IDs assigned to sequences
     """
