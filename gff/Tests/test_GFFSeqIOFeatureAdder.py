@@ -17,7 +17,7 @@ class MapReduceGFFTest(unittest.TestCase):
     """Tests GFF parsing using a map-reduce framework for parallelization.
     """
     def setUp(self):
-        self._test_dir = os.path.join(os.getcwd(), "GFF")
+        self._test_dir = os.path.join(os.path.dirname(__file__), "GFF")
         self._test_gff_file = os.path.join(self._test_dir,
                 "c_elegans_WS199_shortened_gff.txt")
         self._disco_host = "http://localhost:7000"
@@ -70,7 +70,7 @@ class GFF3Test(unittest.TestCase):
     and from NCBI.
     """
     def setUp(self):
-        self._test_dir = os.path.join(os.getcwd(), "GFF")
+        self._test_dir = os.path.join(os.path.dirname(__file__), "GFF")
         self._test_seq_file = os.path.join(self._test_dir,
                 "c_elegans_WS199_dna_shortened.fa")
         self._test_gff_file = os.path.join(self._test_dir,
@@ -317,7 +317,7 @@ class SolidGFFTester(unittest.TestCase):
     http://solidsoftwaretools.com/gf/project/matogff/
     """
     def setUp(self):
-        self._test_dir = os.path.join(os.getcwd(), "GFF")
+        self._test_dir = os.path.join(os.path.dirname(__file__), "GFF")
         self._test_gff_file = os.path.join(self._test_dir,
                 "F3-unique-3.v2.gff")
 
@@ -370,7 +370,7 @@ class GFF2Tester(unittest.TestCase):
     """Parse GFF2 and GTF files, building features.
     """
     def setUp(self):
-        self._test_dir = os.path.join(os.getcwd(), "GFF")
+        self._test_dir = os.path.join(os.path.dirname(__file__), "GFF")
         self._ensembl_file = os.path.join(self._test_dir, "ensembl_gtf.txt")
         self._wormbase_file = os.path.join(self._test_dir, "wormbase_gff2.txt")
         self._jgi_file = os.path.join(self._test_dir, "jgi_gff2.txt")
@@ -472,7 +472,7 @@ class DirectivesTest(unittest.TestCase):
     """Tests for parsing directives and other meta-data.
     """
     def setUp(self):
-        self._test_dir = os.path.join(os.getcwd(), "GFF")
+        self._test_dir = os.path.join(os.path.dirname(__file__), "GFF")
         self._gff_file = os.path.join(self._test_dir, "hybrid1.gff3")
 
     def t_basic_directives(self):
@@ -511,7 +511,7 @@ class OutputTest(unittest.TestCase):
     """Tests to write SeqFeatures to GFF3 output format.
     """
     def setUp(self):
-        self._test_dir = os.path.join(os.getcwd(), "GFF")
+        self._test_dir = os.path.join(os.path.dirname(__file__), "GFF")
         self._test_seq_file = os.path.join(self._test_dir,
                 "c_elegans_WS199_dna_shortened.fa")
         self._test_gff_file = os.path.join(self._test_dir,
@@ -581,6 +581,23 @@ class OutputTest(unittest.TestCase):
                                              'other=Some,annotations;ID=gene1']
         assert wrote_info[3].split("\t") == ['ID1', 'prediction', 'exon', '1', '5',
                                              '.', '+', '.', 'Parent=gene1']
+
+    def t_write_fasta(self):
+        """Include FASTA records in GFF output.
+        """
+        seq = Seq("GATCGATCGATCGATCGATC")
+        rec = SeqRecord(seq, "ID1")
+        qualifiers = {"source": "prediction", "score": 10.0, "other": ["Some", "annotations"],
+                      "ID": "gene1"}
+        rec.features = [SeqFeature(FeatureLocation(0, 20), type="gene", strand=1,
+                                   qualifiers=qualifiers)]
+        out_handle = StringIO.StringIO()
+        GFF.write([rec], out_handle, include_fasta=True)
+        wrote_info = out_handle.getvalue().split("\n")
+        fasta_parts = wrote_info[3:]
+        assert fasta_parts[0] == "##FASTA"
+        assert fasta_parts[1] == ">ID1 <unknown description>"
+        assert fasta_parts[2] == str(seq)
 
 def run_tests(argv):
     test_suite = testing_suite()

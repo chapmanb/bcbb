@@ -5,6 +5,8 @@ The target format is GFF3, the current GFF standard:
 """
 import urllib
 
+from Bio import SeqIO
+
 class _IdHandler:
     """Generate IDs for GFF3 Parent/Child relationships where they don't exist.
     """
@@ -64,11 +66,12 @@ class GFF3Writer:
     def __init__(self):
         pass
 
-    def write(self, recs, out_handle):
+    def write(self, recs, out_handle, include_fasta=False):
         """Write the provided records to the given handle in GFF3 format.
         """
         id_handler = _IdHandler()
         self._write_header(out_handle)
+        fasta_recs = []
         for rec in recs:
             self._write_rec(rec, out_handle)
             self._write_annotations(rec.annotations, rec.id, out_handle)
@@ -76,6 +79,10 @@ class GFF3Writer:
                 sf = self._clean_feature(sf)
                 id_handler = self._write_feature(sf, rec.id, out_handle,
                         id_handler)
+            if include_fasta and len(rec.seq) > 0:
+                fasta_recs.append(rec)
+        if len(fasta_recs) > 0:
+            self._write_fasta(fasta_recs, out_handle)
 
     def _clean_feature(self, feature):
         quals = {}
@@ -162,8 +169,17 @@ class GFF3Writer:
         """
         out_handle.write("##gff-version 3\n")
 
-def write(recs, out_handle):
+    def _write_fasta(self, recs, out_handle):
+        """Write sequence records using the ##FASTA directive.
+        """
+        out_handle.write("##FASTA\n")
+        SeqIO.write(recs, out_handle, "fasta")
+
+def write(recs, out_handle, include_fasta=False):
     """High level interface to write GFF3 files from SeqRecords and SeqFeatures.
+
+    If include_fasta is True, the GFF3 file will include sequence information
+    using the ##FASTA directive.
     """
     writer = GFF3Writer()
-    return writer.write(recs, out_handle)
+    return writer.write(recs, out_handle, include_fasta)
