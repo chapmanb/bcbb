@@ -1,0 +1,22 @@
+---
+fc_date: 111217
+fc_name: biostar
+details:
+  - files: [child_1-ready.fq, child_2-ready.fq]
+    description: child
+    analysis: SNP calling
+    genome_build: hg19
+    algorithm:
+      quality_format: Standard
+  - files: [father_1-ready.fq, father_2-ready.fq]
+    description: father
+    analysis: SNP calling
+    genome_build: hg19
+    algorithm:
+      quality_format: Standard
+  - files: [mother_1-ready.fq, mother_2-ready.fq]
+    description: mother
+    analysis: SNP calling
+    genome_build: hg19
+    algorithm:
+      quality_format: Standard
