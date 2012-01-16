@@ -168,7 +168,7 @@ def _gff_line_map(line, params):
             if len(parts) > 8:
                 quals, is_gff2 = _split_keyvals(gff_parts[8])
             else:
-                quals, is_gff2 = dict(), False
+                quals, is_gff2 = collections.defaultdict(list), False
             gff_info["is_gff2"] = is_gff2
             if gff_parts[1]:
                 quals["source"].append(gff_parts[1])
@@ -779,7 +779,7 @@ class GFFExaminer:
             # ignore empty and comment lines
             if line.strip() and line.strip()[0] != "#":
                 parts = [p.strip() for p in line.split('\t')]
-                assert len(parts) >= 9, line
+                assert len(parts) >= 8, line
                 parts = parts[:9]
                 for filter_key, cur_indexes in self._filter_info.items():
                     cur_id = tuple([parts[i] for i in cur_indexes])
@@ -811,7 +811,7 @@ class GFFExaminer:
             # when we hit FASTA sequences, we are done with annotations
             if line.startswith("##FASTA"):
                 break
-            if line.strip():
+            if line.strip() and not line.startswith("#"):
                 line_type, line_info = _gff_line_map(line,
                         self._get_local_params())[0]
                 if (line_type == 'parent' or (line_type == 'child' and
