@@ -779,7 +779,8 @@ class GFFExaminer:
             # ignore empty and comment lines
             if line.strip() and line.strip()[0] != "#":
                 parts = [p.strip() for p in line.split('\t')]
-                assert len(parts) == 9, line
+                assert len(parts) >= 9, line
+                parts = parts[:9]
                 for filter_key, cur_indexes in self._filter_info.items():
                     cur_id = tuple([parts[i] for i in cur_indexes])
                     cur_limits[filter_key][cur_id] += 1
