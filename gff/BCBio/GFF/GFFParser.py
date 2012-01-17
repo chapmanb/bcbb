@@ -821,7 +821,7 @@ class GFFExaminer:
                 if line_type == 'child':
                     for parent_id in line_info['quals']['Parent']:
                         child_sts[parent_id].append((
-                            line_info['quals']['source'][0], line_info['type']))
+                            line_info['quals'].get('source', [""])[0], line_info['type']))
         #print parent_sts, child_sts
         # generate a dictionary of the unique final type relationships
         pc_map = collections.defaultdict(list)
