@@ -817,7 +817,7 @@ class GFFExaminer:
                 if (line_type == 'parent' or (line_type == 'child' and
                         line_info['id'])):
                     parent_sts[line_info['id']] = (
-                            line_info['quals']['source'][0], line_info['type'])
+                            line_info['quals'].get('source', [""])[0], line_info['type'])
                 if line_type == 'child':
                     for parent_id in line_info['quals']['Parent']:
                         child_sts[parent_id].append((
