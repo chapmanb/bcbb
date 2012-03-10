@@ -72,6 +72,10 @@ class GFF3Writer:
         id_handler = _IdHandler()
         self._write_header(out_handle)
         fasta_recs = []
+        try:
+            recs = iter(recs)
+        except TypeError:
+            recs = [recs]
         for rec in recs:
             self._write_rec(rec, out_handle)
             self._write_annotations(rec.annotations, rec.id, out_handle)

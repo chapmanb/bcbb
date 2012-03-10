@@ -599,6 +599,21 @@ class OutputTest(unittest.TestCase):
         assert fasta_parts[1] == ">ID1 <unknown description>"
         assert fasta_parts[2] == str(seq)
 
+    def t_write_seqrecord(self):
+        """Write single SeqRecords.
+        """
+        seq = Seq("GATCGATCGATCGATCGATC")
+        rec = SeqRecord(seq, "ID1")
+        qualifiers = {"source": "prediction", "score": 10.0, "other": ["Some", "annotations"],
+                      "ID": "gene1"}
+        rec.features = [SeqFeature(FeatureLocation(0, 20), type="gene", strand=1,
+                                   qualifiers=qualifiers)]
+        out_handle = StringIO.StringIO()
+        GFF.write([rec], out_handle, include_fasta=True)
+        wrote_info = out_handle.getvalue().split("\n")
+        gff_line = wrote_info[2]
+        assert gff_line.split("\t")[0] == "ID1"
+
 def run_tests(argv):
     test_suite = testing_suite()
     runner = unittest.TextTestRunner(sys.stdout, verbosity = 2)
