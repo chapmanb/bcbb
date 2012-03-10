@@ -78,7 +78,7 @@ class GFF3Writer:
             recs = [recs]
         for rec in recs:
             self._write_rec(rec, out_handle)
-            self._write_annotations(rec.annotations, rec.id, out_handle)
+            self._write_annotations(rec.annotations, rec.id, len(rec.seq), out_handle)
             for sf in rec.features:
                 sf = self._clean_feature(sf)
                 id_handler = self._write_feature(sf, rec.id, out_handle,
@@ -104,6 +104,15 @@ class GFF3Writer:
         # if we have a SeqRecord, write out optional directive
         if len(rec.seq) > 0:
             out_handle.write("##sequence-region %s 1 %s\n" % (rec.id, len(rec.seq)))
+
+    def _get_phase(self, feature):
+        if feature.qualifiers.has_key("phase"):
+            phase = feature.qualifiers["phase"][0]
+        elif feature.type == "CDS":
+            phase = int(feature.qualifiers.get("codon_start", [1])[0]) - 1
+        else:
+            phase = "."
+        return str(phase)
 
     def _write_feature(self, feature, rec_id, out_handle, id_handler,
             parent_id=None):
@@ -137,7 +146,7 @@ class GFF3Writer:
                  str(feature.location.nofuzzy_end),
                  feature.qualifiers.get("score", ["."])[0],
                  strand,
-                 str(feature.qualifiers.get("phase", ["."])[0]),
+                 self._get_phase(feature),
                  self._format_keyvals(quals)]
         out_handle.write("\t".join(parts) + "\n")
         for sub_feature in feature.sub_features:
@@ -159,13 +168,13 @@ class GFF3Writer:
             format_kvs.append("%s=%s" % (key, ",".join(format_vals)))
         return ";".join(format_kvs)
 
-    def _write_annotations(self, anns, rec_id, out_handle):
+    def _write_annotations(self, anns, rec_id, size, out_handle):
         """Add annotations which refer to an entire sequence.
         """
         format_anns = self._format_keyvals(anns)
         if format_anns:
-            parts = [rec_id, "annotation", "remark", ".", ".", ".", ".", ".",
-                     format_anns]
+            parts = [rec_id, "annotation", "remark", "1", str(size if size > 1 else 1),
+                     ".", ".", ".", format_anns]
             out_handle.write("\t".join(parts) + "\n")
 
     def _write_header(self, out_handle):
