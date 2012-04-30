@@ -303,9 +303,10 @@ class BiogatewayTest(unittest.TestCase):
         results = self._server.search(builder)
         print len(results), results.dtype.names
         result = results[0]
-        print result['protein_name'], result['gene_name'], result['interactor'], result['GO_term']
+        print result['protein_name'], result['GO_term'], result['interactor'], \
+              result['disease_description']
 
-    def test_reference_query(self):
+    def needsupdatetest_reference_query(self):
         """Retrieve GO associations from a UniProt name.
         """
         builder = ReferenceBuilder()
