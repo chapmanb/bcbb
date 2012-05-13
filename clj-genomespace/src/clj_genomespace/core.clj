@@ -7,7 +7,8 @@
 (defprotocol GsAccess
   "Provide API for accessing GenomeSpace through CDK."
   (gs-upload [this dirname local-file])
-  (gs-download [this dirname fname]))
+  (gs-download [this dirname fname])
+  (get-user-token [this]))
 
 ;; ## Helper functions
 
@@ -16,8 +17,18 @@
                     (-> dm .listDefaultDirectory .getDirectory)
                     dirname))
 
-(defn- gs-remote-file [dm dirname fname]
-  (->> (.list dm dirname)
+(defn- gs-full-path
+  "Convert relative directory name into full GenomeSpace directory."
+  [dm dirname]
+  (str "/users/"
+       (-> dm .listDefaultDirectory .getDirectory .getName)
+       "/" dirname))
+
+(defn- gs-remote-file
+  "Retrieve GenomeSpace reference to remote file."
+  [dm dirname fname]
+  (->> (gs-full-path dm dirname)
+       (.list dm)
        .findFiles
        (filter #(= fname (.getName %)))
        first))
@@ -31,11 +42,23 @@
                  (gs-mkdir dm dirname)))
   (gs-download [this dirname fname]
     (.downloadFile dm (gs-remote-file dm dirname fname)
-                   (file fname) false)))
+                   (file fname) false))
+  (get-user-token [this]
+    (.getToken gsuser)))
 
-(defn get-gs-client
-  "Retrieve a GenomeSpace client given the login username and password."
-  [user passwd]
+(defmulti get-gs-client
+  "Retrieve a GenomeSpace client given username and password or token."
+  (fn [_ method _] method))
+
+(defmethod get-gs-client :password
+  [user _ passwd]
   (let [session (GsSession.)
-        user (.login session user passwd)]
-    (GsClient. session user (.getDataManagerClient session))))
+        gsuser (.login session user passwd)]
+    (GsClient. session gsuser (.getDataManagerClient session))))
+
+(defmethod get-gs-client :token
+  [user _ token]
+  (let [session (GsSession. token)
+        gsuser (-> (.getUserManagerClient session)
+                   (.getUser user))]
+    (GsClient. session gsuser (.getDataManagerClient session))))

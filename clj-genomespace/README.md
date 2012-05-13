@@ -19,9 +19,9 @@ Download Clojure libraries, the GenomeSpace CDK and start a REPL:
 From the REPL:
 
     user> (use 'clj-genomespace.core)
-    user> (def client (get-gs-client "password" "VqI3uUGh"))
+    user> (def client (get-gs-client "chapmanb" :password "password"))
     user> (gs-upload client "cdk-test" "/path/to/yourfile.vcf")
-    user> (gs-download client "/users/chapmanb/cdk-test" "yourfile.vcf")
+    user> (gs-download client "cdk-test" "yourfile.vcf")
 
 ## License
 
