@@ -2,20 +2,19 @@
   (:import [org.genomespace.client GsSession])
   (:use [clojure.java.io]))
 
-(defn- gs-mkdir [dm-client dirname]
-  (.createDirectory dm-client
-                    (-> dm-client .listDefaultDirectory .getDirectory)
+;; ## API for accessing GenomeSpace
+
+(defprotocol GsAccess
+  "Provide API for accessing GenomeSpace through CDK."
+  (gs-upload [this dirname local-file])
+  (gs-download [this dirname fname]))
+
+;; ## Helper functions
+
+(defn- gs-mkdir [dm dirname]
+  (.createDirectory dm
+                    (-> dm .listDefaultDirectory .getDirectory)
                     dirname))
-
-(defn- gs-login [user passwd]
-  (doto (GsSession.)
-    (.login user passwd)))
-
-(defn gs-upload [user passwd dirname local-file]
-  (let [session (gs-login user passwd)
-        dm-client (.getDataManagerClient session)]
-    (.uploadFile dm-client (file local-file)
-                 (gs-mkdir dm-client dirname))))
 
 (defn- gs-remote-file [dm dirname fname]
   (->> (.list dm dirname)
@@ -23,7 +22,20 @@
        (filter #(= fname (.getName %)))
        first))
 
-(defn gs-download [user passwd dirname fname]
-  (let [dm (.getDataManagerClient (gs-login user passwd))]
+;; Implementation and factory
+
+(defrecord GsClient [session gsuser dm]
+  GsAccess
+  (gs-upload [this dirname local-file]
+    (.uploadFile dm (file local-file)
+                 (gs-mkdir dm dirname)))
+  (gs-download [this dirname fname]
     (.downloadFile dm (gs-remote-file dm dirname fname)
                    (file fname) false)))
+
+(defn get-gs-client
+  "Retrieve a GenomeSpace client given the login username and password."
+  [user passwd]
+  (let [session (GsSession.)
+        user (.login session user passwd)]
+    (GsClient. session user (.getDataManagerClient session))))
