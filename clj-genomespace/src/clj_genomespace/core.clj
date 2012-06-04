@@ -10,7 +10,7 @@
   (download [this dirname fname])
   (get-user-token [this])
   (list-dirs [this base-dir])
-  (get-files [this dirname ftype])
+  (list-files [this dirname ftype])
   (logged-in? [this]))
 
 ;; ## Helper functions
@@ -49,7 +49,7 @@
     (map #(str base "/" (.getName %))
          (.findDirectories (.list dm base)))))
 
-(defn- gs-get-files
+(defn- gs-list-files
   "Retrieve files of a specific filetype in a directory."
   [dm gsuser dirname ftype]
   (letfn [(name-and-ftype [gs-file-meta]
@@ -78,8 +78,8 @@
     (.isLoggedIn session))
   (list-dirs [_ base-dir]
     (gs-get-dirs dm gsuser base-dir))
-  (get-files [_ dirname ftype]
-    (gs-get-files dm gsuser dirname ftype)))
+  (list-files [_ dirname ftype]
+    (gs-list-files dm gsuser dirname ftype)))
 
 (defmulti get-client
   "Retrieve a GenomeSpace client given username and password or token."
