@@ -1,5 +1,6 @@
 (ns clj-genomespace.core
-  (:import [org.genomespace.client GsSession])
+  (:import [org.genomespace.client GsSession]
+           [org.genomespace.client.exceptions AuthorizationException])
   (:use [clojure.java.io]))
 
 ;; ## API for accessing GenomeSpace
@@ -88,8 +89,10 @@
 (defmethod get-client :password
   [user _ passwd]
   (let [session (GsSession.)
-        gsuser (.login session user passwd)]
-    (GsClient. session gsuser (.getDataManagerClient session))))
+        gsuser (try (.login session user passwd)
+                    (catch AuthorizationException e nil))]
+    (when gsuser
+      (GsClient. session gsuser (.getDataManagerClient session)))))
 
 (defmethod get-client :token
   [user _ token]

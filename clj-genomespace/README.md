@@ -4,7 +4,12 @@ This is a simple API to access [GenomeSpace][1] from Clojure using the Java
 CDK. This allows upload and download of files to GenomeSpace. GenomeSpace
 makes these files available to Galaxy, GenePattern and other tools.
 
+The library is available from [Clojars][2] for inclusion in [Leiningen][3]
+managed projects.
+
 [1]: http://www.genomespace.org/
+[2]: https://clojars.org/clj-genomespace
+[3]: http://leiningen.org/
 
 ## Usage
 
