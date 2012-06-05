@@ -1,19 +1,16 @@
 # GenomeSpace with Clojure
 
-This is a small test to access [GenomeSpace][1] from Clojure using the Java
-API. This allows upload and download of files to GenomeSpace. GenomeSpace itself
+This is a simple API to access [GenomeSpace][1] from Clojure using the Java
+CDK. This allows upload and download of files to GenomeSpace. GenomeSpace
 makes these files available to Galaxy, GenePattern and other tools.
 
 [1]: http://www.genomespace.org/
 
 ## Usage
 
-Download Clojure libraries, the GenomeSpace CDK and start a REPL:
+Download Clojure libraries and the GenomeSpace CDK and start a REPL:
 
     $ lein deps
-    $ wget http://genomespace.org/attachments/cdk_beta4_0.zip
-    $ unzip cdk_beta4_0.zip
-    $ cp CDK_beta4.0/lib/*.jar lib
     $ lein repl
 
 Usage, from the REPL:
