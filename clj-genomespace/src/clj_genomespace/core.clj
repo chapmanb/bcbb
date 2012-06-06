@@ -8,7 +8,7 @@
 (defprotocol GsAccess
   "Provide API for accessing GenomeSpace through CDK."
   (upload [this dirname local-file])
-  (download [this dirname fname])
+  (download [this dirname fname out-dirname])
   (get-user-token [this])
   (list-dirs [this base-dir])
   (list-files [this dirname ftype])
@@ -70,9 +70,9 @@
   (upload [_ dirname local-file]
     (.uploadFile dm (file local-file)
                  (gs-mkdir dm gsuser dirname)))
-  (download [_ dirname fname]
+  (download [_ dirname fname out-dirname]
     (.downloadFile dm (gs-remote-file dm gsuser dirname fname)
-                   (file fname) false))
+                   (file out-dirname fname) false))
   (get-user-token [_]
     (.getToken gsuser))
   (logged-in? [_]

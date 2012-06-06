@@ -23,7 +23,7 @@ Usage, from the REPL:
     user> (require '[clj-genomespace.core :as gs])
     user> (def client (gs/get-client "chapmanb" :password "password"))
     user> (gs/upload client "cdk-test" "/path/to/yourfile.vcf")
-    user> (gs/download client "cdk-test" "yourfile.vcf")
+    user> (gs/download client "cdk-test" "yourfile.vcf" ".")
     user> (gs/list-dirs client ".")
     user> (gs/list-files client "cdk-test" "vcf")
     
