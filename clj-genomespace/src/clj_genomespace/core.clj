@@ -1,7 +1,8 @@
 (ns clj-genomespace.core
   (:import [org.genomespace.client GsSession]
            [org.genomespace.client.exceptions AuthorizationException])
-  (:use [clojure.java.io]))
+  (:use [clojure.java.io])
+  (:require [clojure.string :as string]))
 
 ;; ## API for accessing GenomeSpace
 
@@ -30,9 +31,13 @@
         :else (str base "/" dirname)))))
 
 (defn- gs-mkdir [dm gsuser dirname]
-  (.createDirectory dm
-                    (gs-user-path dm gsuser)
-                    dirname))
+  (let [safe-dirname (if (.endsWith dirname "/")
+                       (subs dirname 0 (dec (.length dirname)))
+                       dirname)
+        full-dir-parts (string/split (gs-user-path dm gsuser safe-dirname) #"/")]
+    (.createDirectory dm
+                      (string/join "/" (butlast full-dir-parts))
+                      (last full-dir-parts))))
 
 (defn- gs-remote-file
   "Retrieve GenomeSpace reference to remote file."
