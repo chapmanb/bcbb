@@ -1,0 +1,51 @@
+##fileformat=VCFv4.1
+##FILTER=<ID=GATKStandardFS,Description="FS > 200.0">
+##FILTER=<ID=GATKStandardHRun,Description="HRun > 5">
+##FILTER=<ID=GATKStandardQD,Description="QD < 2.0">
+##FILTER=<ID=GATKStandardReadPosRankSum,Description="ReadPosRankSum < -20.0">
+##FORMAT=<ID=AD,Number=.,Type=Integer,Description="Allelic depths for the ref and alt alleles in the order listed">
+##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Read Depth (only filtered reads used for calling)">
+##FORMAT=<ID=GQ,Number=1,Type=Float,Description="Genotype Quality">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=PL,Number=G,Type=Integer,Description="Normalized, Phred-scaled likelihoods for genotypes as defined in the VCF specification">
+##INFO=<ID=AC,Number=A,Type=Integer,Description="Allele count in genotypes, for each ALT allele, in the same order as listed">
+##INFO=<ID=AF,Number=A,Type=Float,Description="Allele Frequency, for each ALT allele, in the same order as listed">
+##INFO=<ID=AN,Number=1,Type=Integer,Description="Total number of alleles in called genotypes">
+##INFO=<ID=BaseQRankSum,Number=1,Type=Float,Description="Z-score from Wilcoxon rank sum test of Alt Vs. Ref base qualities">
+##INFO=<ID=DB,Number=0,Type=Flag,Description="dbSNP Membership">
+##INFO=<ID=DP,Number=1,Type=Integer,Description="Filtered Depth">
+##INFO=<ID=DS,Number=0,Type=Flag,Description="Were any of the samples downsampled?">
+##INFO=<ID=Dels,Number=1,Type=Float,Description="Fraction of Reads Containing Spanning Deletions">
+##INFO=<ID=FS,Number=1,Type=Float,Description="Phred-scaled p-value using Fisher's exact test to detect strand bias">
+##INFO=<ID=HRun,Number=1,Type=Integer,Description="Largest Contiguous Homopolymer Run of Variant Allele In Either Direction">
+##INFO=<ID=HaplotypeScore,Number=1,Type=Float,Description="Consistency of the site with at most two segregating haplotypes">
+##INFO=<ID=InbreedingCoeff,Number=1,Type=Float,Description="Inbreeding coefficient as estimated from the genotype likelihoods per-sample when compared against the Hardy-Weinberg expectation">
+##INFO=<ID=MQ,Number=1,Type=Float,Description="RMS Mapping Quality">
+##INFO=<ID=MQ0,Number=1,Type=Integer,Description="Total Mapping Quality Zero Reads">
+##INFO=<ID=MQRankSum,Number=1,Type=Float,Description="Z-score From Wilcoxon rank sum test of Alt vs. Ref read mapping qualities">
+##INFO=<ID=QD,Number=1,Type=Float,Description="Variant Confidence/Quality by Depth">
+##INFO=<ID=ReadPosRankSum,Number=1,Type=Float,Description="Z-score from Wilcoxon rank sum test of Alt vs. Ref read position bias">
+##INFO=<ID=SNPEFF_AMINO_ACID_CHANGE,Number=1,Type=String,Description="Old/New amino acid for the highest-impact effect resulting from the current variant">
+##INFO=<ID=SNPEFF_CODON_CHANGE,Number=1,Type=String,Description="Old/New codon for the highest-impact effect resulting from the current variant">
+##INFO=<ID=SNPEFF_EFFECT,Number=1,Type=String,Description="The highest-impact effect resulting from the current variant (or one of the highest-impact effects, if there is a tie)">
+##INFO=<ID=SNPEFF_EXON_ID,Number=1,Type=String,Description="Exon ID for the highest-impact effect resulting from the current variant">
+##INFO=<ID=SNPEFF_GENE_BIOTYPE,Number=1,Type=String,Description="Gene biotype for the highest-impact effect resulting from the current variant">
+##INFO=<ID=SNPEFF_GENE_NAME,Number=1,Type=String,Description="Gene name for the highest-impact effect resulting from the current variant">
+##INFO=<ID=SNPEFF_IMPACT,Number=1,Type=String,Description="Impact of the highest-impact effect resulting from the current variant [LOW, MODERATE, HIGH]">
+##INFO=<ID=SNPEFF_TRANSCRIPT_ID,Number=1,Type=String,Description="Transcript ID for the highest-impact effect resulting from the current variant">
+##INFO=<ID=set,Number=1,Type=String,Description="Source VCF for the merged record in CombineVariants">
+##contig=<ID=22,length=20001,assembly=GRCh37>
+##contig=<ID=MT,length=16571,assembly=GRCh37>
+##source=SelectVariants
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	Test1
+MT	73	.	G	A	5826.09	PASS	AC=2;AF=1.00;AN=2;DP=250;DS;Dels=0.00;FS=0.000;HRun=0;HaplotypeScore=2.6163;MQ=51.06;MQ0=0;QD=23.30;set=7_100326_FC6107FAAXX-sort-dup-gatkrecal-realign-variants-snp-filterSNP	GT:AD:DP:GQ:PL	1/1:0,250:250:99:5820,645,0
+MT	150	.	T	C	7171.91	PASS	AC=2;AF=1.00;AN=2;DP=239;DS;Dels=0.00;FS=0.000;HRun=1;HaplotypeScore=0.0000;MQ=45.37;MQ0=0;QD=30.01;set=7_100326_FC6107FAAXX-sort-dup-gatkrecal-realign-variants-snp-filterSNP	GT:AD:DP:GQ:PL	1/1:0,239:239:99:7168,697,0
+MT	152	rs117135796	T	C	9054.79	PASS	AC=2;AF=1.00;AN=2;BaseQRankSum=1.523;DB;DP=250;DS;Dels=0.00;FS=4.161;HRun=1;HaplotypeScore=0.0000;MQ=47.55;MQ0=0;MQRankSum=-0.112;QD=36.22;ReadPosRankSum=-0.237;set=7_100326_FC6107FAAXX-sort-dup-gatkrecal-realign-variants-snp-filterSNP	GT:AD:DP:GQ:PL	1/1:1,249:250:99:9019,706,0
+MT	195	.	C	T	7590.67	PASS	AC=2;AF=1.00;AN=2;DP=250;DS;Dels=0.00;FS=0.000;HRun=1;HaplotypeScore=0.9734;MQ=49.73;MQ0=0;QD=30.36;set=7_100326_FC6107FAAXX-sort-dup-gatkrecal-realign-variants-snp-filterSNP	GT:AD:DP:GQ:PL	1/1:0,250:250:99:7587,733,0
+MT	302	rs66492218	AC	A	83.71	GATKStandardQD	AC=1;AF=0.50;AN=2;BaseQRankSum=1.112;DB;DP=169;DS;FS=0.000;HRun=8;HaplotypeScore=678.8788;MQ=50.96;MQ0=0;MQRankSum=1.456;QD=0.48;ReadPosRankSum=3.035;set=FilteredInAll	GT:AD:DP:GQ:PL	0/1:161,11:169:99:123,0,2245
+MT	410	.	A	T	7210.66	PASS	AC=2;AF=1.00;AN=2;DP=250;DS;Dels=0.00;FS=0.000;HRun=3;HaplotypeScore=1.9973;MQ=58.51;MQ0=0;QD=28.84;set=7_100326_FC6107FAAXX-sort-dup-gatkrecal-realign-variants-snp-filterSNP	GT:AD:DP:GQ:PL	0/1:0,250:250:99:7207,709,0
+MT	2261	.	C	T	6756.95	PASS	AC=2;AF=1.00;AN=2;DP=250;DS;Dels=0.00;FS=0.000;HRun=0;HaplotypeScore=0.0000;MQ=59.82;MQ0=0;QD=27.03;set=7_100326_FC6107FAAXX-sort-dup-gatkrecal-realign-variants-snp-filterSNP	GT:AD:DP:GQ:PL	1/1:0,250:250:99:6751,721,0
+MT	2354	.	C	T	6590.88	PASS	AC=2;AF=1.00;AN=2;DP=250;DS;Dels=0.00;FS=0.000;HRun=1;HaplotypeScore=2.6166;MQ=58.53;MQ0=0;QD=26.36;set=7_100326_FC6107FAAXX-sort-dup-gatkrecal-realign-variants-snp-filterSNP	GT:AD:DP:GQ:PL	1/1:0,250:250:99:6585,708,0
+MT	2485	.	C	T	4534.33	PASS	AC=2;AF=1.00;AN=2;DP=250;DS;Dels=0.00;FS=0.000;HRun=0;HaplotypeScore=2.9611;MQ=56.22;MQ0=0;QD=18.14;set=7_100326_FC6107FAAXX-sort-dup-gatkrecal-realign-variants-snp-filterSNP	GT:AD:DP:GQ:PL	1/1:14,236:250:99:4531,471,0
+MT	2708	.	G	A	3384.75	PASS	AC=2;AF=1.00;AN=2;DP=218;Dels=0.00;FS=0.000;HRun=1;HaplotypeScore=0.9832;MQ=54.99;MQ0=0;QD=15.53;set=7_100326_FC6107FAAXX-sort-dup-gatkrecal-realign-variants-snp-filterSNP	GT:AD:DP:GQ:PL	1/1:0,218:218:99:3381,369,0
+MT	4746	.	A	G	7539.02	PASS	AC=2;AF=1.00;AN=2;BaseQRankSum=0.730;DP=244;DS;Dels=0.00;FS=0.000;HRun=0;HaplotypeScore=0.9973;MQ=59.53;MQ0=0;MQRankSum=1.217;QD=30.90;ReadPosRankSum=-1.417;set=7_100326_FC6107FAAXX-sort-dup-gatkrecal-realign-variants-snp-filterSNP	GT:AD:DP:GQ:PL	1/1:1,243:244:99:7505,684,0

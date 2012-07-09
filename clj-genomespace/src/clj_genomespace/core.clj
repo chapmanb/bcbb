@@ -58,15 +58,18 @@
 (defn- gs-list-files
   "Retrieve files of a specific filetype in a directory."
   [dm gsuser dirname ftype]
-  (letfn [(name-and-ftype [gs-file-meta]
-            {:name (.getPath gs-file-meta)
-             :ftype (.getName (.getDataFormat gs-file-meta))}
+  (letfn [(meta-to-record [gs-file-meta]
+            (let [fname (.getPath gs-file-meta)]
+              {:name (str (.getName (file fname)))
+               :dirname (str (.getParentFile (file fname)))
+               :ftype (.getName (.getDataFormat gs-file-meta))
+               :date (.getLastModified gs-file-meta)
+               :size (.getSize gs-file-meta)})
             )]
     (let [base (gs-user-path dm gsuser dirname)]
       (->> (.findFiles (.list dm base))
-           (map name-and-ftype)
-           (filter #(= (:ftype %) ftype))
-           (map :name)))))
+           (map meta-to-record)
+           (filter #(= (:ftype %) ftype))))))
 
 ;; Implementation and factory
 
