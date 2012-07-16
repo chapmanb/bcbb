@@ -15,4 +15,5 @@
     (gs/download client "cdk-test" "gstest.vcf" ".")
     (is true (.exists (file test-out-fname)))
     (println (gs/list-dirs client "."))
+    (println (gs/list-files client "." nil))
     (println (gs/list-files client "cdk-test" "vcf"))))

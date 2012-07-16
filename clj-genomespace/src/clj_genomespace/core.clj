@@ -62,7 +62,7 @@
             (let [fname (.getPath gs-file-meta)]
               {:name (str (.getName (file fname)))
                :dirname (str (.getParentFile (file fname)))
-               :ftype (.getName (.getDataFormat gs-file-meta))
+               :ftype (when-let [x (.getDataFormat gs-file-meta)] (.getName x))
                :date (.getLastModified gs-file-meta)
                :size (.getSize gs-file-meta)})
             )]
