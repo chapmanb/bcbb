@@ -1,7 +1,8 @@
 (ns clj-genomespace.core
   (:import [org.genomespace.client GsSession]
            [org.genomespace.client.exceptions AuthorizationException])
-  (:use [clojure.java.io]))
+  (:use [clojure.java.io])
+  (:require [clojure.string :as string]))
 
 ;; ## API for accessing GenomeSpace
 
@@ -30,9 +31,13 @@
         :else (str base "/" dirname)))))
 
 (defn- gs-mkdir [dm gsuser dirname]
-  (.createDirectory dm
-                    (gs-user-path dm gsuser)
-                    dirname))
+  (let [safe-dirname (if (.endsWith dirname "/")
+                       (subs dirname 0 (dec (.length dirname)))
+                       dirname)
+        full-dir-parts (string/split (gs-user-path dm gsuser safe-dirname) #"/")]
+    (.createDirectory dm
+                      (string/join "/" (butlast full-dir-parts))
+                      (last full-dir-parts))))
 
 (defn- gs-remote-file
   "Retrieve GenomeSpace reference to remote file."
@@ -53,15 +58,18 @@
 (defn- gs-list-files
   "Retrieve files of a specific filetype in a directory."
   [dm gsuser dirname ftype]
-  (letfn [(name-and-ftype [gs-file-meta]
-            {:name (.getPath gs-file-meta)
-             :ftype (.getName (.getDataFormat gs-file-meta))}
+  (letfn [(meta-to-record [gs-file-meta]
+            (let [fname (.getPath gs-file-meta)]
+              {:name (str (.getName (file fname)))
+               :dirname (str (.getParentFile (file fname)))
+               :ftype (when-let [x (.getDataFormat gs-file-meta)] (.getName x))
+               :date (.getLastModified gs-file-meta)
+               :size (.getSize gs-file-meta)})
             )]
     (let [base (gs-user-path dm gsuser dirname)]
       (->> (.findFiles (.list dm base))
-           (map name-and-ftype)
-           (filter #(= (:ftype %) ftype))
-           (map :name)))))
+           (map meta-to-record)
+           (filter #(= (:ftype %) ftype))))))
 
 ;; Implementation and factory
 
