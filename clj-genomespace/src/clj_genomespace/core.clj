@@ -11,6 +11,7 @@
   (upload [this dirname local-file])
   (download [this dirname fname out-dirname])
   (get-user-token [this])
+  (get-username [this])
   (list-dirs [this base-dir])
   (list-files [this dirname ftype])
   (logged-in? [this]))
@@ -83,6 +84,8 @@
                    (file out-dirname fname) false))
   (get-user-token [_]
     (.getToken gsuser))
+  (get-username [_]
+    (.getUsername gsuser))
   (logged-in? [_]
     (.isLoggedIn session))
   (list-dirs [_ base-dir]
