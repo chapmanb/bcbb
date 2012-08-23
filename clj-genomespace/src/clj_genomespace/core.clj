@@ -9,8 +9,9 @@
 (defprotocol GsAccess
   "Provide API for accessing GenomeSpace through CDK."
   (upload [this dirname local-file])
-  (download [this dirname fname out-dirname])
+  (download [this dirname fname out-name])
   (get-user-token [this])
+  (get-username [this])
   (list-dirs [this base-dir])
   (list-files [this dirname ftype])
   (logged-in? [this]))
@@ -64,12 +65,14 @@
                :dirname (str (.getParentFile (file fname)))
                :ftype (when-let [x (.getDataFormat gs-file-meta)] (.getName x))
                :date (.getLastModified gs-file-meta)
-               :size (.getSize gs-file-meta)})
-            )]
+               :size (.getSize gs-file-meta)}))
+          (matches-ftype? [x]
+            (or (= (:ftype x) ftype)
+                (.endsWith (:name x) ftype)))]
     (let [base (gs-user-path dm gsuser dirname)]
       (->> (.findFiles (.list dm base))
            (map meta-to-record)
-           (filter #(= (:ftype %) ftype))))))
+           (filter matches-ftype?)))))
 
 ;; Implementation and factory
 
@@ -78,11 +81,16 @@
   (upload [_ dirname local-file]
     (.uploadFile dm (file local-file)
                  (gs-mkdir dm gsuser dirname)))
-  (download [_ dirname fname out-dirname]
+  (download [_ dirname fname out-name]
     (.downloadFile dm (gs-remote-file dm gsuser dirname fname)
-                   (file out-dirname fname) false))
+                   (if (.isDirectory (file out-name))
+                     (file out-name fname)
+                     (file out-name))
+                   false))
   (get-user-token [_]
     (.getToken gsuser))
+  (get-username [_]
+    (.getUsername gsuser))
   (logged-in? [_]
     (.isLoggedIn session))
   (list-dirs [_ base-dir]
