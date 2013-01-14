@@ -12,6 +12,7 @@ Requires:
 import os
 import sys
 import csv
+import glob
 import ftplib
 import subprocess
 import contextlib
@@ -28,6 +29,7 @@ def main(config_file):
         config = yaml.load(in_handle)
     Entrez.email = config['email']
     socket.setdefaulttimeout(config['url_timeout'])
+    local_get = LocalRetrieval()
     ncbi_get = NcbiEntrezRetrieval()
     ensembl_get = EnsemblFtpRetrieval()
     organisms = read_org_list(config['org_file'])
@@ -39,8 +41,12 @@ def main(config_file):
     org_files = []
     for org in organisms:
         print "Preparing organism:", org
+        check_custom = [x for x in glob.glob(os.path.join(config["db_dir"], "custom", "%s*" % org))
+                        if not x.endswith((".phr", ".pin", ".psq"))]
         if org in config.get('problem_orgs', []):
             db_file = ''
+        elif len(check_custom) == 1:
+            db_file = local_get.retrieve_db(org, check_custom[0], db_dir)
         else:
             db_file = ensembl_get.retrieve_db(org, ensembl_db_dir)
             if db_file:
@@ -69,6 +75,14 @@ class _BaseRetrieval:
                       "-out", db_name,
                       "-title", organism]
                 subprocess.check_call(cl)
+
+class LocalRetrieval(_BaseRetrieval):
+    """Prepare a database file from a local FASTA ref.
+    """
+    def retrieve_db(self, org, fname, db_dir):
+        self._make_blast_db(os.path.dirname(fname), os.path.basename(fname),
+                            os.path.splitext(os.path.basename(fname))[0], org)
+        return os.path.splitext(fname.replace("%s/" % db_dir, ""))[0]
 
 class NcbiEntrezRetrieval(_BaseRetrieval):
     """Pull down fasta protein genome sequences using NCBI Entrez.

@@ -103,7 +103,7 @@ def _compare_by_blast(input_ref, xref_db, blast_out, subject_blast=False):
     """Compare all genes in an input file to the output database.
     """
     cl = NcbiblastpCommandline(query=input_ref, db=xref_db, out=blast_out,
-            outfmt=5, num_descriptions=1, num_alignments=0)
+            outfmt=5, num_descriptions=1, num_alignments=1)
     try:
         subprocess.check_call(str(cl).split())
     # handle BLAST errors cleanly; write an empty file and keep moving
