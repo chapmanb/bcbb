@@ -37,7 +37,7 @@ def main(org_config_file, config_file):
     pool = multiprocessing.Pool(int(config['num_cores']))
     with open(org_config['search_file']) as in_handle:
         pool.map(_process_wrapper,
-                ((rec, db_refs, file_info, config['work_dir'])
+                ((rec, db_refs, file_info, config['work_dir'], config.get("blast_cmd"))
                     for rec in SeqIO.parse(in_handle, "fasta")))
 
 def _process_wrapper(args):
@@ -46,11 +46,11 @@ def _process_wrapper(args):
     except KeyboardInterrupt:
         raise Exception
 
-def process_blast(rec, db_refs, file_info, tmp_dir):
+def process_blast(rec, db_refs, file_info, tmp_dir, blast_cmd):
     """Run a BLAST writing results to shared files.
     """
     cur_id, id_info, score_info = blast.blast_top_hits(rec.id, rec.format("fasta"),
-            db_refs, tmp_dir)
+            db_refs, tmp_dir, blast_cmd)
     with fupdate_lock:
         id_file, score_file = file_info
         for fname, fvals in [(id_file, id_info), (score_file, score_info)]:

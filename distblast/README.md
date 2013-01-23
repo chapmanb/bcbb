@@ -47,6 +47,8 @@ To start the comparison process, prepare a directory structure like:
         num_cores: 4
         url_timeout: 20
         evalue_thresh: 10
+        blast_cmd: blastp
+        blastdb_cmd: makeblastdb
 
 - `org_list.csv` is a simple text file containing the lists of organisms to
   compare against on each line:

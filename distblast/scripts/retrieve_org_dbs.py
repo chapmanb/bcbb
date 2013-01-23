@@ -29,9 +29,9 @@ def main(config_file):
         config = yaml.load(in_handle)
     Entrez.email = config['email']
     socket.setdefaulttimeout(config['url_timeout'])
-    local_get = LocalRetrieval()
-    ncbi_get = NcbiEntrezRetrieval()
-    ensembl_get = EnsemblFtpRetrieval()
+    local_get = LocalRetrieval(config)
+    ncbi_get = NcbiEntrezRetrieval(config)
+    ensembl_get = EnsemblFtpRetrieval(config)
     organisms = read_org_list(config['org_file'])
     db_dir = config['db_dir']
     ensembl_db_dir = os.path.join(db_dir, "ensembl")
@@ -70,7 +70,8 @@ class _BaseRetrieval:
     def _make_blast_db(self, db_dir, final_file, db_name, organism):
         with _chdir(db_dir):
             if not os.path.exists("%s.pin" % db_name):
-                cl = ["makeblastdb", "-in", os.path.basename(final_file),
+                cmd = self._config.get("blastdb_cmd", "makeblastdb")
+                cl = [cmd, "-in", os.path.basename(final_file),
                       "-dbtype", "prot",
                       "-out", db_name,
                       "-title", organism]
@@ -79,6 +80,9 @@ class _BaseRetrieval:
 class LocalRetrieval(_BaseRetrieval):
     """Prepare a database file from a local FASTA ref.
     """
+    def __init__(self, config):
+        self._config = config
+
     def retrieve_db(self, org, fname, db_dir):
         self._make_blast_db(os.path.dirname(fname), os.path.basename(fname),
                             os.path.splitext(os.path.basename(fname))[0], org)
@@ -87,8 +91,9 @@ class LocalRetrieval(_BaseRetrieval):
 class NcbiEntrezRetrieval(_BaseRetrieval):
     """Pull down fasta protein genome sequences using NCBI Entrez.
     """
-    def __init__(self):
+    def __init__(self, config):
         self._max_tries = 5
+        self._config = config
 
     def retrieve_db(self, organism, db_dir):
         genome_ids = self._query_for_ids(organism)
@@ -147,12 +152,13 @@ class NcbiEntrezRetrieval(_BaseRetrieval):
 class EnsemblFtpRetrieval(_BaseRetrieval):
     """Handle obtaining a reference genome from Ensembl
     """
-    def __init__(self):
+    def __init__(self, config):
         self._main_ftp = "ftp://ftp.ensembl.org/pub/current_fasta/"
         self._genome_ftp = "ftp://ftp.ensemblgenomes.org/pub/%s/current/fasta/"
         self._genome_dbs = ["bacteria", "protists", "metazoa", "fungi",
                 "plants"]
         self._initialized = False
+        self._config = config
 
     def _initialize(self):
         if not self._initialized:

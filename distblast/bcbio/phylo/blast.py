@@ -33,7 +33,7 @@ def get_org_dbs(db_dir, target_org):
     assert fasta_ref is not None, "Did not find base organism database"
     return fasta_ref, org_names, db_refs
 
-def blast_top_hits(key, rec, db_refs, tmp_dir):
+def blast_top_hits(key, rec, db_refs, tmp_dir, blast_cmd=None):
     """BLAST a fasta record against multiple DBs, returning top IDs and scores.
     """
     cur_id = _normalize_id(key)
@@ -44,7 +44,8 @@ def blast_top_hits(key, rec, db_refs, tmp_dir):
             out_handle.write(rec)
         for xref_db in db_refs:
             with _tmpfile(prefix="out", dir=tmp_dir) as blast_out:
-                out_id, out_eval = _compare_by_blast(ref_in, xref_db, blast_out)
+                out_id, out_eval = _compare_by_blast(ref_in, xref_db, blast_out,
+                                                     blast_cmd=blast_cmd)
                 id_info.append(out_id)
                 score_info.append(out_eval)
     return cur_id, id_info, score_info
@@ -99,15 +100,21 @@ def _compare_by_blast_2seq(query, subject, blast_out):
         score = parts[-1]
     return identity, score
 
-def _compare_by_blast(input_ref, xref_db, blast_out, subject_blast=False):
+def _compare_by_blast(input_ref, xref_db, blast_out, subject_blast=False,
+                      blast_cmd=None):
     """Compare all genes in an input file to the output database.
     """
-    cl = NcbiblastpCommandline(query=input_ref, db=xref_db, out=blast_out,
-            outfmt=5, num_descriptions=1, num_alignments=1)
+    if blast_cmd is None:
+        blast_cmd = "blastp"
+    cl = NcbiblastpCommandline(cmd=blast_cmd, query=input_ref, db=xref_db,
+                               out=blast_out, outfmt=5, num_descriptions=1,
+                               num_alignments=1)
     try:
         subprocess.check_call(str(cl).split())
     # handle BLAST errors cleanly; write an empty file and keep moving
-    except (OSError, subprocess.CalledProcessError):
+    except (OSError, subprocess.CalledProcessError), e:
+        if str(e) == "[Errno 2] No such file or directory":
+            raise ValueError("Could not find blast executable: %s" % blast_cmd)
         with open(blast_out, "w") as out_handle:
             out_handle.write("\n")
     with codecs.open(blast_out, encoding="utf-8", errors="replace") as blast_handle:
