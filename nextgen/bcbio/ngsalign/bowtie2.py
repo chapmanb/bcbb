@@ -31,7 +31,7 @@ def align(fastq_file, pair_file, ref_file, out_base, align_dir, config,
     out_file = os.path.join(align_dir, "%s.sam" % out_base)
     if not file_exists(out_file):
         with file_transaction(out_file) as tx_out_file:
-            cl = [config_utils.get_program("bowtie2", config)]
+            cl = [config_utils.get_program("bowtie", config)]
             cl += _bowtie2_args_from_config(config)
             cl += extra_args if extra_args is not None else []
             cl += ["-q",
