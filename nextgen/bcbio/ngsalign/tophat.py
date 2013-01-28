@@ -125,16 +125,15 @@ def _estimate_paired_innerdist(fastq_file, pair_file, ref_file, out_base,
     if len(dists) == 0:
         dists = _bowtie_for_innerdist("1", fastq_file, pair_file, ref_file,
                                       out_base, out_dir, config, True)
-    # bowtie2 can come up with very long inner distances between reads
-    # remove those from the paired innerdist calculation
-    raw_median = int(round(numpy.median(dists)))
+    raw_median = int(round(numpy.mean(dists)))
     raw_std = int(round(numpy.std(dists)))
     logger.info("Raw inner distance for %s and %s calculated as "
                 "median: %d std: %f." % (fastq_file, pair_file, raw_median,
                                          raw_std))
-    # call reads 3 std from the median outliers
-    cleaned = [x for x in dists if abs(x - raw_median) < 3 * raw_std]
-    clean_median = int(round(numpy.median(cleaned)))
+    # bowtie2 has forgot about the -X option, so manually implement it
+    # 2000 is the default from the bowtie module
+    cleaned = [x for x in dists if x < 2000]
+    clean_median = int(round(numpy.mean(cleaned)))
     clean_std = int(round(numpy.std(cleaned)))
     logger.info("Outlier filtered inner distance for %s and %s calculated as "
                 "median: %d std: %f." % (fastq_file, pair_file, clean_median,
