@@ -20,7 +20,7 @@ def _bowtie2_args_from_config(config):
         qual_flags = ["--phred64-quals"]
     else:
         qual_flags = []
-    cores = config.get("resources", {}).get("bowtie", {}).get("cores", None)
+    cores = config.get("resources", {}).get("bowtie2", {}).get("cores", None)
     core_flags = ["-p", str(cores)] if cores else []
     return core_flags + qual_flags
 
@@ -31,7 +31,7 @@ def align(fastq_file, pair_file, ref_file, out_base, align_dir, config,
     out_file = os.path.join(align_dir, "%s.sam" % out_base)
     if not file_exists(out_file):
         with file_transaction(out_file) as tx_out_file:
-            cl = [config_utils.get_program("bowtie", config)]
+            cl = [config_utils.get_program("bowtie2", config)]
             cl += _bowtie2_args_from_config(config)
             cl += extra_args if extra_args is not None else []
             cl += ["-q",
