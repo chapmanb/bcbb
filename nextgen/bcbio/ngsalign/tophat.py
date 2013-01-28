@@ -15,6 +15,7 @@ from bcbio.ngsalign import bowtie, bowtie2
 from bcbio.utils import safe_makedir, file_exists, get_in, flatten
 from bcbio.distributed.transaction import file_transaction
 from bcbio.log import logger
+import copy
 
 
 _out_fnames = ["accepted_hits.sam", "junctions.bed",
@@ -49,7 +50,9 @@ def tophat_align(fastq_file, pair_file, ref_file, out_base, align_dir, config,
     """
     run alignment using Tophat v2
     """
-    options = get_in(config, ("resources", "tophat", "options"), {})
+    # make our own copy of this since we are going to change it
+    options = copy.deepcopy(get_in(config, ("resources", "tophat", "options"),
+                                   {}))
     options = _set_quality_flag(options, config)
     options = _set_gtf(options, config)
     options = _set_cores(options, config)
@@ -122,7 +125,21 @@ def _estimate_paired_innerdist(fastq_file, pair_file, ref_file, out_base,
     if len(dists) == 0:
         dists = _bowtie_for_innerdist("1", fastq_file, pair_file, ref_file,
                                       out_base, out_dir, config, True)
-    return int(round(numpy.mean(dists))), int(round(numpy.std(dists)))
+    # bowtie2 can come up with very long inner distances between reads
+    # remove those from the paired innerdist calculation
+    raw_median = int(round(numpy.median(dists)))
+    raw_std = int(round(numpy.std(dists)))
+    logger.info("Raw inner distance for %s and %s calculated as "
+                "median: %d std: %f." % (fastq_file, pair_file, raw_median,
+                                         raw_std))
+    # call reads 3 std from the median outliers
+    cleaned = [x for x in dists if abs(x - raw_median) < 3 * raw_std]
+    clean_median = int(round(numpy.median(cleaned)))
+    clean_std = int(round(numpy.std(cleaned)))
+    logger.info("Outlier filtered inner distance for %s and %s calculated as "
+                "median: %d std: %f." % (fastq_file, pair_file, clean_median,
+                                         clean_std))
+    return clean_median, clean_std
 
 
 def _bowtie_for_innerdist(start, fastq_file, pair_file, ref_file, out_base,
