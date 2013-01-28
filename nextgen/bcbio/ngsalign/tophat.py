@@ -15,6 +15,7 @@ from bcbio.ngsalign import bowtie, bowtie2
 from bcbio.utils import safe_makedir, file_exists, get_in, flatten
 from bcbio.distributed.transaction import file_transaction
 from bcbio.log import logger
+import copy
 
 
 _out_fnames = ["accepted_hits.sam", "junctions.bed",
@@ -49,7 +50,8 @@ def tophat_align(fastq_file, pair_file, ref_file, out_base, align_dir, config,
     """
     run alignment using Tophat v2
     """
-    options = get_in(config, ("resources", "tophat", "options"), {})
+    options = copy.deepcopy(get_in(config, ("resources", "tophat", "options"),
+                                   {}))
     options = _set_quality_flag(options, config)
     options = _set_gtf(options, config)
     options = _set_cores(options, config)
