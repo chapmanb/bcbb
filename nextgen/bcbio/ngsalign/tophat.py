@@ -62,7 +62,7 @@ def tophat_align(fastq_file, pair_file, ref_file, out_base, align_dir, config,
         options["bowtie1"] = True
 
     out_dir = os.path.join(align_dir, "%s_tophat" % out_base)
-    out_file = os.path.join(out_dir, _out_fnames[0])
+    out_file = os.path.join(out_dir, "%s.sam" % out_base)
     if file_exists(out_file):
         return out_file
     files = [ref_file, fastq_file]
@@ -87,15 +87,14 @@ def tophat_align(fastq_file, pair_file, ref_file, out_base, align_dir, config,
             # otherwise it silently ignores them
             tophat_ready = tophat_runner.bake(**ready_options)
             tophat_ready(*files)
-    out_file_final = os.path.join(out_dir, "%s.sam" % out_base)
-    os.symlink(os.path.basename(out_file), out_file_final)
-    return out_file_final
+    os.symlink(_out_fnames[0], out_file)
+    return out_file
 
 def align(fastq_file, pair_file, ref_file, out_base, align_dir, config,
           rg_name=None):
 
     out_dir = os.path.join(align_dir, "%s_tophat" % out_base)
-    out_file = os.path.join(out_dir, _out_fnames[0])
+    out_file = os.path.join(out_dir, "%s.sam" % out_base)
 
     if file_exists(out_file):
         return out_file
