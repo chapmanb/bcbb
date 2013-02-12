@@ -1,0 +1,9 @@
+dir:
+  discordant: /usr/local/projects/CLIA-Validation/secondary/qualbin/compare
+  replicate: /usr/local/projects/CLIA-Validation/secondary/variants/work/ensemble/compare/gatk
+  orig: /usr/local/projects/CLIA-Validation/secondary/qualbin/work/gatk
+orig:
+  std: 1_130209_qualbin-sort-dup-gatkrecal-realign-variants-combined-phased-effects.vcf
+  prebin: 2_130209_qualbin-sort-dup-gatkrecal-realign-variants-combined-phased-effects.vcf
+  allbin: 3_130209_qualbin-sort-dup-gatkrecal-realign-variants-combined-phased-effects.vcf
+  
