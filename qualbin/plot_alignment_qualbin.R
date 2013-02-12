@@ -8,7 +8,7 @@ options(stringsAsFactors=FALSE)
 args <- commandArgs(trailingOnly=TRUE)
 orig_bam <- args[1]
 qualbin_bam <- args[2]
-plot_file <- "qualbin-changes.png"
+plot_file <- "qualbin-alignment-changes.png"
 
 get_idxstats <- function(in_file) {
   stats <- system(paste("samtools idxstats", in_file), intern=TRUE)
