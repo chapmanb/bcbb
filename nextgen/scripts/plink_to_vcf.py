@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """Convert Plink ped/map files into VCF format using plink and Plink/SEQ.
-
+'' from https://github.com/chapmanb/bcbb/edit/master/nextgen/scripts/plink_to_vcf.py
 Requires:
 
 plink: http://pngu.mgh.harvard.edu/~purcell/plink/
