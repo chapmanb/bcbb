@@ -26,6 +26,22 @@ def main(config_file):
     final_vcf = combine_subset_vcfs(config["rm"]["vcfs"],
                                     config["rm"]["ref"],
                                     region_bed, config)
+    filter_vcf(final_vcf)
+
+def filter_vcf(in_vcf):
+    out_vcf = "%s-pass%s" % os.path.splitext(in_vcf)
+    with open(in_vcf) as in_handle:
+        with open(out_vcf, "w") as out_handle:
+            for line in in_handle:
+                passes = False
+                if line.startswith("#"):
+                    passes = True
+                else:
+                    parts = line.split("\t")
+                    if parts[6] in [".", "PASS"]:
+                        passes = True
+                if passes:
+                    out_handle.write(line)
 
 def combine_subset_vcfs(vcfs, ref_file, region_bed, config):
     out_file = os.path.join(config["dirs"]["rm"],

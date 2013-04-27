@@ -3,14 +3,14 @@
 # http://www.nimblegen.com/exomev3launcheq/
 ---
 dirs:
-  rm: /home/chapmanb/tmp/nist/2013-04-18_v2.12
+  rm: /home/chapmanb/tmp/nist/2013-04-27_v2.13
   genome: /home/chapmanb/tmp/biodata/genomes
 rm:
   vcfs:
-    - AllFDAdatasets_130403_allcall_UGHapMerge_Het_VQSRv2.12_all_PASS.vcf
-    - AllFDAdatasets_130403_allcall_UGHapMerge_HomVar_VQSRv2.12_all_PASS.vcf
-  interval: union11callableonlymerged_nouncert_addcert_excludesimplerep_excludesegdups_v2.12.bed
+    - AllFDAdatasets_130403_allcall_UGHapMerge_Het_VQSRv2.13_all.vcf
+    - AllFDAdatasets_130403_allcall_UGHapMerge_HomVar_VQSRv2.13_all.vcf
+  interval: union11callableonlymerged_nouncert_addcert_excludesimplerep_excludesegdups_v2.13.bed
   ref: Hsapiens/GRCh37/seq/GRCh37.fa
 subset:
-  name: NA12878-nist-v2_12-NGv3
+  name: NA12878-nist-v2_13-NGv3
   interval: NGv3.bed
