@@ -62,12 +62,11 @@ reproduce and extend this work.
 
 * Aligner, alignment preparation and variant calling comparison
 
-To compare aligner methods, we called variants on an NA12878 exome
+To compare calling methods, we called variants on an NA12878 exome
 dataset from [[edge][EdgeBio's]] clinical pipeline and compared to the NIST
-Genome in a Bottle reference material in callable exome regions with
-4 or more reads at a position. Discordant positions where the
-reference and evaluation variants differ fall into three different
-categories:
+Genome in a Bottle reference material in callable regions with 4 or
+more reads. Discordant positions where the reference and evaluation
+variants differ fall into three different categories:
 
 - Missing variants, found in the NA12878 reference but not in the
   evaluation data set. These are potential false negatives.
@@ -89,8 +88,20 @@ and extra variants by potential causes using annotations from the
 - Error prone: variants falling in
   [[cse][motifs found to induce sequencing errors]].
 
-These subdivisions help identify sources of differences between
-methods indistinguishable when looking at total discordant counts.
+Other critical components of assessment include comparing SNPs and
+indels separately and evaluating only in callable regions. With lower
+total counts of indels and higher error rates, each variant type needs
+independent visualization. Secondly, it's crucial to distinguish
+between discordance caused by a lack of coverage in the region and
+that caused by an actual difference in variant assessment. These
+subdivisions and restrictions help identify sources of differences
+between methods indistinguishable when looking at total discordant
+counts.
+
+I'll use this data to pull out interesting conclusions for alignment,
+post-alignment preparation and variant calling. The full dataset and
+summary plots available below providing a starting place for digging
+further into the data.
 
 #+LINK: edge http://www.edgebio.com/
 #+LINK: gemini https://github.com/arq5x/gemini
@@ -99,37 +110,38 @@ methods indistinguishable when looking at total discordant counts.
 
 ** Aligners
 
-We compared two recently released aligners designed to work with the
-longer reads coming from new sequencing technologies: [[novoalign][Novoalign 3.00.02]]
-and [[bwa-mem][bwa mem 0.7.3a]].
+We compared two recently released aligners designed to work with
+longer reads coming from new sequencing technologies: [[novoalign][novoalign (3.00.02)]]
+and [[bwa-mem][bwa mem (0.7.3a]]).
 
-TODO: Graph SNPs: novoalign versus bwa-mem for novoalign + gatk +
-gatk, bwa-mem + gatk + gatk: concordant, discordant-extra-total,
-discordant-missing-total
+#+ATTR_HTML: alt="Comparison of concordant variants by aligner type" width="700"
+[[file:grading-summary-prep-alignerdiff.png]]
 
 ** Alignment preparation and quality score recalibration
 
 We compared two methods of quality recalibration:
 
-- [[gatk-bp][GATK's best practices (2.4-9)]]: This involves base quality score
-  recalibration
+- [[gatk-bp][GATK's best practices (2.4-9)]]: This involves de-duplication,
+  base quality score recalibration and realignment around indels.
 
 - [[gkno-me][The Marth Lab's realignment pipeline]]
 
-[[brendan-qual][Brendan's look at base quality score recalibration]]
+[[brendan-qual][Brendan O'Fallon's look at base quality score recalibration]]
 
-TODO: Graph SNPs: concordant, discordant-extra-total,
-discordant-missing-total, discordant-missing-other for
-bwa + GATK + GATK versus bwa + gkno + GATK
+#+ATTR_HTML: alt="Comparison of concordant variants by post-alignment prep method" width="700"
+[[file:grading-summary-prep-bamprepdiff.png]]
 
 #+LINK: brendan-qual http://basecallbio.wordpress.com/2013/04/23/base-quality-score-rebinning/
 
 ** Variant callers
 
-TODO: Graph SNPs + Indels: bwa + GATK + callers: concordant,
-discordant-extra-low-coverage, discordant-missing-low-coverage,
-discordant-shared-hethom
+#+ATTR_HTML: alt="Comparison of concordant variants by calling method" width="800"
+[[file:grading-summary-prep-callerdiff.png]]
 
 * Running calling and automated grading pipeline
 
 * Full data
+
+#+grading-summary-prep-alignerdiff.png http://bcbio.files.wordpress.com/2013/04/wpid-grading-summary-prep-alignerdiff1.png
+#+grading-summary-prep-bamprepdiff.png http://bcbio.files.wordpress.com/2013/04/wpid-grading-summary-prep-bamprepdiff.png
+#+grading-summary-prep-callerdiff.png http://bcbio.files.wordpress.com/2013/04/wpid-grading-summary-prep-callerdiff1.png
