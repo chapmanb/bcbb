@@ -1,0 +1,135 @@
+#+BLOG: bcbio
+#+POSTID: 419
+#+DATE: [2013-04-28 Sun 15:52]
+#+TITLE: Framework for comparison of aligner, alignment preparation and variant calling methods
+#+CATEGORY: variation
+#+TAGS: bioinformatics, variant, ngs, clinical, alignment
+#+STYLE: <style id="org2blog" type="text/css">td {padding: 4px;}</style>
+#+OPTIONS: toc:nil
+
+* Variant detection grading and comparisons
+
+Developing pipelines for detecting variants from high throughput
+sequencing data is challenging due to rapidly changing algorithms and
+[[gholson-low][relatively low concordance between methods]]. Thankfully, the
+development of tools like [[gcat][GCAT (Genome Comparison and Analytic Testing)]]
+provide the community with the ability to compare and discuss
+approaches. [[giab][NIST's Genome in a Bottle consortium]] recognized the need for well
+characterized reference materials to use in these evaluations, and
+provide a well characterized set of variations in the
+[[na12878][NA12878 human HapMap genome]].
+
+This post will discuss automated methods that build off these
+initiatives and provide the ability to diagnose discordant differences
+between multiple calling approaches. This allows us to:
+
+- Make recommendations on alignment, alignment preparation and
+  calling methods while highlighting the strengths of each.
+
+- Automatically verify pipeline updates and installations to ensure
+  variant calls recover expected variation. This builds off the work
+  done in the [[xprize-val][XPrize validation protocol]] to provided summary metrics
+  on concordance and discordance of variants.
+
+- Identify best-practice approaches to use in population studies
+  requiring either exome or whole genome variant calling.
+
+I'll detail a 12 way comparison between 2 different aligners
+([[novoalign][novoalign]] and [[bwa-mem][bwa mem]]), 2 different alignment preparation methods
+([[gatk-bp][GATK best practices]] and the [[gkno-me][Marth lab's gkno pipeline]]), and 3
+different variant callers ([[gatk-ug][GATK UnifiedGenotyper]],
+[[gatk-hc][GATK HaplotypeCaller]], and [[freebayes][FreeBayes]]). This allows us to compare
+openly available methods (bwa mem, gkno preparation, and FreeBayes)
+with those that require licensing (novoalign, GATK's variant
+callers) and evaluate the influence of quality score recalibration.
+I'll also describe the open-source and fully automated pipeline used
+for variant calling and evaluation, which allows others to easily
+reproduce and extend this work.
+
+#+LINK: gholson-low http://genomemedicine.com/content/5/3/28/abstract
+#+LINK: gcat http://www.bioplanet.com/gcat/
+#+LINK: ensemble http://bcbio.wordpress.com/2013/02/06/an-automated-ensemble-method-for-combining-and-evaluating-genomic-variants-from-multiple-callers/
+#+LINK: giab http://www.genomeinabottle.org/
+#+LINK: na12878 http://ccr.coriell.org/Sections/Search/Sample_Detail.aspx?Ref=GM12878
+#+LINK: xprize-val http://bcbio.wordpress.com/2012/09/17/genomics-x-prize-public-phase-update-variant-classification-and-de-novo-calling/
+#+LINK: novoalign http://www.novocraft.com/main/index.php
+#+LINK: bwa-mem http://bio-bwa.sourceforge.net/
+#+LINK: gatk-bp http://gatkforums.broadinstitute.org/discussion/1186/best-practice-variant-detection-with-the-gatk-v4-for-release-2-0
+#+LINK: gatk-ug http://www.broadinstitute.org/gatk/gatkdocs/org_broadinstitute_sting_gatk_walkers_genotyper_UnifiedGenotyper.html
+#+LINK: gatk-hc http://www.broadinstitute.org/gatk/gatkdocs/org_broadinstitute_sting_gatk_walkers_haplotypecaller_HaplotypeCaller.html
+#+LINK: gkno-me http://gkno.me/
+#+LINK: freebayes https://github.com/ekg/freebayes
+
+* Aligner, alignment preparation and variant calling comparison
+
+To compare aligner methods, we called variants on an NA12878 exome
+dataset from [[edge][EdgeBio's]] clinical pipeline and compared to the NIST
+Genome in a Bottle reference material in callable exome regions with
+4 or more reads at a position. Discordant positions where the
+reference and evaluation variants differ fall into three different
+categories:
+
+- Missing variants, found in the NA12878 reference but not in the
+  evaluation data set. These are potential false negatives.
+
+- Extra variants, called in the evaluation data but not in the
+  reference. These are potential false positives.
+
+- Shared variants, called in both evaluation and reference but
+  differently called. This could be due to allele difference, such as
+  heterozygote versus homozygote calls or variant representation
+  differences, such as different indel sizes.
+
+To further identify causes of discordance, we subdivide the missing
+and extra variants by potential causes using annotations from the
+[[gemini][GEMINI variation framework]]:
+
+- Low coverage: positions with limited read coverage (4-9 reads).
+- Repetitive: regions identified by [[repeatmasker][RepeatMasker]].
+- Error prone: variants falling in
+  [[cse][motifs found to induce sequencing errors]].
+
+These subdivisions help identify sources of differences between
+methods indistinguishable when looking at total discordant counts.
+
+#+LINK: edge http://www.edgebio.com/
+#+LINK: gemini https://github.com/arq5x/gemini
+#+LINK: repeatmasker http://repeatmasker.org/
+#+LINK: cse http://www.biomedcentral.com/1471-2105/14/S5/S1
+
+** Aligners
+
+We compared two recently released aligners designed to work with the
+longer reads coming from new sequencing technologies: [[novoalign][Novoalign 3.00.02]]
+and [[bwa-mem][bwa mem 0.7.3a]].
+
+TODO: Graph SNPs: novoalign versus bwa-mem for novoalign + gatk +
+gatk, bwa-mem + gatk + gatk: concordant, discordant-extra-total,
+discordant-missing-total
+
+** Alignment preparation and quality score recalibration
+
+We compared two methods of quality recalibration:
+
+- [[gatk-bp][GATK's best practices (2.4-9)]]: This involves base quality score
+  recalibration
+
+- [[gkno-me][The Marth Lab's realignment pipeline]]
+
+[[brendan-qual][Brendan's look at base quality score recalibration]]
+
+TODO: Graph SNPs: concordant, discordant-extra-total,
+discordant-missing-total, discordant-missing-other for
+bwa + GATK + GATK versus bwa + gkno + GATK
+
+#+LINK: brendan-qual http://basecallbio.wordpress.com/2013/04/23/base-quality-score-rebinning/
+
+** Variant callers
+
+TODO: Graph SNPs + Indels: bwa + GATK + callers: concordant,
+discordant-extra-low-coverage, discordant-missing-low-coverage,
+discordant-shared-hethom
+
+* Running calling and automated grading pipeline
+
+* Full data
