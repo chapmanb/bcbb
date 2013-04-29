@@ -1,13 +1,13 @@
 #+BLOG: bcbio
 #+POSTID: 419
 #+DATE: [2013-04-28 Sun 15:52]
-#+TITLE: Framework for comparison of aligner, alignment preparation and variant calling methods
+#+TITLE: Framework for comparison of aligner, post-alignment preparation and variant calling methods
 #+CATEGORY: variation
 #+TAGS: bioinformatics, variant, ngs, clinical, alignment
 #+STYLE: <style id="org2blog" type="text/css">td {padding: 4px;}</style>
 #+OPTIONS: toc:nil
 
-* Variant detection grading and comparisons
+* Variant detection and grading overview
 
 Developing pipelines for detecting variants from high throughput
 sequencing data is challenging due to rapidly changing algorithms and
@@ -23,11 +23,11 @@ This post will discuss automated methods that build off these
 initiatives and provide the ability to diagnose discordant differences
 between multiple calling approaches. This allows us to:
 
-- Make recommendations on alignment, alignment preparation and
+- Make recommendations on alignment, post-alignment preparation and
   calling methods while highlighting the strengths of each.
 
 - Automatically verify pipeline updates and installations to ensure
-  variant calls recover expected variation. This builds off the work
+  variant calls recover expected variations. This builds off the work
   done in the [[xprize-val][XPrize validation protocol]] to provided summary metrics
   on concordance and discordance of variants.
 
@@ -35,7 +35,7 @@ between multiple calling approaches. This allows us to:
   requiring either exome or whole genome variant calling.
 
 I'll detail a 12 way comparison between 2 different aligners
-([[novoalign][novoalign]] and [[bwa-mem][bwa mem]]), 2 different alignment preparation methods
+([[novoalign][novoalign]] and [[bwa-mem][bwa mem]]), 2 different post-alignment preparation methods
 ([[gatk-bp][GATK best practices]] and the [[gkno-me][Marth lab's gkno pipeline]]), and 3
 different variant callers ([[gatk-ug][GATK UnifiedGenotyper]],
 [[gatk-hc][GATK HaplotypeCaller]], and [[freebayes][FreeBayes]]). This allows us to compare
@@ -44,7 +44,7 @@ with those that require licensing (novoalign, GATK's variant
 callers) and evaluate the influence of quality score recalibration.
 I'll also describe the open-source and fully automated pipeline used
 for variant calling and evaluation, which allows others to easily
-reproduce and extend this work.
+bring this methodology into their own labs and extend this work.
 
 #+LINK: gholson-low http://genomemedicine.com/content/5/3/28/abstract
 #+LINK: gcat http://www.bioplanet.com/gcat/
@@ -60,7 +60,7 @@ reproduce and extend this work.
 #+LINK: gkno-me http://gkno.me/
 #+LINK: freebayes https://github.com/ekg/freebayes
 
-* Aligner, alignment preparation and variant calling comparison
+* Aligner, post-alignment preparation and variant calling comparison
 
 To compare calling methods, we called variants on an NA12878 exome
 dataset from [[edge][EdgeBio's]] clinical pipeline and compared to the NIST
@@ -68,11 +68,13 @@ Genome in a Bottle reference material in callable regions with 4 or
 more reads. Discordant positions where the reference and evaluation
 variants differ fall into three different categories:
 
-- Missing variants, found in the NA12878 reference but not in the
-  evaluation data set. These are potential false negatives.
-
 - Extra variants, called in the evaluation data but not in the
   reference. These are potential false positives.
+
+- Missing variants, found in the NA12878 reference but not in the
+  evaluation data set. These are potential false negatives. The use
+  of high quality reference materials from NIST allows us to be able
+  to assess these equally important missing variants.
 
 - Shared variants, called in both evaluation and reference but
   differently called. This could be due to allele difference, such as
@@ -111,37 +113,113 @@ further into the data.
 ** Aligners
 
 We compared two recently released aligners designed to work with
-longer reads coming from new sequencing technologies: [[novoalign][novoalign (3.00.02)]]
-and [[bwa-mem][bwa mem (0.7.3a]]).
+longer reads coming from new sequencing technologies:
+[[novoalign][novoalign (3.00.02)]] and [[bwa-mem][bwa mem (0.7.3a]]). bwa mem identified 1245 additional
+concordant SNPs variants not seen with novoalign. These seem to be
+regions that bwa mem aligns and novoalign avoids, since there is not a
+corresponding increase in missing discordants. Indel call rates look
+similar between the two aligners.
+
+Our standard workflow uses novoalign due to its stringency in
+[[align-paper][resolving large insertions and deletions]]. These results suggest
+equally good results using bwa mem, along with improved processing
+times. One caveat to these results is that much of the available
+Illumina call data that feeds into NIST's reference genomes comes
+from a bwa alignment, so some of the differences may reflect a bias
+towards bwa alignment heuristics. A deeper investigation of
+discordants could help uncover additional hypotheses on the differences.
 
 #+ATTR_HTML: alt="Comparison of concordant variants by aligner type" width="700"
 [[file:grading-summary-prep-alignerdiff.png]]
 
-** Alignment preparation and quality score recalibration
+#+grading-summary-prep-alignerdiff.png https://raw.github.com/chapmanb/bcbb/master/posts/calling_pipeline_compare/grading-summary-prep-alignerdiff.png
+#+LINK: align-paper http://f1000research.com/articles/1-2/v2#f3
+
+** Post-alignment preparation and quality score recalibration
 
 We compared two methods of quality recalibration:
 
-- [[gatk-bp][GATK's best practices (2.4-9)]]: This involves de-duplication,
-  base quality score recalibration and realignment around indels.
+- [[gatk-bp][GATK's best practices (2.4-9)]]: This involves de-duplication with
+  [[picard-md][Picard MarkDuplicates]], GATK base quality score recalibration and
+  GATK realignment around indels.
 
-- [[gkno-me][The Marth Lab's realignment pipeline]]
+- [[gkno-me][The Marth Lab's gkno realignment pipeline]]: This performs de-duplication
+  with [[samtools][samtools rmdup]] and realignment around indels using [[ogap]]. All
+  commands in this pipeline work on streaming input, avoiding disk IO
+  penalties by using unix pipes. This piped approach improves
+  scaling on large numbers of whole genome samples. Notably, our
+  implementation of the pipeline does not use a base quality score
+  recalibration step.
 
-[[brendan-qual][Brendan O'Fallon's look at base quality score recalibration]]
+GATK best practice pipelines offer an advantage over the gkno-only
+pipeline primarily due to improvements in SNP calling from base
+quality recalibration. Specifically we lose ~0.8% (645 / 77537) of
+called variations. These fall into the discordant missing "other"
+category, so we cannot explain them by metrics such as coverage or
+genome difficulty. The simplest explanation is that initial poor
+quality calculations in those regions result in callers missing those
+variants without recalibration. These results match
+[[brendan-qual][Brendan O'Fallon's recent analysis of base quality score recalibration]].
+
+This places a practical number on the lost variants due to avoiding
+recalibration either due to scaling or GATK licensing concerns. Some
+other options for recalibration include
+[[novoalign-qual][Novoalign's Quality Recalibration]] and
+[[bamtuil][University of Michigan's BamUtil recab]], although we've not yet tested
+either in depth.
 
 #+ATTR_HTML: alt="Comparison of concordant variants by post-alignment prep method" width="700"
 [[file:grading-summary-prep-bamprepdiff.png]]
 
+#+grading-summary-prep-bamprepdiff.png https://raw.github.com/chapmanb/bcbb/master/posts/calling_pipeline_compare/grading-summary-prep-bamprepdiff.png
 #+LINK: brendan-qual http://basecallbio.wordpress.com/2013/04/23/base-quality-score-rebinning/
+#+LINK: samtools http://samtools.sourceforge.net/
+#+LINK: ogap https://github.com/ekg/ogap
+#+LINK: picard-md http://picard.sourceforge.net/command-line-overview.shtml#MarkDuplicates
+#+LINK: novalign-qual http://novocraft.com/wiki/tiki-index.php?page=Quality+Calibration
+#+LINK: bamutil http://genome.sph.umich.edu/wiki/BamUtil
 
 ** Variant callers
+
+Adjusting variant calling methods has the biggest impact on the final
+set of calls.
 
 #+ATTR_HTML: alt="Comparison of concordant variants by calling method" width="800"
 [[file:grading-summary-prep-callerdiff.png]]
 
-* Running calling and automated grading pipeline
+#+grading-summary-prep-callerdiff.png https://raw.github.com/chapmanb/bcbb/master/posts/calling_pipeline_compare/grading-summary-prep-callerdiff.png
 
-* Full data
+* Automated calling and grading pipeline
 
-#+grading-summary-prep-alignerdiff.png http://bcbio.files.wordpress.com/2013/04/wpid-grading-summary-prep-alignerdiff1.png
-#+grading-summary-prep-bamprepdiff.png http://bcbio.files.wordpress.com/2013/04/wpid-grading-summary-prep-bamprepdiff.png
-#+grading-summary-prep-callerdiff.png http://bcbio.files.wordpress.com/2013/04/wpid-grading-summary-prep-callerdiff1.png
+* Full data sets
+
+We extracted the conclusions for alignment, post-alignment
+preparation and variant calling from time digging into the full
+dataset. The visualizations for this data are not as pretty but we
+make them available for anyone interested in digging deeper:
+
+- [[summary-csv][Summary CSV of comparisons]] split by methods and
+  concordance/discordance types, easily importable into R or pandas
+  for further analysis.
+- [[plot-code][Code for preparing and plotting results]]
+- Full comparisons of all 12 methods, stratified by concordance and
+  discordance: [[full-snp][SNPs]] and [[full-indel][indels]]
+- Boxplots of differences between alignment methods: [[alignerdiff-snp][SNPs]] and [[alignerdiff-indel][indels]]
+- Boxplots of differences between post-alignment preparation methods:
+  [[bamprepdiff-snp][SNPs]] and [[bamprepdiff-indel][indels]]
+- Boxplots of differences between variant calling methods: [[callerdiff-snp][SNPs]] and [[callerdiff-indel][indels]]
+
+We welcome reanalysis and suggestions for improving the presentation
+and conclusions in this post.
+
+#+LINK: summary-csv https://github.com/chapmanb/bcbb/raw/master/posts/calling_pipeline_compare/grading-summary-prep.csv
+#+LINK: plot-code https://github.com/chapmanb/bcbb/tree/master/validation
+#+LINK: full-snp https://github.com/chapmanb/bcbb/raw/master/posts/calling_pipeline_compare/grading-summary-prep-SNP.pdf
+#+LINK: full-indel https://github.com/chapmanb/bcbb/raw/master/posts/calling_pipeline_compare/grading-summary-prep-SNP.pdf
+#+LINK: alignerdiff-snp https://github.com/chapmanb/bcbb/raw/master/posts/calling_pipeline_compare/grading-summary-prep-aligner-SNP.pdf
+#+LINK: alignerdiff-indel https://github.com/chapmanb/bcbb/raw/master/posts/calling_pipeline_compare/grading-summary-prep-aligner-Indel.pdf
+#+LINK: bamprepdiff-snp https://github.com/chapmanb/bcbb/raw/master/posts/calling_pipeline_compare/grading-summary-prep-bamprep-SNP.pdf
+#+LINK: bamprepdiff-indel https://github.com/chapmanb/bcbb/raw/master/posts/calling_pipeline_compare/grading-summary-prep-bamprep-Indel.pdf
+#+LINK: callerdiff-snp https://github.com/chapmanb/bcbb/raw/master/posts/calling_pipeline_compare/grading-summary-prep-caller-SNP.pdf
+#+LINK: callerdiff-indel https://github.com/chapmanb/bcbb/raw/master/posts/calling_pipeline_compare/grading-summary-prep-caller-Indel.pdf
+
