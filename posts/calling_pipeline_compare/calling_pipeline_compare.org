@@ -1,7 +1,7 @@
+#+DATE: [2013-04-30 Tue 21:52]
 #+BLOG: bcbio
 #+POSTID: 419
-#+DATE: [2013-04-28 Sun 15:52]
-#+TITLE: Framework for comparison of aligner, post-alignment preparation and variant calling methods
+#+TITLE: Framework for evaluating variant calling methods: comparison of aligners and callers
 #+CATEGORY: variation
 #+TAGS: bioinformatics, variant, ngs, clinical, alignment
 #+STYLE: <style id="org2blog" type="text/css">td {padding: 4px;}</style>
@@ -11,40 +11,44 @@
 
 Developing pipelines for detecting variants from high throughput
 sequencing data is challenging due to rapidly changing algorithms and
-[[gholson-low][relatively low concordance between methods]]. Thankfully, the
-development of tools like [[gcat][GCAT (Genome Comparison and Analytic Testing)]]
-provide the community with the ability to compare and discuss
-approaches. [[giab][NIST's Genome in a Bottle consortium]] recognized the need for well
-characterized reference materials to use in these evaluations, and
-provide a well characterized set of variations in the
-[[na12878][NA12878 human HapMap genome]].
+[[gholson-low][relatively low concordance between methods]]. This post will discuss
+automated methods providing evaluation of variant calls, enabling
+detailed diagnosis of discordant differences between multiple calling
+approaches. This allows us to:
 
-This post will discuss automated methods that build off these
-initiatives and provide the ability to diagnose discordant differences
-between multiple calling approaches. This allows us to:
-
-- Make recommendations on alignment, post-alignment preparation and
-  calling methods while highlighting the strengths of each.
+- Characterize strengths and weaknesses of alignment, post-alignment
+  preparation and calling methods.
 
 - Automatically verify pipeline updates and installations to ensure
-  variant calls recover expected variations. This builds off the work
-  done in the [[xprize-val][XPrize validation protocol]] to provided summary metrics
-  on concordance and discordance of variants.
+  variant calls recover expected variations. This extends the
+  [[xprize-val][XPrize validation protocol]] to provide full summary metrics on
+  concordance and discordance of variants.
 
-- Identify best-practice approaches to use in population studies
-  requiring either exome or whole genome variant calling.
+- Make recommendations on best-practice approaches to use in
+  sequencing studies requiring either exome or whole genome variant
+  calling.
 
-I'll detail a 12 way comparison between 2 different aligners
+This evaluation work is part of a larger community effort to better
+characterize variant calling methods.
+A key component of these evaluations is a well characterized set of
+reference variations for the [[na12878][NA12878 human HapMap genome]], provided by
+the [[giab][NIST's Genome in a Bottle consortium]]. The diagnostic component of
+this work supplements emerging tools like
+[[gcat][GCAT (Genome Comparison and Analytic Testing)]]
+which provides a community platform for comparing
+and discussing calling approaches.
+
+I'll show a 12 way comparison between 2 different aligners
 ([[novoalign][novoalign]] and [[bwa-mem][bwa mem]]), 2 different post-alignment preparation methods
 ([[gatk-bp][GATK best practices]] and the [[gkno-me][Marth lab's gkno pipeline]]), and 3
 different variant callers ([[gatk-ug][GATK UnifiedGenotyper]],
-[[gatk-hc][GATK HaplotypeCaller]], and [[freebayes][FreeBayes]]). This allows us to compare
+[[gatk-hc][GATK HaplotypeCaller]], and [[freebayes][FreeBayes]]). This allows comparison of
 openly available methods (bwa mem, gkno preparation, and FreeBayes)
 with those that require licensing (novoalign, GATK's variant
-callers) and evaluate the influence of quality score recalibration.
-I'll also describe the open-source and fully automated pipeline used
-for variant calling and evaluation, which allows others to easily
-bring this methodology into their own labs and extend this work.
+callers). I'll also describe [[bcbio-nextgen][bcbio-nextgen]], the fully automated open-source
+pipeline used for variant calling and evaluation, which
+allows others to easily bring this methodology into their
+own work and extend this analysis.
 
 #+LINK: gholson-low http://genomemedicine.com/content/5/3/28/abstract
 #+LINK: gcat http://www.bioplanet.com/gcat/
@@ -62,11 +66,10 @@ bring this methodology into their own labs and extend this work.
 
 * Aligner, post-alignment preparation and variant calling comparison
 
-To compare calling methods, we called variants on an NA12878 exome
-dataset from [[edge][EdgeBio's]] clinical pipeline and compared to the NIST
-Genome in a Bottle reference material in callable regions with 4 or
-more reads. Discordant positions where the reference and evaluation
-variants differ fall into three different categories:
+To compare methods, we called variants on an NA12878 exome dataset
+from [[edge][EdgeBio's]] clinical pipeline and compared to the NIST Genome in a
+Bottle reference material. Discordant positions where the reference
+and evaluation variants differ fall into three different categories:
 
 - Extra variants, called in the evaluation data but not in the
   reference. These are potential false positives.
@@ -74,7 +77,8 @@ variants differ fall into three different categories:
 - Missing variants, found in the NA12878 reference but not in the
   evaluation data set. These are potential false negatives. The use
   of high quality reference materials from NIST allows us to be able
-  to assess these equally important missing variants.
+  to assess the equally important question of identify genome regions
+  we fail to call in.
 
 - Shared variants, called in both evaluation and reference but
   differently called. This could be due to allele difference, such as
@@ -85,25 +89,25 @@ To further identify causes of discordance, we subdivide the missing
 and extra variants by potential causes using annotations from the
 [[gemini][GEMINI variation framework]]:
 
-- Low coverage: positions with limited read coverage (4-9 reads).
+- Low coverage: positions with limited read coverage (4 to 9 reads).
 - Repetitive: regions identified by [[repeatmasker][RepeatMasker]].
 - Error prone: variants falling in
   [[cse][motifs found to induce sequencing errors]].
 
 Other critical components of assessment include comparing SNPs and
-indels separately and evaluating only in callable regions. With lower
-total counts of indels and higher error rates, each variant type needs
-independent visualization. Secondly, it's crucial to distinguish
-between discordance caused by a lack of coverage in the region and
-that caused by an actual difference in variant assessment. These
-subdivisions and restrictions help identify sources of differences
-between methods indistinguishable when looking at total discordant
-counts.
+indels separately and evaluating only in callable regions with 4 or
+more reads. With lower total counts of indels but higher error rates,
+each variant type needs independent visualization. Secondly, it's
+crucial to distinguish between discordance caused by a lack of
+coverage in the region and that caused by an actual difference in
+variant assessment. These subdivisions and restrictions help identify
+sources of differences between methods indistinguishable when looking
+at total discordant counts.
 
-I'll use this data to pull out interesting conclusions for alignment,
-post-alignment preparation and variant calling. The full dataset and
-summary plots available below providing a starting place for digging
-further into the data.
+I'll use this data to provide recommendations for alignment,
+post-alignment preparation and variant calling. In addition to these
+high level summaries, the full dataset and summary plots available
+below providing a starting place for digging further into the data.
 
 #+LINK: edge http://www.edgebio.com/
 #+LINK: gemini https://github.com/arq5x/gemini
@@ -123,11 +127,12 @@ similar between the two aligners.
 Our standard workflow uses novoalign due to its stringency in
 [[align-paper][resolving large insertions and deletions]]. These results suggest
 equally good results using bwa mem, along with improved processing
-times. One caveat to these results is that much of the available
+times. One caveat to these results is that some of the available
 Illumina call data that feeds into NIST's reference genomes comes
-from a bwa alignment, so some of the differences may reflect a bias
-towards bwa alignment heuristics. A deeper investigation of
-discordants could help uncover additional hypotheses on the differences.
+from a bwa alignment, so some differences may reflect a bias
+towards bwa alignment heuristics. A deeper investigation of SNP
+discordants could help uncover if these factors play a role, and help
+generalize and improve the reference materials.
 
 #+ATTR_HTML: alt="Comparison of concordant variants by aligner type" width="700"
 [[file:grading-summary-prep-alignerdiff.png]]
@@ -144,7 +149,7 @@ We compared two methods of quality recalibration:
   GATK realignment around indels.
 
 - [[gkno-me][The Marth Lab's gkno realignment pipeline]]: This performs de-duplication
-  with [[samtools][samtools rmdup]] and realignment around indels using [[ogap]]. All
+  with [[samtools][samtools rmdup]] and realignment around indels using [[ogap][ogap]]. All
   commands in this pipeline work on streaming input, avoiding disk IO
   penalties by using unix pipes. This piped approach improves
   scaling on large numbers of whole genome samples. Notably, our
@@ -158,7 +163,7 @@ called variations. These fall into the discordant missing "other"
 category, so we cannot explain them by metrics such as coverage or
 genome difficulty. The simplest explanation is that initial poor
 quality calculations in those regions result in callers missing those
-variants without recalibration. These results match
+variants. Base quality recalibration helps recover them. These results match
 [[brendan-qual][Brendan O'Fallon's recent analysis of base quality score recalibration]].
 
 This places a practical number on the lost variants due to avoiding
@@ -166,7 +171,8 @@ recalibration either due to scaling or GATK licensing concerns. Some
 other options for recalibration include
 [[novoalign-qual][Novoalign's Quality Recalibration]] and
 [[bamtuil][University of Michigan's BamUtil recab]], although we've not yet tested
-either in depth.
+either in depth as potential supplements to improve calling in
+non-GATK pipelines.
 
 #+ATTR_HTML: alt="Comparison of concordant variants by post-alignment prep method" width="700"
 [[file:grading-summary-prep-bamprepdiff.png]]
@@ -181,25 +187,153 @@ either in depth.
 
 ** Variant callers
 
+For this comparison, we used three general purpose callers that handle
+SNPs and small indels, all of which have updated versions since
+[[ensemble][our last comparison]]:
+
+- [[freebayes][FreeBayes (0.9.9 296a0fa)]]: A haplotype-based Bayesian caller from
+  the Marth Lab, with filtering on quality score and read depth.
+
+- [[gatk-ug][GATK UnifiedGenotyper (2.4-9)]]: GATK's widely used Bayesian caller,
+  using filtering recommendations for exome experiments from
+  [[gatk-bp][GATK's best practices]].
+
+- [[gatk-hc][GATK HaplotypeCaller (2.4-9)]]: GATK's more recently developed
+  haplotype caller which provides local assembly around variant
+  regions, using filtering recommendations for exomes from
+  [[gatk-bp][GATK's best practices]].
+
 Adjusting variant calling methods has the biggest impact on the final
-set of calls.
+set of calls. Called SNPs differ by 5724 between the three compared
+approaches, in comparison with aligner and post-alignment preparation
+changes which resulted in a maximum difference of 1245 calls. This
+suggests that experimenting with variant calling approaches provides
+the best leverage to improve calls.
+
+A majority of the SNP concordance differences between the three calling
+methods are due to calling low coverage regions with between 4 and 9
+reads. FreeBayes captures the most concordant variants in these
+regions, at the cost of higher potential false positives (677 versus
+38 for UnifiedGenotyper). In contrast, the HaplotypeCaller is
+conservative in these regions and only identifies 18 potential false
+positives but produces a larger number of potential false negatives
+(6615 versus 1789).
+
+For indels, FreeBayes and HaplotypeCaller both provide improved
+sensitivity compared to UnifiedGenotyper. In low coverage regions,
+FreeBayes again provides more sensitive detection of variants with a
+corresponding increase in potential false positives. FreeBayes also
+has more calls where it agrees with the reference material
+on alleles but differs in whether a call is a heterozygote or
+homozygote.
 
 #+ATTR_HTML: alt="Comparison of concordant variants by calling method" width="800"
 [[file:grading-summary-prep-callerdiff.png]]
 
+These results indicate that FreeBayes is a solid general purpose SNP
+and indel caller with reasonable sensitivity and specificity trade
+offs relative to GATK's callers. For GATK tools, the HaplotypeCaller
+provides improved resolution of indels but does call SNPs more
+conservatively than the UnifiedGenotyper in low coverage regions.
+
+These low coverage regions are the key area of difference between
+callers. Coupled with the results from looking at variant changes due
+to [[bcbio-qb][quality score binning]], this suggests we should be more critical in
+assessing both calls and coverage in these regions. Assessing coverage
+and potential false negatives is especially critical since we lack
+good tools to summarize and prioritize genomic regions that are
+potentially missed during sequencing. This also emphasizes the role of
+population-based calling to help resolve low coverage regions, since
+callers can use evidence from multiple samples to better estimate the
+likelihoods of low coverage calls.
+
+#+LINK: bcbio-qb http://bcbio.wordpress.com/2013/02/13/the-influence-of-reduced-resolution-quality-scores-on-alignment-and-variant-calling/
 #+grading-summary-prep-callerdiff.png https://raw.github.com/chapmanb/bcbb/master/posts/calling_pipeline_compare/grading-summary-prep-callerdiff.png
 
 * Automated calling and grading pipeline
+
+Method comparisons become dated quickly due to the continuous
+improvement in aligners and variant callers. While these
+recommendations are useful now, in 6 months there will be new releases
+with improved approaches. This rapid development cycle creates
+challenges for biologists hoping to derive meaning from variant
+results: do you stay locked on software versions whose trade offs you
+understand, or do you attempt to stay current and handle re-verifying
+results with every new release?
+
+Our goal is to provide a community developed pipeline and comparison
+framework that ameliorates this continuous struggle to re-verify. The
+analysis done here is fully automated as part of the [[bcbio-nextgen][bcbio-nextgen]]
+analysis framework.
+
+To install the pipeline, third-party software and required data files:
+
+#+BEGIN_EXAMPLE
+    wget https://raw.github.com/chapmanb/bcbio-nextgen/master/scripts/bcbio_nextgen_install.py
+    python bcbio_nextgen_install.py /usr/local /usr/local/share/bcbio-nextgen
+#+END_EXAMPLE
+#+begin_html
+ <br />
+#+end_html
+
+The installer bootstraps all installation on a bare machine using
+[[cbl][the CloudBioLinux framework]]. More details and options are available
+in the [[install-docs][installation documentation]].
+
+To re-run this analysis, get the input data files and configuration
+as described in the [[example-docs][bcbio-nextgen example documentation]] with:
+
+#+BEGIN_EXAMPLE
+    $ mkdir config && cd config
+    $ wget https://raw.github.com/chapmanb/bcbio-nextgen/master/config/\
+       examples/NA12878-exome-methodcmp.yaml
+    $ cd .. && mkdir input && cd input
+    $ wget https://dm.genomespace.org/datamanager/file/Home/EdgeBio/\
+       CLIA_Examples/NA12878-NGv3-LAB1360-A/NA12878-NGv3-LAB1360-A_1.fastq.gz
+    $ wget https://dm.genomespace.org/datamanager/file/Home/EdgeBio/\
+       CLIA_Examples/NA12878-NGv3-LAB1360-A/NA12878-NGv3-LAB1360-A_2.fastq.gz
+    $ wget https://s3.amazonaws.com/bcbio_nextgen/NA12878-nist-v2_13-NGv3-pass.vcf.gz
+    $ wget https://s3.amazonaws.com/bcbio_nextgen/NA12878-nist-v2_13-NGv3-regions.bed.gz
+    $ gunzip NA12878-nist-*.gz
+#+END_EXAMPLE
+#+begin_html
+ <br />
+#+end_html
+
+Then run the analysis, distributed on 8 local cores, with:
+
+#+BEGIN_EXAMPLE
+    $ mkdir work && cd work
+    $ bcbio_nextgen.py bcbio_system.yaml ../input ../config/NA12878-exome-methodcmp.yaml -n 8
+#+END_EXAMPLE
+#+begin_html
+ <br />
+#+end_html
+
+The [[parallel-docs][bcbio-nextgen documentation]] describes how to
+parallelize processing over multiple machines using cluster
+schedulers (LSF, SGE, Torque).
+
+The pipeline and comparison framework are open-source and
+configurable for multiple aligners, preparation methods and callers.
+We invite anyone interested in this work to provide feedback and
+contributions.
+
+#+LINK: bcbio-nextgen https://github.com/chapmanb/bcbio-nextgen
+#+LINK: cbl http://cloudbiolinux.org
+#+LINK: install-docs https://bcbio-nextgen.readthedocs.org/en/latest/contents/installation.html
+#+LINK: parallel-docs https://bcbio-nextgen.readthedocs.org/en/latest/contents/parallel.html
+#+LINK: example-docs https://bcbio-nextgen.readthedocs.org/en/latest/contents/testing.html#example-pipelines
 
 * Full data sets
 
 We extracted the conclusions for alignment, post-alignment
 preparation and variant calling from time digging into the full
-dataset. The visualizations for this data are not as pretty but we
+dataset. The visualizations for the full data are not as pretty but we
 make them available for anyone interested in digging deeper:
 
 - [[summary-csv][Summary CSV of comparisons]] split by methods and
-  concordance/discordance types, easily importable into R or pandas
+  concordance/discordance types, easily importable into [[r][R]] or [[pandas][pandas]]
   for further analysis.
 - [[plot-code][Code for preparing and plotting results]]
 - Full comparisons of all 12 methods, stratified by concordance and
@@ -209,9 +343,11 @@ make them available for anyone interested in digging deeper:
   [[bamprepdiff-snp][SNPs]] and [[bamprepdiff-indel][indels]]
 - Boxplots of differences between variant calling methods: [[callerdiff-snp][SNPs]] and [[callerdiff-indel][indels]]
 
-We welcome reanalysis and suggestions for improving the presentation
+We encourage reanalysis and welcome suggestions for improving the presentation
 and conclusions in this post.
 
+#+LINK: r http://cran.r-project.org/
+#+LINK: pandas http://pandas.pydata.org/
 #+LINK: summary-csv https://github.com/chapmanb/bcbb/raw/master/posts/calling_pipeline_compare/grading-summary-prep.csv
 #+LINK: plot-code https://github.com/chapmanb/bcbb/tree/master/validation
 #+LINK: full-snp https://github.com/chapmanb/bcbb/raw/master/posts/calling_pipeline_compare/grading-summary-prep-SNP.pdf
