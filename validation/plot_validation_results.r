@@ -74,7 +74,7 @@ pretty_method_names <- function(d) {
 plot_aligner_differences <- function(d) {
   cats.todo <- c("Concordant", "Discordant extra total", "Discordant missing total", "Discordant shared total")
   d <- subset(d, d$bamprep=="gatk")
-  d <- subset(d, d$caller=="freebayes")
+  d <- subset(d, d$caller=="gatk")
   d <- d[d$category %in% cats.todo,]
   d$variant.type <- factor(d$variant.type, levels=c("snp", "indel"))
   out_file <- str_c(str_split(sum_file, "[.]")[[1]][1], "-alignerdiff.png")
@@ -87,9 +87,9 @@ plot_aligner_differences <- function(d) {
        theme(axis.ticks.y = element_blank(), axis.text.y = element_blank()) +
        theme(axis.title.x = element_blank(), axis.text.x = element_text(size=7)) +
        theme(strip.text.x = element_text(size=6)) +
-       theme(plot.title = element_text(size=8)) +
+       theme(plot.title = element_text(size=7)) +
        ylab("Variant count") +
-       labs(title="Alignment with GATK post-alignment preparation and FreeBayes variant calling")
+       labs(title="Alignment with GATK post-alignment preparation and GATK UnifiedGenotyper variant calling")
   ggsave(out_file, p, width=5, height=3)
 }
 
