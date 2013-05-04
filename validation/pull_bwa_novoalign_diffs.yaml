@@ -1,0 +1,9 @@
+dirs:
+  work: postanalysis/aligners
+ref: /cm/shared/apps/harvard/genomes/Hsapiens/GRCh37/seq/GRCh37.fa
+calls:
+  bwa: validate/NA12878-2/gatk/work/NA12878-2-ref-eval-concordance.vcf
+  bwa-orig: gatk/2_2013-04-03_methodcmp-sort-variants-combined-effects.vcf
+  novoalign: validate/NA12878-1/gatk/work/NA12878-1-ref-eval-concordance.vcf
+callable:
+  novoalign: align/NA12878-1/1_2013-04-03_methodcmp-sort-callable_sample.bed
