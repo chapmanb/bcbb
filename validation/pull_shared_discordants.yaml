@@ -1,0 +1,7 @@
+dirs:
+  work: postanalysis/refmaterials
+ref: /cm/shared/apps/harvard/genomes/Hsapiens/GRCh37/seq/GRCh37.fa
+calls:
+  gatk: validate/NA12878-2/gatk/work/NA12878-2-eval-ref-discordance-annotate.vcf
+  freebayes: validate/NA12878-2/freebayes/work/NA12878-2-eval-ref-discordance-annotate.vcf
+  gatk-haplotype: validate/NA12878-2/gatk-haplotype/work/NA12878-2-eval-ref-discordance-annotate.vcf
