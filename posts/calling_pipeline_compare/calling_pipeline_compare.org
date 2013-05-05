@@ -1,6 +1,7 @@
+#+DATE: [2013-05-05 Sun 12:55]
 #+BLOG: bcbio
 #+POSTID: 419
-#+TITLE: Framework for evaluating variant calling methods: comparison of aligners and callers
+#+TITLE: Framework for evaluating variant detection methods: comparison of aligners and callers
 #+CATEGORY: variation
 #+TAGS: bioinformatics, variant, ngs, clinical, alignment
 #+STYLE: <style id="org2blog" type="text/css">td {padding: 4px;}</style>
@@ -27,13 +28,18 @@ approaches. This allows us to:
   sequencing studies requiring either exome or whole genome variant
   calling.
 
+- Identify characteristics of genomic regions more likely to have
+  discordant variants which require additional care when making
+  biological conclusions based on calls, or lack of calls, in these
+  regions.
+
 This evaluation work is part of a larger community effort to better
 characterize variant calling methods.
 A key component of these evaluations is a well characterized set of
 reference variations for the [[na12878][NA12878 human HapMap genome]], provided by
-the [[giab][NIST's Genome in a Bottle consortium]]. The diagnostic component of
+[[giab][NIST's Genome in a Bottle consortium]]. The diagnostic component of
 this work supplements emerging tools like
-[[gcat][GCAT (Genome Comparison and Analytic Testing)]]
+[[gcat][GCAT (Genome Comparison and Analytic Testing)]],
 which provides a community platform for comparing
 and discussing calling approaches.
 
@@ -65,8 +71,8 @@ own work and extend this analysis.
 
 * Aligner, post-alignment preparation and variant calling comparison
 
-To compare methods, we called variants on an NA12878 exome dataset
-from [[edge][EdgeBio's]] clinical pipeline and compared to the NIST Genome in a
+To compare methods, we called variants on a NA12878 exome dataset
+from [[edge][EdgeBio's clinical pipeline]] and assessed them against the NIST Genome in a
 Bottle reference material. Discordant positions where the reference
 and evaluation variants differ fall into three different categories:
 
@@ -75,13 +81,12 @@ and evaluation variants differ fall into three different categories:
 
 - Missing variants, found in the NA12878 reference but not in the
   evaluation data set. These are potential false negatives. The use
-  of high quality reference materials from NIST allows us to be able
-  to assess the equally important question of identify genome regions
-  we fail to call in.
+  of high quality reference materials from NIST enables
+  identification of genomic regions we fail to call in.
 
-- Shared variants, called in both evaluation and reference but
-  differently called. This could be due to allele difference, such as
-  heterozygote versus homozygote calls or variant representation
+- Shared variants, called in both the evaluation and reference but
+  differently represented. This could result from allele differences, such as
+  heterozygote versus homozygote calls, or variant identification
   differences, such as different indel sizes.
 
 To further identify causes of discordance, we subdivide the missing
@@ -93,15 +98,17 @@ and extra variants by potential causes using annotations from the
 - Error prone: variants falling in
   [[cse][motifs found to induce sequencing errors]].
 
-Other critical components of assessment include comparing SNPs and
-indels separately and evaluating only in callable regions with 4 or
-more reads. With lower total counts of indels but higher error rates,
+We subdivide and restrict our comparisons to help identify sources of
+differences between methods indistinguishable when looking at total
+discordant counts. A critical subdivison is comparing SNPs and indels
+separately. With lower total counts of indels but higher error rates,
 each variant type needs independent visualization. Secondly, it's
 crucial to distinguish between discordance caused by a lack of
-coverage in the region and that caused by an actual difference in
-variant assessment. These subdivisions and restrictions help identify
-sources of differences between methods indistinguishable when looking
-at total discordant counts.
+coverage, and discordance caused by an actual difference in
+variant assessment. We evaluate only in callable regions with
+4 or more reads. This low minimum cutoff provides a valuable
+evaluation of low coverage regions, which differ the most between
+alignment and calling methods.
 
 I'll use this data to provide recommendations for alignment,
 post-alignment preparation and variant calling. In addition to these
@@ -120,12 +127,13 @@ longer reads coming from new sequencing technologies:
 [[novoalign][novoalign (3.00.02)]] and [[bwa-mem][bwa mem (0.7.3a]]). bwa mem identified 1389 additional
 concordant SNPs and 145 indels not seen with novoalign. 1024 of
 [[bwa-novo-diffs][these missing variants]] are in regions where novoalign does not provide
-sufficient coverage for calling. Algorithmic changes impact low
+sufficient coverage for calling. Of those, 92% (941) have low coverage
+with less than 10 reads in the bwa alignments. Algorithmic changes impact low
 coverage regions more due to the decreased evidence and
 susceptibility to crossing calling coverage thresholds, so we need
 extra care and consideration of calls in these regions.
 
-Our standard workflow uses novoalign due to its stringency in
+Our standard workflow uses novoalign based on its stringency in
 [[align-paper][resolving large insertions and deletions]]. These results suggest
 equally good results using bwa mem, along with improved processing
 times. One caveat to these results is that some of the available
@@ -159,7 +167,7 @@ We compared two methods of quality recalibration:
   recalibration step.
 
 GATK best practice pipelines offer an advantage over the gkno-only
-pipeline primarily due to improvements in SNP calling from base
+pipeline primarily because of improvements in SNP calling from base
 quality recalibration. Specifically we lose ~1% (824 / 77158) of
 called variations. These fall into the discordant missing "other"
 category, so we cannot explain them by metrics such as coverage or
@@ -168,7 +176,7 @@ quality calculations in those regions result in callers missing those
 variants. Base quality recalibration helps recover them. These results match
 [[brendan-qual][Brendan O'Fallon's recent analysis of base quality score recalibration]].
 
-This places a practical number on the lost variants due to avoiding
+This places a practical number on the lost variants when avoiding
 recalibration either due to scaling or GATK licensing concerns. Some
 other options for recalibration include
 [[novoalign-qual][Novoalign's Quality Recalibration]] and
@@ -209,21 +217,21 @@ Adjusting variant calling methods has the biggest impact on the final
 set of calls. Called SNPs differ by 4577 between the three compared
 approaches, in comparison with aligner and post-alignment preparation
 changes which resulted in a maximum difference of 1389 calls. This
-suggests that experimenting with variant calling approaches provides
-the best leverage to improve calls.
+suggests that experimenting with variant calling approaches currently
+provides the most leverage to improve calls.
 
 A majority of the SNP concordance differences between the three calling
-methods are due to calling low coverage regions with between 4 and 9
+methods are in low coverage regions with between 4 and 9
 reads. GATK UnifiedGenotyper performs the best in detecting SNPs in
 these low coverage regions. FreeBayes and GATK HaplotypeCaller both
 call more conservatively in these regions, generating more potential
 false negatives. FreeBayes had the fewest heterozygote/homozygote
-discrimination of the three callers.
+discrimination differences of the three callers.
 
 For indels, FreeBayes and HaplotypeCaller both provide improved
 sensitivity compared to UnifiedGenotyper, with HaplotypeCaller
-identifying the most especially in low coverage regions. In contrast
-to the SNP calling results, FreeBayes have more calls that match the
+identifying the most, especially in low coverage regions. In contrast
+to the SNP calling results, FreeBayes has more calls that match the
 expected indel but differ in whether a call is a heterozygote or
 homozygote.
 
@@ -241,7 +249,7 @@ overall calling metrics based on this set of comparisons.
 
 Low coverage regions are the key area of difference between
 callers. Coupled with the alignment results and investigation of
-variant changes due to [[bcbio-qb][quality score binning]], this suggests we should
+variant changes resulting from [[bcbio-qb][quality score binning]], this suggests we should
 be more critical in assessing both calls and coverage in these
 regions. Assessing coverage and potential false negatives is
 especially critical since we lack good tools to summarize and
@@ -271,7 +279,7 @@ analysis done here is fully automated as part of the [[bcbio-nextgen][bcbio-next
 analysis framework. This framework code also provides full exposure
 and revision tracking of all parameters used in analyses. For example,
 the ngsalign module contains the command lines used for
-[[cl-bwa][bwa mem]] and [[cl-novoalign][novoalign]].
+[[cl-bwa][bwa mem]] and [[cl-novoalign][novoalign]], as well as all other tools.
 
 To install the pipeline, third-party software and required data files:
 
@@ -339,7 +347,7 @@ contributions.
 * Full data sets
 
 We extracted the conclusions for alignment, post-alignment
-preparation and variant calling from time digging into the full
+preparation and variant calling from analysis of the full
 dataset. The visualizations for the full data are not as pretty but we
 make them available for anyone interested in digging deeper:
 
@@ -363,7 +371,15 @@ differences between methods. Some useful subsets of variants:
   [[bwa-novo-diffs][VCF of bwa calls with low or no coverage in novoalign.]]
 
 - Discordant variants called consistently by multiple calling methods.
-  These are potential errors in the reference material.
+  These are potential errors in the reference material, or
+  consistently problematic calling regions for multiple
+  algorithms. Of the 9004 shared discordants, the majority are
+  potential false negatives not seen in the evaluation calls (7152; 79%). Another large portion is
+  heterozygote/homozygote differences, which make up 1627 calls (18%).
+  6652 (74%) of the differences have low coverage in the exome
+  evaluation, again reflecting the difficulties in calling in these regions.
+  The [[shared-discordants][VCF of discordants found in 2 or more callers]] contains these
+  calls, with a 'GradeCat' INFO tag specifying the discordance category.
 
 We encourage reanalysis and welcome suggestions for improving the presentation
 and conclusions in this post.
@@ -380,4 +396,5 @@ and conclusions in this post.
 #+LINK: bamprepdiff-indel https://github.com/chapmanb/bcbb/raw/master/posts/calling_pipeline_compare/grading-summary-prep-bamprep-Indel.pdf
 #+LINK: callerdiff-snp https://github.com/chapmanb/bcbb/raw/master/posts/calling_pipeline_compare/grading-summary-prep-caller-SNP.pdf
 #+LINK: callerdiff-indel https://github.com/chapmanb/bcbb/raw/master/posts/calling_pipeline_compare/grading-summary-prep-caller-Indel.pdf
-#+LINK: bwa-novo-diffs https://s3.amazonaws.com/bcbio_nextgen/NA12878-cmp-in-bwa-not-novoalign.vcf
+#+LINK: bwa-novo-diffs https://dm.genomespace.org/datamanager/file/Home/chapmanb/validation/NA12878_cmp/NA12878-cmp-in-bwa-not-novoalign.vcf
+#+LINK: shared-discordants https://dm.genomespace.org/datamanager/file/Home/chapmanb/validation/NA12878_cmp/NA12878-cmp-shared-discordants.vcf
