@@ -156,7 +156,8 @@ class GFF3Writer:
 
     def _format_keyvals(self, keyvals):
         format_kvs = []
-        for key, values in keyvals.items():
+        for key in sorted(keyvals.iterkeys()):
+            values = keyvals[key]
             key = key.strip()
             format_vals = []
             if not isinstance(values, list) or isinstance(values, tuple):
