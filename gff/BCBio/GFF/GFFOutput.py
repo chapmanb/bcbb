@@ -162,7 +162,7 @@ class GFF3Writer:
             if not isinstance(values, list) or isinstance(values, tuple):
                 values = [values]
             for val in values:
-                val = urllib.quote(str(val).strip())
+                val = urllib.quote(str(val).strip(), safe=":/ ")
                 if ((key and val) and val not in format_vals):
                     format_vals.append(val)
             format_kvs.append("%s=%s" % (key, ",".join(format_vals)))
