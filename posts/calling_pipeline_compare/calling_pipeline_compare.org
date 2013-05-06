@@ -1,4 +1,4 @@
-#+DATE: [2013-05-05 Sun 12:55]
+#+DATE: [2013-05-06 Mon 08:29]
 #+BLOG: bcbio
 #+POSTID: 419
 #+TITLE: Framework for evaluating variant detection methods: comparison of aligners and callers
@@ -87,10 +87,10 @@ and evaluation variants differ fall into three different categories:
 - Shared variants, called in both the evaluation and reference but
   differently represented. This could result from allele differences, such as
   heterozygote versus homozygote calls, or variant identification
-  differences, such as different indel sizes.
+  differences, such as indel start and end coordinates.
 
 To further identify causes of discordance, we subdivide the missing
-and extra variants by potential causes using annotations from the
+and extra variants using annotations from the
 [[gemini][GEMINI variation framework]]:
 
 - Low coverage: positions with limited read coverage (4 to 9 reads).
@@ -276,7 +276,7 @@ results with every new release?
 Our goal is to provide a community developed pipeline and comparison
 framework that ameliorates this continuous struggle to re-verify. The
 analysis done here is fully automated as part of the [[bcbio-nextgen][bcbio-nextgen]]
-analysis framework. This framework code also provides full exposure
+analysis framework. This framework code provides full exposure
 and revision tracking of all parameters used in analyses. For example,
 the ngsalign module contains the command lines used for
 [[cl-bwa][bwa mem]] and [[cl-novoalign][novoalign]], as well as all other tools.
