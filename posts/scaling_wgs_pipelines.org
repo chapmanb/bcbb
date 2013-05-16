@@ -1,6 +1,6 @@
+#+DATE: [2013-05-15 Wed 05:56]
 #+BLOG: bcbio
 #+POSTID: 477
-#+DATE: [2013-05-13 Mon 12:33]
 #+BLOG: bcbio
 #+TITLE: Scaling variant detection pipelines for whole genome sequencing analysis
 #+CATEGORY: variation
@@ -13,14 +13,14 @@ Moving from [[exome-seq][exome]] to [[wgs][whole genome sequencing]] introduces 
 scaling and informatics challenges. In addition to the biological
 component of correctly identifying biological variation, it's equally
 important to be able to handle the informatics complexities that come
-with scaling up to whole genomes, increased coverage and more samples.
+with scaling up to whole genomes.
 
 At Harvard School of Public Health, we are processing an increasing
 number of whole genome samples and the goal of this post is to share
 experiences scaling the [[bcbio-nextgen][bcbio-nextgen]] pipeline to handle the larger
 file sizes and processing times associated with these. We'll provide
 an overview of the parallel architecture in bcbio-nextgen and detail
-the four areas we found more useful to overcome processing
+the four areas we found most useful to overcome processing
 bottlenecks:
 
 - Support heterogeneous cluster creation to maximize usage of resources.
@@ -30,7 +30,7 @@ bottlenecks:
 - Explore distributed file systems to better handle file IO.
 
 This overview isn't meant as a prescription, but rather as a
-description of experiences gained. We welcome suggestions and thoughts
+description of experiences so far. We welcome suggestions and thoughts
 from others working on these problems.
 
 #+LINK: exome-seq https://en.wikipedia.org/wiki/Exome_sequencing
@@ -42,11 +42,11 @@ from others working on these problems.
 The [[bcbio-nextgen][bcbio-nextgen]] pipeline runs in parallel on single multicore
 machines or distributed on job scheduler managed clusters
 like [[lsf][LSF]], [[sge][SGE]], and [[torque][TORQUE]]. The [[ipython-parallel][IPython parallel]]
-framework manages setting up parallel engines and handling
-communication between them. As a result, identical code can scale
-from a single processor to hundreds of node on a cluster.
+framework manages the set up of parallel engines and handling
+communication between them. These abstractions allow the same pipeline
+to scale from a single processor to hundreds of node on a cluster.
 
-The high level diagram of the analysis process below shows the major
+The high level diagram of the analysis pipeline shows the major
 steps in the process. For whole genome samples we start with large
 100Gb+ files of reads in [[fastq][FASTQ]] or [[bam][BAM]] format and perform alignment,
 post-alignment processing, variant calling and variant post
@@ -66,28 +66,29 @@ with different processing and memory requirements.
 
 * Heterogeneous clusters
 
-A major change in the pipeline was supporting heterogeneous setup of
-multiple cores for different programs. This moves away from our previous
-architecture, which attempted to utilize single cores throughout.
-Due to algorithm restrictions, some software requires the entire set
-of reads for analysis. For instance, [[bqsr][GATK's base quality recalibrator]]
-uses the entire set of aligned reads to accurately calculate
-positional targets for recalibration. Other software operates more
-efficiently on entire files. The alignment step scales better by
-running using multiple cores on a single machine, since the IO penalty
-for splitting the input file is so severe.
+A major change in the pipeline was supporting creation of
+heterogeneous processing environments targeted for specific programs.
+This moves away from our previous architecture, which attempted to
+flatten processing and utilize single cores throughout. Due to
+algorithm restrictions, some software requires the entire set of reads
+for analysis. For instance, [[bqsr][GATK's base quality recalibrator]] uses the
+entire set of aligned reads to accurately calculate inputs for read
+recalibration. Other software operates more efficiently on entire
+files: the alignment step scales better by running using multiple
+cores on a single machine, since the IO penalty for splitting the
+input file is so severe.
 
 To support this, bcbio-nextgen assesses the analysis and creates the
 appropriate type of cluster environment:
 
 - Multicore: Allocates groups of same machine processors, allowing
   analysis of individual samples with multiple cores. For example,
-  running bwa with 16 cores.
+  this enables running bwa alignment with 16 cores on multiprocessor
+  machines.
 
 - Full usage of single cores: Maximize usage of single cores for
   processes that scale beyond the number of samples. For example,
-  variant calling scales across genomic regions so can utilize more
-  individual cores than samples.
+  we run variant calling in parallel across subsets of the genome.
 
 - Per sample single core usage: Some steps do not currently
   parallelize beyond the number of samples, so require a single core
@@ -111,18 +112,25 @@ to local hardware and virtual machines.
 
 * Parallelism by genomic regions
 
-Following alignment we can run analyses in parallel, split by genomic
-region. Identification of variant requires processing of continuous
-regions of reads together which allows local realignment algorithms to
-correctly characterize closely spaced SNPs and indels. Previously,
-we'd split analyses by chromsome but this has the downside of tying
-analysis times to chromosome 1, the largest chromosome. The pipeline
-now identifies chromosome blocks without callable reads and uses these
-no read regions to fraction the genome into more uniform sections.
+While the initial alignment and preparation steps require analysis of
+a full set of reads, subsequent steps can run with increased
+parallelism by splitting across genomic regions. Variant detection
+algorithms do require processing continuous blocks of reads together,
+allowing local realignment algorithms to correctly characterize
+closely spaced SNPs and indels. Previously, we'd split analyses by
+chromosome but this has the downside of tying analysis times to
+chromosome 1, the largest chromosome. The pipeline now identifies
+chromosome blocks without callable reads and uses these no read
+regions to fraction the genome into more uniform sections.
 
-As a result we can process on smaller chunks of reads for time
+As a result we can work on smaller chunks of reads during time
 critical parts of the process: applying base recalibration,
 de-duplication, realignment and variant calling.
+
+#+ATTR_HTML: alt="Parallel block selection from genome" width="600"
+[[file:parallel-genome.png]]
+
+#+parallel-genome.png https://raw.github.com/chapmanb/bcbio-nextgen/master/docs/contents/images/parallel-genome.png
 
 * Streaming pipelines
 
@@ -133,31 +141,163 @@ ethernet connectivity between storage nodes. A practical solution to
 this problem is to avoid intermediate files and use unix pipes to
 stream results between processes.
 
-We reworked our alignment approach specifically to eliminate these
-issues. The previous approach took a disk centric approach that
+We reworked our alignment step specifically to eliminate these
+issues. The previous attempt took a disk centric approach that
 allowed scaling out to multiple single cores in a cluster. We split
 an input FASTQ or BAM file into individual chunks of reads, and then
 aligned each of these chunks independently. Finally, we merged all
 the individual BAMs together to produce a final BAM file to pass on
-to the next step in the process. While nicely generalized, this
-approach did not scale when running 50 concurrent whole genomes.
+to the next step in the process. While nicely generalized, it
+did not scale when running 50 concurrent whole genomes.
+
+The updated pipeline uses multicore support in [[samtools][samtools]] and aligners
+like [[bwa-mem][bwa-mem]] and [[novoalign][novoalign]] to pipe all steps as a stream: preparation
+of input reads, alignment, conversion to BAM and coordinate sorting of
+aligned reads. This results in improved scaling at the cost of only
+being able to scale single sample throughput to the maximum processors
+on a machine.
+
+More generally, the entire process creates numerous temporary file
+intermediates that are a cause of scaling issues. Commonly
+used best-practice toolkits like [[picard][Picard]] and [[gatk][GATK]] primarily require
+intermediate files. In contrast, tools in the
+[[gkno-me][Marth lab's gkno pipeline]] handle streaming input and output making it possible to
+create alignment post-processing pipelines which minimize temporary
+file creation. As a general rule, supporting streaming algorithms
+amenable to piping can ameliorate file load issues associated with
+scaling up variant calling pipelines. This echos the
+[[titus-stream][focus on streaming algorithms]] Titus Brown advocates for dealing with
+[[titus-diginorm][large metagenomic datasets]].
+
+#+LINK: samtools http://samtools.sourceforge.net/
+#+LINK: novoalign http://www.novocraft.com/main/index.php
+#+LINK: bwa-mem http://bio-bwa.sourceforge.net/
+#+LINK: picard http://picard.sourceforge.net/
+#+LINK: gatk http://www.broadinstitute.org/gatk/
+#+LINK: gkno-me http://gkno.me/
+#+LINK: titus-stream http://ivory.idyll.org/blog/bio-ci-needs.html
+#+LINK: titus-diginorm http://ivory.idyll.org/blog/diginorm-paper-posted.html
 
 * Distributed file systems
 
+While all three of CPU, memory and disk speed limit individual steps
+during processing, the hardest variable to tweak is disk throughput.
+CPU and memory limitations have understandable solutions: buy faster
+CPUs and more memory. Improving disk access is not as easily solved,
+even with monetary resources, as it's not clear what combination of
+disk and distributed filesystem will produce the best results for this
+type of pipeline.
+
+We've experimented with [[nfs][NFS]], [[gluster][GlusterFS]] and [[lustre][Lustre]] for handling disk
+access associated with high throughput variant calling. Each requires
+extensive tweaking and none has been unanimously better for all parts
+of the process. Much credit is due to [[jwm][John Morrissey]] and the
+[[fas][research computing team at Harvard FAS]] for help performing incredible
+GlusterFS and network improvements as we worked through scaling issues.
+We can summarize what we've learned so far in two points:
+
+- A key variable is the network connectivity between storage nodes.
+  We've worked with the pipeline on networks ranging from [[1gige][1 GigE]] to
+  [[infiniband][InfiniBand]] connectivity, and increased throughput dramatically
+  delays scaling slowdowns.
+
+- Different part of the processes stress different distributed file
+  systems in complex ways. NFS provides the best speed compared to
+  single machine processing until you hit scaling issues, then it
+  slows down dramatically. Lustre and GlusterFS result in a reasonable
+  performance hit for less disk intensive processing, but delay the
+  dramatic slowdowns seen with NFS. However, when these systems reach
+  their limits they hit a slowdown wall as bad or worse than NFS.
+  This appears to be especially problematic with small reads and
+  writes, although we need to do much more diagnosis.
+
+Other approaches we're considering include utilizing high speed local
+temporary disk, reducing writes to long term distributed storage file
+systems. This introduces another set of challenges avoiding stressing or
+filling up local disk when running multiple processes. I'd love to hear
+experiences and suggestions from anyone with good or bad experiences
+using distributed file systems for this type of disk intensive high
+throughput sequencing analysis.
+
+A final challenge associated with improving disk throughput is
+designing a pipeline that is not overly engineered to a specific
+system. We'd like to be able to take advantage of systems with large
+SSD attached temporary disk or wonderfully configured distributed file
+systems, while maintaining the ability scale on other
+systems. This is critical for building a community framework that
+multiple groups can use and contribute to.
+
+#+LINK: jwm http://horde.net/~jwm/
+#+LINK: fas http://rc.fas.harvard.edu/
+#+LINK: nfs https://en.wikipedia.org/wiki/Network_File_System
+#+LINK: gluster https://en.wikipedia.org/wiki/GlusterFS
+#+LINK: lustre https://en.wikipedia.org/wiki/Lustre_(file_system)
+#+LINK: 1gige https://en.wikipedia.org/wiki/Gigabit_Ethernet
+#+LINK: infiniband https://en.wikipedia.org/wiki/InfiniBand
+
 * Timing results
+
+Providing detailed timing estimates for large, heterogeneous pipelines
+is difficult since they will be highly depending on the architecture
+and input files. Here we'll present some concrete numbers that
+provide more insight into the conclusions presented above. These are
+more useful as a side by side comparison between approaches,
+rather than hard numbers to predict scaling on your own systems.
+
+In partnership with [[dell][Dell Solutions Center]], we've been performing
+benchmarking of the pipeline on dedicated cluster hardware. The Dell
+system has 32 16-core machines connected with high speed InfiniBand to
+distributed NFS and Lustre file systems. We're incredibly appreciative
+of Dell's generosity in configuring, benchmarking and scaling out this
+system.
+
+As a benchmark, we use 10x coverage whole genome human sequencing data
+from the [[illumina-plat][Illumina platinum genomes]] project. Detailed instructions on
+setting up and running the analysis are available as part of the
+[[wgs-test][bcbio-nextgen example pipeline documentation]].
+
+Below are timing results for scaling from 1 to 30 samples on both
+Lustre and NFS fileystems:
 
 #+org-html-table-data-tags: <td style="text-align:right;">
 #+ATTR_HTML: border="1" style="width:100%; height:125px"
-|----------------------+---------+----------+----------+----------+-----------+------------+------------|
-|                      | primary | 1 sample | 1 sample | 1 sample | 6 samples | 30 samples | 30 samples |
-|                      | bottle  | 16 cores | 96 cores | 96 cores |  96 cores |  480 cores |  480 cores |
-|                      | neck    |   Lustre |   Lustre |      NFS |    Lustre |     Lustre |        NFS |
-|----------------------+---------+----------+----------+----------+-----------+------------+------------|
-| alignment            | cpu/mem |      4.3 |      4.3 |      3.9 |       4.4 |        4.5 |        6.1 |
-| align post-process   | io      |      3.7 |      1.0 |      0.9 |       4.5 |        7.0 |       20.7 |
-| variant calling      | cpu/mem |      2.9 |      0.5 |      0.5 |       2.0 |        3.0 |        1.8 |
-| variant post-process | io      |      1.0 |      1.0 |      0.6 |       2.3 |        4.0 |        1.5 |
-|----------------------+---------+----------+----------+----------+-----------+------------+------------|
+|----------------------+---------+----------+----------+----------+------------+------------|
+|                      | primary | 1 sample | 1 sample | 1 sample | 30 samples | 30 samples |
+|                      | bottle  | 16 cores | 96 cores | 96 cores |  480 cores |  480 cores |
+|                      | neck    |   Lustre |   Lustre |      NFS |     Lustre |        NFS |
+|----------------------+---------+----------+----------+----------+------------+------------|
+| alignment            | cpu/mem |      4.3 |      4.3 |      3.9 |        4.5 |        6.1 |
+| align post-process   | io      |      3.7 |      1.0 |      0.9 |        7.0 |       20.7 |
+| variant calling      | cpu/mem |      2.9 |      0.5 |      0.5 |        3.0 |        1.8 |
+| variant post-process | io      |      1.0 |      1.0 |      0.6 |        4.0 |        1.5 |
+|----------------------+---------+----------+----------+----------+------------+------------|
+| total                |         |     11.9 |      6.8 |      5.9 |       18.5 |       30.1 |
 #+begin_html
  <br />
 #+end_html
+
+Some interesting conclusions:
+
+- Scaling single samples to additional cores (16 to 96) provides a
+  40% reduction in processing time due to increased parallelism
+  during post-processing and variant calling.
+
+- Lustre provides the best scale out from 1 to 30 samples, with 30
+  sample concurrent processing taking only 1.5x as along as a single
+  sample.
+
+- NFS provides slightly better performance than Lustre for single
+  sample scaling.
+
+- In contrast, NFS runs into scaling issues at 30 samples, proceeding
+  5.5 times slower during the IO intensive alignment post-processing
+  step.
+
+This is preliminary work as we continue to optimize code parallelism
+and work on cluster and distributed file system setup. We welcome
+feedback and thoughts to improve pipeline throughput and scaling
+recommendations.
+
+#+LINK: wgs-test https://bcbio-nextgen.readthedocs.org/en/latest/contents/testing.html#whole-genome
+#+LINK: illumina-plat http://www.illumina.com/platinumgenomes/
+#+LINK: dell http://www.dell.com/Learn/us/en/uscorp1/dell-solutions-center

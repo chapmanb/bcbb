@@ -2,3 +2,5 @@
 """
 from GFFParser import GFFParser, DiscoGFFParser, GFFExaminer, parse, parse_simple
 from GFFOutput import GFF3Writer, write
+
+__version__="0.2"
