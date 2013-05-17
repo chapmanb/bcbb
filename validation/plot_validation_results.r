@@ -5,7 +5,7 @@
 # between multiple alignment and variant calling methods.
 #
 # Usage:
-#   Rscript plot_validation_results.r <grading-summary.csv>
+#   Rscript plot_validation_results.r <grading-summary-prep.csv>
 
 library(ggplot2)
 library(plyr)
