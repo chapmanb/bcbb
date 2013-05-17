@@ -11,11 +11,11 @@
 
 Moving from [[exome-seq][exome]] to [[wgs][whole genome sequencing]] introduces a myriad of
 scaling and informatics challenges. In addition to the biological
-component of correctly identifying biological variation, it's equally
+component of [[bcbio-eval][correctly identifying biological variation]], it's equally
 important to be able to handle the informatics complexities that come
 with scaling up to whole genomes.
 
-At Harvard School of Public Health, we are processing an increasing
+At [[chb][Harvard School of Public Health]], we are processing an increasing
 number of whole genome samples and the goal of this post is to share
 experiences scaling the [[bcbio-nextgen][bcbio-nextgen]] pipeline to handle the larger
 file sizes and processing times associated with these. We'll provide
@@ -36,8 +36,10 @@ from others working on these problems.
 #+LINK: exome-seq https://en.wikipedia.org/wiki/Exome_sequencing
 #+LINK: wgs https://en.wikipedia.org/wiki/Whole_genome_sequencing
 #+LINK: bcbio-nextgen https://github.com/chapmanb/bcbio-nextgen
+#+LINK: bcbio-eval http://bcbio.wordpress.com/2013/05/06/framework-for-evaluating-variant-detection-methods-comparison-of-aligners-and-callers/
+#+LINK: chb http://compbio.sph.harvard.edu/chb/
 
-* Parallel architecture
+* Pipeline architecture
 
 The [[bcbio-nextgen][bcbio-nextgen]] pipeline runs in parallel on single multicore
 machines or distributed on job scheduler managed clusters
