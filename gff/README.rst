@@ -5,7 +5,7 @@ A python library to read and write Generic Feature Format (`GFF`_).
 See the `wiki documentation`_ for details on usage. The goal is to
 integrate this code in `gffutils`_ and `Biopython`_.
 
-Installation from `bcbio-gff in pypi`::
+Installation from `bcbio-gff in pypi`_::
 
   pip install bcbio-gff
 
