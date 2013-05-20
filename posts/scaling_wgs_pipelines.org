@@ -1,4 +1,4 @@
-#+DATE: [2013-05-18 Sat 06:00]
+#+DATE: [2013-05-20 Mon 15:10]
 #+POSTID: 477
 #+BLOG: bcbio
 #+TITLE: Scaling variant detection pipelines for whole genome sequencing analysis
@@ -211,14 +211,14 @@ extensive tweaking and none has been unanimously better for all parts
 of the process. Much credit is due to [[jwm][John Morrissey]] and the
 [[fas][research computing team at Harvard FAS]] for help performing incredible
 GlusterFS and network improvements as we worked through scaling
-issues, and [[glen][Glen Otero]] and Will Cottay at [[dell][Dell]] for configuring
-an environment for NFS and Lustre testing. We can summarize what
-we've learned so far in two points:
+issues, and [[glen][Glen Otero]], Will Cottay and Neil Klosterman at [[dell][Dell]]
+for configuring the environment for NFS and Lustre testing.
+We can summarize what we've learned so far in two points:
 
 - A key variable is the network connectivity between storage nodes.
   We've worked with the pipeline on networks ranging from [[1gige][1 GigE]] to
-  [[infiniband][InfiniBand]] connectivity, and increased throughput dramatically
-  delays scaling slowdowns.
+  [[infiniband][InfiniBand]] connectivity, and increased throughput delays
+  scaling slowdowns.
 
 - Different part of the processes stress different distributed file
   systems in complex ways. NFS provides the best speed compared to
@@ -226,9 +226,9 @@ we've learned so far in two points:
   slows down dramatically. Lustre and GlusterFS result in a reasonable
   performance hit for less disk intensive processing, but delay the
   dramatic slowdowns seen with NFS. However, when these systems reach
-  their limits they hit a slowdown wall as bad or worse than NFS.
-  This appears to be especially problematic with small reads and
-  writes, although we need to do much more diagnosis.
+  their limits they hit a slowdown wall as bad or worse than NFS. One
+  especially slow process identified on Gluster is SQLite indexing,
+  which needs more investigation to identify specific causes.
 
 Other approaches we're considering include utilizing high speed local
 temporary disk, reducing writes to long term distributed storage file
