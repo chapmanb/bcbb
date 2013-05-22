@@ -1,4 +1,4 @@
-#+DATE: [2013-05-20 Mon 15:10]
+#+DATE: [2013-05-22 Wed 06:50]
 #+POSTID: 477
 #+BLOG: bcbio
 #+TITLE: Scaling variant detection pipelines for whole genome sequencing analysis
@@ -16,13 +16,13 @@ with scaling up to whole genomes.
 
 At [[chb][Harvard School of Public Health]], we are processing an increasing
 number of whole genome samples and the goal of this post is to share
-experiences scaling the [[bcbio-nextgen][bcbio-nextgen]] pipeline to handle the larger
-file sizes and processing times associated with these. We'll provide
-an overview of the pipeline architecture in bcbio-nextgen and detail
-the four areas we found most useful to overcome processing
-bottlenecks:
+experiences scaling the [[bcbio-nextgen][bcbio-nextgen]] pipeline to handle the
+associated increase in file sizes and computational requirements.
+We'll provide an overview of the pipeline architecture in
+bcbio-nextgen and detail the four areas we found most useful to
+overcome processing bottlenecks:
 
-- Support heterogeneous cluster creation to maximize usage of resources.
+- Support heterogeneous cluster creation to maximize resource usage.
 - Increase parallelism by developing flexible methods to split and
   process by genomic regions.
 - Avoid file IO and prefer streaming piped processing pipelines.
@@ -56,7 +56,7 @@ post-alignment processing, variant calling and variant post
 processing. These steps involve numerous externally developed software
 tools with different processing and memory requirements.
 
-#+ATTR_HTML: alt="Variant calling overview" width="300"
+#+ATTR_HTML: alt="Variant calling overview" width="400"
 [[file:variant-calling-overview.png]]
 
 #+LINK: lsf https://en.wikipedia.org/wiki/Platform_LSF
@@ -81,8 +81,8 @@ files: the alignment step scales better by running using multiple
 cores on a single machine, since the IO penalty for splitting the
 input file is so severe.
 
-To support this, bcbio-nextgen assesses the analysis and creates the
-appropriate type of cluster environment:
+To support this, bcbio-nextgen creates an appropriate type of cluster
+environment for each step:
 
 - Multicore: Allocates groups of same machine processors, allowing
   analysis of individual samples with multiple cores. For example,
@@ -212,7 +212,7 @@ of the process. Much credit is due to [[jwm][John Morrissey]] and the
 [[fas][research computing team at Harvard FAS]] for help performing incredible
 GlusterFS and network improvements as we worked through scaling
 issues, and [[glen][Glen Otero]], Will Cottay and Neil Klosterman at [[dell][Dell]]
-for configuring the environment for NFS and Lustre testing.
+for configuring an environment for NFS and Lustre testing.
 We can summarize what we've learned so far in two points:
 
 - A key variable is the network connectivity between storage nodes.
@@ -228,11 +228,12 @@ We can summarize what we've learned so far in two points:
   dramatic slowdowns seen with NFS. However, when these systems reach
   their limits they hit a slowdown wall as bad or worse than NFS. One
   especially slow process identified on Gluster is SQLite indexing,
-  which needs more investigation to identify specific causes.
+  although we need to do more investigation to identify specific
+  underlying causes of the slowdown.
 
 Other approaches we're considering include utilizing high speed local
 temporary disk, reducing writes to long term distributed storage file
-systems. This introduces another set of challenges avoiding stressing
+systems. This introduces another set of challenges: avoiding stressing
 or filling up local disk when running multiple processes. We've also
 had good reports about using [[moosefs][MooseFS]] but haven't yet explored setting
 up and configuring another distributed file system. I'd love to hear
@@ -295,6 +296,7 @@ Below are wall-clock timing results, in total hours, for scaling from
 | variant post-process | io      | 1.0h     | 1.0h     | 0.6h     | 4.0h       | 1.5h       |
 |----------------------+---------+----------+----------+----------+------------+------------|
 | total                |         | 11.9h    | 6.8h     | 5.9h     | 18.5h      | 30.1h      |
+
 #+begin_html
  <br />
 #+end_html
