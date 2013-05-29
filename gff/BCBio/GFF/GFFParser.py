@@ -29,7 +29,7 @@ except AttributeError:
     import _utils
     collections.defaultdict = _utils.defaultdict
 
-from Bio.Seq import Seq, UnknownSeq
+from Bio.Seq import UnknownSeq
 from Bio.SeqRecord import SeqRecord
 from Bio.SeqFeature import SeqFeature, FeatureLocation
 from Bio import SeqIO
@@ -319,7 +319,7 @@ class _AbstractMapReduceGFF:
         limit_info = self._normalize_limit_info(limit_info)
         for results in self._gff_process(gff_files, limit_info, target_lines):
             yield results
-       
+
     def _normalize_limit_info(self, limit_info):
         """Turn all limit information into tuples for identical comparisons.
         """
@@ -333,7 +333,7 @@ class _AbstractMapReduceGFF:
                     else:
                         final_limit_info[key].append(tuple(v))
         return final_limit_info
-    
+
     def _results_to_features(self, base, results):
         """Add parsed dictionaries of results to Biopython SeqFeatures.
         """
@@ -360,6 +360,9 @@ class _AbstractMapReduceGFF:
                     val = parts[1]
                 else:
                     val = tuple(parts[1:])
+                # specific directives that need special handling
+                if key == "sequence-region": # convert to Python 0-based coordinates
+                    val = (val[0], int(val[1]) - 1, int(val[2]))
                 dir_keyvals[key].append(val)
         for key, vals in dir_keyvals.items():
             for rec in base.values():

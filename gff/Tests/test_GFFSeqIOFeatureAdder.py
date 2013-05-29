@@ -11,7 +11,7 @@ from BCBio import GFF
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 from Bio.SeqFeature import SeqFeature, FeatureLocation
-from BCBio.GFF import (GFF3Writer, GFFExaminer, GFFParser, DiscoGFFParser)
+from BCBio.GFF import (GFFExaminer, GFFParser, DiscoGFFParser)
 
 class MapReduceGFFTest(unittest.TestCase):
     """Tests GFF parsing using a map-reduce framework for parallelization.
@@ -478,15 +478,14 @@ class DirectivesTest(unittest.TestCase):
     def t_basic_directives(self):
         """Parse out top level meta-data supplied in a GFF3 file.
         """
-
         recs = SeqIO.to_dict(GFF.parse(self._gff_file))
         anns = recs['chr17'].annotations
         assert anns['gff-version'] == ['3']
         assert anns['attribute-ontology'] == ['baz']
         assert anns['feature-ontology'] == ['bar']
         assert anns['source-ontology'] == ['boo']
-        assert anns['sequence-region'] == [('foo', '1', '100'), ('chr17',
-            '62467934', '62469545')]
+        assert anns['sequence-region'] == [('foo', 0, 100), ('chr17',
+            62467933, 62469545)]
 
     def t_fasta_directive(self):
         """Parse FASTA sequence information contained in a GFF3 file.
@@ -553,7 +552,7 @@ class OutputTest(unittest.TestCase):
                 assert line.find("ID=B0019.1") > 0
             if line.find("translated_nucleotide_match\t12762127") > 0:
                 checks += 1
-                assert line.find("Note=MSP%3AFADFSPLDVSDVNFATDDLAK") > 0
+                assert line.find("Note=MSP:FADFSPLDVSDVNFATDDLAK") > 0
         assert checks == 3, "Missing check line"
 
     def t_write_from_recs(self):
@@ -576,9 +575,10 @@ class OutputTest(unittest.TestCase):
         wrote_info = out_handle.getvalue().split("\n")
         assert wrote_info[0] == "##gff-version 3"
         assert wrote_info[1] == "##sequence-region ID1 1 20"
+        print wrote_info[2].split("\t")
         assert wrote_info[2].split("\t") == ['ID1', 'prediction', 'gene', '1',
                                              '20', '10.0', '+', '.',
-                                             'other=Some,annotations;ID=gene1']
+                                             'ID=gene1;other=Some,annotations']
         assert wrote_info[3].split("\t") == ['ID1', 'prediction', 'exon', '1', '5',
                                              '.', '+', '.', 'Parent=gene1']
 
