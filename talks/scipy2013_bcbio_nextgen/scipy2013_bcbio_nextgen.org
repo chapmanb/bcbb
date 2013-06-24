@@ -1,6 +1,7 @@
 #+title: Quantifiable and scalable detection of genomic variants
 #+author: Brad Chapman
 #+creator: Bioinformatics Core, Harvard School of Public Health
+#+date: 26 June 2013
 
 #+OPTIONS: reveal_center:t reveal_progress:t reveal_history:nil reveal_control:t
 #+OPTIONS: reveal_overview:t reveal_keyboard:t
@@ -14,15 +15,16 @@
 #+REVEAL_MAX_SCALE: 1.0
 #+REVEAL_EXTRA_CSS_NO: ../reveal.js/css/print/pdf.css
 
-* Detecting genomic variants
+*   
 
+[[./images/bcbio_nextgen_highlevel.png]]
 
 * Development goals
 
 - Quantifiable: assess variant quality
 - Scalable: 1500 whole genome samples
-- Reproducible: revision controlled text-based configuration inputs
-- Community: open source, documented and deployable
+- Reproducible: text-configurable, provenance, version tracking
+- Community developed: open source, documented and widely deployable
 
 * Quantify quality
 
@@ -55,7 +57,7 @@ Infrastructure: [[http://ipython.org/ipython-doc/dev/parallel/index.html]]
       validate: NA12878-nist-v2_13-NGv3-pass.vcf
 #+END_SRC
 
-* Community driven
+* Community developed
 
 - Fully automated installation: CloudBioLinux
 - Deployable on multiple clusters (LSF, SGE, Torque)
@@ -69,5 +71,6 @@ Infrastructure: [[http://ipython.org/ipython-doc/dev/parallel/index.html]]
   "<h2>%t</h2>
    <h4>%a</h4>
    <h4>%c</h4>
-   <h4><a href='https://github.com/chapmanb'>@chapmanb</a></h4>")
+   <h4><a href='https://github.com/chapmanb'>@chapmanb</a></h4>
+   <h4>%d</h4>")
 #+END_SRC

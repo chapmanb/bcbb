@@ -6,7 +6,7 @@
 <meta name="author" content="(Brad Chapman)"/>
 <link rel="stylesheet" href="../reveal.js/css/reveal.min.css">
 <link rel="stylesheet" href="../reveal.js/css/theme/simple.css" id="theme">
-<link rel="stylesheet" href="./../reveal.js/css/print/pdf.css">
+
 </head>
 <body>
 <div class="reveal">
@@ -15,15 +15,18 @@
 <h2>Quantifiable and scalable detection of genomic variants</h2>
    <h4>Brad Chapman</h4>
    <h4>Bioinformatics Core, Harvard School of Public Health</h4>
-   <h4><a href='https://github.com/chapmanb'>@chapmanb</a></h4></section>
+   <h4><a href='https://github.com/chapmanb'>@chapmanb</a></h4>
+   <h4>26 June 2013</h4></section>
 
 <section>
 <section id="sec-1" >
 
-<h2>Detecting genomic variants</h2>
+<h2></h2>
+
+<div class="figure">
+<p><img src="./images/bcbio_nextgen_highlevel.png"  alt="bcbio_nextgen_highlevel.png"/></p>
+</div>
 </section>
-
-
 </section>
 <section>
 <section id="sec-2" >
@@ -34,9 +37,9 @@
 </li>
 <li>Scalable: 1500 whole genome samples
 </li>
-<li>Reproducible: revision controlled text-based configuration inputs
+<li>Reproducible: text-configurable, provenance, version tracking
 </li>
-<li>Community: open source, documented and deployable
+<li>Community developed: open source, documented and widely deployable
 </li>
 </ul>
 </section>
@@ -96,7 +99,7 @@ Infrastructure: <a href="http://ipython.org/ipython-doc/dev/parallel/index.html"
 <section>
 <section id="sec-6" >
 
-<h2>Community driven</h2>
+<h2>Community developed</h2>
 <ul class="org-ul">
 <li>Fully automated installation: CloudBioLinux
 </li>
@@ -146,6 +149,10 @@ Infrastructure: <a href="http://ipython.org/ipython-doc/dev/parallel/index.html"
         				{ src: '../reveal.js/plugin/markdown/showdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
         				{ src: '../reveal.js/plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
         				{ src: '../reveal.js/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+        				{ src: '../reveal.js/plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+        				{ src: '../reveal.js/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+        				// { src: '../reveal.js/plugin/search/search.js', async: true, condition: function() { return !!document.body.classList; } }
+        				// { src: '../reveal.js/plugin/remotes/remotes.js', async: true, condition: function() { return !!document.body.classList; } }
         			]
         		});
 </script>
