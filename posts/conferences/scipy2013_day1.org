@@ -1,0 +1,311 @@
+#+BLOG: smallchangebio
+#+POSTID: 45
+#+DATE: [2013-06-27 Thu 07:13]
+#+BLOG: smallchangebio
+#+TITLE: Scientific Python 2013, Day 1: Bioinformatics, IPython, parallel processing and machine learning
+#+CATEGORY: conference
+#+TAGS: bioinformatics, ngs, scaling, python, ipython, machine-learning
+#+OPTIONS: toc:nil
+
+I'm at the [[scipy2013][2013 Scientific Python conference]] in beautiful Austin,
+Texas. I'm helping organize this year's [[scipy-bio][Bioinformatics Symposium]]
+and learning about Python scaling and reproducibility from the
+Scientific Python community. These are my notes from the first day.
+
+#+LINK: scipy2013 http://conference.scipy.org/scipy2013/
+#+LINK: scipy-bio http://conference.scipy.org/scipy2013/mini_symposia.php#Bioinformatics
+
+* Fernando Perez -- IPython overview
+
+[[ipython-talk][Fernando's IPython talk]] describes the methods driving IPython
+development. He runs his talk inside an IPython notebook for major
+bonus points. The lifecycle of scientific work is to explore,
+collaboratively develop, parallelize, publish and educate. The entire
+process is fluid and moves backwards as we explore new ideas.
+
+Fernando walks through the history of IPython, including showing the
+entire 200 lines of source code from the first version. Current cool
+tools include:
+
+- [[nbviewer][the IPython Notebook Viewer]]
+- [[qiime][QIIME paper analysis including StarCluster scaling]]
+- [[jakevan][blogging with IPython]]
+- [[bayesian][interactive book on Bayesian methods in IPython]]
+- [[ipython-julia][Julia and Python interoperability]]
+- [[wakari][Wakari browser based analysis on top of Amazon AWS]]
+
+Nice discussion of [[ipython-parallel][IPython parallel]] and [[starcluster][StarCluster]] for scaling.
+Current scaling target for IPython is jobs up to thousands of nodes,
+not for larger 10k+ node clusters.
+
+Nice discussion of lessons on building the IPython community and
+engaging external developers. Open to new ideas from outside members.
+Have full group meetings on Google+ that are available for anyone to
+view and comment on.
+
+#+LINK: ipython-talk http://conference.scipy.org/scipy2013/presentation_detail.php?id=191
+#+LINK: nbviewer http://nbviewer.ipython.org/
+#+LINK: jakevan http://jakevdp.github.io/
+#+LINK: bayesian https://github.com/CamDavidsonPilon/Probabilistic-Programming-and-Bayesian-Methods-for-Hackers
+#+LINK: qiime http://qiime.org/home_static/nih-cloud-apr2012/
+#+LINK: ipython-julia https://github.com/JuliaLang/julia-ipython
+#+LINK: ipython-parallel http://ipython.org/ipython-doc/dev/parallel/index.html
+#+LINK: starcluster http://star.mit.edu/cluster/docs/latest/index.html
+#+LINK: wakari http://continuum.io/wakari
+
+* Gaël Varoquaux -- Simple python patterns for large data processing
+
+[[big-patterns][Gaël's talk]] focuses on simple python patterns to deal with big data.
+Focuses on alternatives to Hadoop because of limitations of
+installability on traditional academic clusters. Toolkit is SciPy,
+NumPy and [[joblib][Joblib]]. His approach to work: provide easy to debug
+failures, avoid solving hard problems if you can still get your work
+done with easier solutions, dependencies are troublesome because of
+installation problems.
+
+One way to improve speed is to reduce dimensions by reducing
+features, with approaches like [[sk-proj][sklearn.random.projection]].
+
+Parallel processing patterns with focus on embarrassingly parallel
+loops. Right scale needs to avoid competing for resources: disk and
+memory. joblib.Parallel uses queues for dispatch jobs. Would like to
+move to a job management solution that helps scaling up.
+
+Caching is important to handle re-computing. joblib has a memoize
+pattern that handles large data inputs by using hashes for inputs.
+Uses disk-based persistence.
+
+How to make IO fast: use fast compression to use more CPU and access
+sections of data. BAMs blocked gzip approach is a good example of
+this in bioinformatics. On the python side, [[pytables][pytables]] handles this.
+
+More meta point in the talk: take seriously the cost of complexity in
+your code.
+
+#+LINK: big-patterns http://conference.scipy.org/scipy2013/presentation_detail.php?id=150
+#+LINK: joblib http://pythonhosted.org/joblib/
+#+LiNK: sk-proj http://scikit-learn.org/stable/modules/classes.html#module-sklearn.random_projection
+#+LINK: pytables http://www.pytables.org/moin
+
+* Leif Johnson -- tools for coding and feature learning
+
+[[leif-talk][Leif's talk]] focuses on machine learning approaches to coding complex
+features into simple, easier to process alternatives. The two main
+advantages: easier classification and provides better
+interpretability of complex data. Simplest way to code is to project
+your data into the columns of a coding matrix, which preserves the
+dimensionality of the data. [[sparse-coding][Sparse coding]] is a good general approach
+to doing this. [[pca][Principle Component Analysis]] is widely used but some
+datasets fail assumptions.
+
+For subsampling, a good compromise is [[kmeans][k-means]] to minimize without
+excessive bias. [[rbm][Restricted Boltzmann Machines (RBMs)]], specifically
+[[morb][MORB]] implementation are worth looking at as well. Uses [[theano][Theano]] to
+optimize under the covers.
+
+Algorithms help you learn similar things but the tricky part is
+emphasizing how to encode your data.
+
+#+LINK: leif-talk http://conference.scipy.org/scipy2013/presentation_detail.php?id=155
+#+LINK: sparse-coding http://scikit-learn.org/stable/modules/generated/sklearn.decomposition.sparse_encode.html#sklearn.decomposition.sparse_encode
+#+LINK: pca http://scikit-learn.org/0.13/modules/generated/sklearn.decomposition.PCA.html
+#+LINK: kmeans http://scikit-learn.org/stable/modules/clustering.html
+#+LINK: rbm https://en.wikipedia.org/wiki/Boltzmann_machine
+#+LINK: morb https://github.com/benanne/morb
+#+LINK: theano http://www.deeplearning.net/software/theano/
+
+* Olivier Grisel -- Trends in machine learning
+
+[[olivier-talk][Olivier's talk]] focuses on scikit-learn blackbox models, probabilistic
+programming with [[pymc][PyMC]], and deep learning with [[pylearn2][PyLearn2]] and Theano.
+scikit-learn is a blackbox library and provides a unified API on top of
+multiple classifiers. Handles multiple inputs for classifiers: binary
+inputs, multitype inputs, higher level features extracted on top of raw
+data.
+
+Limitations of machine learning as a blackbox. Feature extraction is
+highly domain specific. Models make statistical assumptions which may
+not hold for your specific data. Need tools to be able to
+differentiate which approaches to take.
+[[scikit-practice][Flow chart on using machine learning models]] help with this problem.
+The second problem is that blackbox models can't explain what they
+learned. It might work but you don't know why.
+
+Probabilistic programming with generic inference engines helps avoid
+the lack of explainability problem. This models unknown causes with
+random variables, using Bayesian approaches to identify. MCMC is the
+most widely used approach. Infer.py talk later on using
+[[vmp][Variational message passing (VMP)]] approach. Probabilistic programming has lots of
+benefits related to telling a story around the data but issues are up
+front in learning how to build models and choose priors.
+
+Third approach is deep learning: deep = architectural depth. It
+emphasizes the number of layers between inputs and outputs: linear
+models have depth 0, neural networks and decision trees have depth 1,
+and ensembles and two-layer neural networks have depth 2. Depth 0
+handles linearly separable data, depth 1 solves the XOR problem,
+depth 2 solves the XOR problem in multiple dimensions. Depth 2 power
+is why Ensemble trees have been so successful on more difficult
+problems.
+
+More complicated models have multiple hidden representations via
+RBMs: unsupervised training approach. Dropout approach trains neural
+networks with less overfitting. All of this recent code in PyLearn2.
+Deep learning requires a lot of labeled data and GPU enabled code to
+be practical to run. Lots of research ongoing in this area.
+
+
+#+LINK: olivier-talk http://conference.scipy.org/scipy2013/presentation_detail.php?id=192
+#+LINK: pymc https://github.com/pymc-devs/pymc
+#+LINK: pylearn2 http://deeplearning.net/software/pylearn2/
+#+LINK: scikit-practice http://peekaboo-vision.blogspot.de/2013/01/machine-learning-cheat-sheet-for-scikit.html
+#+LINK: vmp https://en.wikipedia.org/wiki/Variational_message_passing
+
+* Brian Granger -- software engineering in IPython
+
+[[brian-talk][Brian is talking about software engineering in IPython]] and what
+they've learned from multiple rounds of revisions. Brian wrote the
+current version of IPython notebook by leaving out lots of features in
+earlier versions that proved unmaintainable. General idea is to avoid
+over-architecting because features have hidden costs, due to developer
+time being a limited resource. Need a rational process for deciding
+how to spend developer time. Why are features problematic:
+
+- add complexity to code: makes it harder to understand and hack
+- adds potential bugs
+- requires documentation
+- requires support
+- requires developers to specialize
+- add complexity to the user experience
+- features multiple like bunnies and are difficult to remove once
+  implemented
+
+Features have costs that need counting. Need to identify the simplest
+possible implementation that would be useful.
+
+The hidden benefits of bugs: they're a sign that people are using
+your software and tell you what features are useful. They're an
+opportunity to improve testing of software.
+
+This all requires a cultural solution. Hard to say no to enthusiastic
+developers and users. Approaches to ameliorate this:
+
+- Create a roadmap that discusses features/plans
+- Decide on a scope or vision for a project and communicate this
+
+#+LINK: brian-talk http://conference.scipy.org/scipy2013/presentation_detail.php?id=195
+
+* Rob Zinkov -- Infer.py
+
+[[rob-talk][Rob discusses]] a python interface to [[infer-net][Infer.NET]], a framework for
+Bayesian inference using graphical models. [[infer-py][Infer.py]] allows you to
+stay in the python ecosystem but call out to .NET. It's not a
+iron-python wrapper in which you'd lose a lot of familiar python
+tools. The [[infer-examples][GitHub examples directory]] provides useful code to get
+started with the tool. Rob does a nice live demo that interacts with
+Infer.NET and matplotlib. Advantage of this over PyMC is that it
+provides non-MC code that can parallelize via message passing.
+
+#+LINK: rob-talk http://conference.scipy.org/scipy2013/presentation_detail.php?id=190
+#+LINK: infer-net http://research.microsoft.com/en-us/um/cambridge/projects/infernet/
+#+LINK: infer-py https://github.com/zaxtax/infer.py
+#+LINK: infer-examples https://github.com/zaxtax/infer.py/tree/master/InferNetExamples
+
+* Chris Beaumont -- Glue visualization
+
+[[cb-talk][Chris' talk]] discusses the [[glueviz][Glue visualization framework]]. He
+differentiates different types of data expansion: big data = more
+data, and wide data = more experiments to integrate together. Most
+tools orient towards single datasets since the integration work is
+tricky and error prone. Glue provides multiple views on multiple
+datasets with linking, all in Python. Glue is a GUI that sits on top
+of matplotlib. By specifying logical connections between datasets,
+you can link multiple datasets and interactively select subsets and
+plot together. Glue interacts nicely with IPython notebook: can use
+[[qglue][qglue]] to go from IPython straight into Glue.
+
+#+LINK: cb-talk http://conference.scipy.org/scipy2013/presentation_detail.php?id=146
+#+LINK: glueviz http://glueviz.org
+#+LINK: qglue http://www.glueviz.org/en/latest/glue_from_python.html?highlight=qglue
+
+* Bioinformatics mini-symposium
+
+I'm chairing this session as well so these notes are extra scattered.
+
+Aaron Quinlan talked about [[gemini][GEMINI]], a framework for annotating and
+querying genomic variations.
+
+Ryan Dale talked about [[metaseq][metaseq]], a framework for integrated plotting
+and analysis of ChIP-seq/RNA-seq data. Gives you a pure python
+approach to plotting and analysis, including parallelization over
+multiple cores using multiprocessing. Can ask questions like how do
+peaks cluster around transcription start sites: cluster with k-means
+from scikit-learn. metaseq also handles large tables like RNA-seq
+count results by wrapping pandas.
+
+Brent Pedersen talked about his [[poverlap][poverlap]] library to look for
+significance testing of intervals: do two sets of intervals overlap
+more than expected? poverlap wraps and parallelizes all of the work
+and provides a simple interface to add locality to shuffling and
+restrict by genomic regions. Can handle different null models: does
+transcription factor A overlap with B more than C. Allows you to
+calculate custom metrics during processing in arbitrary languages.
+Parallelizes with multiprocessing and IPython.
+
+[[blake][Blake Borgeson described]] a use case of machine learning in
+bioinformatics: identifying protein complexes from mass spectroscopy
+data. Separate based on charge, density and size. Integrates prior
+knowledge of existing interactions. So features of machine learning
+are priors plus mass spec output. Uses scikit-learn and clustering
+tools (clusterOne and MCL) to separate. See cool differences in
+interactions for different evolutionary subsets.
+
+[[pfl][Pat Francis-Lyon describes]] her work identifying gene interactions
+with the goal of identifying pathways for therapies. Defining
+interactions is hard: difficult to define what you mean by
+interactions. Shows nice examples of interactions under different
+models: additive and multiplicative interactions. Used
+[[genomesimla][genomeSIMLA]] to simulate genetic data under many different genetic
+models. Used multiple supervised learning methods: SVM and neural
+networks.
+
+[[jacob-mist][Jacob Barhak talked]] about a tool to support modeling of diseases.
+Micro-simulation simulates individuals then combines then together
+into a picture of the population. By extracting MIST from a previous
+toolkit, they simplified installation to make it more widely useful.
+MIST provides a simulation language that it compiles into a Python
+script. Allows users to define arbitrary input rules and define
+distributions of population values.
+
+#+LINK: gemini https://github.com/arq5x/gemini
+#+LINK: metaseq https://github.com/daler/metaseq
+#+LINK: poverlap https://github.com/brentp/poverlap
+#+LINK: blake http://conference.scipy.org/scipy2013/presentation_detail.php?id=210
+#+LINK: pfl http://conference.scipy.org/scipy2013/presentation_detail.php?id=194
+#+LINK: genomesimla http://chgr.mc.vanderbilt.edu/genomeSIMLA/genomeSIMLA/Introduction.html
+#+LINK: jacob-mist http://conference.scipy.org/scipy2013/presentation_detail.php?id=209
+
+* Cool ideas from discussions
+
+The best part of a conference is tips and tricks from discussions
+with other developers. Here are some ideas to explore that I picked
+up during conversations and lightning talks:
+
+- [[3-cf][Python 3's concurrent futures]] ([[concurrent-futures][backported to 2.x]]) provides a
+  nicer interface to multiprocessing that mimics Java's futures. HT
+  to [[brentp][Brent Pedersen]].
+
+- Chris Mueller of [[lab7][Lab7]] gave a lightning talk on his general
+  web-based pipeline manager that drives their sequencing analysis
+  software. They also are developing BioBuild, which helps with
+  building bioinformatics tools.
+
+- Travis Oliphant talked about [[numba][Numba]], which translates Python syntax
+  to LLVM. Provides impressive speed ups on par with C
+  implementations.
+
+#+LINK: 3-cf http://docs.python.org/dev/library/concurrent.futures.html
+#+LINK: concurrent-futures https://pypi.python.org/pypi/futures
+#+LINK: brentp http://twitter.com/brent_p
+#+LINK: lab7 http://www.lab7.io/
+#+LINK: numba http://numba.pydata.org/
