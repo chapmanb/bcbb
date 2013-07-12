@@ -17,7 +17,7 @@
 
 *   
 
-[[./images/bcbio_nextgen_highlevel.png]]
+[[../bosc2013_bcbio_nextgen/images/bcbio_nextgen_highlevel.png]]
 
 * Development goals
 

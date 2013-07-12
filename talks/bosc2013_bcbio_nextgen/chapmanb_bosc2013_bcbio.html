@@ -1,0 +1,167 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="X-UA-Compatible" content="chrome=1">
+
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+<!-- General and theme style sheets -->
+<link rel="stylesheet" href="../reveal.js/css/reveal.css">
+<link rel="stylesheet" href="../reveal.js/css/theme/simple.css" id="theme">
+
+<!-- For syntax highlighting -->
+<link rel="stylesheet" href="../reveal.js/lib/css/zenburn.css">
+
+<!-- If the query includes 'print-pdf', use the PDF print sheet -->
+<script>
+document.write( '<link rel="stylesheet" href="../reveal.js/css/print' + ( window.location.search.match( /print-pdf/gi ) ? 'pdf' : 'paper' ) + '.css" type="text/css" media="print">' );
+</script>
+
+<!--[if lt IE 9]>
+<script src="../reveal.js/lib/js/html5shiv.js"></script>
+<![endif]-->
+
+
+
+<style type="text/css">
+</style>
+
+<!-- Custom stylesheet, it must be in the same directory as the html file -->
+<link rel="stylesheet" href="custom.css">
+
+</head>
+
+<body>
+<div class="reveal"><div class="slides">
+
+<section>
+    <section>
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="community-development-of-quantifiable-and-scalable-variant-calling-pipelines">Community development of quantifiable and scalable variant calling pipelines</h2>
+<div class="author">
+Brad Chapman<br> Bioinformatics Core, Harvard School of Public Health<br> <a href="https://github.com/chapmanb">@chapmanb</a><br> 20 July 2013<br>
+</div>
+
+</div></section>
+    </section><section>
+    <section>
+<div class="text_cell_render border-box-sizing rendered_html">
+<img alt="highlevel" src="images/bcbio_nextgen_highlevel.png" width="1000"/>
+</div></section>
+    </section><section>
+    <section>
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="development-goals">Development goals</h2>
+<ul>
+<li>Quantifiable: assess variant quality</li>
+<li>Scalable: 1500 whole genome samples</li>
+<li>Reproducible: text-configurable, provenance, version tracking</li>
+<li>Community developed: open source, documented and widely deployable</li>
+<li>Accessible: Usable by researchers and non-scientists</li>
+</ul>
+</div></section>
+    </section><section>
+    <section>
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="quantify-quality">Quantify quality</h2>
+<img src="images/grading-summary-prep-callerdiff.png" width="900">
+<ul>
+<li>Reference materials: <a href="http://www.genomeinabottle.org">http://www.genomeinabottle.org</a></li>
+<li>Quantification details: <a href="http://j.mp/bcbioeval">http://j.mp/bcbioeval</a></li>
+</ul>
+</div></section>
+    </section><section>
+    <section>
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="parallel-scaling">Parallel scaling</h2>
+<img src="images/parallel-clustertypes.png" width="900">
+<p>Infrastructure details: <a href="http://j.mp/bcbioscale">http://j.mp/bcbioscale</a></p>
+</div></section>
+    </section>
+
+</div></div>
+
+<!--
+Uncomment the following block and the addthis_widget.js (see below inside dependencies)
+to get enable social buttons.
+-->
+
+<!--
+<div class="addthis_toolbox addthis_floating_style addthis_32x32_style" style="left:20px;top:20px;">
+<a class="addthis_button_twitter"></a>
+<a class="addthis_button_google_plusone_share"></a>
+<a class="addthis_button_linkedin"></a>
+<a class="addthis_button_facebook"></a>
+<a class="addthis_button_more"></a>
+</div>
+-->
+
+<script src="../reveal.js/lib/js/head.min.js"></script>
+
+<script src="../reveal.js/js/reveal.js"></script>
+
+<script>
+
+// Full list of configuration options available here: https://github.com/hakimel/reveal.js#configuration
+Reveal.initialize({
+controls: true,
+progress: true,
+history: true,
+
+theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+transition: Reveal.getQueryHash().transition || 'linear', // default/cube/page/concave/zoom/linear/none
+
+// Optional libraries used to extend on reveal.js
+dependencies: [
+{ src: "../reveal.js/lib/js/classList.js", condition: function() { return !document.body.classList; } },
+{ src: "../reveal.js/plugin/highlight/highlight.js", async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+{ src: "../reveal.js/plugin/notes/notes.js", async: true, condition: function() { return !!document.body.classList; } }
+// { src: 'http://s7.addthis.com/js/300/addthis_widget.js', async: true},
+]
+});
+</script>
+
+<!-- MathJax configuration -->
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+    tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+        displayMath: [ ['$$','$$'], ["\\[","\\]"] ]
+    },
+    displayAlign: 'left', // Change this to 'center' to center equations.
+    "HTML-CSS": {
+        styles: {'.MathJax_Display': {"margin": 0}}
+    }
+});
+</script>
+<!-- End of mathjax configuration -->
+
+<script>
+//  We wait for the onload function to load MathJax after the page is completely loaded.
+//  MathJax is loaded 1 unit of time after the page is ready.
+//  This hack prevent problems when you load multiple js files (i.e. social button from addthis).
+//
+window.onload = function () {
+  setTimeout(function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS_HTML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  },1)
+}
+</script>
+
+<script>
+Reveal.addEventListener( 'slidechanged', function( event ) {
+MathJax.Hub.Rerender(event.currentSlide);
+});
+</script>
+
+</body>
+
+</html>
+
