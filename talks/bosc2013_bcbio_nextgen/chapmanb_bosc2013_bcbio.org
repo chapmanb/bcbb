@@ -1,0 +1,134 @@
+#+title: Variant calling pipelines: quantification, scaling and community development
+#+author: Brad Chapman
+#+creator: Bioinformatics Core, Harvard School of Public Health
+#+date: 20 July 2013
+
+#+OPTIONS: reveal_center:t reveal_progress:t reveal_history:tl reveal_control:t
+#+OPTIONS: reveal_overview:t reveal_keyboard:t
+#+OPTIONS: toc:nil num:nil
+#+OPTIONS: reveal_width:1200 reveal_height:800
+#+REVEAL_ROOT: ../reveal.js
+#+REVEAL_TRANS: linear
+#+REVEAL_THEME: simple
+#+REVEAL_MARGIN: 0.2
+#+REVEAL_MIN_SCALE: 1.0
+#+REVEAL_MAX_SCALE: 1.0
+#+REVEAL_EXTRA_CSS_NO: ../reveal.js/css/print/pdf.css
+
+* Challenges
+
+** Complex, rapidly changing pipelines
+
+[[./images/gatk_changes.png]]
+
+** Large number of specialized dependencies
+
+#+REVEAL_HTML: <img src="./images/huge_seq.png" width="400">
+
+[[https://github.com/StanfordBioinformatics/HugeSeq]]
+
+** Quality differences between calling methods
+
+#+REVEAL_HTML: <img src="./images/gcat_comparison.png" width="600">
+
+[[http://www.bioplanet.com/gcat]]
+
+** Scaling on full ecosystem of clusters
+
+[[./images/schedulers.png]]
+
+* Solution
+
+#+REVEAL_HTML: <img src="./images/community.png" width="400">
+
+[[http://www.amazon.com/Community-Structure-Belonging-Peter-Block/dp/1605092770]]
+
+* 
+
+[[./images/bcbio_nextgen_highlevel.png]]
+
+* Development goals
+
+- Quantifiable: assess variant quality
+- Scalable: 1500 whole genome samples
+- Reproducible: text-configurable, provenance, version tracking
+- Community developed: open source, documented and widely deployable
+- Accessible: Usable by researchers and non-scientists
+
+* Quantify quality
+
+#+REVEAL_HTML: <img src="./images/grading-summary-prep-callerdiff.png" width="900">
+
+- Reference materials: [[http://www.genomeinabottle.org/]]
+- Quantification details: [[http://j.mp/bcbioeval]]
+
+* Parallel scaling
+
+[[./images/parallel-clustertypes.png]]
+
+- Infrastructure details: [[http://j.mp/bcbioscale]]
+- IPython: [[http://ipython.org/ipython-doc/dev/parallel/index.html]]
+
+** Increasing parallel blocks
+
+[[./images/parallel-genome.png]]
+
+* Reproducibility
+
+** Configuration
+
+#+BEGIN_SRC yaml
+  - files: [NA12878-NGv3-LAB1360-A_1.fastq.gz, NA12878-NGv3-LAB1360-A_2.fastq.gz]
+    description: NA12878
+    analysis: variant2
+    genome_build: GRCh37
+    algorithm:
+      aligner: bwa
+      recalibrate: gatk
+      realign: gatk
+      variantcaller: [gatk, freebayes, gatk-haplotype]
+      coverage_interval: exome
+      coverage_depth: high
+      platform: illumina
+      quality_format: Standard
+      validate: NA12878-nist-v2_13-NGv3-pass.vcf
+#+END_SRC
+
+** Provenance
+
+* Community developed
+
+- Fully automated installation: CloudBioLinux
+- Deployable on multiple clusters (LSF, SGE, Torque)
+- Open source and documented
+
+[[https://github.com/chapmanb/bcbio-nextgen]]
+
+** Automated installation
+
+* Accessible
+
+** Galaxy
+
+** STORMSeq
+
+* Summary
+
+- Community developed pipelines > challenges
+- Focus
+  - Assessing quality: good science
+  - Scalability: finish in time
+  - Reproducibility: show your work
+- Make widely available
+
+[[https://github.com/chapmanb/bcbio-nextgen]]
+
+#+BEGIN_SRC emacs-lisp :exports results :results silent
+(setq org-confirm-babel-evaluate nil)
+(setq org-reveal-title-slide-template
+  "<h3>%t</h3>
+   <h4>%a</h4>
+   <h4>%c</h4>
+   <h4><a href='https://github.com/chapmanb'>@chapmanb</a></h4>
+   <h4>%d</h4>")
+#+END_SRC
