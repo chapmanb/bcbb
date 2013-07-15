@@ -1,9 +1,9 @@
-#+title: Variant calling pipelines: quantification, scaling and community development
+#+title: Community developed variant calling pipelines
 #+author: Brad Chapman
 #+creator: Bioinformatics Core, Harvard School of Public Health
 #+date: 20 July 2013
 
-#+OPTIONS: reveal_center:t reveal_progress:t reveal_history:tl reveal_control:t
+#+OPTIONS: reveal_center:t reveal_progress:t reveal_history:t reveal_control:t
 #+OPTIONS: reveal_overview:t reveal_keyboard:t
 #+OPTIONS: toc:nil num:nil
 #+OPTIONS: reveal_width:1200 reveal_height:800
@@ -49,11 +49,12 @@
 
 * Development goals
 
-- Quantifiable: assess variant quality
-- Scalable: 1500 whole genome samples
-- Reproducible: text-configurable, provenance, version tracking
-- Community developed: open source, documented and widely deployable
-- Accessible: Usable by researchers and non-scientists
+- Quantifiable
+- Analyzable
+- Scalable
+- Reproducible
+- Community developed
+- Accessible
 
 * Quantify quality
 
@@ -62,6 +63,25 @@
 - Reference materials: [[http://www.genomeinabottle.org/]]
 - Quantification details: [[http://j.mp/bcbioeval]]
 
+** Known unknowns
+
+- Coverage: summarize what you can't assess
+- Structural: large, complex rearrangements
+
+* Analysis
+
+** Query
+
+[[./images/gemini.png]]
+
+[[https://github.com/arq5x/gemini]]
+
+** Visualize
+
+#+REVEAL_HTML: <img src="images/o8.png" width="1000">
+
+[[https://github.com/chapmanb/o8]]
+
 * Parallel scaling
 
 [[./images/parallel-clustertypes.png]]
@@ -69,11 +89,16 @@
 - Infrastructure details: [[http://j.mp/bcbioscale]]
 - IPython: [[http://ipython.org/ipython-doc/dev/parallel/index.html]]
 
-** Increasing parallel blocks
+** Better parallel blocks
 
 [[./images/parallel-genome.png]]
 
 * Reproducibility
+
+- Express intentions at a high level
+- Revision controlled configuration
+- Handle complex distributed logging
+- Provenance tracking
 
 ** Configuration
 
@@ -96,30 +121,59 @@
 
 ** Provenance
 
+- Excellent logging
+- Third party version tracking
+- Beyond logging:
+  - BioLite: [[https://bitbucket.org/caseywdunn/biolite]]
+  - Arvados: [[https://arvados.org/]]
+
 * Community developed
 
 - Fully automated installation: CloudBioLinux
-- Deployable on multiple clusters (LSF, SGE, Torque)
-- Open source and documented
+- Deployable on multiple clusters (LSF, SGE, Torque...)
+- API for new aligners and variant callers
+- Open source, hackable and documented
 
 [[https://github.com/chapmanb/bcbio-nextgen]]
 
 ** Automated installation
 
+- Single biggest software problem: running for the first time
+- Bootstrap from bare machine to ready-to-go pipeline
+- Builds off existing installation work: CloudBioLinux
+- Provide example pipelines with real data
+
+[[http://cloudbiolinux.org]]
+
+[[https://bcbio-nextgen.readthedocs.org]]
+
 * Accessible
+
+#+REVEAL_HTML: <img src="images/dtc_genomics.jpg" width="400">
+
+[[http://exploringpersonalgenomics.org/]]
 
 ** Galaxy
 
+[[./images/galaxy_pipeline.png]]
+
+[[https://bitbucket.org/hbc/galaxy-central-hbc]]
+
 ** STORMSeq
+
+[[./images/4.1_stormseq.png]]
+
+[[http://www.stormseq.org/]]
 
 * Summary
 
 - Community developed pipelines > challenges
 - Focus
   - Assessing quality: good science
+  - Analysis: enable exploration
   - Scalability: finish in time
   - Reproducibility: show your work
-- Make widely available
+- Widely accessible
 
 [[https://github.com/chapmanb/bcbio-nextgen]]
 

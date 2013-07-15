@@ -2,7 +2,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><title>(Variant calling pipelines: quantification, scaling and community development)</title>
+<meta charset="utf-8"><title>(Community developed variant calling pipelines)</title>
 <meta name="author" content="(Brad Chapman)"/>
 <link rel="stylesheet" href="../reveal.js/css/reveal.min.css">
 <link rel="stylesheet" href="../reveal.js/css/theme/simple.css" id="theme">
@@ -13,7 +13,7 @@
 <div class="reveal">
 <div class="slides">
 <section>
-<h3>Variant calling pipelines: quantification, scaling and community development</h3>
+<h3>Community developed variant calling pipelines</h3>
    <h4>Brad Chapman</h4>
    <h4>Bioinformatics Core, Harvard School of Public Health</h4>
    <h4><a href='https://github.com/chapmanb'>@chapmanb</a></h4>
@@ -85,15 +85,17 @@
 
 <h2>Development goals</h2>
 <ul class="org-ul">
-<li>Quantifiable: assess variant quality
+<li>Quantifiable
 </li>
-<li>Scalable: 1500 whole genome samples
+<li>Analyzable
 </li>
-<li>Reproducible: text-configurable, provenance, version tracking
+<li>Scalable
 </li>
-<li>Community developed: open source, documented and widely deployable
+<li>Reproducible
 </li>
-<li>Accessible: Usable by researchers and non-scientists
+<li>Community developed
+</li>
+<li>Accessible
 </li>
 </ul>
 </section>
@@ -110,10 +112,48 @@
 <li>Quantification details: <a href="http://j.mp/bcbioeval">http://j.mp/bcbioeval</a>
 </li>
 </ul>
+
+</section>
+<section id="sec-5-1" >
+
+<h3>Known unknowns</h3>
+<ul class="org-ul">
+<li>Coverage: summarize what you can't assess
+</li>
+<li>Structural: large, complex rearrangements
+</li>
+</ul>
 </section>
 </section>
 <section>
 <section id="sec-6" >
+
+<h2>Analysis</h2>
+</section>
+<section id="sec-6-1" >
+
+<h3>Query</h3>
+
+<div class="figure">
+<p><img src="./images/gemini.png"  alt="gemini.png"/></p>
+</div>
+
+<p>
+<a href="https://github.com/arq5x/gemini">https://github.com/arq5x/gemini</a>
+</p>
+</section>
+<section id="sec-6-2" >
+
+<h3>Visualize</h3>
+<img src="images/o8.png" width="1000">
+
+<p>
+<a href="https://github.com/chapmanb/o8">https://github.com/chapmanb/o8</a>
+</p>
+</section>
+</section>
+<section>
+<section id="sec-7" >
 
 <h2>Parallel scaling</h2>
 
@@ -129,9 +169,9 @@
 </ul>
 
 </section>
-<section id="sec-6-1" >
+<section id="sec-7-1" >
 
-<h3>Increasing parallel blocks</h3>
+<h3>Better parallel blocks</h3>
 
 <div class="figure">
 <p><img src="./images/parallel-genome.png"  alt="parallel-genome.png"/></p>
@@ -139,11 +179,22 @@
 </section>
 </section>
 <section>
-<section id="sec-7" >
+<section id="sec-8" >
 
 <h2>Reproducibility</h2>
+<ul class="org-ul">
+<li>Express intentions at a high level
+</li>
+<li>Revision controlled configuration
+</li>
+<li>Handle complex distributed logging
+</li>
+<li>Provenance tracking
+</li>
+</ul>
+
 </section>
-<section id="sec-7-1" >
+<section id="sec-8-1" >
 
 <h3>Configuration</h3>
 <div class="org-src-container">
@@ -165,21 +216,37 @@
 </pre>
 </div>
 </section>
-<section id="sec-7-2" >
+<section id="sec-8-2" >
 
 <h3>Provenance</h3>
+<ul class="org-ul">
+<li>Excellent logging
+</li>
+<li>Third party version tracking
+</li>
+<li>Beyond logging:
+<ul class="org-ul">
+<li>BioLite: <a href="https://bitbucket.org/caseywdunn/biolite">https://bitbucket.org/caseywdunn/biolite</a>
+</li>
+<li>Arvados: <a href="https://arvados.org/">https://arvados.org/</a>
+</li>
+</ul>
+</li>
+</ul>
 </section>
 </section>
 <section>
-<section id="sec-8" >
+<section id="sec-9" >
 
 <h2>Community developed</h2>
 <ul class="org-ul">
 <li>Fully automated installation: CloudBioLinux
 </li>
-<li>Deployable on multiple clusters (LSF, SGE, Torque)
+<li>Deployable on multiple clusters (LSF, SGE, Torque&#x2026;)
 </li>
-<li>Open source and documented
+<li>API for new aligners and variant callers
+</li>
+<li>Open source, hackable and documented
 </li>
 </ul>
 
@@ -188,28 +255,67 @@
 </p>
 
 </section>
-<section id="sec-8-1" >
-
-<h3>Automated installation</h3>
-</section>
-</section>
-<section>
-<section id="sec-9" >
-
-<h2>Accessible</h2>
-</section>
 <section id="sec-9-1" >
 
-<h3>Galaxy</h3>
+<h3>Automated installation</h3>
+<ul class="org-ul">
+<li>Single biggest software problem: running for the first time
+</li>
+<li>Bootstrap from bare machine to ready-to-go pipeline
+</li>
+<li>Builds off existing installation work: CloudBioLinux
+</li>
+<li>Provide example pipelines with real data
+</li>
+</ul>
 
-</section>
-<section id="sec-9-2" >
+<p>
+<a href="http://cloudbiolinux.org">http://cloudbiolinux.org</a>
+</p>
 
-<h3>STORMSeq</h3>
+<p>
+<a href="https://bcbio-nextgen.readthedocs.org">https://bcbio-nextgen.readthedocs.org</a>
+</p>
 </section>
 </section>
 <section>
 <section id="sec-10" >
+
+<h2>Accessible</h2>
+<img src="images/dtc_genomics.jpg" width="400">
+
+<p>
+<a href="http://exploringpersonalgenomics.org/">http://exploringpersonalgenomics.org/</a>
+</p>
+
+</section>
+<section id="sec-10-1" >
+
+<h3>Galaxy</h3>
+
+<div class="figure">
+<p><img src="./images/galaxy_pipeline.png"  alt="galaxy_pipeline.png"/></p>
+</div>
+
+<p>
+<a href="https://bitbucket.org/hbc/galaxy-central-hbc">https://bitbucket.org/hbc/galaxy-central-hbc</a>
+</p>
+</section>
+<section id="sec-10-2" >
+
+<h3>STORMSeq</h3>
+
+<div class="figure">
+<p><img src="./images/4.1_stormseq.png"  alt="4.1_stormseq.png"/></p>
+</div>
+
+<p>
+<a href="http://www.stormseq.org/">http://www.stormseq.org/</a>
+</p>
+</section>
+</section>
+<section>
+<section id="sec-11" >
 
 <h2>Summary</h2>
 <ul class="org-ul">
@@ -219,13 +325,15 @@
 <ul class="org-ul">
 <li>Assessing quality: good science
 </li>
+<li>Analysis: enable exploration
+</li>
 <li>Scalability: finish in time
 </li>
 <li>Reproducibility: show your work
 </li>
 </ul>
 </li>
-<li>Make widely available
+<li>Widely accessible
 </li>
 </ul>
 
