@@ -1,0 +1,194 @@
+#+BLOG: smallchangebio
+#+POSTID: 47
+#+DATE: [2013-06-28 Fri 08:15]
+#+TITLE: Scientific Python 2013, Day 2: Bioinformatics frameworks, open science and reproducibility
+#+CATEGORY: conference
+#+TAGS: bioinformatics, ngs, scaling, python, ipython, machine-learning
+#+OPTIONS: toc:nil
+
+I'm at the [[scipy2013][2013 Scientific Python conference]] in beautiful Austin,
+Texas. I'm helping organize this year's [[scipy-bio][Bioinformatics Symposium]]
+and learning about Python scaling and reproducibility from the
+Scientific Python community. These are my notes from the second day.
+See also my [[first-day-talks][notes from the first day]].
+
+#+LINK: first-day-talks http://smallchangebio.wordpress.com/2013/06/27/scientific-python-2013-day-1-bioinformatics-ipython-parallel-processing-and-machine-learning/
+
+* Ian Rees -- Bioinformatics symposium: electron microscopy platform
+
+[[ir-talk][Ian talked]] about software to handle data challenges associated with
+imaging. They principally focus on imaging of macromolecules using
+[[cryo-em][Cryo-EM]]. There is then a ton of processing before this can get into
+PDB as structures. 300+ active projects. Focus on archival,
+automation of record keeping, understanding how protocols change over
+time and sharing results with collaborators.
+
+[[emen2][EMEN2]] is their solution: a object-oriented lab notebook. It uses a
+protocol ontology to allow flexible queries of approaches. Take a
+general approach to connect records. Impressive display of a long 10
+year project with 15,500 records. Records look like json documents of
+key-value pairs. Built on top of BerkeleyDB, with a twisted web
+server. Provides integrated plotting and viewing of results, in
+addition to table-based viewing of projects and samples. Hooks in
+with the microscopy software so data uploads automatically. It
+provides a public API with JSON to query the data with a constraint
+based query language. Also has python hooks to create extensions with
+controllers and mako templates.
+
+The connected image processing toolkit is [[eman2][EMAN2]].
+
+#+LINK: ir-talk http://conference.scipy.org/scipy2013/presentation_detail.php?id=137
+#+LINK: cryo-em https://en.wikipedia.org/wiki/Cryo-electron_microscopy
+#+LINK: emen2 http://blake.grid.bcm.edu/emanwiki/EMEN2/
+#+LINK: eman2 http://blake.grid.bcm.edu/emanwiki/EMAN2
+
+* Larsson Omberg -- Bioinformatics symposium: Synapse platform
+
+[[lo-talk][Larsson discussed]] the approaches and tools that [[sage-base][SAGE bionetworks]] use
+to help improve reproducibility of science. The [[synapse][Synapse]] tool tries to
+handle reproducibility on a distributed scale with multiple
+collaborating scientists, as opposed to other projects which focus on
+single researchers. Example of usage for the cancer genome atlas:
+10,000 patients, 24 cancer types, and multiple inputs: variations,
+RNA-seq. Biggest challenge is coordination of multiple data sources
+and inputs. Data automatically pushed into Synapse, then do data
+freezes to allow analysis. Analysis results get pushed back into
+Synapse as well.
+
+Synapse is a web framework that allows multiple usages of tools in
+multiple places, and register results back with Synapse to coordinate
+results. Python API allos you to query with SQL syntax and retrieve
+specific datasets which have key/value style metadata annotations in
+addition to the raw data. Impressive demo of uploaded results with
+lots of metadata: nice way to understand custom analysis and review
+results.
+
+Synapse focuses on avoiding the self-assessment trap by moving this
+assessment into a centralized location. Also run challenges that help
+formalize this: [[dream8][Dream8 Challenges]].
+
+#+LINK: lo-talk http://conference.scipy.org/scipy2013/presentation_detail.php?id=208
+#+LINK: sage-base http://www.sagebase.org/
+#+LINK: synapse https://www.synapse.org/
+#+LINK: dream8 http://www.sagebase.org/challenges-overview/2013-dream-challenges/
+* Joshua Warner -- scikit-fuzzy
+
+[[jw-talk][Joshua]] talked about his implementation of a SciPy toolkit for fuzzy
+logic: [[scikit-fuzzy][scikit-fuzzy]]. Has fuzzy c-means for smaller uses and needs
+full Cythonization. Has 100% test coverage. Provides foundational
+tools for fuzzy logic but focusing on community building to provide
+additional tools. Good questions about the most useful places for
+fuzzy logic usage: it's a good prototyping step which includes some
+insight into the logic intuition for understanding approaches. It's
+not especially useful for categorical variables.
+
+#+LINK: jw-talk http://conference.scipy.org/scipy2013/presentation_detail.php?id=161
+#+LINK: scikit-fuzzy https://github.com/scikit-fuzzy/scikit-fuzzy
+
+* Jack Minardi -- Raspberry Pi sensor control
+
+[[jm-talk][Jack talked]] about interacting with [[raspberry-pi][Raspberry Pi]] using [[pyzmq][pyzmq]]: controlled
+LEDs and motors. Raspberry Pi has general purpose input output pins
+which allow you to interact with other external devices. Used the
+[[occidentalis][Occidentalis]] Wheezy based operating system which provides a lot of
+pre installed tools over the base installations that Raspberry Pi
+recommends. Jack live demos blinking an LED, which one ups live
+software demos for sure. Another cool demo uses pyzmq to stream the
+xyz location of a device to a real time plotting tool.
+
+There are an incredible number of open source tools for Raspberry Pi
+on GitHub that help manage interacting with the different hardware.
+There is a cool community around working with it.
+
+Raspberry Pi and other hackable hardware tools also provide a wonderful
+teaching environment for programming. It is so much more satisfying to
+make something happen in real life, and teaches all the important
+skills of installing, learning and debugging that you need in any kind
+of hacking. On a larger scale in genomics, efforts like the [[polonator][polonator]]
+from George Church's lab offer an opportunity to learn all the
+hardware behind sequencing
+
+#+LINK: jm-talk http://conference.scipy.org/scipy2013/presentation_detail.php?id=215
+#+LINK: raspberry-pi https://en.wikipedia.org/wiki/Raspberry_Pi
+#+LINK: pyzmq http://www.zeromq.org/bindings:python
+#+LINK: occidentalis http://learn.adafruit.com/adafruit-raspberry-pi-educational-linux-distro/overview
+#+LINK: polonator http://polonator.org/
+
+* Jeff Spies -- The Open Science Framework
+
+[[js-talk][Jeff discussed]] work at the [[cos][Center for Open Science]] to build
+infrastructure and community around opening up science to reduce the
+gap between scientific goals (open) and science practical needs
+(papers, funding). Problem is that published science is not
+synonymous with accurate science. Worry about unconscious biases like
+[[motivated-reasoning][Motivated Reasoning]]. Approach of OSF is to provide tools that work
+within scientific workflows to enable and incentivize openness. The
+[[osf][Open Science Framework]] provides a simplified front end to Git,
+handling archiving and versioning of study data. Provides unique URLs
+to tag specific versions for publication. Goals are to make
+components API driven to allow other interfaces like IPython notebooks.
+
+#+LINK: js-talk http://conference.scipy.org/scipy2013/presentation_detail.php?id=156
+#+LINK: cos http://www.centerforopenscience.org/
+#+LINK: motivated-reasoning https://en.wikipedia.org/wiki/Motivated_reasoning
+#+LINK: osf http://openscienceframework.org/
+
+* Burcin Eröcal -- scientific software distribution
+
+[[be-talk][Burcin discussed]] approaches to replicate, build on and improve
+scientific work. Shows an example of [[sage][Sage]], which has multiple
+requirements and installs well: installation matters, a lot. His
+approach is [[lmonade][lmonade]], which provides customizable distribution of
+scientific software. Burcin does not think virtual machines solve this
+problem because they are not programmable to add updates. I wonder if
+lightweight solutions like [[docker][docker]] help mitigate some of these
+concerns. In general, I haven't heard any usage of virtual machines at
+SciPy which makes me sad because I think this is an important path
+for moving forward with complex installations.
+He also compares to the [[nix][nix package manager]]. The main
+issue with this is that it requires explicit definition of
+dependencies so not as flexible as scientific software needs.
+
+#+LINK: be-talk http://conference.scipy.org/scipy2013/presentation_detail.php?id=181
+#+LINK: lmonade http://www.lmona.de/
+#+LINK: sage http://sagemath.org/
+#+LINK: docker http://www.docker.io/
+#+LINK: nix http://nixos.org/
+
+* John Kitchin -- emacs org-mode for reproducible research
+
+[[jk-talk][John discussed]] using [[org-mode][emacs org-mode]] to create reproducible documents
+with embedded python code. [[kitchin-github][John's GitHub]] has tons of useful example
+of using this for blogging and book writing. Impressive demos, I need
+to dig into his org files for tips and tricks.
+
+#+LINK: jk-talk http://conference.scipy.org/scipy2013/presentation_detail.php?id=178
+#+LINK: org-mode http://orgmode.org/
+#+LINK: kitchin-github https://github.com/jkitchin?tab=repositories
+
+* Lightning talks
+
+Travis talked about solutions to packaging problems in Python:
+[[conda][conda]] and [[binstar][binstar.org]]. Look like useful alternatives to pip that
+might help with lots of installation problems we see with multiple
+dependencies. The [[conda-recipes][Conda recipes GitHub repo]] has lots of existing
+tools.
+
+[[jiffyclub][Matt Davis]] gave a great advertisement for [[software-carpentry][Software Carpentry]]. 
+It's a wonderful resource for teaching scientists to
+program. They also need teachers and help from the community, so
+volunteer please.
+
+[[blz][BLZ]] is a high IO distributed format inside of [[blaze][Blaze]]. The
+[[blz-format][BLZ format document]] has additional documentation. This all gives you
+a distributed NumPy operating on massive arrays.
+
+#+LINK: conda http://docs.continuum.io/conda/index.html
+#+LINK: binstar https://binstar.org/
+#+LINK: conda-recipes https://github.com/ContinuumIO/conda-recipes
+#+LINK: software-carpentry http://software-carpentry.org/
+#+LINK: jiffyclub https://twitter.com/jiffyclub
+#+LINK: blz http://continuum.io/blog/blz-format
+#+LINK: blaze http://blaze.pydata.org/index.html
+#+LINK: blz-format http://blaze.pydata.org/docs/format.html
+

@@ -1,0 +1,242 @@
+#+BLOG: bcbio
+#+POSTID: 524
+#+DATE: [2013-07-18 Thu 18:26]
+#+TITLE: Summary from Bioinformatics Open Science Codefest 2013: Tools, infrastructure, standards and visualization
+#+CATEGORY: OpenBio
+#+TAGS: bioinformatics, bosc, hackathon
+#+OPTIONS: toc:nil num:nil
+
+The [[bosc][2013 Bioinformatics Open Source Conference (BOSC)]] starts tomorrow in
+Berlin, Germany. It's a yearly conference devoted to community-based
+software development projects supporting biological research. Members of the
+[[open-bio][Open Bioinformatics Foundation]] discuss implementations and approaches
+to better provide interoperable and reusable software, libraries and
+pipelines.
+
+For the past five years, a two day [[codefest][Codefest]] and hackathon preceded
+the conference. This gives programmers time to work face-to-face,
+sharing approaches and discovering connections between projects. This
+year, the [[ivo][the Department of Biology, Humboldt-Universität zu Berlin]]
+kindly hosted [[codefest][Codefest 2013]]. Thanks to the organizers and [[attendees][attendees]],
+we finished projects ranging from tool development, infrastructure
+integration, standards development and visualization. There are
+[[roman-photos][photos of the Codefest in progress]] and a [[codefest-doc][detailed writeup of projects]].
+
+Below we summarize the accomplishments from the two days. We
+welcome feedback on the topics covered and hope that by sharing our
+work we can encourage more programmers to become part of the open
+science bioinformatics community. Actively working to build
+well-tested, community-developed, interoperable tools is how we solve
+increasingly difficult research questions ranging from human health to
+plant breeding to microbial community function. The progress
+made in two days illuminates the effectiveness of open collaborative
+science.
+
+#+LINK: attendees https://docs.google.com/spreadsheet/ccc?key=0Agxg-o4ZmoZ4dEQyOFhrLUt4YVBXX0xxWjRyYTBRb2c#gid=0
+#+LINK: ivo http://www.biologie.hu-berlin.de/
+#+LINK: bosc http://www.open-bio.org/wiki/BOSC_2013
+#+LINK: open-bio http://www.open-bio.org/wiki/Main_Page
+#+LINK: codefest http://www.open-bio.org/wiki/Codefest_2013
+#+LINK: codefest-doc https://docs.google.com/document/d/1xbS7ZkjipXct00eOfR7-IL_Ti6QzAsjFvcJtopMeT2g/edit
+#+LINK: roman-photos https://plus.google.com/u/0/photos/115208034315059721590/albums/590205279902807640
+
+* Tool Development
+
+** BioRuby and BaseSpace - Develop SDK and apps for Illumina BaseSpace
+
+/Toshiaki Katayama, Raoul Bonnal, Eri Kibukawa, Joachim Baran, Dan MacLean, Fernando Izquierdo-Carrasco, Spencer Bliven/
+
+During the Codefest, we tested and documented our
+[[basespace-ruby][port of the BaseSpace Python SDK to Ruby]]. Ruby/Biogem developers
+can now easily utilize next-generation sequencing code within the
+[[basespace][Illumina's BaseSpace]] framework. For non-Ruby programers, we
+found that it can be a burden to create new Web app from
+scratch on top of your NGS program. So we started new project to
+provide a Web-app scaffold for BaseSpace. We have already implemented the
+basic portion but will need some more time before releasing the
+BioBaseSpace application.
+
+#+BEGIN_HTML
+<a href="http://bcbio.files.wordpress.com/2013/07/biobasespace.png">
+ <img src="http://bcbio.files.wordpress.com/2013/07/biobasespace.png?w=400" width="400">
+</a>
+#+END_HTML
+
+#+LINK: basespace-ruby https://github.com/joejimbo/basespace-ruby-sdk
+#+LINK: basespace https://basespace.illumina.com/home/index
+
+** Barrnap - Bacterial ribosomal RNA predictor
+
+/Torsten Seemann, Tim Booth/
+
+For the last 8 years RNAmmer has been the standard tool for predicting
+ribosomal RNA features in genomes, because it is reasonably fast,
+accurate, and works on bacteria and eukaryotes. Its drawbacks are that
+it relies on small, older databases; requires an older conflicting
+version of HMMER; and has restrictive licence terms. To resolve these
+issues we have implemented a new rRNA predictor which uses the new
+“nmmer” tool from HMMER 3.1 for searching DNA profiles against DNA
+sequence. We used the Silva and GreenGenes seed alignments for the 5S,
+23S and 16S genes to build the profile models from. Barrnap is a small
+Perl script which takes FASTA as input, and outputs the rRNA feature
+predictions in GFF3 format. It will be packaged in Bio-Linux and
+replace RNAmmer in the Prokka bacterial annotation system.
+
+** BioJVM - Coordinating and integrating BioJava and ScaBio
+
+/Spencer Bliven, Andreas Prlic, Markus Gumbel/
+
+Both Java and Scala run on the Java Virtual Machine. As such, it makes
+sense to [[biojava-scala][coordinate and document]] the various Bio* projects which run on the JVM and
+therefor can interoperate to some degree. We are able to successfully
+reference BioJava functions from Scala code and ScaBio functions from
+Java code. The ease of this process means that users can easily use both
+libraries from whichever language is more suited for their biological
+problem.
+
+#+LINK: biojava-scala http://biojava.org/wiki/Scala
+
+** Biopython
+
+/Peter Cock, Konstantin Tretyakov, Bin Zhang/
+
+The Biopython team worked on training new users at Codefest and exploring
+integration of Biopython with other Python molecular visualization toolkits
+like [[pymol][PyMol]]. Infrastructure development involved testing and debugging
+on multiple systems, including identifying and fixing Windows and
+PyPy problems. We also identified areas where we can make it easier
+to contribute to Biopython: specifically easing the process to report
+and fix bugs by moving to integrated GitHub issue tracking and
+working to support Biopython-associated projects with easy
+installation tools.
+
+#+LINK: biopython http://biopython.org/wiki/Main_Page
+#+LINK: pymol http://pymol.org/
+
+** Galaxy Debianization
+
+/Tim Booth/
+
+I spent several hours revisiting previous work on the Galaxy package
+for Bio-Linux and made significant progress towards it being something
+that can go into Debian-proper. Results will be committed to Deb-Med
+public SVN and patches will be forwarded to the Galaxy dev mailing
+list.
+
+
+* Standards and Visualization
+
+** Ontology and provenance representation
+
+/Herve Menager, Bertrand Neron, Jackie Quinn, Stian Soiland-Reyes, Matus Kalas, Steffen Moller/
+
+The goal of this group was to [[ont-doc][investigate and implement solutions]] to
+use ontologies to help people find and use the programs and data they
+need for their work, and to help automate the integration of tools or
+data resources into workflows or workbenches. We also wanted to
+identify useful provenance metadata, to store in a rigorous way the
+conditions and configuration of analysis steps run by users. This
+improves transparency, reproducibility, and reliability of the
+scientific results.
+
+We worked toward inclusion of the [[edam][EDAM onotology]] as part of the
+[[mobyle][Mobyle system's]] built-in type and classification mechanisms.
+We created a user case by identify workflows in Mobyle and mapped the
+descriptions unto EDAM classification to allow mapping between the types.
+We also investigated the possibilities opened by projects such as PROV
+to standardize the provenance information stored by systems such as
+Mobyle. We added a prototype functionality to the development version
+of Mobyle that dynamically generates this provenance information in a
+JSON-based format.
+
+#+LINK: ont-doc https://docs.google.com/document/d/19VpzwxZdlz1K4P1q1a-WYZUtiSXwUp2nafM716dzW8I/edit
+#+LINK: mobyle http://mobyle.pasteur.fr/
+#+LINK: edam http://edamontology.org/page
+#+LINK: prov http://www.w3.org/TR/prov-o/
+
+** Integrate DGE-Vis & Dalliance, JS animation scheduler
+
+/David Powell, Thomas Down, Skyler Brungardt, Alex Kalderimis/
+
+We worked on integrating two visualization tools: the
+[[dalliance][Dalliance genome browser]] and the [[dge-vis][DGE-Vis]] RNA-seq explorer.
+We now have [[dge-dalliance][a proof-of-concept tool]] that makes it possible to
+visualise RNA-seq analysis while browsing the genome.
+This inspired [[timeywimey][a JavaScript scheduler]] that is able to schedule
+slow animation updates when the JavaScript engine is not busy,
+allowing smoother animations and more accurate windows.
+Finally, we added a JBrowse-compatible JSON backend for Dalliance
+for integration with [[intermine][Intermine]].
+
+#+LINK: dalliance https://github.com/dasmoth/dalliance
+#+LINK: dge-vis https://www.youtube.com/watch?v=ucucQ_LtZ1g
+#+LINK: dge-dalliance http://dna.med.monash.edu/~powell/dge-vis-dalliance/
+#+LINK: timeywimey https://github.com/StrictlySkyler/timeywimey
+#+LINK: intermine http://intermine.github.io/intermine.org/
+
+
+* Infrastructure
+
+** Infrastructure management via CloudBioLinux (CBL)
+
+/Enis Afgan, John Chilton, Brad Chapman/
+
+- Galaxy: We integrated custom installation procedures present in CBL
+  with the Galaxy-tools versioned installation methodology.
+
+- Documentation: Due to the increased interest by individuals to use
+  and contribute to CBL, we invested effort into creating purpose-driven
+  documentation for CBL. This should help people use the endproduct of
+  CBL, customize CBL their needs, as well as learn about the internals
+  of CBL with the aim of contributing. We will finish and make the
+  documentation available on ReadTheDocs over the coming months.
+
+- Build frameworks: We developed a simpler automated method to invoke the
+  CBL build framework to help remove complex error prone steps.
+
+- Web tooling: In spirit of making CBL more accessible and easier to use, we’ve
+  decided to tackle development of a lightweight webapp that helps with
+  customizing and generating CBL configuration files.
+
+** Improve ipython cluster support and runtime metrics
+
+/Valentine Svensson, Guillermo Carrasco, Roman Valls, Per Unneberg/
+
+We worked to extend the [[ipython-parallel][Ipython parallel cluster]] framework to support
+additional schedulers, specifically [[slurm-code][implementing SLURM support]] to
+supplement existing SGE, LSF, Torque and Condor schedulers. We plan to
+extend this to allow generalized use of the DRMAA connector,
+ultimately port such generalization into ipython so that python
+scientific computations can be executed efficiently across different
+clusters implementation. Both [[g-blog][Roman]] and [[g-blog][Guillermo]] blogged
+[[r-blog2][detailed documentation]] of the [[g-blog2][work in progress]].
+
+We also worked to build a tool that helps provide run time
+estimations for bioinformatcs jobs (e.g. “how long should aligning 40 million
+reads against hg19 with BWA take if I use 8 cores?”). We plan to
+collaborate on longer term development of this with the
+[[gcat][Genome Comparison of Analytic Testing]] team.
+
+#+LINK: g-blog http://mussolblog.wordpress.com/2013/07/17/setting-up-a-testing-slurm-cluster/
+#+LINK: g-blog2 http://blogs.nopcode.org/brainstorm/2013/07/19/berlin-bosc-codefest-2013-day-2/
+#+LINK: r-blog http://blogs.nopcode.org/brainstorm/2013/07/18/berlin-bosc-codefest-2013-day-1/
+#+LINK: r-blog2 http://mussolblog.wordpress.com/2013/07/19/pushing-forward-pytravis-during-berlin-codefest-2013/
+#+LINK: slurm-code https://github.com/roryk/ipython-cluster-helper/pull/6
+#+LINK: ipython-parallel http://ipython.org/ipython-doc/dev/parallel/index.html
+#+LINK: gcat http://www.bioplanet.com/forum/§discussion/7916/runtimeswallclock-time-alongside-the-accuracy-metrics#Item_1
+
+** GATK-based reusable pipeline based around Rubra/Ruffus
+
+/Clare Sloggett, Bernie Pope/
+
+We worked on code cleanup, documentation and test data for
+[[ruffus-pipe][a reusable pipeline]] to handle variant calling and annotation, using [[rubra][Rubra]] built
+on the [[ruffus][Ruffus]] framework. It handles BWA alignment, GATK alignment
+cleaning and variant calling and ENSEMBL annotation. To make these
+pipelines easier to run, we worked on integrating them into the
+[[gvl-flavor][GVF flavor]] in CloudBioLinux.
+
+#+LINK: ruffus-pipe https://github.com/claresloggett/variant_calling_pipeline
+#+LINK: rubra https://github.com/bjpop/rubra
+#+LINK: ruffus http://www.ruffus.org.uk/
+#+LINK: gvl-flavor https://github.com/afgane/gvl_flavor
