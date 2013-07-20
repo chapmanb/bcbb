@@ -1,0 +1,193 @@
+#+BLOG: smallchangebio
+#+POSTID: 52
+#+DATE: [2013-07-19 Fri 07:06]
+#+TITLE: Bioinformatics Open Source Conference 2013, day 1 morning: Cameron Neylon and Open Science
+#+CATEGORY: conference
+#+TAGS: bioinformatics, bosc, open-science
+#+OPTIONS: toc:nil num:nil
+
+I'm in Berlin at the 2013 [[bosc][Bioinformatics Open Source Conference]]. The
+conference focuses on tools and approaches to openly developed
+community software to support scientific research. These are my notes
+from the morning 1 session focused on Open Science.
+
+#+LINK: bosc http://www.open-bio.org/wiki/BOSC_2013
+
+* Open Science
+
+** Network ready research: The role of open source and open thinking
+
+/Cameron Neylon/
+
+[[cameron][Cameron]] keynotes the first day of the conference, discussing the value
+of [[cameron-os][open science]]. He begins with a historical perspective of a
+connected world: first internet, telegraphs, stagecoaches all the way
+to social networks, twitter and GitHub. A nice overview of the human
+desire to connect. As the probability of connectivity rises,
+individual clusters of connected groups can reach a critical sudden
+point of large-scale connectivity. A nice scientific example is
+[[gowers][Tim Gowers]] PolyMath work to solve difficult mathematical problems,
+coordinated through his blog and facilitated by internet connectivity.
+Instructive to look at examples of successful large scale open
+science projects, especially in terms of organization and
+leadership.
+
+Successful science projects exploit the order-disorder transition
+that occurs when the right people get together. By being open, you
+increase the probability that your research work will reach this
+critical threshold for discovery. Some critical requirements:
+document so people can use it, test so we can be sure it works,
+package so it's easy to use.
+
+What does it mean to be open? First idea: your work has value that
+can help people in a way you never initially imagined. Probability of
+helping someone is the interest divided by the usability times the
+number of people you can reach. Second idea: someone can help me in a
+way you never expected. Probability of getting help same: interest,
+usability/friction and number of people. Goal of being open: minimize
+friction by making it easier to contribute and connect.
+
+Challenge: how do we best make our work available with limited time?
+Good example is how useful are VMs: are they
+[[recomputation][criitical for recomputation]] or do they create
+[[titus-vms][black boxes that are hard to reuse]]. Both are useful but work for
+different audiences: users versus developers. Since we want to enable
+unexpected improvements it's not clear which should be your priority
+with limited time and money. Goal is to make both part of your
+general work so they don't require extra work.
+
+How can we build systems that allow sharing as the natural by-product
+of scientific work? Brutal reminder that you're not going to get a
+Nobel prize for building infrastructure. Can we improve the
+incentives system? One attempt to hack the system: the
+[[orc][Open Research Computation]] journal, which has high standards for
+inclusion: 100% test coverage, easy to run and reproduce. Difficult
+to get papers because the burden was too high.
+
+Goal: build community architecture and foundations that become
+part of our day to day life. This makes openness part of the default.
+Where are the opportunities to build new connectivity in ways that
+make real change? An unsolved open question for discussion.
+
+#+LINK: cameron http://cameronneylon.net/
+#+LINK: cameron-os http://cameronneylon.net/blog/open-is-a-state-of-mind/
+#+LINK: gowers http://gowers.wordpress.com/
+#+LINK: recomputation http://recomputation.org/blog/2013/07/16/on-virtual-machines-considered-harmful-for-reproducibility/
+#+LINK: titus-vms http://ivory.idyll.org/blog/vms-considered-harmful.html
+#+LINK: orc http://www.openresearchcomputation.com/
+
+** Open Science Data Framework: A Cloud enabled system to store, access, and analyze scientific data
+/Anup Mahurkar/
+
+[[osdf][The Open Science Data Framework]] comes from the NIH human microbiome
+project. Needed to manage large connections of data sets and
+associate metadata. Developed a general language agnostic
+collaborative framework. It's a specialized document database with a
+RESTful API on top, and provides versioning and history. Under the
+covers, stores JSON blobs in [[couchdb][CouchDB]], using [[elasticsearch][ElasticSearch]] to provide
+rapid full text search. Keep ElasticSearch indexes in sync on updates
+to CouchDB. Provides a web based interface to build queries and
+custom editor to update records. Future places include replicated
+servers and Cloud/AWS images.
+
+#+LINK: osdf http://osdf.igs.umaryland.edu/
+#+LINK: couchdb http://couchdb.apache.org/
+#+LINK: elasticsearch http://www.elasticsearch.org/
+
+** myExperiment Research Objects: Beyond Workflows and Packs
+/Stian Soiland-Reyes/
+
+Stian describes work on developing, maintaining and sharing
+scientific work. Uses [[taverna][Taverna]], [[myexperiment][MyExperiment]] and [[wf4ever][Workflow4Ever]] 
+to provide a fully shared environment with [[researchobject][Research Object]]. These
+objects bundle everything involved in a scientific experiment: data,
+methods, provenance and people. Creates a sharable, evolvable and
+contributable object that can be cited via ROI. The Research Object
+is a data model that contains everything needed to rerun and reproduce
+it. Major focus on provenance: where did data come from, how did
+it change, who did the work, when did it happen. Uses the [[prov][PROV]] w3c
+standard for representation, and built a [[rosc][w3c community]] to discuss and
+improve research objects. There are PROV tools available for [[prov-python][Python]]
+and [[prov-java][Java]].
+
+#+LINK: taverna http://www.taverna.org.uk/
+#+LINK: researchobject http://www.researchobject.org/
+#+LINK: myexperiment http://www.myexperiment.org/
+#+LINK: wf4ever http://www.wf4ever-project.org/
+#+LINK: prov http://www.w3.org/TR/prov-primer/
+#+LINK: rosc http://www.w3.org/community/rosc/
+#+LINK: prov-python https://github.com/trungdong/prov
+#+LINK: prov-java https://github.com/lucmoreau/ProvToolbox
+
+** Empowering Cancer Research Through Open Development
+/Juli Klemm/
+
+The [[ncip][National Cancer Informatics Program]] provides support for
+community developed software. Looking to support sustainable, rapidly
+evolving, open work. The Open Development initiative exactly designed
+to support and nurture open science work. Uses simple BSD licenses
+and hosts code on GitHub. Moving hundreds of tools over to this
+model and need custom migrations for every project. Old SVN
+repositories required a ton of cleanup. The next step is to establish
+communities around this code, which is diverse and attracts different
+groups of researchers. Hold hackathon events for specific projects.
+
+#+LINK: ncip http://cbiit.nci.nih.gov/ncip
+
+** DNAdigest - a not-for-profit organisation to promote and enable open-access sharing of genomics data
+/Fiona Nielsen/
+
+[[dnadigest][DNAdigest]] is an organization to share data associated with
+next-generation sequencing, with a special focus on trying to help
+with human health and rare diseases. Researchers have access to
+samples they are working on, but remain siloed in individual research
+groups. Comparison to other groups is crucial, but no
+methods/approaches for accessing and sharing all of this generated
+data. To handle security/privacy concerns, goal is to share
+summarized data instead of individual genomes. DNAdigest's goal is to
+aggregate data and provide APIs to access the summarized, open information.
+
+#+LINK: dnadigest http://dnadigest.org/
+
+** Jug: Reproducible Research in Python
+/Luis Pedro Coelho/
+
+[[jug][Jug]] provides a framework to build parallelized processing pipelines
+in Python. Provides a decorator on each function that handles
+distribution, parallelization and memoization. Nice [[jug-docs][documentation]] is
+available.
+
+#+LINK: jug http://luispedro.org/software/jug
+#+LINK: jug-docs http://jug.readthedocs.org/en/latest/
+
+** OpenLabFramework: A Next-Generation Open-Source Laboratory Information Management System for Efficient Sample Tracking
+/Markus List/
+
+[[openlabframework][OpenLabFramework]] provides a Laboratory Information Management System
+to move away from spreadsheets. Handles vector clone and cell-line
+recombinant systems for which there is not a lot of support. Written
+with Grails and built for extension of parts. Has nice documentation
+and deployment.
+
+#+LINK: openlabframework https://github.com/NanoCAN/OpenLabFramework
+
+** Ten Simple Rules for the Open Development of Scientific Software
+/Andreas Prlic, Jim Proctor, Hilmar Lapp/
+
+This is a discussion period around ideas presented in the published
+paper on [[10rules-paper][Ten Simple Rules for the Open Development of Scientific Software]].
+Andreas, Jim and Hilmar pick their favorite rules to start off the
+discussion. Be simple: minimize time sinks by automating good
+practice with testing and continuous integration frameworks. Hilmar
+talks about re-using and extending other code. The difficult thing is
+that the recognition system does not reward this well since it
+assumes a single leader/team for every probject. Promotes [[impactstory][ImpactStory]]
+which provides alternative metrics around open source contributions.
+The [[osrc][Open Source Report Card]] also provides a nice interface around
+GitHub for summarizing contributions. Good discussion around how to
+measure metrics of usage of your project: need to be able to measure
+impact of your software.
+
+#+LINK: 10rules-paper http://www.ploscompbiol.org/article/info%3Adoi%2F10.1371%2Fjournal.pcbi.1002802
+#+LINK: impactstory http://impactstory.org/
+#+LINK: osrc http://osrc.dfm.io/

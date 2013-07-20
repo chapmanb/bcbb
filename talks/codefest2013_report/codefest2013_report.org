@@ -1,0 +1,86 @@
+#+title: Codefest 2013 Report
+#+author: Brad Chapman
+#+date: 20 July 2013
+
+#+OPTIONS: reveal_center:t reveal_progress:t reveal_history:t reveal_control:t
+#+OPTIONS: reveal_overview:t reveal_keyboard:t
+#+OPTIONS: toc:nil num:nil
+#+OPTIONS: reveal_width:1200 reveal_height:800
+#+REVEAL_ROOT: ../reveal.js
+#+REVEAL_TRANS: linear
+#+REVEAL_THEME: simple
+#+REVEAL_MARGIN: 0.2
+#+REVEAL_MIN_SCALE: 1.0
+#+REVEAL_MAX_SCALE: 1.0
+#+REVEAL_EXTRA_CSS_NO: ../reveal.js/css/print/pdf.css
+
+* What is Codefest?
+
+- 2 day coding session
+- Open Bio developers
+- Democratic and freely organized
+- 4th annual event
+- Everyone welcome
+
+* Coding
+
+#+REVEAL_HTML: <img src='images/coding.jpg' width="700">
+
+Roman Valls: http://j.mp/codefest2013-photos
+
+* Coding
+
+#+REVEAL_HTML: <img src='images/coding2.jpg' width="700">
+
+Roman Valls: http://j.mp/codefest2013-photos
+
+* Discussion
+
+#+REVEAL_HTML: <img src='images/discussion.jpg' width="700">
+
+Roman Valls: http://j.mp/codefest2013-photos
+
+* Community
+
+#+REVEAL_HTML: <img src='images/community.jpg' width="700">
+
+Roman Valls: http://j.mp/codefest2013-photos
+
+* Community
+
+#+REVEAL_HTML: <img src='images/attendees.png' width="800">
+
+http://j.mp/codefest2013-attendees
+
+
+* Accomplishments
+
+- Tool Development
+   - BioRuby, Biopython, Barrnap, BioJVM, Galaxy, Bio-Linux
+- Standards
+   - Mobyle, EDAM, PROV
+- Visualization
+   - Dalliance, DGE-vis, Intermine
+- Infrastructure
+   - CloudBioLinux, IPython, Ruffus
+
+* Report
+
+http://j.mp/codefest2013-report
+
+* Thank you
+
+- Ivo Maintz
+- Steffen Möller
+- Department of Biology, Humboldt-Universität zu Berlin
+- Open Bio community
+- Harvard School of Public Health, Bioinformatics Core
+  http://j.mp/hsph-core-jobs
+
+#+BEGIN_SRC emacs-lisp :exports results :results silent
+(setq org-confirm-babel-evaluate nil)
+(setq org-reveal-title-slide-template
+  "<h3>%t</h3>
+   <h4><a href='http://www.open-bio.org/wiki/Codefest_2013'>http://www.open-bio.org/wiki/Codefest_2013</a></h4>
+   <h4>%d</h4>")
+#+END_SRC

@@ -1,0 +1,230 @@
+#+BLOG: smallchangebio
+#+POSTID: 56
+#+DATE: [2013-07-19 Fri 11:20]
+#+TITLE: Bioinformatics Open Source Conference 2013, day 1 afternoon: visualization and project updates
+#+CATEGORY: conference
+#+TAGS: bioinformatics, bosc, open-science
+#+OPTIONS: toc:nil num:nil
+
+I'm in Berlin at the 2013 [[bosc][Bioinformatics Open Source Conference]]. The
+conference focuses on tools and approaches to openly developed
+community software to support scientific research. These are my notes
+from the day 1 afternoon session focused on Open Science.
+
+Previous notes:
+
+- [[bosc-1a][Day 1 morning talks: Cameron Neylon and Open Science]]
+
+#+LINK: bosc http://www.open-bio.org/wiki/BOSC_2013
+#+LINK: bosc-1a http://smallchangebio.wordpress.com/2013/07/19/bioinformatics-open-source-conference-2013-day-1-morning-cameron-neylon-and-open-science/
+
+* Visualization
+
+** Refinery Platform - Integrating Visualization and Analysis of Large-Scale Biological Data
+/Nils Gehlenborg/
+
+The [[refinery][Refinery Platform]] provides an approach to manage and visualize
+data pipelines. TCGA: 10,000 patients, with mRNA, miRNA, methylation,
+expression, CNVs, variants and clinical parameters. Lots of
+heterogeneous data, made more extensive after processing. Need an
+approach to manage long running pipelines with numerous outputs. Want
+to integrate horizontally across all data types to gain biological
+insight. Want to integrate vertically across data levels to provide
+confirmation and troubleshooting. [[isatab][ISA-Tab]] provides data model for
+metadata and provenance evaluation. Web interface performs faceted
+views of all data based on metadata, and visualizations to explore
+attribute relationships. Underlying workflow engine is [[galaxy][Galaxy]].
+Approach is to setup workflows in Galaxy, then make them available in
+Refinery at a higher level. Uses the Galaxy API by developing custom
+workflows based on a template for 100s of samples.
+
+Two approaches to visualization in Refinery. The first is file-based
+visualization: connect to IGV and display raw BAM data long with
+associated metadata. Galaxy also supports this well, so the hope is
+to build off of this. The second approach is database-driven
+visualization that uses an associated Django server to read/write
+from a simple API server. Can use callbacks also with REST building
+off [[tastypie][TastyPie]] so quick and easy to develop custom visualizations.
+
+#+LINK: refinery https://github.com/parklab/refinery-platform?source=c
+#+LINK: tcga https://tcga-data.nci.nih.gov/tcga/
+#+LINK: isatab http://isatab.sourceforge.net/
+#+LINK: galaxy http://usegalaxy.org
+#+LINK: tastypie http://tastypieapi.org/
+
+** DGE-Vis: Visualisation of RNA-seq data for Differential Gene Expression analysis
+/David Powell/
+
+[[dge-vis][DGE-vis]] provides a visualization framework to identify differentially
+expressed genes from RNA-seq analysis. Provides approaches to handle
+two comparison differentially expressed list. To generalize to
+three-comparison compares it creates a Venn diagram and allows
+selection of each of the subcomponents to inspect individually. Given
+the limitations of this, they then developed a new approach. David
+shows a live demo of comparisons between 4 conditions, which
+identifies changes over the conditions. A heatmap groups conditions
+based on differential expression similarities. The heatmap is nicely
+linked to expression differences for each gene and subselection shows
+you list of genes. All three items link so change in real time as
+others adjust. Provides integrated pathway maps with colors linked to
+each experiment, allowing biologists to identify changed genes via
+pathways. Written with Haskell on the backend, R for analysis,
+CoffeScript and Javascript using D3 for visualization.
+
+#+LINK: dge-vis https://www.youtube.com/watch?v=ucucQ_LtZ1g
+
+** Genomic Visualization Everywhere with Dalliance
+/Thomas Down/
+
+Thomas starts by motivating visualization: humans love to look at
+things and practically scientists write papers around a story told by
+the figures. Unfortunately we focus on print/old-school
+visualizations: what more could we present if they weren't so static.
+The [[dalliance][Dalliance genome browser]] provides complete interactivity with
+each loading of custom files and multiple tracks. Designed to be able
+to fit into other applications easily so embed into your website.
+Also meant to be usable in more lightweight contexts: blog posts,
+slides, journal publications. It's a fully client side implementation
+but does need [[cors][CORS allowed header]] on remote websites that feed data
+in.
+
+#+LINK: dalliance https://github.com/dasmoth/dalliance?source=c
+#+LINK: cors https://en.wikipedia.org/wiki/Cross-Origin_Resource_Sharing
+
+** Robust quality control of Next Generation Sequencing alignment data
+/Konstantin Okonechnikov/
+
+Goal is to avoid common traps in next-generation sequencing data:
+avoid poor runs and platform/protocol-specific errors. Provides a more
+user-friendly tool in comparison to [[fastqc][FastQC]], samtools, [[picard][Picard]] and
+[[rna-seqc][RNA-seQC]]. Konstantin's tool is [[qualimap][QualiMap]]. Provides interactive plots
+inspired by FastQC's displays, and also does count quality control,
+transcript coverage and 5'/3' bias tools for RNA-seq analyses.
+
+#+LINK: qualimap http://qualimap.bioinfo.cipf.es/
+#+LINK: fastqc http://www.bioinformatics.babraham.ac.uk/projects/fastqc/
+#+LINK: picard http://picard.sourceforge.net/
+#+LINK: rna-seqc http://www.broadinstitute.org/cancer/cga/rna-seqc
+
+** Visualizing bacterial sequencing data with GenomeView
+/Thomas Abeel/
+
+[[genomeview][GenomeView]] provides genome browser for interactive, real-time
+exploration of NGS data. Allows editing and curation of data.
+Configurability and extensibility through plug-ins. Designed for
+bacterial genomes so focuses on consensus plus gaps and missing
+regions. Handles automated mapping between multiple organisms, show
+annotations across them. Handles 60,000 contigs for partially
+sequenced genomes, allowing selection by query to trim down to a
+reasonable number.
+
+#+LINK: genomeview http://genomeview.org/
+
+** Genomics applications in the Cloud with DNANexus
+/Andrey Kislyuk/
+
+[[dnanexus][DNANexus]] has an open and comprehensive API to talk to the DNANexus
+platform. Provides genome browser, circos and other visualization
+tools. Have a nice set of [[dnanexus-github][GitHub repositories]] including client code
+for interacting with the API and [[dnanexus-docs][documentation]]. StackOverflow clone
+called [[dnanexus-answers][DNANexus Answers]] for question/answer and community interaction.
+
+#+LINK: dnanexus https://dnanexus.com/
+#+LINK: dnanexus-github https://github.com/dnanexus/dx-toolkit
+#+LINK: dnanexus-docs https://wiki.dnanexus.com/Home
+#+LINK: dnanexus-answers https://answers.dnanexus.com/
+
+* Open source project updates
+
+** BioRuby project updates - power of modularity in the community-based open source development model
+/Toshiaki Katayama/
+
+Toshiaki provides updates on latest developments in the
+[[bioruby][BioRuby]] community. Important changes in openness during the project:
+move to GitHub, [[biogems][BioGems]] system lowers barrier to joining the BioRuby
+community. Users can publish standalone packages that integrate. Some
+highlights: [[bio-gadget][bio-gadget]], [[bio-svgenes][bio-svgenes]], [[bio-synreport][bio-synreport]], 
+bio-diversity.
+
+Two other associated projects. [[biointerchange][biointerchange]] provides RDF converters
+for GFF3, GVF, Newick and TSV; developed during 2012 and 2013
+BioHackathon. The second is [[basespace-ruby][basespace-ruby]]. See the
+[[codefest2013][Codefest 2013]] report for more details on the project.
+
+#+LINK: bioruby http://bioruby.org/
+#+LINK: biogems http://www.biogems.info/
+#+LINK: bio-gadget https://github.com/shka/ruby-bio-gadget
+#+LINK: bio-svgenes https://github.com/danmaclean/bioruby-svgenes
+#+LINK: bio-synreport https://github.com/danmaclean/bioruby-synreport
+#+LINK: biointerchange http;//biointerchange.org
+#+LINK: basespace-ruby https://github.com/joejimbo/basespace-ruby-sdk
+#+LINK: codefest2013 https://bcbio.wordpress.com/2013/07/18/summary-from-bioinformatics-open-science-codefest-2013-tools-infrastructure-standards-and-visualization/
+
+** Biopython project update
+/Peter Cock/
+
+Peter provides updates on the latest updates from the [[biopython][Biopython]]
+community. Involvement with [[gsoc][GSoC]] for the last several years with both
+NESCent and OpenBio foundation. This has been a great source of new
+contributors as well as code development. It's an important way to
+develop and train new programmers interested in open source and
+biology. Biopython uses continuous integration with BuildBots and
+[[travis][Travis]]. Tests run on multiple environments: Python versions, Linux,
+Windows, MacOSX. Next release of Biopython supports Python 3.3 through
+the 2to3 converter. Long term will write code to be compatible with
+both. Nice tip from discussion: [[six][the six tool]] for Python 2/3
+compatibility checks and a [[py2and3][blog post on writing for 2 and 3]].
+Peter describes thoughts on how to make Biopython more modular
+to encourage experimental contributions that could then make their way
+into officially support releases later on: trying to balance need for
+well-tested and documented code with trying to encourage new users.
+
+#+LINK: biopython http://biopython.org
+#+LiNK: gsoc https://www.google-melange.com/gsoc/homepage/google/gsoc2013
+#+LINK: travis https://travis-ci.org/
+#+LINK: six https://pypi.python.org/pypi/six
+#+LINK: py2and3 http://lucumr.pocoo.org/2013/5/21/porting-to-python-3-redux/
+
+** InterMine - Collaborative Data Mining
+/Alex Kalderimis/
+
+[[intermine][Intermine]] is a data-integration system and query engine that supplies
+data analysis tools, graphical web-app components and a REST API. It
+provides a modular set of parts that you can use to build tools in
+addition to the pre-packaged solution. The [[intermod][InterMOD]] consortium
+organizes all the Intermine installations to make them able to better
+interact and share data. Recent work: re-write of Intermine
+javascript tools. Also can use external tools more cleanly: shows
+nice interaction of [[jbrowse][jBrowse]] with Intermine. Working on rebuilding
+their web interface on top of the more modular approach.
+
+#+LINK: intermine http://intermine.github.io/intermine.org/
+#+LINK: intermod http://crossmodel.org/resources
+#+LINK: jbrowse http://jbrowse.org/
+
+** The GenoCAD 2.2 Grammar Editor
+/Jean Peccoud/
+
+Jean argues for the importance of domain specific languages to make
+it easier to handle specific tasks. Change the language to your
+problem. Idea behind [[genocad][GenoCAD]] is to empower end-users to develop their
+own DSL. Formal grammars are a set of rules describing how to form
+sentences in the language's grammar. Start by defining categories
+mapping to biological parts, follow with the re-writing rules. All of
+this happens in a graphical drag and drop interface. For parts, they
+can use BioBricks as inputs.
+
+#+LINK: genocad http://genocad.org/
+
+** Improvements and new features in the 7th major release of the Bio-Linux distro
+/Tim Booth/
+
+[[bio-linux][Bio-Linux]] is in its 10th year and recently released version 7.
+Bio-Linux is a set of debian packages and a full bioinformatics linux
+distribution you can get and live boot from a USB stick. Strong
+interactions with DebianMed and CloudBioLinux. Working with
+integration of Galaxy into Debian packages. Large emphasis on
+teaching and courses with Bio-Linux for learning commandline work.
+
+
+#+LINK: bio-linux http://nebc.nox.ac.uk/tools/bio-linux
