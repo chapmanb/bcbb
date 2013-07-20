@@ -1,0 +1,202 @@
+#+BLOG: smallchangebio
+#+POSTID: 60
+#+DATE: [2013-07-20 Sat 06:56]
+#+TITLE: Bioinformatics Open Source Conference 2013, day 2 morning: Sean Eddy and Software Interoperability
+#+CATEGORY: conference
+#+TAGS: bioinformatics, bosc, open-science
+#+OPTIONS: toc:nil num:nil
+
+I'm in Berlin at the 2013 [[bosc][Bioinformatics Open Source Conference]]. The
+conference focuses on tools and approaches for openly developed
+community software supporting scientific research. These are my notes
+from the day 2 morning session focused on software interoperability.
+
+Previous notes:
+
+- [[bosc-1a][Day 1 morning talks: Cameron Neylon and Open Science]]
+- [[bosc-1b][Day 2 afternoon talks: Visualization and project updates]]
+
+#+LINK: bosc http://www.open-bio.org/wiki/BOSC_2013
+#+LINK: bosc-1a http://smallchangebio.wordpress.com/2013/07/19/bioinformatics-open-source-conference-2013-day-1-morning-cameron-neylon-and-open-science/
+#+LINK: bosc-1b http://smallchangebio.wordpress.com/2013/07/19/bioinformatics-open-source-conference-2013-day-1-afternoon-visualization-and-project-updates/
+
+* Biological sequence analysis in the post-data era
+/Sean Eddy/
+
+Sean starts off with a self-described embarrassing personal history about how he
+developed his scientific direction. Biology background: multiple self-splicing introns in
+a bacteriophage, unexpected in a highly streamlined genome. The
+introns are self-removing transposable elements that are difficult for
+the organism to remove from the genome. No sequence conservation of
+these, only structural conservation, but no tools to detect this. Sean
+was an experimental biologist and used this as motivational problem to
+search for an algorithm/programming solution to the problem. Not able
+to accomplish this straight off until learned about HMM approaches.
+Reimplemented HMMs and re-invented stochastic context free grammars to
+model structural work as a tree structure. Embarrassing part was that
+his post-doc lab work on GFP was not going well and scooped, so wrote
+a postdoc grant update to switch to computational biology. This switch
+led to [[hmmer][HMMER]], [[infernal][Infernal]], [[bsa][Biological Sequencing Analysis]].
+
+From this: general advice to not do incremental engineering is
+wrong. A lot of great work came from incremental engineering:
+automobiles, sequence analysis (Smith Waterman -> BLAST -> PSI-BLAST
+-> HMMER). Engineering is a valuable part of science. Requires insane
+dedication to a single problem. The truth: science rewards
+for how much impact you have, not how many papers you write.
+Arbitrage approach to science: take ideas and tools and make them
+usable for biologists who need them. Not traditionally valuable but
+useful so can carve out a niche.
+
+General approach to Pfam that helps tame exponential growth of
+sequences. Strategy is to use representative seed alignments, sweep
+the full database, use scalable models in HMMER and Infernal, then
+automate. Scales as you've got more data.
+
+Scientific publication is a 350 year old tradition of open science.
+First journal with peer review in 1665: scientific priority and fame
+in return for publication and disclosure. This quid pro quo still
+exists today. The intent of the system has been open data since the
+beginning, but tricky part now is that the part you want to be open
+does not fit into the paper. Specifically in computational science,
+the paper is an advertisement, not a delivery mechanism.
+
+Two magic tricks. We need sophisticated infrastructure, but most of
+the time we're exploring. For one-off data analysis, premium is on
+expert biology and tools as simple as possible. Trick 1: use control
+experiments over statistical tests. Things you need: trusted methods,
+data availability, command line. Trick 2: take small random sub-samples of
+large datasets. Review example using this approach to catch algorithm
+approach error in spliced aligner.
+
+Bioinformatics: data analysis needs to be part of the science.
+Biologists need to be fluent in computational analysis and strong
+computational tools will always be in demand. Great end to a
+brilliant talk.
+
+#+LINK: hmmer http://hmmer.janelia.org/
+#+LINK: infernal http://infernal.janelia.org/
+#+LINK: bsa http://www.amazon.com/Biological-Sequence-Analysis-Probabilistic-Proteins/dp/0521629713
+
+* Software Interoperability
+
+** BioBlend - Enabling Pipeline Dreams
+/Enis Afgan/
+
+[[bioblend][BioBlend]] is a Python wrapper around [[galaxy][the Galaxy]] and
+[[cloudman][CloudMan]] APIs. The goal is to enable creation of automated
+and scalable pipelines. For some workflows the Galaxy GUI workflow
+isn't enough because we need metadata to drive the analysis. Luckily
+Galaxy has a [[galaxy-docs][documented REST API]] that supports most of the
+functionality. To support scaling out Galaxy, [[cloudman][CloudMan]] automates the
+entire process of spinning up an instance, creating and SGE cluster
+and managing data and tools. Galaxy is a execution engine and
+CloudMan is the infrastructure manager. BioBlend has
+[[bioblend-docs][extensive documentation]] and has lots of community contributions.
+
+#+LINK: bioblend https://github.com/afgane/bioblend?source=c
+#+LINK: galaxy http://usegalaxy.org
+#+LINK: cloudman http://usecloudman.org
+#+LINK: galaxy-docs http://galaxy-dist.readthedocs.org
+#+LINK: bioblend-docs http://bioblend.readthedocs.org
+
+** Taverna Components: Semantically annotated and shareable units of functionality
+/Donal Fellows/
+
+[[taverna-comp][Taverna components]] are well described parts that plug into a
+workflow. It needs curation, documentation and to work (and fail) in
+predictable ways. The component hides the complexity of calling the
+wrapped tool service. This is a full part of the [[taverna][Taverna 2.5]]
+release: both workbench and server. Components are semantically
+annotated to describe inputs/outputs according to domain ontologies.
+Components are not just nested workflows since they obey a set of
+rules so can treat as a black box and drill in only if needed.
+Components enable additional abstraction allowing workflows to be
+more modular: allows individual work on components and high level
+workflows with updates for new versions. Long term goal is to treat
+the entire workflow as a RDF model to improve searching.
+
+#+LINK: taverna http://www.taverna.org.uk/
+#+LINK: taverna-comp http://www.taverna.org.uk/developers/work-in-progress/components/
+
+** UGENE Workflow Designer â flexible control and extension of pipelines with scripts
+/Yuriy Vaskin/
+
+[[ugene][UGENE]] focuses on integration of biological tools using a graphical
+interface. It has a workflow designer like Galaxy and Taverna and
+runs on local machines. Also offers a python API for scripting
+through UGENE. Nice example code feeding [[biopython][Biopython]] inputs into
+the API natively.
+
+#+LINK: ugene http://ugene.unipro.ru/
+#+LINK: biopython http://biopython.org
+
+** Reproducible Quantitative Transcriptome Analysis with Oqtans
+/Vipin Sreedharan/
+
+Starts off talk with poll from RNA-seq blog. The most immediate needs
+for the community are standard bioinformatics pipelines and skilled
+bioinformatics specialists. [[oqtans][oqtans]] is online quantitative
+transcriptome analysis, code available [[oqtans-github][on GitHub]].
+Drives an automated pipeline with a vast assortment of RNA-seq data
+analysis tools. Some useful tools used: [[palmapper][PALMapper]] for mapping, [[rdiff][rDiff]]
+for differential expression analysis, [[rquant][rQuant]] for alternative
+transcripts. oqtans available from [[oqtans-galaxy][a public Galaxy instance]] and with
+Amazon AMIs.
+
+#+LINK: oqtans http://oqtans.org/
+#+LINK: oqtans-github https://github.com/ratschlab/oqtans
+#+LINK: palmapper http://raetschlab.org/suppl/palmapper
+#+LINK: rdiff http://cbio.mskcc.org/public/raetschlab/user/drewe/rdiff/
+#+LINK: rquant http://raetschlab.org/suppl/rquant
+#+LINK: oqtans-galaxy https://galaxy.cbio.mskcc.org/
+
+** MetaSee: An interactive visualization toolbox for metagenomic sample analysis and comparison
+/Xiaoquan Su/
+
+[[metasee][MetaSee]] provides an online tool for visualizing metagenomic data.
+It's a general visualization tool and integrates multiple input
+types. Nice tools specifically for metagenomics to display taxa in a
+population. Have a nice [[metasee-mouth][MetaSee mouth]] example which maps metagenomics of
+the mouth. Also pictures of teeth are scary without gums. [[meta-mesh][Meta-Mesh]]
+is a metagenomic database and analysis system.
+
+#+LINK: metasee http://www.metasee.org/index.jsp
+#+LINK: meta-mesh http://meta-mesh.org/
+#+LINK: metasee-mouth http://www.metasee.org/visualizationlab/mouth/
+
+** PhyloCommons: community storage, annotation and reuse of phylogenies
+/Hilmar Lapp/
+
+[[phylocommons][Phylocommons]] provides an annotated repository of phylogenetic trees.
+Trees are key to biological analyses and increasing in number, but
+difficult to reuse and build off. Most are not archived, and even if
+so are in images or other hard to automatically use. It uses
+Biopython to convert trees into RDF and allows query through the
+Virtuoso RDF database. Code is available [[pc-github][on GitHub]].
+
+#+LINK: phylocommons http://www.phylocommons.org/
+#+LINK: pc-github https://github.com/bendmorris/phylocommons
+
+** GEMBASSY: an EMBOSS associated package for genome analysis using G-language SOAP/REST web services
+/Hidetoshi Itaya/
+
+[[gembassy][GEMBASSY]] provides an EMBOSS package that integrates with the
+[[g-language][G-Language]] using a web service. This gives you commandline access
+through EMBOSS for a wide variety of visualization and analysis
+tools. Nice integration examples show it working directly in a
+command line workflow.
+
+#+LiNK: gembassy https://github.com/celery-kotone/GEMBASSY
+#+LINK: g-language http://www.g-language.org/wiki/home
+
+** Rubra - flexible distributed pipelines for bioinformatics
+/Clare Sloggett/
+
+[[rubra][Rubra]] provides flexible distributed pipelines for bioinformatics,
+build on top of [[ruffus][Ruffus]]. Used to build [[rubra-vc][a variant calling]] pipeline
+built on bwa, GATK and ENSEMBL.
+
+#+LINK: rubra https://github.com/bjpop/rubra
+#+LINK: ruffus http://www.ruffus.org.uk/
+#+LINK: rubra-vc https://github.com/claresloggett/variant_calling_pipeline

@@ -1,0 +1,207 @@
+#+BLOG: smallchangebio
+#+POSTID: 64
+#+DATE: [2013-07-20 Sat 17:31]
+#+TITLE: Bioinformatics Open Source Conference 2013, day 2 afternoon: cloud computing, translational genomics and funding
+#+CATEGORY: conference
+#+TAGS: bioinformatics, bosc, open-science
+#+OPTIONS: toc:nil num:nil
+
+I'm in Berlin at the 2013 [[bosc][Bioinformatics Open Source Conference]]. The
+conference focuses on tools and approaches for openly developed
+community software supporting scientific research. These are my notes
+from the day 2 afternoon sessions focusing on cloud computing,
+infrastructure, translational genomics and funding of community open
+source tools.
+
+Previous notes:
+
+- [[bosc-1a][Day 1 morning talks: Cameron Neylon and Open Science]]
+- [[bosc-1b][Day 1 afternoon talks: Visualization and project updates]]
+- [[bosc-2a][Day 2 morning talks: Sean Eddy and software interoperability]]
+
+#+LINK: bosc http://www.open-bio.org/wiki/BOSC_2013
+#+LINK: bosc-1a http://smallchangebio.wordpress.com/2013/07/19/bioinformatics-open-source-conference-2013-day-1-morning-cameron-neylon-and-open-science/
+#+LINK: bosc-1b http://smallchangebio.wordpress.com/2013/07/19/bioinformatics-open-source-conference-2013-day-1-afternoon-visualization-and-project-updates/
+#+LINK: bosc-2a http://smallchangebio.wordpress.com/2013/07/20/bioinformatics-open-source-conference-2013-day-2-morning-sean-eddy-and-software-interoperability/
+
+* Cloud and Genome scale computing
+
+** Towards Enabling Big Data and Federated Computing in the Cloud
+/Enis Afgan/
+
+[[hadoop][Hadoop]] is a commonly used approach to distribute work using
+map-reduce. [[htcondor][HTCondor]] scavenges cycles from idle computation on
+machines. [[cloudman][CloudMan]] organizes Amazon architecture and provides a
+management interface. Goal of the project is to combine these three
+to explore usage in biology. Provides a Hadoop-over-SGE integration
+component that spins up a Hadoop cluster with HDFS and master/worker
+nodes. Hadoop setup takes 2 minutes: nice solution for using Hadoop
+on top of existing cluster scheduler. HTCondor provides scaling out
+between local and cloud infrastructure or two cloud infrastructures.
+Currently a manual interchange process to connect the two clusters.
+Once connected can submit jobs across multiple jobs, transferring
+data via HTCondor.
+
+#+LINK: hadoop https://hadoop.apache.org/
+#+LINK: htcondor http://research.cs.wisc.edu/htcondor/
+#+LINK: cloudman http://usecloudman.org
+
+** MyGene.info: Making Elastic and Extensible GeneÂ­-centric Web Services
+/Chunlei Wu/
+
+[[mygene][mygene.info]] provides a set of web services to query and retrieve gene
+annotation information. The goal is to avoid the need to update and
+maintain local annotation data: annotation as a service. Updates data
+weekly from external resources and place into document database
+[[mongo][MongoDB]]. Exposed as a simple REST interface allowing query and
+retrieval via gene IDs. They have a Python API called [[mygene-py][mygene]]
+and javascript autocomplete widget.
+
+#+LINK: mygene http://mygene.info/
+#+LINK: mongo http://www.mongodb.org/
+#+LINK: mygene-py https://pypi.python.org/pypi/mygene
+
+** An update on the Seal Hadoop-based sequence processing toolbox
+/Luca Pireddu/
+
+[[seal][Seal]] provides distribution of bioinformatics alogrithms on [[hadoop][Hadoop]].
+Motivated by success Google has had scaling larger data problems with
+this approach. Key idea: move to a different computing paradigm.
+Developed for sequencing core at [[csr4][CSR4]]. Some tools implemented: Seqal
+-- short read mapping with bwa; Demux -- demultiplex samples from
+multiplexed runs. RecabTable -- recalibration of base quality
+equivalent to GATK's CountCovariatesWalker; ReadSort -- distributed
+sorting of read alignments. Provided wrappers for Seal tools which is
+a bit tricky since Hadoop doesn't follow Galaxy model.
+
+#+LINK: seal http://biodoop-seal.sourceforge.net/
+#+LINK: csr4 http://www.crs4.it/
+
+** Open Source Configuration of Bioinformatics Infrastructure
+/John Chilton/
+
+John is tackling the problem of configuring complex applications. His
+work builds on top of [[cbl][CloudBioLinux]] which makes heavy use of Fabric.
+Fabric doesn't handle configuration management well: not a goal of
+the project. Two examples of configuration management systems:
+[[puppet][Puppet]] and [[chef][Chef]]. John extended CloudBioLinux to allow use of puppet modules
+and chef cookbooks. A lightweight job runner tool called [[lwr][LWR]] sits on
+top of Galaxy using this. Also working on integration with the Globus
+toolkit. John advocates creating a community called [[bioconfig][bioconfig]] around
+these ideas.
+
+#+LINK: cbl http://cloudbiolinux.org
+#+LINK: puppet https://puppetlabs.com/
+#+LINK: chef http://www.opscode.com/chef/
+#+LINK: lwr https://lwr.readthedocs.org
+#+LINK: bioconfig https://github.com/bioconfig
+
+** An Open Source Framework for Gene Prioritization
+/Hoan Nguyen, Vincent Walter/
+
+[[sm2ph][SM2PH (Strucural Mutation to Pathology Phenotypes in Human)]] project
+helps prioritize most promising features associated with a biological
+question: processes, pathologies or networks. Involves a three step
+process: building a model for training features, locally prioritizing
+these and then globally prioritizing. Developed a tool called [[gepetto][GEPETTO]]
+that handles prioritization. Built in a modular manner for plugins
+and extension from the community. Integrates with Galaxy framework
+via tool shed. Prioritization modules: protein sequence alignment,
+evolutionary barcodes, genomic context, transcription data,
+protein-protein interactions, hereditary disease gene probability.
+Uses [[jbpm][jBPM]] as a workflow engine. Applied GEPETTO prioritization to
+work on age-related macular degeneration (those scary eye pictures
+you see at the optometrist).
+
+#+LINK: sm2ph http://decrypthon.igbmc.fr/sm2ph/cgi-bin/home
+#+LINK: gepetto http://sourceforge.net/p/gepetto/wiki/Home/
+#+LINK: jbpm https://www.jboss.org/jbpm
+
+** RAMPART: an automated de novo assembly pipeline
+/Daniel Mapleson/
+
+[[rampart][RAMPART]] provides an automated de-novo assembly pipeline as part of
+core service. Motivation is that the TGAC core handles a hydrogenous
+input of data so need to support multiple approaches and parameters.
+One difficulty is that it's hard to assess which assembly is best.
+Some ideas: known genome length, most contiguous (N50), alignments of
+reads to assembly and assembly to reference. Nicely wrapped all of
+this up into a single tool that works across multiple assemblers and
+clusters. Broken into stages of error correction, assembly with
+multiple approaches, decision on assembly to use, then an assembly
+improver. Builds on top of the [[conan][EBI's Conan]] workflow management
+application. Provides an external tool API to interface with third
+party software.
+
+#+LINK: rampart https://github.com/TGAC/RAMPART
+#+LINK: conan http://www.ebi.ac.uk/fgpt/sw/conan/
+
+** Flexible multi-omics data capture and integration tools for high-throughput biology
+/Joeri van der Velde/
+
+[[molgenis][Molgenis]] provides a software generator and web interface for
+commandline tools based on a domain specific language. Provides
+customized front ends for diverse set of tools. Nice software setup
+with continuous integration and deployment to 50 servers. Motivation
+is to understand genotype to phenotype with heterogeneous data
+inputs. Challenge is how to prepare the custom web interfaces when
+data is multi-dimensional in terms of comparisons. Treat this as a
+big matrix of comparisons between subject and traits. Shows nice
+plots of displaying QTLs for C elegans projects warehoused on
+Molgenis. Same approach works well across multiple organisms:
+Arabidopsis.
+
+#+LINK: molgenis http://www.molgenis.org/wiki/WikiStart
+
+* Translational genomics
+
+** Understanding Cancer Genomes Using Galaxy
+/Jeremy Goecks/
+
+Jeremy's research model: find computing challenges, invent software
+to handle it, and demonstrate usefulness via genomics. Focus on this
+talk is pancreatic cancer transcriptome analysis. Jeremy's builds
+tools on top of [[galaxy][Galaxy]]. Added new tools for variant calling, fusion
+detection and VCF manipulation. Jeremy shows a Galaxy workflow for
+transcriptome analysis. Advantages of Galaxy workflows: recomputable,
+human readable, importable, sharable and publishable in Galaxy pages.
+Uses [[ccle][Cancer Cell Line Encylopedia]] for comparisons. Now a more complex
+workflow with variants, gene expression and annotations to do
+targeted eQTL analysis. Custom visualizations provide ability to
+extract partial sets of data, then publish results of those views.
+Provides an API to plug in custom visualization tools. Shows a nice
+demo of recalling variants on only a single gene with adjusted
+parameters. Has another tool which does parameter sweeps and shows
+quickly how output looks with different subsets of parameters.
+
+#+LINK: ccle http://www.broadinstitute.org/ccle/home
+
+* Strategies for funding and maintaining open source software
+
+BOSC ended with a panel discussion featuring Peter Cock, Sean Eddy,
+Carole Goble, Scott Markel and Jean Peccoud. We discussed approaches
+for funding long term open source scientific software. I chaired the
+panel so didn't get to take the usual notes but will summarize the
+main points:
+
+- Working openly and sharing your work helps with your impact on
+  science.
+
+- It is critical to be able to effectively demonstrate your impact to
+  reviewers, granting agencies, and users of your tools.
+  Sean Eddy shared the Deletion Metric for research impact:
+  Were a researcher to be deleted, would there be any phenotype?
+
+- To demonstrate impact, be able to quantify usage in some way. Some
+  of the best things are personal stories and recommendations about
+  how your software helps enable science in ways other tools can't.
+
+- Papers play in important role in educating, promoting and
+  demonstrating usage of your software, but are also not the only
+  metric.
+
+- We need to take personal responsibility as developers for
+  categorizing impact and usage. Download/views are not great metrics
+  since hard to categorize. Better to be able to engage and
+  understand usage and ask users to cite and recommend. Lightweight
+  easy citation systems would go a long way towards enabling this.
