@@ -1,0 +1,386 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><title>(Community developed variant calling pipelines)</title>
+<meta name="author" content="(Brad Chapman)"/>
+<link rel="stylesheet" href="../reveal.js/css/reveal.min.css">
+<link rel="stylesheet" href="../reveal.js/css/theme/simple.css" id="theme">
+
+<link rel="stylesheet" href="../reveal.js/css/print/pdf.css" type="text/css" media="print">
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+<section>
+<h3>Community developed variant calling pipelines</h3>
+   <h4>Brad Chapman</h4>
+   <h4>Bioinformatics Core, Harvard School of Public Health</h4>
+   <h4><a href='https://github.com/chapmanb'>@chapmanb</a></h4>
+   <h4>20 July 2013</h4></section>
+
+<section>
+<section id="sec-1" >
+
+<h2>Challenges</h2>
+</section>
+<section id="sec-1-1" >
+
+<h3>Complex, rapidly changing pipelines</h3>
+
+<div class="figure">
+<p><img src="./images/gatk_changes.png"  alt="gatk_changes.png"/></p>
+</div>
+</section>
+<section id="sec-1-2" >
+
+<h3>Large number of specialized dependencies</h3>
+<img src="./images/huge_seq.png" width="400">
+
+<p>
+<a href="https://github.com/StanfordBioinformatics/HugeSeq">https://github.com/StanfordBioinformatics/HugeSeq</a>
+</p>
+</section>
+<section id="sec-1-3" >
+
+<h3>Quality differences between calling methods</h3>
+<img src="./images/gcat_comparison.png" width="600">
+
+<p>
+<a href="http://www.bioplanet.com/gcat">http://www.bioplanet.com/gcat</a>
+</p>
+</section>
+<section id="sec-1-4" >
+
+<h3>Scaling on full ecosystem of clusters</h3>
+
+<div class="figure">
+<p><img src="./images/schedulers.png"  alt="schedulers.png"/></p>
+</div>
+</section>
+</section>
+<section>
+<section id="sec-2" >
+
+<h2>Solution</h2>
+<img src="./images/community.png" width="400">
+
+<p>
+<a href="http://www.amazon.com/Community-Structure-Belonging-Peter-Block/dp/1605092770">http://www.amazon.com/Community-Structure-Belonging-Peter-Block/dp/1605092770</a>
+</p>
+</section>
+</section>
+<section>
+<section id="sec-3" >
+
+<h2></h2>
+
+<div class="figure">
+<p><img src="./images/bcbio_nextgen_highlevel.png"  alt="bcbio_nextgen_highlevel.png"/></p>
+</div>
+</section>
+</section>
+<section>
+<section id="sec-4" >
+
+<h2>Development goals</h2>
+<ul class="org-ul">
+<li>Quantifiable
+</li>
+<li>Analyzable
+</li>
+<li>Scalable
+</li>
+<li>Reproducible
+</li>
+<li>Community developed
+</li>
+<li>Accessible
+</li>
+</ul>
+</section>
+</section>
+<section>
+<section id="sec-5" >
+
+<h2>Quantify quality</h2>
+<img src="./images/grading-summary-prep-callerdiff.png" width="900">
+
+<ul class="org-ul">
+<li>Reference materials: <a href="http://www.genomeinabottle.org/">http://www.genomeinabottle.org/</a>
+</li>
+<li>Quantification details: <a href="http://j.mp/bcbioeval">http://j.mp/bcbioeval</a>
+</li>
+</ul>
+
+</section>
+<section id="sec-5-1" >
+
+<h3>Known unknowns</h3>
+<ul class="org-ul">
+<li>Coverage: summarize what you can't assess
+</li>
+<li>Structural: large, complex rearrangements
+</li>
+</ul>
+</section>
+</section>
+<section>
+<section id="sec-6" >
+
+<h2>Analysis</h2>
+</section>
+<section id="sec-6-1" >
+
+<h3>Query</h3>
+
+<div class="figure">
+<p><img src="./images/gemini.png"  alt="gemini.png"/></p>
+</div>
+
+<p>
+<a href="https://github.com/arq5x/gemini">https://github.com/arq5x/gemini</a>
+</p>
+</section>
+<section id="sec-6-2" >
+
+<h3>Visualize</h3>
+<img src="images/o8.png" width="1000">
+
+<p>
+<a href="https://github.com/chapmanb/o8">https://github.com/chapmanb/o8</a>
+</p>
+</section>
+</section>
+<section>
+<section id="sec-7" >
+
+<h2>Parallel scaling</h2>
+
+<div class="figure">
+<p><img src="./images/parallel-clustertypes.png"  alt="parallel-clustertypes.png"/></p>
+</div>
+
+<ul class="org-ul">
+<li>Infrastructure details: <a href="http://j.mp/bcbioscale">http://j.mp/bcbioscale</a>
+</li>
+<li>IPython: <a href="http://ipython.org/ipython-doc/dev/parallel/index.html">http://ipython.org/ipython-doc/dev/parallel/index.html</a>
+</li>
+</ul>
+
+</section>
+<section id="sec-7-1" >
+
+<h3>Better parallel blocks</h3>
+
+<div class="figure">
+<p><img src="./images/parallel-genome.png"  alt="parallel-genome.png"/></p>
+</div>
+</section>
+</section>
+<section>
+<section id="sec-8" >
+
+<h2>Reproducibility</h2>
+<ul class="org-ul">
+<li>Express intentions at a high level
+</li>
+<li>Revision controlled configuration
+</li>
+<li>Handle complex distributed logging
+</li>
+<li>Provenance tracking
+</li>
+</ul>
+
+</section>
+<section id="sec-8-1" >
+
+<h3>Configuration</h3>
+<div class="org-src-container">
+
+<pre class="src src-yaml">- <span style="color: #dfaf8f;">files</span>: [NA12878-NGv3-LAB1360-A_1.fastq.gz, NA12878-NGv3-LAB1360-A_2.fastq.gz]
+  <span style="color: #dfaf8f;">description</span>: NA12878
+  <span style="color: #dfaf8f;">analysis</span>: variant2
+  <span style="color: #dfaf8f;">genome_build</span>: GRCh37
+  <span style="color: #dfaf8f;">algorithm</span>:
+    <span style="color: #dfaf8f;">aligner</span>: bwa
+    <span style="color: #dfaf8f;">recalibrate</span>: gatk
+    <span style="color: #dfaf8f;">realign</span>: gatk
+    <span style="color: #dfaf8f;">variantcaller</span>: [gatk, freebayes, gatk-haplotype]
+    <span style="color: #dfaf8f;">coverage_interval</span>: exome
+    <span style="color: #dfaf8f;">coverage_depth</span>: high
+    <span style="color: #dfaf8f;">platform</span>: illumina
+    <span style="color: #dfaf8f;">quality_format</span>: Standard
+    <span style="color: #dfaf8f;">validate</span>: NA12878-nist-v2_13-NGv3-pass.vcf
+</pre>
+</div>
+</section>
+<section id="sec-8-2" >
+
+<h3>Provenance</h3>
+<ul class="org-ul">
+<li>Excellent logging
+</li>
+<li>Third party version tracking
+</li>
+<li>Beyond logging:
+<ul class="org-ul">
+<li>BioLite: <a href="https://bitbucket.org/caseywdunn/biolite">https://bitbucket.org/caseywdunn/biolite</a>
+</li>
+<li>Arvados: <a href="https://arvados.org/">https://arvados.org/</a>
+</li>
+</ul>
+</li>
+</ul>
+</section>
+</section>
+<section>
+<section id="sec-9" >
+
+<h2>Community developed</h2>
+<ul class="org-ul">
+<li>Fully automated installation: CloudBioLinux
+</li>
+<li>Deployable on multiple clusters (LSF, SGE, Torque&#x2026;)
+</li>
+<li>API for new aligners and variant callers
+</li>
+<li>Open source, hackable and documented
+</li>
+</ul>
+
+<p>
+<a href="https://github.com/chapmanb/bcbio-nextgen">https://github.com/chapmanb/bcbio-nextgen</a>
+</p>
+
+</section>
+<section id="sec-9-1" >
+
+<h3>Automated installation</h3>
+<ul class="org-ul">
+<li>Single biggest software problem: running for the first time
+</li>
+<li>Bootstrap from bare machine to ready-to-go pipeline
+</li>
+<li>Builds off existing installation work: CloudBioLinux
+</li>
+<li>Provide example pipelines with real data
+</li>
+</ul>
+
+<p>
+<a href="http://cloudbiolinux.org">http://cloudbiolinux.org</a>
+</p>
+
+<p>
+<a href="https://bcbio-nextgen.readthedocs.org">https://bcbio-nextgen.readthedocs.org</a>
+</p>
+</section>
+</section>
+<section>
+<section id="sec-10" >
+
+<h2>Accessible</h2>
+<img src="images/dtc_genomics.jpg" width="400">
+
+<p>
+<a href="http://exploringpersonalgenomics.org/">http://exploringpersonalgenomics.org/</a>
+</p>
+
+</section>
+<section id="sec-10-1" >
+
+<h3>Galaxy</h3>
+
+<div class="figure">
+<p><img src="./images/galaxy_pipeline.png"  alt="galaxy_pipeline.png"/></p>
+</div>
+
+<p>
+<a href="https://bitbucket.org/hbc/galaxy-central-hbc">https://bitbucket.org/hbc/galaxy-central-hbc</a>
+</p>
+</section>
+<section id="sec-10-2" >
+
+<h3>STORMSeq</h3>
+
+<div class="figure">
+<p><img src="./images/4.1_stormseq.png"  alt="4.1_stormseq.png"/></p>
+</div>
+
+<p>
+<a href="http://www.stormseq.org/">http://www.stormseq.org/</a>
+</p>
+</section>
+</section>
+<section>
+<section id="sec-11" >
+
+<h2>Summary</h2>
+<ul class="org-ul">
+<li>Community developed pipelines &gt; challenges
+</li>
+<li>Focus
+<ul class="org-ul">
+<li>Assessing quality: good science
+</li>
+<li>Analysis: enable exploration
+</li>
+<li>Scalability: finish in time
+</li>
+<li>Reproducibility: show your work
+</li>
+</ul>
+</li>
+<li>Widely accessible
+</li>
+</ul>
+
+<p>
+<a href="https://github.com/chapmanb/bcbio-nextgen">https://github.com/chapmanb/bcbio-nextgen</a>
+</p>
+</section>
+</section>
+</div>
+</div>
+<script src="../reveal.js/lib/js/head.min.js"></script>
+<script src="../reveal.js/js/reveal.min.js"></script>
+<script>
+
+        		// Full list of configuration options available here:
+        		// https://github.com/hakimel/reveal.js#configuration
+        		Reveal.initialize({
+        			controls: true,
+        			progress: true,
+        			history: true,
+        			center: true,
+        			rollingLinks: true,
+        			keyboard: true,
+        			overview: true,
+        			width: 1200, // slide width
+        			height: 800, // slide height
+        			margin: 0.20, // slide margin
+        			minScale: 1.00, // slide minimum scaling factor
+        			maxScale: 1.00, // slide maximum scaling factor
+
+
+        			theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+        			transition: Reveal.getQueryHash().transition || 'linear', // default/cube/page/concave/zoom/linear/fade/none
+        			transitionSpeed: 'default',
+
+        			// Optional libraries used to extend on reveal.js
+        			dependencies: [
+        				{ src: '../reveal.js/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+        				{ src: '../reveal.js/plugin/markdown/showdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+        				{ src: '../reveal.js/plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+        				{ src: '../reveal.js/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+        				{ src: '../reveal.js/plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+        				{ src: '../reveal.js/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+        				// { src: '../reveal.js/plugin/search/search.js', async: true, condition: function() { return !!document.body.classList; } }
+        				// { src: '../reveal.js/plugin/remotes/remotes.js', async: true, condition: function() { return !!document.body.classList; } }
+        			]
+        		});
+</script>
+</body>
+</html>
