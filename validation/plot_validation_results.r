@@ -125,7 +125,7 @@ plot_caller_differences <- function(d) {
 
   p <- ggplot(d, aes(x=caller, y=value.floor)) +
        geom_bar(stat="identity") +
-       geom_text(data=d, aes(y=value.floor + 2500, label=value), size=3, vjust=1.5) +
+       geom_text(data=d, aes(y=value.floor + 2500, label=value), size=2, vjust=1.5) +
        facet_grid(variant.type ~ category) +
        theme(axis.title.y = element_text(size=7)) +
        theme(axis.ticks.y = element_blank(), axis.text.y = element_blank()) +

@@ -38,7 +38,7 @@ science.
 #+LINK: open-bio http://www.open-bio.org/wiki/Main_Page
 #+LINK: codefest http://www.open-bio.org/wiki/Codefest_2013
 #+LINK: codefest-doc https://docs.google.com/document/d/1xbS7ZkjipXct00eOfR7-IL_Ti6QzAsjFvcJtopMeT2g/edit
-#+LINK: roman-photos https://plus.google.com/u/0/photos/115208034315059721590/albums/590205279902807640
+#+LINK: roman-photos http://j.mp/codefest2013-photos
 
 * Tool Development
 
@@ -54,7 +54,10 @@ found that it can be a burden to create new Web app from
 scratch on top of your NGS program. So we started new project to
 provide a Web-app scaffold for BaseSpace. We have already implemented the
 basic portion but will need some more time before releasing the
-BioBaseSpace application.
+BioBaseSpace application. The BaseSpace Ruby SDK was officially
+released: for more information, see [[release-info][Joachim's blog post]], the
+[[release-bioruby][official announcement from the BioRuby team]] and the
+[[release-illumina][annoucement from Illumina]].
 
 #+BEGIN_HTML
 <a href="http://bcbio.files.wordpress.com/2013/07/biobasespace.png">
@@ -64,6 +67,9 @@ BioBaseSpace application.
 
 #+LINK: basespace-ruby https://github.com/joejimbo/basespace-ruby-sdk
 #+LINK: basespace https://basespace.illumina.com/home/index
+#+LINK: release-info http://joachimbaran.wordpress.com/2013/08/05/basespace-ruby-sdk/
+#+LINK: release-bioruby http://lists.open-bio.org/pipermail/bioruby/2013-August/002523.html
+#+LINK: release-illumina https://groups.google.com/forum/#!msg/basespace-developers/GW_hQ2OkCiQ/3aqnM2FdSeQJ
 
 ** Barrnap - Bacterial ribosomal RNA predictor
 
@@ -208,7 +214,7 @@ supplement existing SGE, LSF, Torque and Condor schedulers. We plan to
 extend this to allow generalized use of the DRMAA connector,
 ultimately port such generalization into ipython so that python
 scientific computations can be executed efficiently across different
-clusters implementation. Both [[g-blog][Roman]] and [[g-blog][Guillermo]] blogged
+clusters implementation. Both [[r-blog][Roman]] and [[g-blog][Guillermo]] blogged
 [[r-blog2][detailed documentation]] of the [[g-blog2][work in progress]].
 
 We also worked to build a tool that helps provide run time

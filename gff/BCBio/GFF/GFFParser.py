@@ -31,7 +31,7 @@ except AttributeError:
 
 from Bio.Seq import UnknownSeq
 from Bio.SeqRecord import SeqRecord
-from Bio.SeqFeature import SeqFeature, FeatureLocation
+from Bio import SeqFeature
 from Bio import SeqIO
 
 def _gff_line_map(line, params):
@@ -432,8 +432,8 @@ class _AbstractMapReduceGFF:
         multi_ids = collections.defaultdict(list)
         for parent in parents:
             multi_ids[parent['id']].append(parent)
-        multi_ids = [(mid, parents) for (mid, parents) in multi_ids.items()
-                if len(parents) > 1]
+        multi_ids = [(mid, ps) for (mid, ps) in multi_ids.items()
+                     if len(parents) > 1]
         multi_remap = dict()
         for mid, parents in multi_ids:
             multi_remap[mid] = _MultiIDRemapper(mid, parents)
@@ -444,10 +444,14 @@ class _AbstractMapReduceGFF:
         """
         if children.has_key(cur_parent.id):
             cur_children = children[cur_parent.id]
-            for rec_id, cur_child in cur_children:
-                cur_child, children = self._add_children_to_parent(cur_child,
-                        children)
+            ready_children = []
+            for _, cur_child in cur_children:
+                cur_child, _ = self._add_children_to_parent(cur_child, children)
+                ready_children.append(cur_child)
+            # Support Biopython features for 1.62+ CompoundLocations and pre-1.62
+            if not hasattr(SeqFeature, "CompoundLocation"):
                 cur_parent.location_operator = "join"
+            for cur_child in ready_children:
                 cur_parent.sub_features.append(cur_child)
             del children[cur_parent.id]
         return cur_parent, children
@@ -517,8 +521,8 @@ class _AbstractMapReduceGFF:
     def _get_feature(self, feature_dict):
         """Retrieve a Biopython feature from our dictionary representation.
         """
-        location = FeatureLocation(*feature_dict['location'])
-        new_feature = SeqFeature(location, feature_dict['type'],
+        location = SeqFeature.FeatureLocation(*feature_dict['location'])
+        new_feature = SeqFeature.SeqFeature(location, feature_dict['type'],
                 id=feature_dict['id'], strand=feature_dict['strand'])
         new_feature.qualifiers = feature_dict['quals']
         return new_feature
@@ -616,7 +620,6 @@ class GFFParser(_AbstractMapReduceGFF):
             else:
                 need_close = True
                 in_handle = open(gff_file)
-            found_seqs = False
             while 1:
                 line = in_handle.readline()
                 if not line:
