@@ -14,4 +14,7 @@ setup(name = "bcbio-phyloblast",
       packages = find_packages(),
       scripts = ["scripts/blast_cross_orgs.py",
                  "scripts/retrieve_org_dbs.py"],
+      install_requires=[
+          "biopython >= 1.62",
+          "PyYAML >= 3.10"]
       )
