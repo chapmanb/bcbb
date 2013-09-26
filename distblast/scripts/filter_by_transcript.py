@@ -30,7 +30,7 @@ def filter_file(to_filter, names_to_include):
     new_ext = "longtxs"
     base, ext = os.path.splitext(to_filter)
     out_file = "%s-%s%s" % (base, new_ext, ext)
-    with open(to_filter) as in_handle:
+    with open(to_filter, 'rU') as in_handle:
         with open(out_file, "w") as out_handle:
             reader = csv.reader(in_handle, dialect="excel-tab")
             writer = csv.writer(out_handle, dialect="excel-tab")

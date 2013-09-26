@@ -36,7 +36,7 @@ def main(base_config_file, org_config_file, id_file):
 def write_out_matrices(ids, data_out):
     base = os.path.splitext(data_out)[0].replace("-data", "")
     mat_file = "%s-scores.mat" % base
-    with open(data_out) as in_handle:
+    with open(data_out, 'rU') as in_handle:
         score_matrix, ident_matrix = get_matrices(in_handle, ids)
     io.savemat(mat_file, {"human_scores" : score_matrix,
                           "human_identities" : ident_matrix,

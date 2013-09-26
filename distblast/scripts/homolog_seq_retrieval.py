@@ -23,7 +23,7 @@ def main(base_file, org_file, result_file):
         os.makedirs(out_dir)
     id_list = read_gene_list(org_config['gene_list'])
     id_list = _build_alt_tx_res(id_list)
-    with open(result_file) as in_handle:
+    with open(result_file, 'rU') as in_handle:
         reader = csv.reader(in_handle, dialect='excel-tab')
         org_list = reader.next()[1:]
         id_indexes = prepare_indexes(org_config['search_file'],
@@ -109,7 +109,7 @@ def read_gene_list(in_file):
     """
     genes = []
     with open(in_file) as in_handle:
-        reader = csv.reader(in_handle)
+        reader = csv.reader(in_handle, 'rU')
         reader.next() # header
         for parts in reader:
             tid = parts[-1]

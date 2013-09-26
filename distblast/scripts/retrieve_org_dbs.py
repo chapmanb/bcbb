@@ -61,7 +61,7 @@ def main(config_file):
             out_handle.write("%s\t%s\n" % (org, fname))
 
 def read_org_list(in_file):
-    with open(in_file) as in_handle:
+    with open(in_file, 'rU') as in_handle:
         reader = csv.reader(in_handle)
         orgs = [r[-1] for r in reader]
     return orgs
