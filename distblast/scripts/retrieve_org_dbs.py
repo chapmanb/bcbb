@@ -27,7 +27,7 @@ from Bio import Entrez
 def main(config_file):
     with open(config_file) as in_handle:
         config = yaml.load(in_handle)
-    Entrez.email = config['email']
+    Entrez.email = config.get('email', 'test@example.com')
     socket.setdefaulttimeout(config['url_timeout'])
     local_get = LocalRetrieval(config)
     ncbi_get = NcbiEntrezRetrieval(config)
