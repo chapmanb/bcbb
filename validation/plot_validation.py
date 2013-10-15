@@ -48,6 +48,8 @@ def plot_prep_methods(df, prep, prepi, in_file):
     vtype_labels = {"snp": "SNPs", "indel": "Indels"}
     prep_labels = {"gatk": "GATK best-practice BAM preparation (recalibration, realignment)",
                    "none": "Minimal BAM preparation (samtools de-duplication only)"}
+    caller_labels = {"ensemble": "Ensemble", "freebayes": "FreeBayes",
+                     "gatk": "GATK Unified\nGenotyper", "gatk-haplotype": "GATK Haplotype\nCaller"}
     vtypes = df["variant.type"].unique()
     fig, axs = plt.subplots(len(vtypes), len(cats))
     callers = sorted(df["caller"].unique())
@@ -66,7 +68,7 @@ def plot_prep_methods(df, prep, prepi, in_file):
             ax.set_ylim(0, maxval)
             if i == len(vtypes) - 1:
                 ax.set_xticks(np.arange(len(callers)) + width / 2.0)
-                ax.set_xticklabels([x.replace("-", "\n") for x in callers], size=8, rotation=45)
+                ax.set_xticklabels([caller_labels[x] for x in callers], size=8, rotation=45)
             else:
                 ax.get_xaxis().set_ticks([])
             _annotate(ax, labels, vals, np.arange(len(callers)), width)
