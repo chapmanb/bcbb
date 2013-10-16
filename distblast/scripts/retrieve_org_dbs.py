@@ -40,14 +40,18 @@ def main(config_file):
             os.makedirs(check_dir)
     org_files = []
     for org in organisms:
+        check_glob = os.path.join(config["db_dir"], "custom", "%s*" % org)
         print "Preparing organism:", org
-        check_custom = [x for x in glob.glob(os.path.join(config["db_dir"], "custom", "%s*" % org))
+        check_custom = [x for x in glob.glob(check_glob)
                         if not x.endswith((".phr", ".pin", ".psq"))]
         if org in config.get('problem_orgs', []):
             db_file = ''
         elif len(check_custom) == 1:
             db_file = local_get.retrieve_db(org, check_custom[0], db_dir)
         else:
+            print("Did not find single pre-downloaded FASTA file in '%s'\n"
+                  "Instead Found %s\n"
+                  "Attempting to download from Ensembl or NCBI" % (check_glob, check_custom))
             db_file = ensembl_get.retrieve_db(org, ensembl_db_dir)
             if db_file:
                 print "Ensembl"
@@ -229,4 +233,9 @@ def _chdir(new_dir):
 
 
 if __name__ == "__main__":
-    main(*sys.argv[1:])
+    if len(sys.argv) == 2:
+        main(*sys.argv[1:])
+    else:
+        print "Incorrect arguments"
+        print __doc__
+        sys.exit()
