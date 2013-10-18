@@ -9,13 +9,15 @@
 * Variant evaluation overview
 
 I previously discussed our approach for [[eval-variant][evaluating variant detection methods]]
-using a [[giab-paper][highly confident set of reference calls]] for the
-[[na12878][NA12878 human HapMap genome]], provided by [[giab][NIST's Genome in a Bottle consortium]].
+using a [[giab-paper][highly confident set of reference calls]] provided by
+[[giab][NIST's Genome in a Bottle consortium]] for the [[na12878][NA12878 human HapMap genome]], 
+Here I'll use the same comparison framework to update
+calling suggestions based on recent improvements in GATK and FreeBayes.
 
-The comparison utilizes [[bcbio-nextgen][bcbio-nextgen]], an automated open-source
-pipeline for variant calling and evaluation, coupled with the
-[[xprize-val][XPrize validation protocol]] to identify concordant and discordant
-variants. By having an automated validation workflow attached to a
+The comparisons use [[bcbio-nextgen][bcbio-nextgen]], an automated open-source
+pipeline for variant calling and evaluation that identifies concordant
+and discordant variants with the [[xprize-val][XPrize validation protocol]].
+By having an automated validation workflow attached to a
 regularly updated, community developed variant calling pipeline, we
 can actively track progress of variant callers and provide updates as
 algorithms improve.
@@ -23,7 +25,7 @@ algorithms improve.
 Since the initial post, There have been two new GATK releases of
 [[gatk-ug][UnifiedGenotyper]] and [[gatk-hc][HaplotypeCaller]], as well as multiple improvements
 to [[freebayes][FreeBayes]]. Additionally we've enchanced our [[ensemble][ensemble calling method]],
- which combines inputs from multiple callers into a single
+which combines inputs from multiple callers into a single
 final set of calls, to better handle comparisons with inputs from
 three callers.
 
@@ -42,11 +44,12 @@ approaches and provide an updated set of recommendations:
   variant callers that perform local realignment, including FreeBayes
   and GATK HaplotypeCaller.
 
-These results enable re-evaluation of current best practice pipelines
-by avoiding the processing intensive post-alignment BAM processing
-steps. Additionally, combining FreeBayes and minimal BAM preparation
-allows for development of pipelines that can be freely used for
-academic, clinical and commercial work.
+This allows us to save significant time and pipeline complexity by
+avoiding the post-alignment BAM recalibration and realignment steps.
+Combining this with newly improved version of FreeBayes, this enables
+a variant calling pipeline that can be freely used for academic,
+clinical and commercial work with equal quality variant calls to
+current GATK best-practice approaches.
 
 #+LINK: eval-variant http://bcbio.wordpress.com/2013/05/06/framework-for-evaluating-variant-detection-methods-comparison-of-aligners-and-callers/
 #+LINK: na12878 http://ccr.coriell.org/Sections/Search/Sample_Detail.aspx?Ref=GM12878
@@ -75,7 +78,7 @@ files with two methods:
 - Minimal post-processing, with de-duplication using
   [[samtools][samtools rmdup]] and no realignment or recalibration.
 
-We then called prepared BAM files with three general purpose callers:
+We then called variants with three general purpose callers:
 
 - [[freebayes][FreeBayes (v0.9.9.2-18)]]: A haplotype-based Bayesian caller from
   the Marth Lab.
@@ -92,7 +95,7 @@ post-alignment preparation method and variant caller using the
 concordant and discordant variants, separating SNPs and indels since
 they have different error profiles. Additionally it classifies
 discordant variants. where the reference material and evaluation
-variants differ, into three different categories:
+variants differ, into three categories:
 
 - Extra variants, called in the evaluation data but not in the
   reference. These are potential false positives or missing calls from
@@ -116,7 +119,7 @@ variants differ, into three different categories:
 
 * Variant caller comparison
 
-With this framework, we compared the 3 variant callers and combined
+Using this framework, we compared the 3 variant callers and combined
 ensemble method:
 
 - The ensemble calling approach provides the best overall resolution
@@ -127,11 +130,12 @@ ensemble method:
   variants but differ on whether it is a heterozygote or homozygote.
 
 - GATK HaplotypeCaller is all around better than the UnifiedGenotyper.
-  In the previous comparison, we found UnifiedGenotyper better on SNPs
-  and HaplotypeCaller better on indels, but the recent improvements in
-  GATK 2.7 have resolved the difference in SNP calling. If using a
-  GATK pipeline, UnifiedGenotyper lags behind the realigning callers
-  in resolving indels, and I'd recommend using HaplotypeCaller.
+  In the previous comparison, we found UnifiedGenotyper performed
+  better on SNPs and HaplotypeCaller better on indels, but the recent
+  improvements in GATK 2.7 have resolved the difference in SNP
+  calling. If using a GATK pipeline, UnifiedGenotyper lags behind the
+  realigning callers in resolving indels, and I'd recommend using
+  HaplotypeCaller. This mirrors the GATK team's current recommendations.
 
 - FreeBayes outperforms the GATK callers on both SNP and indel
   calling. The most recent versions of FreeBayes have improved
@@ -151,9 +155,12 @@ In addition to calling sensitivity and specificity, an additional
 factor to consider is the required processing time. Rough benchmarks
 on family-based calling of whole genome sequencing data indicate that
 HaplotypeCaller is roughly 7x slower than UnifiedGenotyper and
-FreeBayes is 2x slower. These estimates depend on the worst case areas
-with deeper coverage and longer uninterrupted regions to call, but
-give some estimates of timing considerations.
+FreeBayes is 2x slower. On multiple 30x whole genome samples, our
+experience is that calling can range from 10 hours for GATK
+UnifiedGenotyper to 70 hours for HaplotypeCallers.
+These estimates fluctuate greatly depending on the compute
+infrastructure and presence of longer difficult genomic regions
+with deeper coverage, but give some estimates of timing considerations.
 
 * Post-alignment BAM preparation comparison
 
@@ -165,20 +172,22 @@ identification of duplicate reads, followed by
 [[gatk-bqsr][base quality score recalibration]] and [[gatk-realign][realignment around indels.]]
 Based on [[bcbio-scale][whole genome benchmarking work]], these steps can take as long
 as the initial alignment and scale poorly due to high IO costs of
-manipulating large BAM files.
+manipulating large BAM files. For multiple 30x whole genome samples
+running on 16 cores per sample, this can account for 12 to 16 hours of
+processing time.
 
 To compare the quality impact of avoiding recalibration and
 realignment, we performed the identical alignment and variant calling
 steps as above, but did minimal post-alignment BAM preparation.
 Following alignment, the only step performed was deduplication using
-[[samtools][samtools rmdup]]. Unlike Picard MarkDuplicates, samtools rmdup allows
-streaming to avoid IO penalties which makes it more efficient. This is
+[[samtools][samtools rmdup]]. Unlike Picard MarkDuplicates, samtools rmdup
+handles piped streaming input to avoid IO penalties. This is
 at the [[rmdup-v-markdup][cost of not handling some edge cases]]. Longer term, we'd like to
 explore [[biobambam][biobambam's markduplicates2]], which implements a more efficient
 streaming version of the Picard MarkDuplicates algorithm.
 
-Skipping base recalibration and indel realignment had little impact on
-the quality of resulting variant calls:
+Suprisingly, skipping base recalibration and indel realignment had
+little impact on the quality of resulting variant calls:
 
 #+BEGIN_HTML
 <a href="http://i.imgur.com/w8g0HCv.png]">
@@ -190,7 +199,8 @@ the quality of resulting variant calls:
 While GATK UnifiedGenotyper suffers in indel calling without
 recalibration and realignment, both HaplotypeCaller and FreeBayes
 perform as good or better without these steps. This allows us to save
-on processing time and complexity, without sacrificing call quality.
+on processing time and complexity without sacrificing call quality
+when using a haplotype aware realigning caller.
 
 #+LINK: gatk-bqsr http://gatk.vanillaforums.com/discussion/44/base-quality-score-recalibration-bqsr
 #+LINK: gatk-realign http://gatk.vanillaforums.com/discussion/38/local-realignment-around-indels
@@ -201,23 +211,27 @@ on processing time and complexity, without sacrificing call quality.
 * Caveats and conclusions
 
 Taken together, the improvements in FreeBayes and ability to avoid
-post-alignment BAM processing allow use of a GATK-free pipeline with
-equal quality to current GATK best practices. Adding in GATK's two
-callers plus our ensemble method for combining them provides the most
-accurate overall calls, at the cost of additional processing times.
+post-alignment BAM processing allow use of a commercially unrestricted
+GATK-free pipeline with equal quality to current GATK best practices.
+Adding in GATK's two callers plus our ensemble combining method
+provides the most accurate overall calls, at the cost of
+additional processing time.
 
 It's also important to consider potential drawbacks of this analysis
 in designing future evaluations. The comparison is in exome regions
 for single sample variant calling. In future work it would be helpful
-to have population or family based inputs, and evaluate quality in
-whole genome regions. The reference callset prepared by the Genome in
-a Bottle consortium also makes extensive use of GATK tools during
-preparation. Evaluation of the reference materials with FreeBayes and
-other callers can help reduce potential GATK-specific biases and
-create an even better reference set moving forward.
+to have population or family based inputs. We'd also like to prepare
+test datasets that focus on evaluating the quality of calls in more
+difficult repetitive regions within the whole genome.
+
+Another consideration is that the reference callset prepared by the
+Genome in a Bottle consortium makes extensive use of GATK tools
+during preparation. Evaluation of the reference materials with
+FreeBayes and other callers can help reduce potential GATK-specific
+biases when continuing to develop reliable reference materials.
 
 All of these pipelines are freely available, open-source, community
 developed projects and we welcome feedback and contributors. By
 integrating validation into a scalable analysis pipeline, we hope to
 build a community interested in widely available calling pipelines
-coupled with well-evaluated methods.
+coupled with well-evaluated reference datasets and methods.
