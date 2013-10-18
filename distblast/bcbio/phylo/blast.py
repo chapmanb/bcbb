@@ -107,7 +107,7 @@ def _compare_by_blast(input_ref, xref_db, blast_out, subject_blast=False,
     if blast_cmd is None:
         blast_cmd = "blastp"
     cl = NcbiblastpCommandline(cmd=blast_cmd, query=input_ref, db=xref_db,
-                               out=blast_out, outfmt=5, num_descriptions=1,
+                               out=blast_out, outfmt=5, max_target_seqs=1,
                                num_alignments=1)
     try:
         subprocess.check_call(str(cl).split())
