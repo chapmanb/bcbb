@@ -1,6 +1,6 @@
+#+DATE: [2013-10-21 Mon 06:35]
 #+BLOG: bcbio
 #+POSTID: 540
-#+DATE: [2013-10-16 Wed 05:45]
 #+TITLE: Updated comparison of variant detection methods: Ensemble, FreeBayes and minimal BAM preparation pipelines
 #+CATEGORY: variation
 #+TAGS: bioinformatics, variant, ngs, clinical

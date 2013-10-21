@@ -1,0 +1,136 @@
+#+title: Community developed variant calling pipelines
+#+author: Brad Chapman \\ Bioinformatics Core, Harvard School of Public Health \\ https://github.com/chapmanb
+#+date: 22 October 2013
+
+#+OPTIONS: toc:nil H:2
+
+#+startup: beamer
+#+LaTeX_CLASS: beamer
+#+latex_header: \usepackage{url}
+#+latex_header: \usepackage{hyperref}
+#+latex_header: \hypersetup{colorlinks=true}
+#+BEAMER_THEME: default
+#+BEAMER_COLOR_THEME: seahorse
+#+BEAMER_INNER_THEME: rectangles
+
+* Challenges
+
+** Complex, rapidly changing pipelines
+
+[[./images/gatk_changes.png]]
+
+** Large number of specialized dependencies
+
+#+ATTR_LATEX: :width .5\textwidth
+[[./images/huge_seq.png]]
+
+[[https://github.com/StanfordBioinformatics/HugeSeq]]
+
+** Quality differences between methods
+
+#+ATTR_LATEX: :width .7\textwidth
+[[./images/gcat_comparison.png]]
+
+[[http://www.bioplanet.com/gcat]]
+
+** Scaling on full ecosystem of clusters
+
+[[./images/schedulers.png]]
+
+* Solution
+
+** Solution
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width .5\textwidth
+[[./images/community.png]]
+#+END_CENTER
+
+\scriptsize
+[[http://www.amazon.com/Community-Structure-Belonging-Peter-Block/dp/1605092770]]
+\normalsize
+
+** Overview
+
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images/bcbio_nextgen_highlevel.png]]
+
+** Development goals
+
+- Quantifiable
+- Analyzable
+- Reproducible
+- Scalable
+- Community developed
+- Accessible
+
+* Arvados complementary
+
+** Quantify quality
+
+[[./images/minprep-callerdiff.png]]
+
+- Reference materials: [[http://www.genomeinabottle.org/]]
+- Quantification details: [[http://j.mp/bcbioeval2]]
+
+** Query and analyze
+
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images/gemini.png]]
+
+\vspace{0.5cm}
+GEMINI: [[https://github.com/arq5x/gemini]]
+
+** Automated installation
+
+- Single biggest software problem: running for the first time
+- Bootstrap from bare machine to ready-to-go pipeline
+- Builds off existing installation work: CloudBioLinux, Homebrew
+- Real life benchmark example data
+
+[[http://cloudbiolinux.org]]
+
+[[https://bcbio-nextgen.readthedocs.org]]
+
+* Arvados overlap
+
+** Provenance
+
+- Current approaches
+   - Full logging -- command lines and debugging
+   - Third party version tracking
+   - Virtual machines
+- Long term plans
+   - Keep
+   - Metadata + traceability
+
+** Parallel scaling
+
+[[./images/parallel-clustertypes.png]]
+
+- Infrastructure details: [[http://j.mp/bcbioscale]]
+- IPython: \scriptsize [[http://ipython.org/ipython-doc/dev/parallel/index.html]] \normalsize
+- Crunch: compute + distributed filesystems
+
+* Summary
+
+** Accessible
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width .4\textwidth
+[[./images/dtc_genomics.jpg]]
+#+END_CENTER
+
+[[http://exploringpersonalgenomics.org/]]
+
+** Summary
+
+- Community developed pipelines > challenges
+- Focus
+  - Assessing quality: good science
+  - Analysis: enable exploration
+  - Scalability: finish in time
+  - Reproducibility: show your work
+- Widely accessible
+
+[[https://github.com/chapmanb/bcbio-nextgen]]
