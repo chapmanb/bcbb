@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 """Python setup file for Blue Collar Bioinformatics scripts and modules.
 """
+from distribute_setup import use_setuptools
+use_setuptools()
 from setuptools import setup, find_packages
 
 __version__ = "Undefined"
@@ -14,5 +16,6 @@ setup(name = "bcbio-gff",
       author_email = "chapmanb@50mail.com",
       description = "Read and write Generic Feature Format (GFF) with Biopython integration.",
       url = "https://github.com/chapmanb/bcbb/tree/master/gff",
+      use_2to3=True,
       packages = find_packages()
       )
