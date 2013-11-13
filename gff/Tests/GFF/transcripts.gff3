@@ -1,0 +1,18 @@
+##gff-version 3
+##date 2013-11-13
+edit_test.fa	.	gene	500	2610	.	+	.	ID=newGene
+edit_test.fa	.	mRNA	500	2385	.	+	.	Parent=newGene;Namo=reinhard+did+this;Name=t1%28newGene%29;ID=t1;uri=http%3A//www.yahoo.com
+edit_test.fa	.	five_prime_UTR	500	802	.	+	.	Parent=t1
+edit_test.fa	.	CDS	803	1012	.	+	.	Parent=t1
+edit_test.fa	.	three_prime_UTR	1013	1168	.	+	.	Parent=t1
+edit_test.fa	.	three_prime_UTR	1475	1654	.	+	.	Parent=t1
+edit_test.fa	.	three_prime_UTR	1720	1908	.	+	.	Parent=t1
+edit_test.fa	.	three_prime_UTR	2047	2385	.	+	.	Parent=t1
+edit_test.fa	.	mRNA	1050	2610	.	+	.	Parent=newGene;Name=t2%28newGene%29;ID=t2
+edit_test.fa	.	CDS	1050	1196	.	+	.	Parent=t2
+edit_test.fa	.	CDS	1472	1651	.	+	.	Parent=t2
+edit_test.fa	.	CDS	1732	2610	.	+	.	Parent=t2
+edit_test.fa	.	mRNA	1050	2610	.	+	.	Parent=newGene;Name=t3%28newGene%29;ID=t3
+edit_test.fa	.	CDS	1050	1196	.	+	.	Parent=t3
+edit_test.fa	.	CDS	1472	1651	.	+	.	Parent=t3
+edit_test.fa	.	CDS	1732	2610	.	+	.	Parent=t3

@@ -720,7 +720,14 @@ def parse_simple(gff_files, limit_info=None):
     """
     parser = GFFParser()
     for rec in parser.parse_simple(gff_files, limit_info=limit_info):
-        yield rec["child"][0]
+        if "child" in rec:
+            assert "parent" not in rec
+            yield rec["child"][0]
+        elif "parent" in rec:
+            yield rec["parent"][0]
+        # ignore directive lines
+        else:
+            assert "directive" in rec
 
 def _file_or_handle(fn):
     """Decorator to handle either an input handle or a file.

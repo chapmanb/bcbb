@@ -281,6 +281,15 @@ class GFF3Test(unittest.TestCase):
                 ['yk1055g06.5', 'OSTF085G5_1']
         assert line_info['location'] == [4582718, 4583189]
 
+    def t_simple_parsing_nesting(self):
+        """Simple parsing for lines with nesting, using the simplified API.
+        """
+        test_gff = os.path.join(self._test_dir, "transcripts.gff3")
+        num_lines = 0
+        for line_info in GFF.parse_simple(test_gff):
+            num_lines += 1
+        assert num_lines == 16, num_lines
+
     def t_extra_comma(self):
         """Correctly handle GFF3 files with extra trailing commas.
         """

@@ -1,193 +1,109 @@
 #+BLOG: smallchangebio
-#+POSTID: 52
-#+DATE: [2013-07-19 Fri 07:06]
-#+TITLE: Bioinformatics Open Source Conference 2013, day 1 morning: Cameron Neylon and Open Science
+#+TITLE: Notes from Arvados summit: workshop and discussion on open biomedical informatics
 #+CATEGORY: conference
-#+TAGS: bioinformatics, bosc, open-science
+#+TAGS: bioinformatics, arvados, clinical, open-source, open-science
 #+OPTIONS: toc:nil num:nil
 
-I'm in Berlin at the 2013 [[bosc][Bioinformatics Open Source Conference]]. The
-conference focuses on tools and approaches to openly developed
-community software to support scientific research. These are my notes
-from the morning 1 session focused on Open Science.
+I'm at [[hack-reduce][hack/reduce]] in Cambridge attending the [[arvados-summit][Arvados summit]]
+focused on open-source tools and datasets for medical
+informatics. It's specifically centered around [[arvados][Arvados]], an open source
+infrastructure from [[clinical-future][Clinical Future]] for managing and analyzing genomic
+data.
 
-#+LINK: bosc http://www.open-bio.org/wiki/BOSC_2013
+[[tom-clegg][Tom Clegg]] starts off the discussion with discussion about the goals of
+Arvados. The type of problems it tries to address are: too much data,
+poor structure of data in work directories, failures during large
+compute jobs. General idea: turning a research pipeline into a
+clinical product. Shows an example of a painful directory of shell
+scripts with tons of versions: we don't want that. On the other side
+are complex pipelines that are difficult to reproduce because of
+complexity.
 
-* Open Science
+Tom starts with the [[arvados-tech-arch][technical architecture]] and naming of parts:
 
-** Network ready research: The role of open source and open thinking
+- [[arvados-keep][Keep]] -- Content addressable file store. Uses hashes to refer to
+  datasets instead of filesystem hierarchy.
+- [[arvados-crunch][Crunch]] -- Map/reduce engine
+- Lightning -- In memory compact genomic databases
 
-/Cameron Neylon/
+He then walks through some [[tutorial][Tutorial documentation]] about what it is
+like to use Arvados. He shows an example of searching PGP data by
+specific traits, using the Python API.
 
-[[cameron][Cameron]] keynotes the first day of the conference, discussing the value
-of [[cameron-os][open science]]. He begins with a historical perspective of a
-connected world: first internet, telegraphs, stagecoaches all the way
-to social networks, twitter and GitHub. A nice overview of the human
-desire to connect. As the probability of connectivity rises,
-individual clusters of connected groups can reach a critical sudden
-point of large-scale connectivity. A nice scientific example is
-[[gowers][Tim Gowers]] PolyMath work to solve difficult mathematical problems,
-coordinated through his blog and facilitated by internet connectivity.
-Instructive to look at examples of successful large scale open
-science projects, especially in terms of organization and
-leadership.
+Advantages of running in Arvados and using the API:
+repeatable, inspectable, searchable, identified with a content hash so
+safe from accidents and de-duplicated. It scales across tasks, nodes
+and data and provides detailed logs and timing statistics.
 
-Successful science projects exploit the order-disorder transition
-that occurs when the right people get together. By being open, you
-increase the probability that your research work will reach this
-critical threshold for discovery. Some critical requirements:
-document so people can use it, test so we can be sure it works,
-package so it's easy to use.
+Adam followed up this discussion with the status of Arvados and the
+roadmap. The goals for November and December are to expand the current
+Sandbox running on EC2, and improve crunch tools and documentation. In
+January hope to have a new release. Second summit in April at Bio-IT
+world. Goal for a production ready release in Summer 2014. Major areas
+of work are to establish best practices for metadata, refactor Keep
+components and work on the display UI.
 
-What does it mean to be open? First idea: your work has value that
-can help people in a way you never initially imagined. Probability of
-helping someone is the interest divided by the usability times the
-number of people you can reach. Second idea: someone can help me in a
-way you never expected. Probability of getting help same: interest,
-usability/friction and number of people. Goal of being open: minimize
-friction by making it easier to contribute and connect.
+Clinical Future plans to create the Arvados Foundation, whose mission
+is to enable precision medicine through transparent informatics.
+Clinical Future plans to monetize based on supported installation of
+Arvados, while the actual code and infrastructure will remain open
+source. General idea of transparent informatics is that software and
+data are available. Arvados Foundation promotes these and maintains an
+infrastructure around development similar to Apache Foundation.
 
-Challenge: how do we best make our work available with limited time?
-Good example is how useful are VMs: are they
-[[recomputation][criitical for recomputation]] or do they create
-[[titus-vms][black boxes that are hard to reuse]]. Both are useful but work for
-different audiences: users versus developers. Since we want to enable
-unexpected improvements it's not clear which should be your priority
-with limited time and money. Goal is to make both part of your
-general work so they don't require extra work.
+Sasha Zaranek presents Lightning, a real time query-engine for the
+Arvados platform. The idea is to provide a system to query patients
+with associated metadata. Query ideas like the goals of the [[gemini][GEMINI]] system,
+with the idea of extending to biomedical specific metadata about
+samples, data sharing between organizations and privacy. Immediate
+goals including using the [[pgp][Personal Genome Project]] as a high quality
+reference dataset to get started with. A key idea of Lightning is to
+have a compact genome format that encompasses multiple formats for
+comparison: [[xkcd-standards][requisite xkcd]]. The format tiles variants with unique
+200-500bp + 25bp tags across a reference genome, reporting
+simple variants within a single tile and complex variants across
+multiple tiles. Idea of being separate from assemblies is a
+nice approach.
 
-How can we build systems that allow sharing as the natural by-product
-of scientific work? Brutal reminder that you're not going to get a
-Nobel prize for building infrastructure. Can we improve the
-incentives system? One attempt to hack the system: the
-[[orc][Open Research Computation]] journal, which has high standards for
-inclusion: 100% test coverage, easy to run and reproduce. Difficult
-to get papers because the burden was too high.
+Francisco De La Vega talked about work at [[rtg][Real Time Genomics]] to call
+high quality variants in individuals, populations and pedigrees. They
+have a special focus on rare early childhood diseases: autosomal
+recessives, de-novo. Their algorithm takes into account pedigree
+information when doing trio calling, and adds in phasing information.
+Trio information also allows reduction of Mendelian inconsistency
+errors. Also helps reduce de-novo false positives in difficult regions
+of the genome.
 
-Goal: build community architecture and foundations that become
-part of our day to day life. This makes openness part of the default.
-Where are the opportunities to build new connectivity in ways that
-make real change? An unsolved open question for discussion.
+[[melissa][Melissa Gymrek]] talked about her work at the Whitehead to use short
+tandem repeats (STRs) for genome profiling. Her cleverly named [[lobstr][lobSTR]]
+tool profiles STRs from high throughput sequencing data. It detects
+STRs, handles alignment and variant detection. They used this tool to
+re-identify anonymous personal genomes. Currently profiling STRs in
+thousands of genomic datasets. Major challenge is downloading and
+preparing data: good use case for Arvados. lobSTR + Arvados pipeline:
+handles custom alignment to BAM files, then allelotype into VCF
+output. Melissa has crunch scripts which run lobSTR on Arvados.
 
-#+LINK: cameron http://cameronneylon.net/
-#+LINK: cameron-os http://cameronneylon.net/blog/open-is-a-state-of-mind/
-#+LINK: gowers http://gowers.wordpress.com/
-#+LINK: recomputation http://recomputation.org/blog/2013/07/16/on-virtual-machines-considered-harmful-for-reproducibility/
-#+LINK: titus-vms http://ivory.idyll.org/blog/vms-considered-harmful.html
-#+LINK: orc http://www.openresearchcomputation.com/
+[[cypher][Cypher Genomics]] talked locally and remotely about their work spun out
+of Scripps. They have a custom annotation engine and big integrated
+database to annotate and query variants. Have nice results ranking
+and prioritizing variants for followup. Some of their goals for
+Arvados: multiple location deployment + dashboards for cluster
+management.
 
-** Open Science Data Framework: A Cloud enabled system to store, access, and analyze scientific data
-/Anup Mahurkar/
-
-[[osdf][The Open Science Data Framework]] comes from the NIH human microbiome
-project. Needed to manage large connections of data sets and
-associate metadata. Developed a general language agnostic
-collaborative framework. It's a specialized document database with a
-RESTful API on top, and provides versioning and history. Under the
-covers, stores JSON blobs in [[couchdb][CouchDB]], using [[elasticsearch][ElasticSearch]] to provide
-rapid full text search. Keep ElasticSearch indexes in sync on updates
-to CouchDB. Provides a web based interface to build queries and
-custom editor to update records. Future places include replicated
-servers and Cloud/AWS images.
-
-#+LINK: osdf http://osdf.igs.umaryland.edu/
-#+LINK: couchdb http://couchdb.apache.org/
-#+LINK: elasticsearch http://www.elasticsearch.org/
-
-** myExperiment Research Objects: Beyond Workflows and Packs
-/Stian Soiland-Reyes/
-
-Stian describes work on developing, maintaining and sharing
-scientific work. Uses [[taverna][Taverna]], [[myexperiment][MyExperiment]] and [[wf4ever][Workflow4Ever]] 
-to provide a fully shared environment with [[researchobject][Research Object]]. These
-objects bundle everything involved in a scientific experiment: data,
-methods, provenance and people. Creates a sharable, evolvable and
-contributable object that can be cited via ROI. The Research Object
-is a data model that contains everything needed to rerun and reproduce
-it. Major focus on provenance: where did data come from, how did
-it change, who did the work, when did it happen. Uses the [[prov][PROV]] w3c
-standard for representation, and built a [[rosc][w3c community]] to discuss and
-improve research objects. There are PROV tools available for [[prov-python][Python]]
-and [[prov-java][Java]].
-
-#+LINK: taverna http://www.taverna.org.uk/
-#+LINK: researchobject http://www.researchobject.org/
-#+LINK: myexperiment http://www.myexperiment.org/
-#+LINK: wf4ever http://www.wf4ever-project.org/
-#+LINK: prov http://www.w3.org/TR/prov-primer/
-#+LINK: rosc http://www.w3.org/community/rosc/
-#+LINK: prov-python https://github.com/trungdong/prov
-#+LINK: prov-java https://github.com/lucmoreau/ProvToolbox
-
-** Empowering Cancer Research Through Open Development
-/Juli Klemm/
-
-The [[ncip][National Cancer Informatics Program]] provides support for
-community developed software. Looking to support sustainable, rapidly
-evolving, open work. The Open Development initiative exactly designed
-to support and nurture open science work. Uses simple BSD licenses
-and hosts code on GitHub. Moving hundreds of tools over to this
-model and need custom migrations for every project. Old SVN
-repositories required a ton of cleanup. The next step is to establish
-communities around this code, which is diverse and attracts different
-groups of researchers. Hold hackathon events for specific projects.
-
-#+LINK: ncip http://cbiit.nci.nih.gov/ncip
-
-** DNAdigest - a not-for-profit organisation to promote and enable open-access sharing of genomics data
-/Fiona Nielsen/
-
-[[dnadigest][DNAdigest]] is an organization to share data associated with
-next-generation sequencing, with a special focus on trying to help
-with human health and rare diseases. Researchers have access to
-samples they are working on, but remain siloed in individual research
-groups. Comparison to other groups is crucial, but no
-methods/approaches for accessing and sharing all of this generated
-data. To handle security/privacy concerns, goal is to share
-summarized data instead of individual genomes. DNAdigest's goal is to
-aggregate data and provide APIs to access the summarized, open information.
-
-#+LINK: dnadigest http://dnadigest.org/
-
-** Jug: Reproducible Research in Python
-/Luis Pedro Coelho/
-
-[[jug][Jug]] provides a framework to build parallelized processing pipelines
-in Python. Provides a decorator on each function that handles
-distribution, parallelization and memoization. Nice [[jug-docs][documentation]] is
-available.
-
-#+LINK: jug http://luispedro.org/software/jug
-#+LINK: jug-docs http://jug.readthedocs.org/en/latest/
-
-** OpenLabFramework: A Next-Generation Open-Source Laboratory Information Management System for Efficient Sample Tracking
-/Markus List/
-
-[[openlabframework][OpenLabFramework]] provides a Laboratory Information Management System
-to move away from spreadsheets. Handles vector clone and cell-line
-recombinant systems for which there is not a lot of support. Written
-with Grails and built for extension of parts. Has nice documentation
-and deployment.
-
-#+LINK: openlabframework https://github.com/NanoCAN/OpenLabFramework
-
-** Ten Simple Rules for the Open Development of Scientific Software
-/Andreas Prlic, Jim Proctor, Hilmar Lapp/
-
-This is a discussion period around ideas presented in the published
-paper on [[10rules-paper][Ten Simple Rules for the Open Development of Scientific Software]].
-Andreas, Jim and Hilmar pick their favorite rules to start off the
-discussion. Be simple: minimize time sinks by automating good
-practice with testing and continuous integration frameworks. Hilmar
-talks about re-using and extending other code. The difficult thing is
-that the recognition system does not reward this well since it
-assumes a single leader/team for every probject. Promotes [[impactstory][ImpactStory]]
-which provides alternative metrics around open source contributions.
-The [[osrc][Open Source Report Card]] also provides a nice interface around
-GitHub for summarizing contributions. Good discussion around how to
-measure metrics of usage of your project: need to be able to measure
-impact of your software.
-
-#+LINK: 10rules-paper http://www.ploscompbiol.org/article/info%3Adoi%2F10.1371%2Fjournal.pcbi.1002802
-#+LINK: impactstory http://impactstory.org/
-#+LINK: osrc http://osrc.dfm.io/
+#+LINK: arvados-summit https://arvados.org/projects/arvados/wiki/Arvados_Summit_-_Fall_2013
+#+LINK: hack-reduce http://www.hackreduce.org/
+#+LINK: arvados https://arvados.org/
+#+LINK: clinical-future http://clinicalfuture.com/
+#+LINK: tom-clegg https://github.com/tomclegg
+#+LINK: arvados-tech-arch https://arvados.org/projects/arvados/wiki/Technical_Architecture
+#+LINK: arvados-keep https://arvados.org/projects/arvados/wiki/Keep
+#+LINK: arvados-crunch https://arvados.org/projects/arvados/wiki/Computation_and_Pipeline_Processing
+#+LINK: tutorial http://doc.arvados.org/user/
+#+LINK: gemini https://github.com/arq5x/gemini
+#+LINK: pgp http://www.personalgenomes.org/
+#+LINK: xkcd-standards http://www.xkcd.com/927/
+#+LINK: rtg http://www.realtimegenomics.com/
+#+LINK: melissa http://melissagymrek.com/
+#+LINK: lobstr http://erlichlab.wi.mit.edu/lobSTR/
+#+LINK: cypher http://www.cyphergenomics.com/
