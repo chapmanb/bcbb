@@ -1,0 +1,338 @@
+
+@article{quinlan_bedtools:_2010,
+	title = {{BEDTools:} a flexible suite of utilities for comparing genomic features},
+	volume = {26},
+	issn = {1367-4811},
+	shorttitle = {{BEDTools}},
+	doi = {10.1093/bioinformatics/btq033},
+	abstract = {{MOTIVATION:} Testing for correlations between different sets of genomic features is a fundamental task in genomics research. However, searching for overlaps between features with existing web-based methods is complicated by the massive datasets that are routinely produced with current sequencing technologies. Fast and flexible tools are therefore required to ask complex questions of these data in an efficient manner.
+{RESULTS:} This article introduces a new software suite for the comparison, manipulation and annotation of genomic features in Browser Extensible Data ({BED)} and General Feature Format ({GFF)} format. {BEDTools} also supports the comparison of sequence alignments in {BAM} format to both {BED} and {GFF} features. The tools are extremely efficient and allow the user to compare large datasets (e.g. next-generation sequencing data) with both public and custom genome annotation tracks. {BEDTools} can be combined with one another as well as with standard {UNIX} commands, thus facilitating routine genomics tasks as well as pipelines that can quickly answer intricate questions of large genomic datasets.
+{AVAILABILITY} {AND} {IMPLEMENTATION:} {BEDTools} was written in C++. Source code and a comprehensive user manual are freely available at http://code.google.com/p/bedtools
+{CONTACT:} aaronquinlan@gmail.com; imh4y@virginia.edu
+{SUPPLEMENTARY} {INFORMATION:} Supplementary data are available at Bioinformatics online.},
+	number = {6},
+	journal = {Bioinformatics (Oxford, England)},
+	author = {Quinlan, Aaron R and Hall, Ira M},
+	month = mar,
+	year = {2010},
+	note = {{PMID:} 20110278},
+	keywords = {Genome, genomics, Internet, Software},
+	pages = {841--842}
+},
+
+@article{zook_integrating_2013,
+	title = {Integrating sequencing datasets to form highly confident {SNP} and indel genotype calls for a whole human genome},
+	url = {http://arxiv.org/abs/1307.4661},
+	abstract = {Clinical adoption of human genome sequencing requires methods with known accuracy of genotype calls at millions or billions of positions across a genome. Previous work showing discordance amongst sequencing methods and algorithms has made clear the need for a highly accurate set of genotypes across a whole genome that could be used as a benchmark. We present methods we used to make highly confident {SNP}, indel, and homozygous reference genotype calls for {NA12878}, the pilot genome for the Genome in a Bottle Consortium. To minimize bias towards any sequencing method, we integrate 9 whole genome and 3 exome datasets from 5 different sequencing platforms (Illumina, Complete Genomics, {SOLiD}, 454, and Ion Torrent), 7 mappers, and 3 variant callers. The resulting genotype calls are highly sensitive and specific, and allow performance assessment of more difficult variants than typically investigated using microarrays as a benchmark. Regions for which no confident genotype call could be made are identified as uncertain, and classified into different reasons for uncertainty (e.g. low coverage, mapping/alignment bias, etc.). As a community resource, we have integrated our highly confident genotype calls into the {GCAT} website for interactive assessment of false positive and negative rates of different datasets and bioinformatics methods using our highly confident calls. Application of the concepts of our integration process may be interesting beyond whole genome sequencing, for other measurement problems with large datasets from multiple methods, where none of the methods is a Reference Method that can be relied upon as highly sensitive and specific.},
+	urldate = {2013-11-30},
+	journal = {{arXiv:1307.4661} [q-bio]},
+	author = {Zook, Justin M. and Chapman, Brad and Wang, Jason and Mittelman, David and Hofmann, Oliver and Hide, Winston and Salit, Marc},
+	month = jul,
+	year = {2013},
+	keywords = {Quantitative Biology - Genomics}
+},
+
+@incollection{van_der_auwera_fastq_2002,
+	title = {From {FastQ} Data to High-Confidence Variant Calls: The Genome Analysis Toolkit Best Practices Pipeline},
+	copyright = {Copyright © 2013 John Wiley \& Sons, Inc. All rights reserved.},
+	isbn = {9780471250951},
+	shorttitle = {From {FastQ} Data to High-Confidence Variant Calls},
+	url = {http://onlinelibrary.wiley.com/doi/10.1002/0471250953.bi1110s43/abstract},
+	abstract = {This unit describes how to use {BWA} and the Genome Analysis Toolkit ({GATK)} to map genome sequencing data to a reference and produce high-quality variant calls that can be used in downstream analyses. The complete workflow includes the core {NGS} data-processing steps that are necessary to make the raw data suitable for analysis by the {GATK}, as well as the key methods involved in variant discovery using the {GATK.} Curr. Protoc. Bioinform. 43:11.10.1-11.10.33. © 2013 by John Wiley \& Sons, Inc.},
+	urldate = {2013-11-30},
+	booktitle = {Current Protocols in Bioinformatics},
+	publisher = {John Wiley \& Sons, Inc.},
+	author = {Van der Auwera, Geraldine A. and Carneiro, Mauricio O. and Hartl, Christopher and Poplin, Ryan and del Angel, Guillermo and Levy-Moonshine, Ami and Jordan, Tadeusz and Shakir, Khalid and Roazen, David and Thibault, Joel and Banks, Eric and Garimella, Kiran V. and Altshuler, David and Gabriel, Stacey and {DePristo}, Mark A.},
+	year = {2002},
+	keywords = {exome, genotyping, {NGS}, variant detection, {WGS}}
+},
+
+@article{garrison_haplotype-based_2012,
+	title = {Haplotype-based variant detection from short-read sequencing},
+	url = {http://arxiv.org/abs/1207.3907},
+	abstract = {The direct detection of haplotypes from short-read {DNA} sequencing data requires changes to existing small-variant detection methods. Here, we develop a Bayesian statistical framework which is capable of modeling multiallelic loci in sets of individuals with non-uniform copy number. We then describe our implementation of this framework in a haplotype-based variant detector, {FreeBayes.}},
+	urldate = {2013-11-30},
+	journal = {{arXiv:1207.3907} [q-bio]},
+	author = {Garrison, Erik and Marth, Gabor},
+	month = jul,
+	year = {2012},
+	keywords = {Quantitative Biology - Genomics, Quantitative Biology - Quantitative Methods}
+},
+
+@misc{sambamba,
+	title = {https://github.com/lomereiter/sambamba},
+	url = {https://github.com/lomereiter/sambamba},
+	urldate = {2013-12-01},
+	author = {sambamba},
+	year = {2013}
+},
+
+@article{cingolani_program_2012,
+	title = {A program for annotating and predicting the effects of single nucleotide polymorphisms, {SnpEff:} {SNPs} in the genome of Drosophila melanogaster strain w1118; iso-2; iso-3},
+	volume = {6},
+	issn = {1933-6942},
+	shorttitle = {A program for annotating and predicting the effects of single nucleotide polymorphisms, {SnpEff}},
+	doi = {10.4161/fly.19695},
+	abstract = {We describe a new computer program, {SnpEff}, for rapidly categorizing the effects of variants in genome sequences. Once a genome is sequenced, {SnpEff} annotates variants based on their genomic locations and predicts coding effects. Annotated genomic locations include intronic, untranslated region, upstream, downstream, splice site, or intergenic regions. Coding effects such as synonymous or non-synonymous amino acid replacement, start codon gains or losses, stop codon gains or losses, or frame shifts can be predicted. Here the use of {SnpEff} is illustrated by annotating {\textasciitilde}356,660 candidate {SNPs} in {\textasciitilde}117 Mb unique sequences, representing a substitution rate of {\textasciitilde}1/305 nucleotides, between the Drosophila melanogaster w(1118); iso-2; iso-3 strain and the reference y(1); cn(1) bw(1) sp(1) strain. We show that {\textasciitilde}15,842 {SNPs} are synonymous and {\textasciitilde}4,467 {SNPs} are non-synonymous ({N/S} {\textasciitilde}0.28). The remaining {SNPs} are in other categories, such as stop codon gains (38 {SNPs)}, stop codon losses (8 {SNPs)}, and start codon gains (297 {SNPs)} in the {5'UTR.} We found, as expected, that the {SNP} frequency is proportional to the recombination frequency (i.e., highest in the middle of chromosome arms). We also found that start-gain or stop-lost {SNPs} in Drosophila melanogaster often result in additions of N-terminal or C-terminal amino acids that are conserved in other Drosophila species. It appears that the 5' and 3' {UTRs} are reservoirs for genetic variations that changes the termini of proteins during evolution of the Drosophila genus. As genome sequencing is becoming inexpensive and routine, {SnpEff} enables rapid analyses of whole-genome sequencing data to be performed by an individual laboratory.},
+	number = {2},
+	journal = {Fly},
+	author = {Cingolani, Pablo and Platts, Adrian and Wang, Le Lily and Coon, Melissa and Nguyen, Tung and Wang, Luan and Land, Susan J and Lu, Xiangyi and Ruden, Douglas M},
+	month = jun,
+	year = {2012},
+	note = {{PMID:} 22728672},
+	keywords = {Animals, Drosophila melanogaster, Genome, Insect, Male, Molecular Sequence Annotation, Polymorphism, Single Nucleotide, Software},
+	pages = {80--92}
+},
+
+@misc{bamtools,
+	title = {https://github.com/pezmaster31/bamtools},
+	url = {https://github.com/pezmaster31/bamtools},
+	urldate = {2013-12-01},
+	author = {bamtools},
+	year = {2013}
+},
+
+@article{li_sequence_2009,
+	title = {The Sequence {Alignment/Map} format and {SAMtools}},
+	volume = {25},
+	issn = {1367-4811},
+	doi = {10.1093/bioinformatics/btp352},
+	abstract = {{SUMMARY:} The Sequence {Alignment/Map} ({SAM)} format is a generic alignment format for storing read alignments against reference sequences, supporting short and long reads (up to 128 Mbp) produced by different sequencing platforms. It is flexible in style, compact in size, efficient in random access and is the format in which alignments from the 1000 Genomes Project are released. {SAMtools} implements various utilities for post-processing alignments in the {SAM} format, such as indexing, variant caller and alignment viewer, and thus provides universal tools for processing read alignments.
+{AVAILABILITY:} http://samtools.sourceforge.net.},
+	number = {16},
+	journal = {Bioinformatics (Oxford, England)},
+	author = {Li, Heng and Handsaker, Bob and Wysoker, Alec and Fennell, Tim and Ruan, Jue and Homer, Nils and Marth, Gabor and Abecasis, Goncalo and Durbin, Richard and {1000 Genome Project Data Processing Subgroup}},
+	month = aug,
+	year = {2009},
+	note = {{PMID:} 19505943},
+	keywords = {Algorithms, Base Sequence, Computational Biology, Genome, genomics, Molecular Sequence Data, Sequence Alignment, Sequence Analysis, {DNA}, Software},
+	pages = {2078--2079}
+},
+
+@article{krampis_cloud_2012,
+	title = {Cloud {BioLinux:} pre-configured and on-demand bioinformatics computing for the genomics community},
+	volume = {13},
+	issn = {1471-2105},
+	shorttitle = {Cloud {BioLinux}},
+	url = {http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3372431/},
+	doi = {10.1186/1471-2105-13-42},
+	abstract = {Background
+A steep drop in the cost of next-generation sequencing during recent years has made the technology affordable to the majority of researchers, but downstream bioinformatic analysis still poses a resource bottleneck for smaller laboratories and institutes that do not have access to substantial computational resources. Sequencing instruments are typically bundled with only the minimal processing and storage capacity required for data capture during sequencing runs. Given the scale of sequence datasets, scientific value cannot be obtained from acquiring a sequencer unless it is accompanied by an equal investment in informatics infrastructure.
+
+Results
+Cloud {BioLinux} is a publicly accessible Virtual Machine ({VM)} that enables scientists to quickly provision on-demand infrastructures for high-performance bioinformatics computing using cloud platforms. Users have instant access to a range of pre-configured command line and graphical software applications, including a full-featured desktop interface, documentation and over 135 bioinformatics packages for applications including sequence alignment, clustering, assembly, display, editing, and phylogeny. Each tool's functionality is fully described in the documentation directly accessible from the graphical interface of the {VM.} Besides the Amazon {EC2} cloud, we have started instances of Cloud {BioLinux} on a private Eucalyptus cloud installed at the J. Craig Venter Institute, and demonstrated access to the bioinformatic tools interface through a remote connection to {EC2} instances from a local desktop computer. Documentation for using Cloud {BioLinux} on {EC2} is available from our project website, while a Eucalyptus cloud image and {VirtualBox} Appliance is also publicly available for download and use by researchers with access to private clouds.
+
+Conclusions
+Cloud {BioLinux} provides a platform for developing bioinformatics infrastructures on the cloud. An automated and configurable process builds Virtual Machines, allowing the development of highly customized versions from a shared code base. This shared community toolkit enables application specific analysis platforms on the cloud by minimizing the effort required to prepare and maintain them.},
+	urldate = {2013-12-01},
+	journal = {{BMC} Bioinformatics},
+	author = {Krampis, Konstantinos and Booth, Tim and Chapman, Brad and Tiwari, Bela and Bicak, Mesude and Field, Dawn and Nelson, Karen E},
+	month = mar,
+	year = {2012},
+	note = {{PMID:} 22429538
+{PMCID:} {PMC3372431}},
+	pages = {42}
+},
+
+@misc{picard,
+	title = {http://picard.sourceforge.net/},
+	url = {http://picard.sourceforge.net/},
+	urldate = {2013-12-01},
+	author = {Picard},
+	year = {2013}
+},
+
+@article{li_aligning_2013,
+	title = {Aligning sequence reads, clone sequences and assembly contigs with {BWA-MEM}},
+	url = {http://arxiv.org/abs/1303.3997},
+	abstract = {Summary: {BWA-MEM} is a new alignment algorithm for aligning sequence reads or long query sequences against a large reference genome such as human. It automatically chooses between local and end-to-end alignments, supports paired-end reads and performs chimeric alignment. The algorithm is robust to sequencing errors and applicable to a wide range of sequence lengths from 70bp to a few megabases. For mapping 100bp sequences, {BWA-MEM} shows better performance than several state-of-art read aligners to date. Availability and implementation: {BWA-MEM} is implemented as a component of {BWA}, which is available at http://github.com/lh3/bwa. Contact: hengli@broadinstitute.org},
+	urldate = {2013-12-01},
+	journal = {{arXiv:1303.3997} [q-bio]},
+	author = {Li, Heng},
+	month = mar,
+	year = {2013},
+	keywords = {Quantitative Biology - Genomics}
+},
+
+@article{lam_detecting_2012,
+	title = {Detecting and annotating genetic variations using the {HugeSeq} pipeline},
+	volume = {30},
+	copyright = {© 2012 Nature Publishing Group, a division of Macmillan Publishers Limited. All Rights Reserved.},
+	issn = {1087-0156},
+	url = {http://www.nature.com/nbt/journal/v30/n3/full/nbt.2134.html},
+	doi = {10.1038/nbt.2134},
+	abstract = {To the Editor:
+Deciphering genome sequences is important for the mapping of genetic diseases and prediction of their risks. Advances in high-throughput {DNA} sequencing technologies using short read lengths have enabled rapid sequencing of entire human genomes and unlocked the potential for comprehensive identification of their underlying genetic variations. Various computational…},
+	number = {3},
+	urldate = {2013-12-01},
+	journal = {Nature Biotechnology},
+	author = {Lam, Hugo Y. K. and Pan, Cuiping and Clark, Michael J. and Lacroute, Phil and Chen, Rui and Haraksingh, Rajini and {O'Huallachain}, Maeve and Gerstein, Mark B. and Kidd, Jeffrey M. and Bustamante, Carlos D. and Snyder, Michael},
+	month = mar,
+	year = {2012},
+	pages = {226--229}
+},
+
+@article{dale_pybedtools:_2011,
+	title = {Pybedtools: a flexible Python library for manipulating genomic datasets and annotations},
+	volume = {27},
+	issn = {1367-4811},
+	shorttitle = {Pybedtools},
+	doi = {10.1093/bioinformatics/btr539},
+	abstract = {{SUMMARY:} pybedtools is a flexible Python software library for manipulating and exploring genomic datasets in many common formats. It provides an intuitive Python interface that extends upon the popular {BEDTools} genome arithmetic tools. The library is well documented and efficient, and allows researchers to quickly develop simple, yet powerful scripts that enable complex genomic analyses.
+{AVAILABILITY:} pybedtools is maintained under the {GPL} license. Stable versions of pybedtools as well as documentation are available on the Python Package Index at http://pypi.python.org/pypi/pybedtools.
+{CONTACT:} dalerr@niddk.nih.gov; arq5x@virginia.edu
+{SUPPLEMENTARY} {INFORMATION:} Supplementary data are available at Bioinformatics online.},
+	number = {24},
+	journal = {Bioinformatics (Oxford, England)},
+	author = {Dale, Ryan K and Pedersen, Brent S and Quinlan, Aaron R},
+	month = dec,
+	year = {2011},
+	note = {{PMID:} 21949271},
+	keywords = {Animals, Computational Biology, genomics, Molecular Sequence Annotation, Software},
+	pages = {3423--3424}
+},
+
+@article{paila_gemini:_2013,
+	title = {{GEMINI:} Integrative Exploration of Genetic Variation and Genome Annotations},
+	volume = {9},
+	shorttitle = {{GEMINI}},
+	url = {http://dx.doi.org/10.1371/journal.pcbi.1003153},
+	doi = {10.1371/journal.pcbi.1003153},
+	abstract = {Modern {DNA} sequencing technologies enable geneticists to rapidly identify genetic variation among many human genomes. However, isolating the minority of variants underlying disease remains an important, yet formidable challenge for medical genetics. We have developed {GEMINI} ({GEnome} {MINIng)}, a flexible software package for exploring all forms of human genetic variation. Unlike existing tools, {GEMINI} integrates genetic variation with a diverse and adaptable set of genome annotations (e.g., {dbSNP}, {ENCODE}, {UCSC}, {ClinVar}, {KEGG)} into a unified database to facilitate interpretation and data exploration. Whereas other methods provide an inflexible set of variant filters or prioritization methods, {GEMINI} allows researchers to compose complex queries based on sample genotypes, inheritance patterns, and both pre-installed and custom genome annotations. {GEMINI} also provides methods for ad hoc queries and data exploration, a simple programming interface for custom analyses that leverage the underlying database, and both command line and graphical tools for common analyses. We demonstrate {GEMINI's} utility for exploring variation in personal genomes and family based genetic studies, and illustrate its ability to scale to studies involving thousands of human samples. {GEMINI} is designed for reproducibility and flexibility and our goal is to provide researchers with a standard framework for medical genomics.},
+	number = {7},
+	urldate = {2013-12-01},
+	journal = {{PLoS} Comput Biol},
+	author = {Paila, Umadevi and Chapman, Brad A. and Kirchner, Rory and Quinlan, Aaron R.},
+	month = jul,
+	year = {2013},
+	pages = {e1003153}
+},
+
+@misc{ipython,
+	title = {http://ipython.org/},
+	url = {http://ipython.org/},
+	urldate = {2013-12-06},
+	author = {{IPython}},
+	year = {2013}
+},
+
+@article{li_fast_2010,
+	title = {Fast and accurate long-read alignment with {Burrows–Wheeler} transform},
+	volume = {26},
+	issn = {1367-4803, 1460-2059},
+	url = {http://bioinformatics.oxfordjournals.org/content/26/5/589},
+	doi = {10.1093/bioinformatics/btp698},
+	abstract = {Motivation: Many programs for aligning short sequencing reads to a reference genome have been developed in the last 2 years. Most of them are very efficient for short reads but inefficient or not applicable for reads {\textgreater}200 bp because the algorithms are heavily and specifically tuned for short queries with low sequencing error rate. However, some sequencing platforms already produce longer reads and others are expected to become available soon. For longer reads, hashing-based software such as {BLAT} and {SSAHA2} remain the only choices. Nonetheless, these methods are substantially slower than short-read aligners in terms of aligned bases per unit time.
+Results: We designed and implemented a new algorithm, Burrows-Wheeler Aligner's Smith-Waterman Alignment ({BWA-SW)}, to align long sequences up to 1 Mb against a large sequence database (e.g. the human genome) with a few gigabytes of memory. The algorithm is as accurate as {SSAHA2}, more accurate than {BLAT}, and is several to tens of times faster than both.
+Availability: http://bio-bwa.sourceforge.net
+Contact: rd@sanger.ac.uk},
+	number = {5},
+	urldate = {2013-12-05},
+	journal = {Bioinformatics},
+	author = {Li, Heng and Durbin, Richard},
+	month = mar,
+	year = {2010},
+	note = {{PMID:} 20080505},
+	pages = {589--595}
+},
+
+@article{depristo_framework_2011,
+	title = {A framework for variation discovery and genotyping using next-generation {DNA} sequencing data},
+	volume = {43},
+	issn = {1546-1718},
+	doi = {10.1038/ng.806},
+	abstract = {Recent advances in sequencing technology make it possible to comprehensively catalog genetic variation in population samples, creating a foundation for understanding human disease, ancestry and evolution. The amounts of raw data produced are prodigious, and many computational steps are required to translate this output into high-quality variant calls. We present a unified analytic framework to discover and genotype variation among multiple samples simultaneously that achieves sensitive and specific results across five sequencing technologies and three distinct, canonical experimental designs. Our process includes (i) initial read mapping; (ii) local realignment around indels; (iii) base quality score recalibration; (iv) {SNP} discovery and genotyping to find all potential variants; and (v) machine learning to separate true segregating variation from machine artifacts common to next-generation sequencing technologies. We here discuss the application of these tools, instantiated in the Genome Analysis Toolkit, to deep whole-genome, whole-exome capture and multi-sample low-pass (∼4×) 1000 Genomes Project datasets.},
+	number = {5},
+	journal = {Nature genetics},
+	author = {{DePristo}, Mark A and Banks, Eric and Poplin, Ryan and Garimella, Kiran V and Maguire, Jared R and Hartl, Christopher and Philippakis, Anthony A and del Angel, Guillermo and Rivas, Manuel A and Hanna, Matt and {McKenna}, Aaron and Fennell, Tim J and Kernytsky, Andrew M and Sivachenko, Andrey Y and Cibulskis, Kristian and Gabriel, Stacey B and Altshuler, David and Daly, Mark J},
+	month = may,
+	year = {2011},
+	note = {{PMID:} 21478889},
+	keywords = {Databases, Nucleic Acid, Data Interpretation, Statistical, Exons, Genetics, Population, Genetic Variation, Genome, Human, Genotype, Humans, Polymorphism, Single Nucleotide, Sequence Alignment, Sequence Analysis, {DNA}, Software},
+	pages = {491--498}
+},
+
+@misc{novoalign,
+	title = {http://www.novocraft.com/main/index.php},
+	url = {http://www.novocraft.com/main/index.php},
+	urldate = {2013-12-05},
+	author = {novoalign},
+	year = {2013}
+},
+
+@misc{pysam,
+	title = {https://code.google.com/p/pysam/},
+	url = {https://code.google.com/p/pysam/},
+	urldate = {2013-12-05},
+	author = {pysam},
+	year = {2013}
+},
+
+@misc{grabix,
+	title = {https://github.com/arq5x/grabix},
+	url = {https://github.com/arq5x/grabix},
+	urldate = {2013-12-06},
+	author = {grabix},
+	year = {2013}
+},
+
+@misc{dell,
+	title = {http://dell.com/ai-hpc-lifesciences},
+	url = {http://en.community.dell.com/techcenter/high-performance-computing/b/weblog/archive/2013/06/04/dell-active-infrastructure-for-hpc-life-sciences.aspx},
+	urldate = {2013-12-06},
+	author = {Dell},
+	year = {2013}
+},
+
+@article{goecks_galaxy:_2010,
+	title = {Galaxy: a comprehensive approach for supporting accessible, reproducible, and transparent computational research in the life sciences},
+	volume = {11},
+	copyright = {2010 Goecks et al.; licensee {BioMed} Central Ltd.},
+	issn = {1465-6906},
+	shorttitle = {Galaxy},
+	url = {http://genomebiology.com/2010/11/8/R86/abstract},
+	doi = {10.1186/gb-2010-11-8-r86},
+	abstract = {Increased reliance on computational approaches in the life sciences has revealed grave concerns about how accessible and reproducible computation-reliant results truly are. Galaxy http://usegalaxy.org, an open web-based platform for genomic research, addresses these problems. Galaxy automatically tracks and manages data provenance and provides support for capturing the context and intent of computational methods. Galaxy Pages are interactive, web-based documents that provide users with a medium to communicate a complete computational analysis.
+{PMID:} 20738864},
+	number = {8},
+	urldate = {2013-12-06},
+	journal = {Genome Biology},
+	author = {Goecks, Jeremy and Nekrutenko, Anton and Taylor, James and {\$author.lastName}, \$author {firstName}},
+	month = aug,
+	year = {2010},
+	note = {{PMID:} 20738864},
+	pages = {R86}
+},
+
+@incollection{blankenberg_galaxy:_2010,
+	title = {Galaxy: A Web-Based Genome Analysis Tool for Experimentalists},
+	copyright = {Copyright © 2010 by John Wiley \& Sons, Inc.},
+	isbn = {9780471142720},
+	shorttitle = {Galaxy},
+	url = {http://onlinelibrary.wiley.com/doi/10.1002/0471142727.mb1910s89/abstract},
+	abstract = {High-throughput data production has revolutionized molecular biology. However, massive increases in data generation capacity require analysis approaches that are more sophisticated, and often very computationally intensive. Thus, making sense of high-throughput data requires informatics support. Galaxy (http://galaxyproject.org) is a software system that provides this support through a framework that gives experimentalists simple interfaces to powerful tools, while automatically managing the computational details. Galaxy is distributed both as a publicly available Web service, which provides tools for the analysis of genomic, comparative genomic, and functional genomic data, or a downloadable package that can be deployed in individual laboratories. Either way, it allows experimentalists without informatics or programming expertise to perform complex large-scale analysis with just a Web browser. Curr. Protoc. Mol. Biol. 89:19.10.1-19.10.21. © 2010 by John Wiley \& Sons, Inc.},
+	urldate = {2013-12-06},
+	booktitle = {Current Protocols in Molecular Biology},
+	publisher = {John Wiley \& Sons, Inc.},
+	author = {Blankenberg, Daniel and Kuster, Gregory Von and Coraor, Nathaniel and Ananda, Guruprasad and Lazarus, Ross and Mangan, Mary and Nekrutenko, Anton and Taylor, James},
+	year = {2010},
+	keywords = {algorithm, analysis, bioinformatics, Galaxy, genomics, pipeline, {SNPs}, workflow}
+},
+
+@article{giardine_galaxy:_2005,
+	title = {Galaxy: A platform for interactive large-scale genome analysis},
+	volume = {15},
+	issn = {1088-9051, 1549-5469},
+	shorttitle = {Galaxy},
+	url = {http://genome.cshlp.org/content/15/10/1451},
+	doi = {10.1101/gr.4086505},
+	abstract = {Accessing and analyzing the exponentially expanding genomic sequence and functional data pose a challenge for biomedical researchers. Here we describe an interactive system, Galaxy, that combines the power of existing genome annotation databases with a simple Web portal to enable users to search remote resources, combine data from independent queries, and visualize the results. The heart of Galaxy is a flexible history system that stores the queries from each user; performs operations such as intersections, unions, and subtractions; and links to other computational tools. Galaxy can be accessed at http://g2.bx.psu.edu.},
+	number = {10},
+	urldate = {2013-12-06},
+	journal = {Genome Research},
+	author = {Giardine, Belinda and Riemer, Cathy and Hardison, Ross C. and Burhans, Richard and Elnitski, Laura and Shah, Prachi and Zhang, Yi and Blankenberg, Daniel and Albert, Istvan and Taylor, James and Miller, Webb and Kent, W. James and Nekrutenko, Anton},
+	month = oct,
+	year = {2005},
+	note = {{PMID:} 16169926},
+	pages = {1451--1455}
+}
