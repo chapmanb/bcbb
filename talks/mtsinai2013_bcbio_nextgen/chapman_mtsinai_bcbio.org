@@ -1,0 +1,348 @@
+#+title: Community based approaches to scaling variant calling pipelines
+#+author: Brad Chapman \\ Bioinformatics Core, Harvard School of Public Health \\ https://github.com/chapmanb \\ http://j.mp/bcbiolinks
+#+date: 10 December 2013
+
+#+OPTIONS: toc:nil H:2
+
+#+startup: beamer
+#+LaTeX_CLASS: beamer
+#+latex_header: \usepackage{url}
+#+latex_header: \usepackage{hyperref}
+#+latex_header: \hypersetup{colorlinks=true}
+#+BEAMER_THEME: default
+#+BEAMER_COLOR_THEME: seahorse
+#+BEAMER_INNER_THEME: rectangles
+
+* Challenges
+
+** Complex, rapidly changing pipelines
+
+[[./images/gatk_changes.png]]
+
+** Large number of specialized dependencies
+
+#+ATTR_LATEX: :width .5\textwidth
+[[./images/huge_seq.png]]
+
+[[https://github.com/StanfordBioinformatics/HugeSeq]]
+
+** Quality differences between methods
+
+#+ATTR_LATEX: :width .7\textwidth
+[[./images/gcat_comparison.png]]
+
+[[http://www.bioplanet.com/gcat]]
+
+** Scaling on full ecosystem of clusters
+
+[[./images/schedulers.png]]
+
+* Solution
+
+** Solution
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width .5\textwidth
+[[./images/community.png]]
+#+END_CENTER
+
+\scriptsize
+[[http://www.amazon.com/Community-Structure-Belonging-Peter-Block/dp/1605092770]]
+\normalsize
+
+** Overview
+
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images/bcbio_nextgen_highlevel.png]]
+
+** Development goals
+
+\Large
+
+- Community developed
+\vspace{0.075cm}
+- Quantifiable
+\vspace{0.075cm}
+- Scalable
+
+\normalsize
+
+* bcbio-nextgen highlights
+
+** Community: installation
+
+*** Automated Install                                                 :block:
+    :PROPERTIES:
+    :BEAMER_env: exampleblock
+    :END:
+    Bare machine to ready-to-run pipeline, tools and data
+
+- CloudBioLinux: [[http://cloudbiolinux.org]]
+- Homebrew: https://github.com/Homebrew/homebrew-science
+- Conda: http://j.mp/py-conda
+
+** Community: documentation
+
+[[./images/community-docs.png]]
+
+[[https://bcbio-nextgen.readthedocs.org]]
+
+** Community: contribution
+
+[[./images/community-contribute.png]]
+
+[[https://github.com/chapmanb/bcbio-nextgen]]
+
+** Quantify quality
+
+[[./images/minprep-callerdiff.png]]
+
+- Reference materials: [[http://www.genomeinabottle.org/]]
+- Quantification details: [[http://j.mp/bcbioeval2]]
+
+** Validation
+
+\Large
+- Unit tests for implementation and methods
+- Expand to:
+  - \large Cancer tumor/normal http://j.mp/cancer-var-chal
+  - Family/population calling
+  - Structural variations
+\normalsize
+
+* Scaling
+** Scaling overview
+
+[[./images/bcbio_parallel_overview.png]]
+
+- Infrastructure details: [[http://j.mp/bcbioscale]]
+- IPython: \scriptsize [[http://ipython.org/ipython-doc/dev/parallel/index.html]] \normalsize
+
+** Current target environment
+
+- Cluster scheduler
+  - SLURM
+  - Torque
+  - SGE
+  - LSF
+- Shared filesystem
+  - NFS
+  - Lustre
+- Local temporary disk
+  - SSD
+
+** Alignment parallelization
+
+[[./images/bcbio_align_parallel.png]]
+
+** Variant calling and BAM preparation parallelization
+
+[[./images/parallel-genome.png]]
+
+** Multicore parallelization
+
+*** BAM manipulation                                                  :block:
+    :PROPERTIES:
+    :BEAMER_env: exampleblock
+    :END:
+
+Sambamba \\
+https://github.com/lomereiter/sambamba
+
+
+\vspace{0.75cm}
+
+*** Prep analysis database (SQLite)                                   :block:
+    :PROPERTIES:
+    :BEAMER_env: exampleblock
+    :END:
+
+GEMINI \\
+https://github.com/arq5x/gemini
+
+** Memory usage
+
+***  :B_columns:
+    :PROPERTIES:
+    :BEAMER_env: columns
+    :END:
+
+**** Configuration                                                    :block:
+    :PROPERTIES:
+    :BEAMER_opt: t
+    :BEAMER_col: 0.5
+    :END:
+
+/Configuration/
+
+#+begin_src
+bwa:
+  cmd: bwa
+  cores: 16
+samtools:
+  cores: 16
+  memory: 2G
+gatk:
+  jvm_opts: ["-Xms750m", "-Xmx2750m"]
+#+end_src
+
+**** Batch file                                                       :block:
+    :PROPERTIES:
+    :BEAMER_opt: t
+    :BEAMER_col: 0.5
+    :END:
+
+/Batch file/
+
+#+begin_src
+#PBS -l nodes=1:ppn=16
+#PBS -l mem=45260mb
+#+end_src
+
+** Filesystem IO
+
+*** Pipes and streaming algorithms                                    :block:
+    :PROPERTIES:
+    :BEAMER_env: exampleblock
+    :END:
+
+#+begin_src python :exports code
+("{bwa} mem -M -t {num_cores} -R '{rg_info}' -v 1 "
+ "{ref_file} {fastq_file} {pair_file} "
+ "| {samtools} view -b -S -u - "
+ "| {samtools} sort -@ {num_cores} -m {max_mem} "
+ "- {tx_out_prefix}")
+#+end_src
+
+** Dell System
+
+[[./images/dell-ai-hpc.png]]
+
+*** Glen Otero, Will Cottay                                           :block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
+    http://dell.com/ai-hpc-lifesciences
+
+** Evaluation details
+
+***  :B_columns:
+    :PROPERTIES:
+    :BEAMER_env: columns
+    :END:
+
+**** Samples                                                          :BMCOL:
+    :PROPERTIES:
+    :BEAMER_col: 0.5
+    :END:
+
+Samples
+
+- 60 samples
+- 30x whole genome
+- Illumina
+- Family-based calling
+
+**** System                                                           :BMCOL:
+    :PROPERTIES:
+    :BEAMER_col: 0.5
+    :END:
+
+System
+
+- 400 cores
+- 3Gb RAM/core
+- Lustre filesystem
+- Infiniband network
+
+** Timing: Alignment
+
+\begin{tabular}{lll}
+\hline
+Step & Time & Processes \\
+\hline
+Alignment preparation & 13 hours & BAM to fastq; bgzip; \\
+& & grabix index \\
+Alignment & 30 hours & bwa-mem alignment \\
+BAM merge & 7 hours & merge alignment parts \\
+Alignment post-processing & 9 hours & Calculate callable regions \\
+\hline
+\end{tabular}
+
+** Timing: Variant calling
+
+\begin{tabular}{lll}
+\hline
+Step & Time & Processes \\
+\hline
+Post-alignment & 12 hours & De-duplication \\
+BAM preparation & & \\
+Variant calling & 23 hours & FreeBayes \\
+Variant post-processing & 2 hours & Combine variant files; \\
+& & annotate: GATK and snpEff \\
+\hline
+\end{tabular}
+
+** Timing: Analysis and QC
+
+\begin{tabular}{lll}
+\hline
+Step & Time & Processes \\
+\hline
+BAM merging & 6 hours & Combine post-processed BAM file sections \\
+GEMINI & 3 hours & Create GEMINI SQLite database \\
+Quality Control & 5 hours & FastQC, alignment and variant statistics \\
+\hline
+\end{tabular}
+
+** Timing: Overall
+
+\Large
+- 4 1/2 total days for 60 samples
+- ~2 hours per sample at 400 cores
+- In progress: optimize for single samples
+\normalsize
+
+* Summary
+
+** Virtualization and reproducibility
+
+***  :B_columns:
+    :PROPERTIES:
+    :BEAMER_env: columns
+    :END:
+
+**** Amazon                                                           :BMCOL:
+    :PROPERTIES:
+    :BEAMER_col: 0.5
+    :END:
+
+[[./images/aws.png]]
+
+**** Docker                                                           :BMCOL:
+    :PROPERTIES:
+    :BEAMER_col: 0.5
+    :END:
+
+[[./images/homepage-docker-logo.png]]
+
+** Accessible
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width .4\textwidth
+[[./images/dtc_genomics.jpg]]
+#+END_CENTER
+
+[[http://exploringpersonalgenomics.org/]]
+
+** Summary
+
+- Community developed pipelines > challenges
+- Focus
+  - Assessing quality: good science
+  - Community: easy to install and contribute
+  - Scalability: finish in time
+- Widely accessible
+
+[[https://github.com/chapmanb/bcbio-nextgen]]
+http://j.mp/bcbiolinks
