@@ -288,12 +288,13 @@ families. Single whole genome samples typically process in less than a day with
 {\begin{tabular}{lll}\toprule
 Step & Time & Processes \\
 \midrule
-Alignment preparation & 24 hours & BAM to fastq; bgzip; tabix index \\
-Alignment & 36 hours & bwa-mem alignment and BAM merging \\
-Alignment post-processing & 9 hours & Calculate callable regions \\
-Post-alignment BAM preparation & 12 hours & De-duplication \\
+Alignment preparation & 13 hours & BAM to fastq; bgzip; grabix index \\
+Alignment & 30 hours & bwa-mem alignment in parts \\
+BAM merge & 7 hours & Merge alignment parts \\
+Alignment post-processing & 6 hours & Calculate callable regions \\
+Post-alignment BAM preparation & 6 hours & De-duplication \\
 Variant calling & 23 hours & FreeBayes \\
-Variant post-processing & 2 hours & Combing variant files; annotate with GATK and snpEff \\
+Variant post-processing & 2 hours & Combine variant files; annotate with GATK and snpEff \\
 BAM merging & 6 hours & Combine post-processed BAM file sections \\
 GEMINI & 3 hours & Create GEMINI SQLite database \\
 Quality Control & 5 hours & FastQC, alignment and variant statistics \\

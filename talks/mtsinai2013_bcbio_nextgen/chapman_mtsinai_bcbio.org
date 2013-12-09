@@ -264,8 +264,8 @@ Step & Time & Processes \\
 Alignment preparation & 13 hours & BAM to fastq; bgzip; \\
 & & grabix index \\
 Alignment & 30 hours & bwa-mem alignment \\
-BAM merge & 7 hours & merge alignment parts \\
-Alignment post-processing & 9 hours & Calculate callable regions \\
+BAM merge & 7 hours & Merge alignment parts \\
+Alignment post-processing & 6 hours & Calculate callable regions \\
 \hline
 \end{tabular}
 
@@ -275,7 +275,7 @@ Alignment post-processing & 9 hours & Calculate callable regions \\
 \hline
 Step & Time & Processes \\
 \hline
-Post-alignment & 12 hours & De-duplication \\
+Post-alignment & 6 hours & De-duplication \\
 BAM preparation & & \\
 Variant calling & 23 hours & FreeBayes \\
 Variant post-processing & 2 hours & Combine variant files; \\

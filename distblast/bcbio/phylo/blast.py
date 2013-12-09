@@ -73,7 +73,7 @@ def blast_two_seqs(rec1, rec2, tmp_dir):
 
 def _compare_by_blast_hitlist(query, xref_db, blast_out, thresh):
     cl = NcbiblastpCommandline(query=query, db=xref_db, out=blast_out,
-            outfmt=6, max_target_seqs=10000, num_alignments=0, evalue=thresh)
+                               outfmt=6, max_target_seqs=10000, evalue=thresh)
     subprocess.check_call(str(cl).split())
     hits = []
     seen = set()
@@ -89,7 +89,7 @@ def _compare_by_blast_2seq(query, subject, blast_out):
     """Compare two sequences by BLAST without output database.
     """
     cl = NcbiblastpCommandline(query=query, subject=subject, out=blast_out,
-            outfmt=6, max_target_seqs=1, num_alignments=1)
+                               outfmt=6, max_target_seqs=1)
     subprocess.check_call(str(cl).split())
     with open(blast_out) as blast_handle:
         try:
@@ -107,8 +107,7 @@ def _compare_by_blast(input_ref, xref_db, blast_out, subject_blast=False,
     if blast_cmd is None:
         blast_cmd = "blastp"
     cl = NcbiblastpCommandline(cmd=blast_cmd, query=input_ref, db=xref_db,
-                               out=blast_out, outfmt=5, max_target_seqs=1,
-                               num_alignments=1)
+                               out=blast_out, outfmt=5, max_target_seqs=1)
     try:
         subprocess.check_call(str(cl).split())
     # handle BLAST errors cleanly; write an empty file and keep moving
