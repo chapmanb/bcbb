@@ -110,6 +110,15 @@
   - Structural variations
 \normalsize
 
+** Analysis: GEMINI
+
+[[./images/gemini.png]]
+
+\vspace{0.5cm}
+Rory Kirchner \\
+Aaron Quinlan \\
+http://quinlanlab.org/tutorials/cshl2013/gemini.html
+
 * Scaling
 ** Scaling overview
 
@@ -131,9 +140,20 @@
 - Local temporary disk
   - SSD
 
+** Scaling wins
+
+- Split alignments
+- Split by genome regions
+- Take advantage of multicore algorithms
+- Manage memory
+- Avoid IO
+
 ** Alignment parallelization
 
 [[./images/bcbio_align_parallel.png]]
+
+\vspace{1.5cm}
+https://github.com/arq5x/grabix
 
 ** Variant calling and BAM preparation parallelization
 
@@ -231,18 +251,6 @@ gatk:
     :BEAMER_env: columns
     :END:
 
-**** Samples                                                          :BMCOL:
-    :PROPERTIES:
-    :BEAMER_col: 0.5
-    :END:
-
-Samples
-
-- 60 samples
-- 30x whole genome
-- Illumina
-- Family-based calling
-
 **** System                                                           :BMCOL:
     :PROPERTIES:
     :BEAMER_col: 0.5
@@ -254,6 +262,19 @@ System
 - 3Gb RAM/core
 - Lustre filesystem
 - Infiniband network
+
+
+**** Samples                                                          :BMCOL:
+    :PROPERTIES:
+    :BEAMER_col: 0.5
+    :END:
+
+Samples
+
+- 60 samples
+- 30x whole genome (100Gb)
+- Illumina
+- Family-based calling
 
 ** Timing: Alignment
 
@@ -277,7 +298,7 @@ Step & Time & Processes \\
 \hline
 Post-alignment & 6 hours & De-duplication \\
 BAM preparation & & \\
-Variant calling & 23 hours & FreeBayes \\
+Variant calling & 18 hours & FreeBayes \\
 Variant post-processing & 2 hours & Combine variant files; \\
 & & annotate: GATK and snpEff \\
 \hline
@@ -298,7 +319,7 @@ Quality Control & 5 hours & FastQC, alignment and variant statistics \\
 ** Timing: Overall
 
 \Large
-- 4 1/2 total days for 60 samples
+- 4 days for 60 samples
 - ~2 hours per sample at 400 cores
 - In progress: optimize for single samples
 \normalsize
@@ -339,9 +360,11 @@ Quality Control & 5 hours & FastQC, alignment and variant statistics \\
 
 - Community developed pipelines > challenges
 - Focus
-  - Assessing quality: good science
   - Community: easy to install and contribute
-  - Scalability: finish in time
+  - Assessing quality: good science
+  - Scalability
+     - Parallelization
+     - Diagnose bottlenecks
 - Widely accessible
 
 [[https://github.com/chapmanb/bcbio-nextgen]]
