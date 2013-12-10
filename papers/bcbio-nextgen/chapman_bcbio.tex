@@ -39,7 +39,7 @@ identification of genomic variants from populations, families
 and cancer tumor/normal pairings. However, rapidly changing best
 practice approaches in alignment and variant calling, coupled with
 large data sizes, make it a challenge to develop scalable, accurate
-pipelines. Coordinated community development overcomes these
+pipelines that can remain up to date. Coordinated community development overcomes these
 challenges by sharing testing and updates across groups relying on the
 same infrastructure.
 
@@ -69,7 +69,7 @@ alignment, alignment post-processing and variant calling, provides an integrated
 mechanism to assess variant quality and interfaces with downstream tools for
 variant analysis. Practically, it installs with a single command on multiple
 computing architectures, scales to large whole genome analyses, and is community
-developed. The goal is to provide a platform for moving from raw sequencing data
+developed. The goal is to provide a robust platform for moving from raw sequencing data
 to high-quality variant calls that evolves as algorithms and sequencing
 technologies change.
 
@@ -116,7 +116,8 @@ in-house scripts:
 
 \item Community developed: Due to the focus on solving the problems
   of setting up and maintaining a complex analysis pipeline, multiple
-  sequencing centers and research laboratories use bcbio-nextgen. We
+  sequencing centers and research laboratories use bcbio-nextgen <<<SUCH AS
+  AND REFER TO A TABLE OF THE SITES AT WHICH IT IS EMPLOYED TOGETEHR WITH THE ARCHITECTURES>>>>. We
   actively encourage contributors to the code base and make it easy to
   get started with a fully automated installer and updater that
   prepares all third party software and reference genomes.
@@ -213,9 +214,9 @@ using a realigning caller.  While GATK UnifiedGenotyper suffers during indel
 calling without recalibration and realignment, both HaplotypeCaller and
 FreeBayes perform as good or better without these steps.
 
-The main benefit of validation is to enables experiments that quantitatively
+The main benefit of validation is to enable experiments that quantitatively
 assess widely held approaches. We expect best practices to change with new
-releases and algorithms, and the automated assessment mechanism allows
+releases and algorithms. The automated assessment mechanism allows
 bcbio-nextgen to track and adapt to continuously improving tools.
 
 \FloatBarrier
@@ -265,7 +266,7 @@ Within each independently running parallel process, bcbio-nextgen controls
 memory usage and disk IO to maximize the throughput of multiple simultaneous
 processes.  An input configuration files specifies available memory usage for
 programs that allow memory restrictions, and expected memory usage for those
-that do not. These inputs allow an accurate estimate of memory consumption and
+that do not. These inputs allow for an accurate estimate of memory consumption and
 bcbio-nextgen avoids overscheduling jobs relative to available memory on each
 machine. Similarly, simultaneous disk IO on shared filesystems is a common
 bottleneck during processing. bcbio-nextgen minimizes this by use of streaming
