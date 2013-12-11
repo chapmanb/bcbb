@@ -1,0 +1,188 @@
+#+BLOG: smallchangebio
+#+POSTID: 70
+#+DATE: [2013-12-10 Tue 20:08]
+#+TITLE: Notes: Strategies for Accelerating the Genome Sequencing Pipeline workshop at Mt Sinai
+#+CATEGORY: conference
+#+TAGS: bioinformatics, scaling, open-source, clinical
+#+OPTIONS: toc:nil num:nil
+
+I'm in New York City at Mt Sinai's workshop on
+[[mtsinai_workshop][Strategies for accelerating the genomic sequencing pipeline]]. It's a great one
+day session focusing on approaches
+and tips for making genomics pipelines faster. The goal is to create a community
+of implementers interested in sharing approaches for avoiding bottlenecks while
+processing large genomic samples, and learning to better structure code and data
+to take advantage of large scale parallelization.
+
+#+LINK: mtsinai_workshop http://j.mp/J9b5ep
+
+** Parallelizing the Sequence Analysis Pipeline: What are the tradeoffs?
+/Toby Bloom -- New York Genome Center/
+
+Different requirements for individual patients and larger research
+studies. Patient: fast as possible. Larger study: throughput. This is tricky
+when you've got a mix of things. Bottlenecks are often network load, compute
+time and response time. Example: improving alignment by 100x but what are
+the tradeoffs in terms of accuracy and throughput.
+
+Good discussion of why IO is so painful in pipelines. Mark Duplicates: read and
+write a big file and only writing a flag. Works on file as a blob; alternative
+is streaming. Alternative way of thinking is the share nothing Hadoop version of
+the world where data can be independently processe throughout. Not totally
+compatible with biological pipelines where you need to combine together and go
+back to the same data over and over again.
+
+What are the differences between biological pipelines and assumptions in most
+big data tools? Considerations: How frequently are data accessed. How often does
+computation require reshuffling data.
+
+General ideas. Streaming algorithms are good: avoid IO. Keep data in parallel
+column oriented database style structures. Also need to evaluate all changes
+within results from entire pipeline.
+
+** Integrating new and existing tools within a sequencing analysis pipeline
+/Timothy Danford -- Genome Bridge/
+
+Timothy talks about his experience running a genomics pipeline in the cloud.
+GenomeBridge is part of a Broad, but long term goal is to take GATK best
+practices into cloud platform. Want to contribute gains back to
+[[global-alliance][Global alliance for sharing of clinical and genomic data.]] Estimates for
+data storage: 3.5Pb and 9 million CPU-hours. Current pipeline is course-grained
+parallelism sticking exome data on AWS x-large instances. Uses [[docker][docker]] to package
+up code and feeds into the Broad firehose pipeline. Emphasizes that you need a
+development environment that appeals to bioinformaticians.
+
+What did they learn from this approach? Multi-sample analysis is
+difficult. First tried replicating SGE/LSF on Amazon but not super successful
+due to failing jobs, long running jobs and other failures. Fundamental conflict
+between distributed computation and "bring your own code" approach where you
+have to integrate specific command line tools. Need code to be able to work with
+distributed data to actually parallelize.
+
+Better approach: incremental, distributed analysis. Needs code that exploits
+data locality and allows you to run joint analyses. Problem is that it requires
+re-write of tools. Shout out to [[adam][ADAM]] that builds on top of [[spark][Spark]] and
+[[parquet][Parquet]] / [[avro][Avro]] for representation and looks like a good way forward.
+
+#+LINK: global-alliance http://www.whitehouse.gov/blog/2013/06/20/creating-global-alliance-sharing-genomic-and-clinical-data
+#+LINK: docker http://www.docker.io/
+#+LINK: adam https://github.com/bigdatagenomics/adam
+#+LINK: spark http://spark.incubator.apache.org/
+#+LINK: avro http://avro.apache.org/
+#+LINK: parquet http://parquet.io/
+
+** Speeding up the DNA pipeline in practice
+/Paolo Narvaez -- Intel/
+
+Approach is to look at big picture for improving pipelines, not necessarily in
+optimizing a single tool. Genomics efforts focus on understanding emerging
+workloads and current optimizations. Some case studies: OSHU cancer genomics
+pipeline: bwa mem, Picard MarkDuplicates, GATK IndelRealignment, then
+mutect. Improved pipelins from 177 to 44 hours with multithreading improvements
+in tools. Lots of great profiling of disk, bandwidth, memory. Found that disk is
+often not bottleneck except at certain points. Memory also has spikes of
+utilization throughout. Summary: hardware is not used efficiently and lots of
+different points where you're stressing only one of memory/CPU/IO/network and
+others are lagging.
+
+Practically worked with Picard team at Broad to improve compression libraries
+optimized for modern CPUs: [[ipp-picard][IPP in Picard]]. Reduced compression time by 1/3. Also
+looked at Pair HMM Acceleration in GATK HaplotypeCaller using
+[[avx][Indel Advanced Vector Expressions (AVX)]]. Also worked on improving Smith-Waterman
+algorithm with AVX.
+
+#+LiNK: ipp-picard http://sourceforge.net/apps/mediawiki/picard/index.php?title=IntelDeflater
+#+LINK: avx http://en.wikipedia.org/wiki/Advanced_Vector_Extensions
+
+** G-Make, our Make-Based Infrastructure for Rapid Genome Characterization and the Genomes in a Bottle Consortium,
+/Sheng Li -- Cornell/
+
+Sheng works in Christopher Mason's lab at Cornell. She talks about work to
+evaluate variants: Only 95% of variants agreed across 14 replicates; 3.4% of
+ClinVar sites gave multiple results in the replicates. Coverage helps.
+
+Their approach to manage processes is [[gmake][G-Make]], which builds on top of make taking
+advantage of existing features. Also have [[r-make][R-Make]] for RNA sequencing reads. Using
+replicates from this, can identify numerous QC differences which contribute to
+different results from replicates. G-Make generates Makefiles for each sample
+based on GATK best practices for variant calling. Splits alignments by regions
+and runs in parallel using native make support. To submit jobs to clusters, use
+qmake through SGE.
+
+Work on clinical standards through the [[giab][Genome in a Bottle Consortium]] to ensure
+validation rates. Want to integrate tools into a meta-make tool that handles
+combining the information.
+
+#+LINK: g-make http://physiology.med.cornell.edu/faculty/mason/lab/g-make/
+#+LINK: r-make http://physiology.med.cornell.edu/faculty/mason/lab/r-make/
+#+LINK: giab http://www.genomeinabottle.org/
+
+** Accelerated GATK best-practices variant calling pipeline
+/Mauricio Carneiro -- Broad/
+
+Mauricio provides an overview of GATK best practices, soon to expand to RNA-seq
+analysis best practice as well. GATK is working on a new best practice pipeline
+which focuses entirely on streaming algorithms. Unveiling everything at
+AGBT. New framework will also have focus on exposing likelihoods for downstream
+analyses. That's the overview, but the talk today focuses on joint variant
+calling optimization. Also working on HaplotyperCaller joint-calling with
+incremental singe sample discovery to help scale to multiple samples.
+
+Mauricio emphasizes that HapolotypeCaller replaces UnifiedGenotyper and improved
+on calls in every way; no reason to use UnifiedGenotyper, except
+HapolotypeCaller is slow. Shows nice examples of how HaplotypeCaller can resolve
+tricky regions with heterozygous insertions/deletions. UnifiedGenotyper cannot
+do well on indels.
+
+HapolotypeCaller falls into 4 steps: find regions, perform local de-novo
+assembly, do a pair-HMM evaluation of reads against all haplotypes, then
+genotype using the exact model developed in UnifiedGenotyper. ~70% of the time
+of work was in the pair-HMM steps.
+
+Approaches to improving performance: distribute with Queue system, provide an
+alternative way to calculate likelihoods, or provide heterogenous parallel
+compute. Distribution already do-able (split by genomic regions) but not ideal
+since requires infrastructure. To improve HMM, can constrain work by removing
+unrealistic alignments prior to feeding to pair-HMM. Need
+`--graph-based-likelihoods` flag to make this work in GATK 2.8; provides a 4x
+improvement.
+
+To parallelize better, have been focusing on 3 areas: AVX, GPU, FPGA. Started
+with C++ implementation; it is 10x better than GATK. Mauricio says C++ is better
+than Java; oops, GATK. These may eventually be available to GATK through JNI
+calls. AVX improvements look good and already present on most machines. Provides
+a 35x improvement over current Java GATK with 1 core. If you use AVX with
+24-cores, can get a 720x improvement. Provides almost perfect scaling from 1 to
+24 cores: promising good scalability for the future. AVX automatically included
+in next shipments of engine (post 2.8) and does not need additional flags.
+
+GATK engine is not ready to leverage the increased parallelism. It uses
+synchronous traversal so is waiting for mappers/reducers in the GATK
+framework. Need to make the engine asynchronous.
+
+** Parallelizing and Optimizing Genomic Codes
+/Clay Breshears -- Intel/
+
+Working on intel specific optimizations for bwa, hmmer, blast, velvet, abyess
+and bowtie. Goal is to make individual applications faster and roll changes back
+into the open source tools. Nice way of giving back and improving existing tools
+while also being helpful to Intel by fitting better with their processors. For
+bwa sampe, improved 59 to 12 hours. Hope to also bring this to bwa mem. Changes
+were: using opemmp instead of pthreads, provided overlapped I/O and
+vectorization of critical loops. Overlapping I/O and computation improvement
+swaps buffers so have two threads switching I/O computation. Super nice
+approach.
+
+HMMER optimizations: improved processing by 1.56x. BLAST got 4.5x improvement
+for blastn, to release in BLAST 2.2.29+ release. For velvet, provided a 10x
+memory reduction. The [[velour][velour]] optimization that provides the improvement to
+velveth step is open source and available on GitHub. Awesome. ABySS
+improvements: identified initial improvement looking at assembler code in a
+baseToCode approach: 1.3x speed up with only structural changes. Can also split
+the data into 10 parts to get 4.2x speed up. Nice example of how thinking about
+a bottleneck identified a new idea for quick speed ups.
+
+Worked on speeding up a RNA-seq pipeline at TGen: 1.8x speed-up on pipeline. For
+bowtie2 steps, can get 13x speedup with 32 threads and 18.4x using multiple cores.
+
+#+LINK: velour https://github.com/jjcook/velour
