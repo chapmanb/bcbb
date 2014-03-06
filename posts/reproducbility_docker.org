@@ -1,0 +1,180 @@
+#+DATE: [2014-03-06 Thu 05:37]
+#+BLOG: bcbio
+#+POSTID: 570
+#+TITLE: Improving reproducibility and installation of genomic analysis pipelines with Docker
+#+CATEGORY: bcbio
+#+TAGS: bioinformatics, variant, ngs, clinical, reproduciblity, provenance, docker
+#+OPTIONS: toc:nil num:nil
+
+* Motivation
+
+[[bcbio-nextgen][bcbio-nextgen]] is a community developed, best-practice pipeline for genomic data
+processing, performing automated variant calling and RNA-seq analyses from high
+throughput sequencing data. It has [[bcbio-install][an automated installation script]] that sets up
+the code and third party tools used during analysis, and we've been
+working on improving the process to make getting started with
+bcbio-nextgen easier. The current approach of installing tools in a separate
+semi-isolated directory is non-optimal for a couple of reasons:
+
+- A separate directory does not give full isolation from system programs and
+  libraries. It's possible to disrupt processing by unintentionally including
+  other command line programs into your PATH. Additionally it is not easy to
+  recreate a snapshot of the current environment for reproducibility without
+  manual re-installation of specific versions of software.
+
+- The automated installation script needs to deal with the peculiarities of
+  heterogeneous cluster environments. Different system characteristics can be
+  tricky to anticipate and automate, and lead to
+  [[install-problems][more tickets devoted to install problems]] than we'd like. The goal is to do more
+  science and spend less time dealing with installation woes.
+
+[[docker][Docker]] lightweight linux containers help solve both of these issues. By
+isolating tools and software involved in processing, installation is
+as easy as downloading a pre-built image containing the software. By
+containerizing the running process, software does not interfere with other
+installed programs. Docker containers provide the isolation and deployment
+advantages of [[vms][Virtual Machines]] without the associated overhead. Additionally
+they allow easy export of the full software environment used to run an analysis,
+improving our ability to reproduce results.
+
+This post describes [[bcbio-nextgen-vm][bcbio-nextgen-vm]], a wrapper around bcbio-nextgen that runs
+analyses using pre-created Docker containers.  The implementation is
+feature compatible with bcbio-nextgen but provides improved installation,
+isolation and reproducibility.  I'll also discuss future work to further improve
+provenance and traceability of analysis runs with the [[arvados][Arvados]] platform, and a
+fun chance to work on reproducibility and provenance at an [[arvados-hackathon][Arvados hackathon]] on
+Tuesday March 11th.
+
+#+LINK: bcbio-nextgen https://github.com/chapmanb/bcbio-nextgen
+#+LINK: bcbio-install https://bcbio-nextgen.readthedocs.org/en/latest/contents/installation.html#automated
+#+LINK: install-problems https://github.com/chapmanb/bcbio-nextgen/issues?page=1&state=closed
+#+LINK: docker https://www.docker.io/
+#+LINK: vms https://en.wikipedia.org/wiki/Virtual_machine
+#+LINK: bcbio-nextgen-vm https://github.com/chapmanb/bcbio-nextgen-vm
+#+LINK: arvados https://arvados.org/
+
+* Implementation
+
+We reused the existing bcbio-nextgen installation scripts to create easily
+distributed Docker images with pipeline code and external tools. In fact, the
+[[bcbio-dockerfile][bcbio-nextgen Dockerfile]] replicates current best practice
+recommendations for setting up the pipeline on a local system. [[cloudbiolinux][CloudBioLinux]]
+drives installation of the software, using packaging work from existing
+communities such as [[bio-linux][Bio-Linux]], [[debianmed][DebianMed]] and [[homebrew-science][homebrew-science]]. The advantage
+over the previous installation approach is that this Docker installation takes
+place in a defined environment and we distribute the pre-built images, avoiding
+the need to configure and build software on individual systems.
+
+The pre-built Docker image contains a full manifest of installed software, from the
+system libraries to custom scientific packages. Coupled with the ability to
+export and save Docker images, this creates a reproducible run
+environment. Special thanks for the manifest implementation are due to the
+[[debianmed][DebianMed]] community and [[minke][Tony Travis]]. I had time to finish the
+[[manifest][manifest implementation]] while at the [[aberdeen][DebianMed Hackathon in Aberdeen]]. This
+critical component helped enable external version queries for Docker isolated
+software.
+
+Tying all these parts together, the [[bcbio-nextgen-vm][bcbio-nextgen-vm]] wrapper drives processing
+of individual run components using isolated Docker containers. The Python
+wrapper script uses the existing work in bcbio-nextgen for defining
+workflows, and it runs on distributed cluster systems using the [[ipython-parallel][IPython parallel]]
+framework. Using [[binstar][Conda and Binstar]] to handle installation of Python dependencies
+results in a streamlined installation procedure for all the wrapper
+software.
+
+The diagram below shows the parts of bcbio-nextgen handled within each of the
+components of the system. bcbio-nextgen-vm drives the workflow and parallel
+runs, interacting with a cluster scheduler, and lives outside of Docker on a
+central server. The wrapper code manages the work of starting Docker containers
+and mounting external filesystems to local mounts within the Docker
+container. On each processing node, execution happens within isolated Docker
+containers with external biological software and bcbio-nextgen processing-specific code.
+
+#+BEGIN_HTML
+<a href="https://raw.github.com/chapmanb/bcbio-nextgen/master/docs/contents/images/docker-parallel.png">
+  <img src="https://raw.github.com/chapmanb/bcbio-nextgen/master/docs/contents/images/docker-parallel.png" width="700"
+       alt="Overview of docker and bcbio-nextgen-vm components">
+</a>
+#+END_HTML
+
+#+LINK: cloudbiolinux http://cloudbiolinux.org/
+#+LINK: bcbio-dockerfile https://github.com/chapmanb/bcbio-nextgen/blob/master/Dockerfile
+#+LINK: aberdeen https://wiki.debian.org/DebianMed/Meeting/Aberdeen2014
+#+LINK: debianmed https://wiki.debian.org/DebianMed
+#+LINK: manifest https://github.com/chapmanb/cloudbiolinux/blob/master/cloudbio/manifest.py
+#+LINK: bio-linux http://envgen.nox.ac.uk/tools/bio-linux
+#+LINK: homebrew-science https://github.com/Homebrew/homebrew-science
+#+LINK: minke http://minke-informatics.co.uk/
+#+LINK: binstar https://conda.binstar.org/
+#+LINK: ipython-parallel http://ipython.org/ipython-doc/dev/parallel/index.html
+
+* Availability
+
+The initial v0.1.0 release of [[bcbio-nextgen-vm][bcbio-nextgen-vm]] contains full support for all
+bcbio-nextgen functionality using isolated Docker containers. It runs on
+clusters using IPython parallel and on single machines using multiple cores, and has minimal
+external requirements beyond Docker. See the [[bcbio-vm-install][full installation instructions]], and
+[[bcbio-vm-run][bcbio-nextgen-vm run instructions]] to get started with processing your samples. It
+uses the same infrastructure and input files as bcbio-nextgen, so the
+[[bcbio-docs][bcbio-nextgen documentation]] contains much more detail on defining the biological
+pipelines to run.
+
+With the new isolated framework, you can install bcbio-nextgen on a system with
+only Docker installed. Conda handles installation of the Python dependencies,
+ideally inside of an isolated minimal [[miniconda][Anaconda Python environment]], and is the
+only non-Docker-contained infrastructure required. The install script will also
+download and prepare biological data required for processing, including genomes,
+index files and annotations.
+
+We're hoping to migrate bcbio-nextgen to this Docker enabled framework over time
+and welcome feedback on installation or usage challenges that still exist.
+Reporting problems on the [[bcbio-vm-issues][GitHub issue tracker]] would be a major help as we
+continue to develop and improve the wrapper framework.
+
+One area of particular interest is installation and security on cluster
+systems. While patiently waiting for
+[[docker-user-namespaces][the ability to run Docker as a non-root user]],  we recommend installing
+bcbio-nextgen-vm to [[setgid][run with the docker group id on execution]]. The
+internal scripts within the bcbio-nextgen Docker container run
+all commands as the calling user to mitigate security issues.
+
+#+LINK: bcbio-vm-install https://github.com/chapmanb/bcbio-nextgen-vm#installation
+#+LINK: bcbio-vm-run https://github.com/chapmanb/bcbio-nextgen-vm#running
+#+LINK: bcbio-docs https://bcbio-nextgen.readthedocs.org/en/latest/
+#+LINK: bcbio-vm-issues https://github.com/chapmanb/bcbio-nextgen-vm/issues?state=open
+#+LINK: docker-user-namespaces https://github.com/dotcloud/docker/issues/2918
+#+LINK: setgid https://en.wikipedia.org/wiki/Setuid
+#+LINK: miniconda http://repo.continuum.io/miniconda/index.html
+
+* Provenance and further work
+
+Adding Docker isolated containers provides the pipeline with improved
+reproducibility. Maintaining the full state of all the tools and software
+only requires exporting and gzipping the Docker image and storing it alongside the
+final processed result. The 1Gb stored image can be later reconstituted and
+rerun to reproduce earlier results, or shared with collaborators to
+ensure identical processing pipelines across multiple locations. Saving the
+initial input data plus the Docker image provides the ability to re-run an
+analysis at any point in the future.
+
+With this framework in place, the next step for improving reproducibility is
+enabling full provenance to trace processing steps. bcbio-nextgen currently
+has extensive log files of command lines and program output, but in parallel
+environments it requires work to deconvolute these to establish the full set of
+steps leading up to production of files of interest.
+
+[[arvados][Arvados]] is an promising open source framework designed to help
+[[arvados-provenance][handle provenance and run tracking]]. [[curoverse][Curoverse]] provides
+commercial support and development for the Arvados platform and recently closed
+[[curoverse-funding][a round of financing]] as they continue to expand and develop the framework.
+
+If you're interested in reproducibility and provenance, and live in the
+Boston area, Curoverse is hosting an [[arvados-hackathon][Arvados hackathon]] next Tuesday evening,
+March 11th at their offices. I'll be there learning about ways to integrate
+bcbio-nextgen with the work they're doing and would be happy to talk with anyone
+about the Docker work or reproducible pipelines in general.
+
+#+LINK: arvados-hackathon http://arvados-2014-03.eventbrite.com/
+#+LINK: curoverse https://curoverse.com/
+#+LINK: curoverse-funding https://curoverse.com/blog/seed-funding-announcement-press-coverage/
+#+LINK: arvados-provenance https://arvados.org/projects/arvados/wiki/Provenance_and_Reproducibility
