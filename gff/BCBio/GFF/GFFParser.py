@@ -66,9 +66,7 @@ def _gff_line_map(line, params):
         # Split at the first one we can recognize as working
         parts = keyval_str.split(" ; ")
         if len(parts) == 1:
-            parts = keyval_str.split("; ")
-            if len(parts) == 1:
-                parts = keyval_str.split(";")
+            parts = keyval_str.split(";")
         # check if we have GFF3 style key-vals (with =)
         is_gff2 = True
         if gff3_kw_pat.match(parts[0]):
