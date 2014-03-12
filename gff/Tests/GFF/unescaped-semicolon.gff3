@@ -1,0 +1,2 @@
+##gff-version 3
+chr1	.	gene	1	100	.	+	.	ID=PH01000020G1780;Description="osFTL6 FT-Like6 homologous to Flowering Locus T gene; contains Pfam profile PF01161: Phosphatidylethanolamine-binding protein, expressed"

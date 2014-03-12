@@ -417,7 +417,18 @@ class GFF2Tester(unittest.TestCase):
         assert len(work_rec.features) == 1
         test_feature = work_rec.features[0]
         assert test_feature.qualifiers['Note'] == \
-          ['Clone cTel33B; Genbank AC199162', 'Clone cTel33B; Genbank AC199162']
+          ['Clone cTel33B; Genbank AC199162', 'Clone cTel33B; Genbank AC199162'], test_feature.qualifiers["Note"]
+
+    def t_unescaped_semicolons(self):
+        """Parse inputs with unescaped semi-colons.
+        This is a band-aid to not fail rather than correct parsing, since
+        the combined feature will not be maintained.
+        """
+        f = os.path.join(self._test_dir, "unescaped-semicolon.gff3")
+        rec_dict = SeqIO.to_dict(GFF.parse(f))
+        f = rec_dict['chr1'].features[0]
+        assert f.qualifiers["Description"][0].startswith('osFTL6')
+        assert f.qualifiers["Description"][0].endswith('protein, expressed')
 
     def t_jgi_gff(self):
         """Parsing of JGI formatted GFF2, nested using transcriptId and proteinID

@@ -44,6 +44,21 @@ def _gff_line_map(line, params):
         - determines the type of attribute (flat, parent, child or annotation)
         - generates a dictionary of GFF info which can be serialized as JSON
     """
+    def _merge_keyvals(parts):
+        """Merge key-values escaped by quotes that are improperly split at semicolons.
+        """
+        out = []
+        for i, p in enumerate(parts):
+            if i > 0 and len(p) == 1 and p[0].endswith('"') and not p[0].startswith('"'):
+                if out[-1][-1].startswith('"'):
+                    prev_p = out.pop(-1)
+                    to_merge = prev_p[-1]
+                    prev_p[-1] = "%s; %s" % (to_merge, p[0])
+                    out.append(prev_p)
+            else:
+                out.append(p)
+        return out
+
     gff3_kw_pat = re.compile("\w+=")
     def _split_keyvals(keyval_str):
         """Split key-value pairs in a GFF2, GTF and GFF3 compatible way.
@@ -66,12 +81,12 @@ def _gff_line_map(line, params):
         # Split at the first one we can recognize as working
         parts = keyval_str.split(" ; ")
         if len(parts) == 1:
-            parts = keyval_str.split(";")
+            parts = [x.strip() for x in keyval_str.split(";")]
         # check if we have GFF3 style key-vals (with =)
         is_gff2 = True
         if gff3_kw_pat.match(parts[0]):
             is_gff2 = False
-            key_vals = [p.split('=') for p in parts]
+            key_vals = _merge_keyvals([p.split('=') for p in parts])
         # otherwise, we are separated by a space with a key as the first item
         else:
             pieces = []
@@ -92,10 +107,15 @@ def _gff_line_map(line, params):
                 key = item[0]
                 val = ''
             # remove quotes in GFF2 files
+            quoted = False
             if (len(val) > 0 and val[0] == '"' and val[-1] == '"'):
-                val = val[1:-1] 
+                quoted = True
+                val = val[1:-1]
             if val:
-                quals[key].extend([v for v in val.split(',') if v])
+                if quoted:
+                    quals[key].append(val)
+                else:
+                    quals[key].extend([v for v in val.split(',') if v])
             # if we don't have a value, make this a key=True/False style
             # attribute
             else:
