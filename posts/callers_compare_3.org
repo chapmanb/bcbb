@@ -18,7 +18,7 @@ variant calls:
 
 - [[michael-linderman][Michael Linderman and colleagues]] describe approaches for
   [[wgs-eval-paper][validating clinical exome and whole genome sequencing results]]. One key result
-  I took from the paper was difference in assessment between exome and
+  I took from the paper was the difference in assessment between exome and
   whole genome callsets. Coverage differences due to capture characterize
   discordant exome variants, while complex genome regions drive whole genome
   discordants. Reading this paper pushed us to evaluate whole genome population
@@ -30,7 +30,7 @@ variant calls:
   investigate two of the filters he proposed: removing variants in low
   complexity regions, and filtering high depth variants.
 
-We use the NA12878/NA12891/NA12892 trio from
+We use the [[na12878_material][NA12878/NA12891/NA12892 trio]] from
 the [[ceph-pedigree][CEPH 1463 Pedigree]] as an input dataset, consisting of
 50x whole genome reads from [[platinum][Illumina's platinum genomes]]. This enables both whole
 genome comparisons, as well as pooled family calling that replicates best-practice
@@ -42,25 +42,26 @@ We called variants using two realigning callers: [[freebayes][FreeBayes (v0.9.14
 [[gatk-hc][GATK HaplotypeCaller (3.1-1-g07a4bf8)]] and evaluated calls using the
 [[giab][Genome in a Bottle reference callset for NA12878 (v0.2-NIST-RTG)]]. The
 bcbio-nextgen documentation has
-[[trio-example][full instructions for running the analysis]].
+[[trio-example][full instructions for reproducing the analysis]].
 
-This work provided three practical improvements for variant calling and validation:
+This work provides three practical improvements for variant calling and validation:
 
-- Low complexity regions contribute 50% of the whole genome indels and are
-  highly variable between callers. This replicates Heng's results and Michael's
-  assessment of common errors, and indicates we should treat the 2% of the
-  genome labeled as low complexity differently. We exclude them for further
-  evaluations to avoid bias, and suggest removing or flagging them when
-  producing whole genome variant calls.
+- Low complexity regions contribute 45% of the indels in whole genome
+  evaluations, and are highly variable between callers. This replicates Heng's
+  results and Michael's assessment of common errors in whole genome samples, and
+  indicates we need to specifically identify and assess the 2% of the genome
+  labeled as low complexity. Practically, we'll exclude them from further
+  evaluations to avoid non-representative bias, and suggest removing or flagging
+  them when producing whole genome variant calls.
 
-- A high depth, low quality filter removing false positives from FreeBayes
-  calls.  It removes variants in high depth regions that are likely due to copy
-  number or other larger structural events, and replicates Heng's filtering
-  results.
+- We add a filter for removing false positives from FreeBayes calls in high depth, low
+  quality regions. This removes variants in high depth regions that are likely
+  due to copy number or other larger structural events, and replicates Heng's
+  filtering results.
 
-- Improved settings for [[gatk-vqsr][GATK variant quality recalibration (VQSR)]]. The default
-  VQSR settings are conservative for SNPs and need tweaking to be compatible
-  with sensitivity available through FreeBayes.
+- We improved settings for [[gatk-vqsr][GATK variant quality recalibration (VQSR)]]. The default
+  VQSR settings are conservative for SNPs and need adjustment to be compatible
+  with the sensitivity available through FreeBayes or GATK using hard filters.
 
 #+LINK: bcbio-cmp2 https://bcbio.wordpress.com/2013/10/21/updated-comparison-of-variant-detection-methods-ensemble-freebayes-and-minimal-bam-preparation-pipelines/
 #+LINK: bcbio-cmp https://bcbio.wordpress.com/2013/05/06/framework-for-evaluating-variant-detection-methods-comparison-of-aligners-and-callers/
@@ -78,48 +79,57 @@ This work provided three practical improvements for variant calling and validati
 #+LINK: bwa-mem http://bio-bwa.sourceforge.net/
 #+LINK: samblaster https://github.com/GregoryFaust/samblaster
 #+LINK: gatk-vqsr http://gatkforums.broadinstitute.org/discussion/39/variant-quality-score-recalibration-vqsr
+#+LINK: na12878_material http://ccr.coriell.org/Sections/Search/Sample_Detail.aspx?Ref=GM12878
 
 * Low complexity regions
 
-Low complexity regions consist of locally repetitive sections of the
+Low complexity regions (LCRs) consist of locally repetitive sections of the
 genome. Heng's paper identified these using [[mdust][mdust]] and provides a
-[[lcr-bed][BED file of LCR regions]] covering 2% of the genome. Repeats in these regions can
-lead to artifacts in sequencing and variant calling and Heng's paper provides
+[[lcr-bed][BED file of LCRs]] covering 2% of the genome. Repeats in these regions can
+lead to artifacts in sequencing and variant calling. Heng's paper provides
 examples of areas where a full de-novo assembly correctly resolves the
 underlying structure, while local reassembly variant callers do not.
 
 To assess the impact of low complexity regions on variant calling, we compared
-calls from FreeBayes and GATK HaplotypeCaller to the Genome in a Bottle calls
-with and without LCR regions included:
+calls from FreeBayes and GATK HaplotypeCaller to the Genome in a Bottle
+reference callset with and without low complexity regions included. The graph
+below shows concordant non-reference variant calls alongside discordant calls in
+three categories: missing discordants are potential false negatives, extras are potential
+false positives, and shared are variants that overlap between the evaluation and
+reference callsets but differ due to zygosity (heterozygote versus homozygote)
+or indel representation.
 
 #+BEGIN_HTML
-<a href="http://i.imgur.com/ptespRe.png">
-  <img src="http://i.imgur.com/ptespRe.png" width="700"
+<a href="http://i.imgur.com/D2z9Kyp.png">
+  <img src="http://i.imgur.com/D2z9Kyp.png" width="700"
        alt="Low complexity regions for GATK and FreeBayes validation">
 </a>
 #+END_HTML
 
 - For SNPs, removing low complexity regions removes approximately ~2% of the
-  calls for FreeBayes. This corresponds to the 2% of the genome subtracted by
-  removing LCRs.
+  total calls for both FreeBayes and GATK. This corresponds to the 2% of the
+  genome subtracted by removing LCRs.
 
-- For indels, removing LCRs removes 40% of the calls due to the
+- For indels, removing LCRs removes 45% of the calls due to the
   over-representation of indels in repeat regions. Additionally, this results in
   approximately equal GATK and FreeBayes concordant indels after LCR removal.
   Since the Genome in a Bottle reference callset uses GATK HaplotypeCaller to
   resolve discrepant calls, this change in concordance is likely due to bias
   towards GATK's approaches for indel resolution in complex regions.
 
-- The GATK VQSR calls for SNPs are as sensitive, relative to FreeBayes
-  calls. I'll describe additional work to improve this below.
+- The default GATK VQSR calls for SNPs are not as sensitive, relative to
+  FreeBayes calls. I'll describe additional work to improve this below.
 
-Practically, we now exclude low complexity regions in variant comparisons
-to avoid the potential bias and more accurately represent calls in the remaining
+Practically, we'll now exclude low complexity regions in variant comparisons
+to avoid potential bias and more accurately represent calls in the remaining
 non-LCR genome. We'll additionally flag low complexity indels in non-evaluation
-callsets as likely to require additional followup.
+callsets as likely to require additional followup. Longer term, we need to
+incorporate callers specifically designed for repeats like [[lobstr][lobSTR]] to more
+accurately characterize these regions.
 
 #+LINK: mdust http://compbio.dfci.harvard.edu/tgi/software/
 #+LINK: lcr-bed https://github.com/lh3/varcmp/raw/master/scripts/LCR-hs37d5.bed.gz
+#+LINK: lobstr http://lobstr.teamerlich.org/index.html
 
 * High depth, low quality, filter for FreeBayes
 
@@ -129,24 +139,24 @@ about removing low quality, low depth variants. However, high depth regions can
 indicate potential copy number variations or hidden duplicates which result in
 spurious calls.
 
-Comparing true and false positive FreeBayes calls with a quality of less than
-500 identifies a large grouping of false positive heterozygous variants at a
-combined depth, across the trio, of 200:
+Comparing true and false positive FreeBayes calls with a pooled multi-sample
+call quality of less than 500 identifies a large grouping of false positive
+heterozygous variants at a combined depth, across the trio, of 200:
 
 #+BEGIN_HTML
-<a href="http://i.imgur.com/C7AGEmN.png">
-  <img src="http://i.imgur.com/C7AGEmN.png" width="700"
+<a href="http://i.imgur.com/S9lObRf.png">
+  <img src="http://i.imgur.com/S9lObRf.png" width="700"
        alt="Heterozygotes by depth and quality: true versus false positive">
 </a>
 #+END_HTML
 
 The cutoff proposed by Heng was to calculate the average depth of called
 variants and set the cutoff as the average depth plus 3 (or 4) times the square
-root of average depth. This dataset was an average depth of 169, for the 3
-samples, corresponding to a cutoff of 208 if we use the 3 multiplier, which
-compares nicely with a manual cutoff you'd set looking at the above
-graphs. Applying a cutoff of QUAL < 500 and DP > 208 produces a reduction in
-false positives with little impact on sensitivity:
+root of average depth. This dataset was an average depth of 169 for the trio,
+corresponding to a cutoff of 208 if we use the 3 multiplier, which compares
+nicely with a manual cutoff you'd set looking at the above graphs. Applying a
+cutoff of QUAL < 500 and DP > 208 produces a reduction in false positives with
+little impact on sensitivity:
 
 #+BEGIN_HTML
 <a href="http://i.imgur.com/zOcrnKS.png">
@@ -156,10 +166,10 @@ false positives with little impact on sensitivity:
 #+END_HTML
 
 A nice bonus of this filter is that it makes intuitive sense: variants with high
-depth and low quality indicate there is something wrong that depth manages to
-partially compensate for. This is similar to [[gatk-qd][GATK's QualByDepth annotation]] and
-default filter of QD < 2.0. We incorporated a generalized version of this into
-[[fb-filter][bcbio-nextgen's FreeBayes filter]].
+depth and low quality indicate there is something problematic, and depth manages to
+partially compensate for the underlying issue. Inspired by [[gatk-qd][GATK's QualByDepth annotation]] and
+default filter of QD < 2.0, we incorporated a generalized version of this into
+[[fb-filter][bcbio-nextgen's FreeBayes filter]]: QUAL < (depth-cutoff * 2.0) and DP > depth-cutoff.
 
 #+LINK: fb-filter https://github.com/chapmanb/bcbio-nextgen/blob/master/bcbio/variation/vfilter.py#L75
 #+LINK: gatk-qd https://www.broadinstitute.org/gatk/gatkdocs/org_broadinstitute_sting_gatk_walkers_annotator_QualByDepth.html
@@ -167,11 +177,12 @@ default filter of QD < 2.0. We incorporated a generalized version of this into
 * GATK variant quality score recalibration (VQSR)
 
 The other area where we needed to improve was using GATK Variant Quality Score
-Recalibration. Using the default parameters provides a set of calls that were
+Recalibration. The default parameters provide a set of calls that are
 overly conservative relative to the FreeBayes calls. VQSR provides the ability
-to tune sensitivity and specificity so we experimented with multiple
-configurations to achieve approximately equal sensitivity for both SNPs and
-Indels. The below graphs compare VQSR default settings with multiple tranche
+to tune the filtering so we experimented with multiple
+configurations to achieve approximately equal sensitivity relative to FreeBayes
+for both SNPs and Indels. The comparisons use the Genome in a Bottle reference
+callset for evaluation, and include VQSR default settings, multiple tranche
 levels and GATK's suggested hard filters:
 
 #+BEGIN_HTML
@@ -189,18 +200,19 @@ levels and GATK's suggested hard filters:
 #+END_HTML
 
 While the sensitivity/specificity tradeoff depends on the research question, in
-trying to set a generally useful default we'd like to be less conservative and
-learned these tips and tricks for tuning VQSR filtering:
+trying to set a generally useful default we'd like to be less conservative than
+the GATK VQSR default. We learned these tips and tricks for tuning VQSR filtering:
 
 - The default setting for VQSR is not a tranche level (like 99.0), but rather a
   LOD score of 0. In this experiment, that corresponded to a tranche of ~99.0 for
   SNPs and ~98.0 for indels. The best-practice example documentation uses command line
-  parameter that specify consistent tranche of 99.0 for both.
+  parameter that specify a consistent tranche of 99.0 for both SNPs and indels, so
+  depending on which you follow as a default you'll get different sensitivities.
 
 - To increase sensitivity, increase the tranche level. My expectations were that
   decreasing the tranche level would include more variants, but that actually
-  applies additional filters. My approach for understand tranche levels is that
-  they specify the number of variants you want to capture; a tranche of 99.9%
+  applies additional filters. My suggestion for understanding tranche levels is that
+  they specify the percentage of variants you want to capture; a tranche of 99.9%
   captures 99.9% of the true cases in the training set, while 99.0% captures
   less.
 
@@ -209,19 +221,25 @@ learned these tips and tricks for tuning VQSR filtering:
   the new default settings in bcbio-nextgen.
 
 - Using [[gatk-hard][hard filtering of variants based on GATK recommendations]] performs well
-  and is a good default if VQSR will not work due to sample size issues. For
-  SNPs, the hard filter defaults are less conservative and more in line with
-  FreeBayes results than VQSR defaults. VQSR overall has better specificity at
-  the same sensitivity and has the advantage of being able to tune, but in the
-  absence of training and evaluation data hard filtering is also a good choice.
+  and is also a good default choice. For SNPs, the hard filter defaults are less
+  conservative and more in line with FreeBayes results than VQSR defaults. VQSR
+  has improved specificity at the same sensitivity and has the advantage
+  of being configurable, but will require an extra tuning step.
+
+Overall VQSR provides good filtering and the ability to tune sensitivity but
+requires validation work to select tranche cutoffs that are as sensitive as hard
+filter defaults, since default values tend to be overly conservative for SNP
+calling. In the absence of the ability or desire to tune VQSR tranche levels,
+the GATK hard filters provide a nice default without much of a loss in
+precision.
 
 #+LINK: gatk-hard https://github.com/chapmanb/bcbio-nextgen/blob/master/bcbio/variation/vfilter.py#L125
 
 * Data availability and future work
 
 Thanks to continued community work on improving variant calling evaluations,
-this post demonstrates practical improvements in bcbio-nextgen variant calling
-output. We welcome interested contributors to re-run and expand on the analysis,
+this post demonstrates practical improvements in bcbio-nextgen variant calling.
+We welcome interested contributors to re-run and expand on the analysis,
 with full instructions in the [[trio-example][bcbio-nextgen example pipeline documentation]]. Some
 of the output files from the analysis may also be useful:
 
@@ -232,7 +250,7 @@ of the output files from the analysis may also be useful:
 
 - [[shared-fps][Shared false positives from FreeBayes and GATK HaplotypeCaller]]. These are
   potential missing variants in the Genome in a Bottle reference. Alternatively,
-  the may represent persistent errors found in multiple callers.
+  they may represent persistent errors found in multiple callers.
 
 We plan to continue to explore variant calling improvements in
 bcbio-nextgen. Our next steps are to use the trio population framework to
@@ -242,8 +260,8 @@ compare with single sample calling followed by [[bcbio.variation.recall][subsequ
 to assess the value of concurrent population calling. We welcome suggestions and
 thoughts on this work and future directions.
 
-#+LINK: fb-tp-vcf http://fix.me
-#+LINK: fb-fp-vcf http://fix.me
-#+LINK: shared-fps http://fix.me
+#+LINK: fb-tp-vcf https://s3.amazonaws.com/bcbio_nextgen/comparison3/freebayes-tp-het.vcf.gz
+#+LINK: fb-fp-vcf https://s3.amazonaws.com/bcbio_nextgen/comparison3/freebayes-fp-het.vcf.gz
+#+LINK: shared-fps https://s3.amazonaws.com/bcbio_nextgen/comparison3/giab-comparision-shared-gatk-fb-extras.vcf.gz
 #+LINK: gatk-incremental http://gatkforums.broadinstitute.org/discussion/3896/the-gatk-reference-model-pipeline-for-incremental-joint-discovery-in-full-detail
 #+LINK: bcbio.variation.recall https://github.com/chapmanb/bcbio.variation.recall
