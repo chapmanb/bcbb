@@ -1,0 +1,163 @@
+#+title: Deploying bioinformatics tools with CloudBioLinux
+#+author: Brad Chapman \\ Bioinformatics Core, \\ Harvard School of Public Health \\ https://github.com/chapmanb
+#+date: 30 June 2014
+
+#+OPTIONS: toc:nil H:2
+
+#+startup: beamer
+#+LaTeX_CLASS: beamer
+#+LaTeX_CLASS_OPTIONS: [14pt]
+#+latex_header: \usepackage{url}
+#+latex_header: \usepackage{hyperref}
+#+latex_header: \hypersetup{colorlinks=true}
+#+BEAMER_THEME: default
+#+BEAMER_COLOR_THEME: seahorse
+#+BEAMER_INNER_THEME: rectangles
+
+* Overview
+** Outline
+
+\Large
+- *Overview of CloudBioLinux*
+- Creating custom set of tools
+- Installing from custom flavor
+- Adding a new tool
+\normalsize
+
+** What is CloudBioLinux?
+
+Infrastructure for installing biological software
+
+- deb/rpm packages
+- Bio-Linux
+- Linuxbrew with homebrew-science
+- Python, Ruby, R package management
+- Conda + Binstar \small https://conda.binstar.org/
+- \normalsize Custom installation scripts
+
+** History
+
+Integration of multiple efforts
+
+- JCVI Cloud Bio-Linux
+- Bioperl Max
+- Infochimps machetEC2
+- Bio-Linux
+- DebianMed
+
+** Original goal
+
+Overcome bare-metal problem with AWS images
+
+- Ubuntu
+- Single AMI with biological tools
+- Automated build infrastructure
+- Bring in developer community
+- Ready to use for researchers
+
+** Biological data
+
+- Genomes, organized and indexed
+- Associated data files: dbSNP, reference transcripts
+- S3 bucket
+- Tools with organized data
+- GEMINI: \small https://github.com/arq5x/gemini
+
+** Local installation
+
+- Multiple platforms: RedHat/CentOS, Debian, ScientificLinux
+- Isolated installations: no sudo, non-VM environments
+- Rapid turnaround for fixes
+
+** Flavors: customized installations
+
+- Target specific use case
+- Sub-collection of packages from full distribution
+- Example: cloudbiolinux/contrib/flavor/biopython
+
+Pjotr Prins
+
+** Hidden infrastructure
+
+bcbio-nextgen
+
+- CloudBioLinux drives fully automated installation
+- Reproducible build scripts for docker migration
+
+https://github.com/chapmanb/bcbio-nextgen
+
+** Containers
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width .6\textwidth
+[[./images/homepage-docker-logo.png]]
+#+END_CENTER
+
+http://docker.io/
+https://github.com/chapmanb/bcbio-nextgen-vm
+
+** Manifest
+
+- Full manifest of installed software
+- Prioritize biological software
+- YAML format for parsing and downstream queries
+
+** CloudBioLinux architecture
+
+- YAML configuration
+- Flavors
+- Fabric scripts
+- Documentation
+
+* Custom flavor
+
+** Outline
+
+\Large
+- Overview of CloudBioLinux
+- *Creating custom set of tools*
+- Installing from custom flavor
+- Adding a new tool
+\normalsize
+
+** What is a flavor?
+
+\Large
+- Subset of full CloudBioLinux packages
+- Defined set of packages for a task
+\normalsize
+
+** YAML configuration: directory
+
+[[./images/yaml-config-dir.png]]
+
+** YAML configuration: example
+
+[[./images/yaml-config-ex.png]]
+
+** Example flavor
+
+[[./images/flavor.png]]
+
+** Edit main.yaml
+
+[[./images/flavor-main.png]]
+
+** Edit set of brew installed packages
+
+[[./images/flavor-brew.png]]
+
+* Install custom flavor
+
+** Outline
+
+\Large
+- Overview of CloudBioLinux
+- Creating custom set of tools
+- *Installing from custom flavor*
+- Adding a new tool
+\normalsize
+
+** Edit fabricrc.txt
+
+[[./images/flavor-fabricrc.png]]
