@@ -19,9 +19,9 @@
 
 \Large
 - *Overview of CloudBioLinux*
-- Creating custom set of tools
-- Installing from custom flavor
-- Adding a new tool
+- Create custom set of tools
+- Install from custom flavor
+- Add a new tool
 \normalsize
 
 ** What is CloudBioLinux?
@@ -34,6 +34,20 @@ Infrastructure for installing biological software
 - Python, Ruby, R package management
 - Conda + Binstar \small https://conda.binstar.org/
 - \normalsize Custom installation scripts
+
+** Key Features
+
+\huge
+- Community
+\vspace{0.1cm}
+- Curation
+\normalsize
+
+** Community
+
+[[./images/cbl.png]]
+
+https://github.com/chapmanb/cloudbiolinux
 
 ** History
 
@@ -65,7 +79,7 @@ Overcome bare-metal problem with AWS images
 
 ** Local installation
 
-- Multiple platforms: RedHat/CentOS, Debian, ScientificLinux
+- Multiple platforms: Ubuntu, RedHat/CentOS, Debian, ScientificLinux
 - Isolated installations: no sudo, non-VM environments
 - Rapid turnaround for fixes
 
@@ -93,8 +107,18 @@ https://github.com/chapmanb/bcbio-nextgen
 [[./images/homepage-docker-logo.png]]
 #+END_CENTER
 
-http://docker.io/
-https://github.com/chapmanb/bcbio-nextgen-vm
+http://docker.io/ \\
+\small https://github.com/chapmanb/bcbio-nextgen-vm
+
+** Galaxy toolshed integration vision
+
+- CloudBioLinux flavor to install tools
+- Install in isolated Docker container
+- Galaxy support for Docker
+
+\small
+https://bitbucket.org/galaxy/galaxy-central/pull-request/401/allow-tools-and-deployers-to-specify
+\normalsize
 
 ** Manifest
 
@@ -102,23 +126,23 @@ https://github.com/chapmanb/bcbio-nextgen-vm
 - Prioritize biological software
 - YAML format for parsing and downstream queries
 
-** CloudBioLinux architecture
-
-- YAML configuration
-- Flavors
-- Fabric scripts
-- Documentation
-
 * Custom flavor
 
 ** Outline
 
 \Large
 - Overview of CloudBioLinux
-- *Creating custom set of tools*
-- Installing from custom flavor
-- Adding a new tool
+- *Create custom set of tools*
+- Install from custom flavor
+- Add a new tool
 \normalsize
+
+** CloudBioLinux architecture
+
+- YAML configuration
+- Flavors
+- Fabric scripts
+- Documentation
 
 ** What is a flavor?
 
@@ -147,17 +171,175 @@ https://github.com/chapmanb/bcbio-nextgen-vm
 
 [[./images/flavor-brew.png]]
 
+** Edit fabricrc.txt
+
+[[./images/flavor-fabricrc.png]]
+
 * Install custom flavor
 
 ** Outline
 
 \Large
 - Overview of CloudBioLinux
-- Creating custom set of tools
-- *Installing from custom flavor*
-- Adding a new tool
+- Create custom set of tools
+- *Install from custom flavor*
+- Add a new tool
 \normalsize
 
-** Edit fabricrc.txt
+** Setup: get CloudBioLinux and Fabric
 
-[[./images/flavor-fabricrc.png]]
+Retrieve source and fabric for execution
+
+\footnotesize
+#+BEGIN_SRC sh
+$ git clone https://github.com/chapmanb/cloudbiolinux.git
+$ pip install fabric
+#+END_SRC
+\normalsize
+
+\vspace{1cm}
+https://github.com/fabric/fabric
+
+** Short demonstration flavor
+
+[[./images/flavor-demo.png]]
+
+contrib/flavor/demo
+
+** Install
+
+Single command
+
+\small
+#+BEGIN_SRC sh
+$ cd cloudbiolinux
+$ fab -H localhost install_biolinux:flavor=demo
+#+END_SRC
+\normalsize
+
+** Isolated install directory
+
+\tiny
+#+BEGIN_SRC sh
+$ tree -d -L 2 ~/tmp/cbl_demo/
+/home/chapmanb/tmp/cbl_demo
+|-- bin
+|-- Cellar
+|   |-- bedtools
+|   |-- bwa
+|   |-- gatk-framework
+|   `-- samtools
+|-- include
+|   `-- bam -> ../Cellar/samtools/0.1.19/include/bam
+|-- lib
+|   `-- pkgconfig
+|-- Library
+|   |-- Aliases
+|   |-- Contributions
+|   |-- ENV
+|   |-- Formula
+|   |-- Homebrew
+|   |-- LinkedKegs
+|   `-- Taps
+|-- opt
+|   |-- bedtools -> ../Cellar/bedtools/2.19.1
+|   |-- bwa -> ../Cellar/bwa/0.7.9a
+|   |-- gatk-framework -> ../Cellar/gatk-framework/3.1-1
+|   `-- samtools -> ../Cellar/samtools/0.1.19
+`-- share
+    |-- doc
+    |-- java -> ../Cellar/gatk-framework/3.1-1/share/java
+    |-- man
+    `-- samtools -> ../Cellar/samtools/0.1.19/share/samtools
+#+END_SRC
+\normalsize
+
+** Update paths to include automatically
+
+\footnotesize
+#+BEGIN_SRC sh
+export PATH=~/tmp/cbl_demo/bin:$PATH
+export LD_LIBRARY_PATH=~/tmp/cbl_demo/lib:$LD_LIBRARY_PATH
+export PERL5LIB=~/tmp/cbl_demo/lib/perl5:
+                ~/tmp/cbl_demo/lib/perl5/site_perl:${PERL5LIB}
+#+END_SRC
+\normalsize
+
+** Do some science
+
+#+BEGIN_SRC sh
+$ bedtools
+$ samtools
+$ gatk-framework
+#+END_SRC
+
+* Add a new tool
+
+** Outline
+
+\Large
+- Overview of CloudBioLinux
+- Create custom set of tools
+- Install from custom flavor
+- *Add a new tool*
+\normalsize
+
+** Tool add options
+
+- Add to any existing packaging community
+  - DebianMed
+  - Bio-Linux
+  - Homebrew
+- Custom python code
+- This example: Homebrew recipe
+
+** Homebrew/Linuxbrew
+
+#+ATTR_LATEX: :width .7\textwidth
+[[./images/linuxbrew.png]]
+
+\small
+https://github.com/Homebrew/homebrew \\
+https://github.com/Homebrew/linuxbrew
+\normalsize
+
+** homebrew-science
+
+[[./images/homebrew-science.png]]
+
+\small
+https://github.com/Homebrew/homebrew-science
+\normalsize
+
+** homebrew-cbl
+
+[[./images/homebrew-cbl.png]]
+
+\small
+https://github.com/chapmanb/homebrew-cbl
+\normalsize
+
+** Simple recipe
+
+[[./images/recipe-vt.png]]
+
+\small
+https://github.com/chapmanb/homebrew-cbl/blob/master/vt.rb
+\normalsize
+
+** Complex recipe
+
+[[./images/recipe-vep.png]]
+
+\small
+https://github.com/chapmanb/homebrew-cbl/blob/master/vep.rb
+\normalsize
+
+** Recap
+
+\Large
+- Overview of CloudBioLinux
+- Create custom set of tools
+- Install from custom flavor
+- Add a new tool
+\normalsize
