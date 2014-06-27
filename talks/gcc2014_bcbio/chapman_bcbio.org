@@ -1,0 +1,100 @@
+#+title: Connecting Galaxy to tools with alternative storage and compute models
+#+author: Brad Chapman \\ Bioinformatics Core, Harvard School of Public Health \\ https://github.com/chapmanb/bcbio-nextgen \\ http://j.mp/bcbiolinks
+#+date: 1 July 2014
+
+#+OPTIONS: toc:nil H:2
+
+#+startup: beamer
+#+LaTeX_CLASS: beamer
+#+latex_header: \usepackage{url}
+#+latex_header: \usepackage{hyperref}
+#+latex_header: \hypersetup{colorlinks=true}
+#+BEAMER_THEME: default
+#+BEAMER_COLOR_THEME: seahorse
+#+BEAMER_INNER_THEME: rectangles
+
+* Tradeoffs
+
+** Tradeoff: Assessing code
+
+\huge
+Community > Implementation
+\normalsize
+
+
+** Tradeoff: Reproducibility
+
+\huge
+Validation > Replication
+\normalsize
+
+\vspace{3cm}
+\footnotesize
+Genome in a Bottle: [[http://www.genomeinabottle.org/]] \\
+ICGC-TCGA DREAM: https://www.synapse.org/#!Synapse:syn312572 \\
+SMaSH: http://smash.cs.berkeley.edu/
+\normalsize
+
+** Tradeoff: Development focus
+
+\huge
+Scaling > Configurability
+\normalsize
+
+
+* bcbio overview
+
+** Overview
+
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images3/bcbio_nextgen_highlevel.png]]
+
+\vspace{1cm}
+https://github.com/chapmanb/bcbio-nextgen
+
+** Uses
+
+\Large
+- Aligners: bwa-mem, novoalign, bowtie2
+- Variantion: FreeBayes, GATK, MuTecT, SnpEff, VEP, GEMINI
+- RNA-seq: tophat, STAR, cufflinks, HTSeq
+- Quality control: fastqc, bamtools, RNA-SeQC
+- Manipulation: bedtools, bcftools, biobambam, sambamba, samblaster, samtools,
+  vcflib
+\normalsize
+
+** Provides
+
+\Large
+- Validation -- outputs + automated evaluation
+- Tool integration
+- Multi-platform support
+- Scaling
+\normalsize
+
+* Galaxy
+
+** bcbio as a tool
+
+\scriptsize
+https://github.com/chapmanb/bcbio-nextgen/tree/master/config/galaxy
+\normalsize
+
+** Storage
+
+
+** Tool Shed
+
+\small
+https://github.com/chapmanb/bcbio-nextgen-vm \\
+https://github.com/chapmanb/cloudbiolinux
+\normalsize
+
+* Summary
+
+** Summary
+
+- Focus: Community, Validation, Scaling
+- Practical tool: bcbio-nextgen \\
+  https://github.com/chapmanb/bcbio-nextgen
+- Galaxy
