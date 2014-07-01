@@ -14,13 +14,19 @@
 #+BEAMER_INNER_THEME: rectangles
 
 * Tradeoffs
-
 ** Tradeoff: Assessing code
 
 \huge
 Community > Implementation
 \normalsize
 
+\vspace{3cm}
+
+\footnotesize
+Galaxy \\
+Biopython: http://biopython.org \\
+OpenBio: http://www.open-bio.org
+\normalsize
 
 ** Tradeoff: Reproducibility
 
@@ -41,6 +47,11 @@ SMaSH: http://smash.cs.berkeley.edu/
 Scaling > Configurability
 \normalsize
 
+\vspace{3cm}
+
+\footnotesize
+bcbio scaling: http://j.mp/bcbioscale
+\normalsize
 
 * bcbio overview
 
@@ -56,8 +67,8 @@ https://github.com/chapmanb/bcbio-nextgen
 
 \Large
 - Aligners: bwa-mem, novoalign, bowtie2
-- Variantion: FreeBayes, GATK, MuTecT, SnpEff, VEP, GEMINI
-- RNA-seq: tophat, STAR, cufflinks, HTSeq
+- Variantion: FreeBayes, GATK, MuTecT, SnpEff, VEP, GEMINI, Lumpy, Delly
+- RNA-seq: Tophat, STAR, cufflinks, HTSeq
 - Quality control: fastqc, bamtools, RNA-SeQC
 - Manipulation: bedtools, bcftools, biobambam, sambamba, samblaster, samtools,
   vcflib
@@ -66,35 +77,77 @@ https://github.com/chapmanb/bcbio-nextgen
 ** Provides
 
 \Large
-- Validation -- outputs + automated evaluation
+- Community -- collected set of expertise
 - Tool integration
-- Multi-platform support
+- Validation -- outputs + automated evaluation
+- Installation of tools and data
 - Scaling
 \normalsize
 
+* Challenges
+
+** Scaling: avoid intermediates
+
+#+begin_src python :exports code
+("{bwa} mem -M -t {num_cores} -R '{rg_info}' -v 1 "
+ "  {ref_file} {fastq_file} {pair_file} "
+ "| {samblaster} "
+ "| {samtools} view -S -u /dev/stdin "
+ "| {sambamba} sort -t {cores} -m {mem} --tmpdir {tmpdir}"
+ "   -o {tx_out_file} /dev/stdin")
+#+end_src
+
+** Parallelization: split and batched jobs
+
+[[./images2/parallel-genome.png]]
+
+** Storage: extract outputs
+
+- Intermediates -- 6x final
+#+begin_src sh
+$ du -sh *
+353G final
+2.2T work
+#+end_src
+
+- 1500 whole genome scale -- 110Tb
+
+#+begin_src sh
+$ du -sh alz-p3f_2-g5/final
+3.4T  alz-p3f_2-g5/final
+$ ls -lhd *alz* | wc -l
+31
+#+end_src
+
 * Galaxy
 
-** bcbio as a tool
+** bcbio as a Galaxy tool
+
+[[./images2/bcbio_tool.png]]
 
 \scriptsize
 https://github.com/chapmanb/bcbio-nextgen/tree/master/config/galaxy
 \normalsize
 
-** Storage
+** Tool shed install: Docker
 
-
-** Tool Shed
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width 0.6\textwidth
+[[./images/homepage-docker-logo.png]]
+#+END_CENTER
 
 \small
-https://github.com/chapmanb/bcbio-nextgen-vm \\
-https://github.com/chapmanb/cloudbiolinux
+https://github.com/chapmanb/cloudbiolinux \\
+https://github.com/chapmanb/bcbio-nextgen-vm
 \normalsize
 
 * Summary
 
 ** Summary
 
+\Large
 - Focus: Community, Validation, Scaling
-- Practical tool: bcbio-nextgen \\
-  https://github.com/chapmanb/bcbio-nextgen
-- Galaxy
+- bcbio-nextgen \small https://github.com/chapmanb/bcbio-nextgen \Large
+- Challenges: parallelization, scaling and storage
+- Galaxy integration: Simple tool with Docker installation
+\normalsize
