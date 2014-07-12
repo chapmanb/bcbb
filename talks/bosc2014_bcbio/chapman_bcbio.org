@@ -1,0 +1,169 @@
+#+title: Supporting validated community developed variant calling analyses
+#+author: Brad Chapman \\ Bioinformatics Core, Harvard School of Public Health \\ https://github.com/chapmanb/bcbio-nextgen \\ http://j.mp/bcbiolinks
+#+date: 12 July 2014
+
+#+OPTIONS: toc:nil H:2
+
+#+startup: beamer
+#+LaTeX_CLASS: beamer
+#+latex_header: \usepackage{url}
+#+latex_header: \usepackage{hyperref}
+#+latex_header: \hypersetup{colorlinks=true}
+#+BEAMER_THEME: default
+#+BEAMER_COLOR_THEME: seahorse
+#+BEAMER_INNER_THEME: rectangles
+
+* bcbio overview
+
+** Overview
+
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images3/bcbio_nextgen_highlevel.png]]
+
+\vspace{1cm}
+https://github.com/chapmanb/bcbio-nextgen
+
+** Uses
+
+\Large
+- Aligners: bwa-mem, novoalign, bowtie2
+- Variantion: FreeBayes, GATK, MuTecT, Scalpel, SnpEff, VEP, GEMINI, Lumpy, Delly
+- RNA-seq: Tophat, STAR, cufflinks, HTSeq
+- Quality control: fastqc, bamtools, RNA-SeQC
+- Manipulation: bedtools, bcftools, biobambam, sambamba, samblaster, samtools,
+  vcflib
+\normalsize
+
+** Provides
+
+\Large
+- Community -- collected set of expertise
+- Tool integration
+- Validation -- outputs + automated evaluation
+- Installation of tools and data
+- Scaling
+\normalsize
+
+** Validation > Replication
+
+[[./images/minprep-callerdiff.png]]
+
+\footnotesize
+Genome in a Bottle: [[http://www.genomeinabottle.org/]] \\
+ICGC-TCGA DREAM: https://www.synapse.org/#!Synapse:syn312572 \\
+SMaSH: http://smash.cs.berkeley.edu/
+\normalsize
+
+* Docker -- installation
+
+** Make installation easy
+
+#+ATTR_LATEX: :width 0.65\textwidth
+[[./images2/install_want.png]]
+
+*** Automated Install                                                 :block:
+    :PROPERTIES:
+    :BEAMER_env: exampleblock
+    :END:
+
+We made it easy to install a large number of biological tools. \\
+Good or bad idea?
+
+** Need a consistent support environment
+
+[[./images4/install_issues.png]]
+
+** Docker lightweight containers
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width .6\textwidth
+[[./images/homepage-docker-logo.png]]
+#+END_CENTER
+
+http://docker.io
+
+** Docker benefits
+
+\Large
+- Fully isolated
+- Reproducible -- store full environment with analysis (1Gb)
+- Improved installation -- single download + data
+
+** bcbio with Docker
+
+\Large
+- External Python wrapper
+   - \Large Installation
+   - Start and run containers
+   - Mount external data into containers
+   - Parallelize
+- All analysis tools inside Docker
+\normalsize
+
+\vspace{0.5cm}
+https://github.com/chapmanb/bcbio-nextgen-vm
+http://j.mp/bcbiodocker
+
+** Docker image automation
+
+\Large
+#+begin_src sh
+$ ansible-playbook bcbio_vm_aws.yml
+$ docker import \
+  https://s3.amazonaws.com/bcbio_nextgen/ \
+          bcbio-nextgen-docker-image.gz \
+  chapmanb/bcbio-nextgen-devel
+#+end_src
+
+\normalsize
+\vspace{1cm}
+http://www.ansible.com \\
+https://github.com/chapmanb/bcbio-nextgen-vm/tree/master/ansible
+
+** Docker HPC parallelization
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width 1.05\textwidth
+[[./images2/docker-parallel.png]]
+#+END_CENTER
+
+http://ipython.org/ipython-doc/dev/parallel/index.html \\
+https://github.com/roryk/ipython-cluster-helper
+
+** Consistent scaling environment
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width .6\textwidth
+[[./images/aws.png]]
+#+END_CENTER
+
+** Amazon challenges
+
+\Large
+- Cost -- spot instances
+- Disk -- local scratch, no EBS
+- Organization -- no shared filesystems,
+  \newline S3 push/pull
+- Data -- reconstitute on minimal machines
+- Security -- encryption at rest
+\normalsize
+
+** Amazon approaches
+
+\Large
+- Clusterk http://clusterk.com/
+- Arvados http://arvados.org/
+- Galaxy http://usegalaxy.org/
+\normalsize
+
+* Summary
+
+** Summary
+
+\Large
+- Community developed variant calling analyses
+  \normalsize https://github.com/chapmanb/bcbio-nextgen \Large
+- Docker: consistent install environment
+- Automation: reproducible, understandable builds
+- Need for a consistent scaling environment
+\normalsize
