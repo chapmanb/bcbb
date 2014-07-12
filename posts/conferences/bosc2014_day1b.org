@@ -1,0 +1,227 @@
+#+BLOG: smallchangebio
+#+POSTID: 84
+#+DATE: [2014-07-11 Fri 17:31]
+#+TITLE: Notes: Bioinformatics Open Source Conference 2014 day 1 afternoon: Visualization, Project updates and lightning talks
+#+CATEGORY: conference
+#+TAGS: bioinformatics, open-bio, open-source
+#+OPTIONS: toc:nil num:nil
+
+I'm at the [[bosc][2014 Bioinformatics Open Source Conference (BOSC)]] in Boston. It's a
+great two day conference devoted to open source, science and community. These
+are my notes from the day 1 afternoon session. [[nextday][Next Day Video]] recorded all the
+talks and they're available on the [[video-obf][Open Bio video site]].
+
+Other notes:
+
+- [[day1a][Day 1 morning]]
+
+#+LINK: bosc http://www.open-bio.org/wiki/BOSC_2014
+#+LINK: day1a http://smallchangebio.wordpress.com/2014/07/11/notes-bioinformatics-open-source-conference-2014-day-1-morning-titus-brown-genome-scale-data-obf/
+#+LINK: nextday http://nextdayvideo.com/
+#+LINK: video-obf http://video.open-bio.org/
+
+* Visualization
+
+** WormGUIDES: an Interactive Informatic Developmental Atlas at Subcellular Resolution
+/Anthony Santella/
+
+[[workguides][WormGUIDES]] provides a framework to track developmental changes in C elegans and
+handle imaging of worms. [[starrynite][StarryNite]] does the cool visualization tracking of
+development and movement over time. Long term goals is to integrate multiple
+data sets from a lot of things I don't understand: tracking movement of 300
+neurons over time via computer vision processing. WormGUIDES mobile app lets you
+look at development over time on your Android or iPhone. Can set up custom
+displays for tracking individual cells over time. Impressive engineering
+work. Anthony now showing even more complex work with Drosophila embryo
+development.
+
+#+LINK: workguides http://www.wormguides.org/
+#+LINK: starrynite http://starrynite.sourceforge.net
+
+** BioJS: an Open Source Standard for Biological Visualisation
+/Manuel Corpas/
+
+Manny talks about community work to develop [[biojs][BioJs]]: javascript pieces to
+represent biological data visualization. Impressive development setup with a
+registry, tests and documentation for every component. No requirements on
+underlying javascript visualization framework: can make use of any within a
+component. I wonder how this works without everything becoming a mess. They have
+done a lot of work to lower barriers to contribution. [[biojs-github][BioJS on GitHub]] and have a
+[[biojs-paper][published paper]]. Impressive list of contributors.
+
+#+LINK: biojs https://biojs.github.io/
+#+LINK: biojs-github https://github.com/biojs/biojs
+#+LINK: biojs-paper http://f1000research.com/articles/3-55/v1
+
+** Biodalliance: a Fast, Extensible Genome Browser
+/Thomas Down/
+
+The [[biodalliance][Biodalliance]] Genome Browser enables easy embedding into web pages,
+applications, and hopefully papers. Papers generally written around static set
+of figures currently. Thomas kicks into a live demo showing a set of features
+highlighted in the genome: GWAS like experiment where he can jump around finding
+regions above a specified threshold. Really useful biology layered on top of
+visualization. Similar goals to visualization work in Galaxy. Impressively fast
+responsiveness during demo. Small footprint with API of tool makes it easy to
+embed in blog-posts, papers, talks, other tools. General goal is to do
+everything on client side with minimal work. Supports a large number of standard
+formats: bigwig/bigbed, BAM, VCF, BED with tabix indexes. Can read from S3, I
+wonder if it pulls indexes and sections of files correctly?
+
+#+LINK: biodalliance http://www.biodalliance.org/
+
+** TGAC Browser: Visualisation Solutions for Big Data in the Genomic Era
+/Anil Thanki/
+
+[[tgac-browser][TGAC Browser]] continues the stream of genome browsers in this section of BOSC
+talks. It works on top of the Ensembl core database. Approach is to do heavy
+processing on a server and only handle display on the client side. Server is
+Java talking to javascript from end with JSON/Ajax. Supports similar load
+information to Biodalliance: BAM, VCFs tabixed, GFF. Has full integration with
+BLAST through TGAC which links back to genome browser. Very meta: integrated
+Aequatus browser within TGAC browser.
+
+#+LINK: tgac-browser http://tgac-browser.tgac.ac.uk/
+
+** Explore, Analyze, and Share Genomic Data Using Integrated Genome Browser
+/Ann Loraine/
+
+Ann wraps up the genome browser section with her group's work on the
+[[igb][Integrated Genome Browser]]. Goal of IGB (pronounce ig-bee) is to enable visualization
+exploration, taking notes, making images and publishing. IGB is a standalone,
+easy to use, application as opposed to in-web browser. Has a nice way to share
+general data using IGB QuickLoad. Ann switches over to a live demo of IGB. It
+starts with a nice splash page making it easy to load multiple genomes. IGB is
+10+ years old and lots of nice examples from Ann about features initially
+prototyped in IGB and used by other browsers. Good example of hard to establish
+where things came from over time and establish credit. IGB now integrated within
+Galaxy. Nice clean integration.
+
+#+LINK: igb http://bioviz.org/igb/
+
+* Bioinformatics Open Source Project Updates
+
+** BioMart 0.9 – Introducing Tools for Data Analysis and Visualisation
+/Luca Pandini/
+
+This is a magical pre-recorded talk since Luca is unfortunately ill. Emphasis of
+[[biomart][BioMart]] is on community work to provide a centralized way to represent and
+access genomic data. New developments in BioMart focused on web services,
+providing a full REST interface returning JSON. Also developing tools:
+pathway enchrichment tool pulls together a large set of annotations in regions of
+interest. Works with the REST interface so nicely linked with other new
+developments. Future goals are new tools for prioritizing and reporting from
+queries.
+
+#+LINK: biomart http://www.biomart.org/
+
+** Biocaml: The OCaml Bioinformatics Library
+/Ashish Agarwal/
+
+Ashish talks about work building bioinformatics tools in OCaml, a multi-paradigm
+language with imperative, object oriented and functional approaches. OCaml has
+multiple compilers, including native code, Javascript, and JVM based. Biocaml
+has an impressive array of functionality for parsing file formats. Nice amount
+of thinking about how best to deal with errors. Also nice support for
+concurrency, with asynchronous calls. Biocaml provides multiple flavors that
+handle two methods of concurrency and error type safe/non-safe. Automatically
+compiled from functors: magic. OCaml has a [[parallel_async][async_parallel]] approach that handles
+multi-node parallelization.
+
+#+LINK: biocaml https://github.com/biocaml/biocaml/
+#+LINK: parallel_async https://blogs.janestreet.com/async-parallel/
+
+** BioRuby and distributed development
+/Pjotr Prins/
+
+Pjotr describes nice features of Ruby: functional programming, meta programming,
+and readibility. Ruby projects generally at meta level dealing with process
+integration. [[bioruby][BioRuby]] worked on separating BioRuby into a set of independent gems
+contributed by different members of the community. This has been great for
+getting contributors: lots of good stats about total projects and new users this
+year. [[biogems][Biogems]] keeps track of all of the projects for
+search/discoverability. Pjotr says we should write everything in [[elixir][Elixir]] now
+during the BioRuby talk.
+
+#+LINK: bioruby http://bioruby.org
+#+LINK: biogems http://biogems.info
+#+LINK: elixir http://elixir-lang.org/
+
+**  Biopython Project Update
+/Wibowo Arindrarto/
+
+Bow talks about developments in the [[biopython][Biopython]] community during the last
+year. Overall has 9000 commits by more than 100 contributors since 1999. 800
+commits by 17 new contributors in the last year. Notable improvements from GSoC
+last year: Bio.CodonAlignment, Bio.Phylo updates. Also worked on additional
+tools, Bio.Restriction reboot and improved caching of DTDs in Bio.Entrez. More
+general approaches are trying to streamline the codebase: now have a single
+codebase supporting both Python 2.6+ and Python 3.3+. Also have GSoC student
+this year, Evan Parker who is adding lazy-parsing support for Bio.SeqIO.
+
+#+LINK: biopython http://biopython.org
+
+** Shared Bioinformatics Databases Within Unipro UGENE
+/Ivan Protsyuk/
+
+[[ugene][Unipro UGENE]] is a desktop bioinformatics application running popular
+algorithm. Talking about work on improving data storage of large data with
+simultaneous access. From user perspective, [[ugene-shared][UGENE shared databases]] look identical to
+standard files. Other approaches used: Geneious and CLCBio use database and file
+based access locally. UGENE approach avoids requirement for direct download,
+developing data models for large complex data types. Imports ~100Mb/minute with
+indexing, allows instant access later. Goal is to provide a distributed workflow
+execution system on top of this storage.
+
+#+LINK: ugene http://ugene.unipro.ru/
+#+LINK: ugene-shared https://ugene.unipro.ru/wiki/display/UUOUM/Shared+Database
+
+* Lightning talks
+
+** Fostering the Next Generation of Data-driven Open Science with R
+/Karthik Ram/
+
+Karthik talks about [[ropensci][ropensci]], a project to foster open science with
+R. Motivation is from frustration with availability of data. Need to make data
+available at an early stage to help scientistics do better science. ROpenSci
+provides tools to view, visualize and deposit data in public databases. Shows a
+nice example integrating fishing and climate data into nice immediate
+visualization.
+
+#+LINK: ropensci http://karthik.github.io/BOSC
+
+** Tripal: an Open Source Toolkit for Building Genomic and Genetic Data Websites and Databases
+/Margaret Staton/
+
+[[tripal][Tripal]] integrates [[chado][CHADO]] databases with [[drupal][Drupal]] by providing plug in modules.
+Nice production of organism database websites. An impressive array of community
+websites for non-model organisms. Now have new APIs to help with
+integration. Future plans include integration with iPlant.
+
+#+LINK: tripal http://www.tripal.info/
+#+LINK: chado http://gmod.org/wiki/Chado
+#+LINK: drupal https://www.drupal.org/
+
+** PLUTo: Phyloinformatic Literature Unlocking Tools
+/Ross Mounce/
+
+[[pluto][PLUto]] provides tools to hack data from the literature, specifically phylogenetic
+trees. Only 5% of these can be re-used because embedded into PDFs. There is a
+long tail of journals with these trees, making the problem even more
+difficult. Searching for phylogeny is hard, initial approach is to create an OA
+atlas of trees in flickr PLOS ONE easiest to pull from since have metaadata for
+images. Ross' plea: don't squish lots of data into complex composite figures.
+
+#+LINK: pluto http://www.bbsrc.ac.uk/pa/grants/AwardDetails.aspx?FundingReference=BB/K015702/1
+
+** A Publication Model that Aligns with the Key Open Source Software Principles
+/Michael Markie/
+
+[[f1000][F1000 research]] is an open science journal with post-publication peer
+review. Handles revisions and review in public -- really nice stuff I wish we
+did in all journals. Provide nice work to show the things that change over time,
+at both a high level and detailed level. Require code available from a public
+repository at time of publication, archived source code, and the license. Really
+nice approach.
+
+#+LINK: f1000 http://f1000research.com/

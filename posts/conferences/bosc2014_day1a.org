@@ -1,0 +1,196 @@
+#+BLOG: smallchangebio
+#+POSTID: 81
+#+DATE: [2014-07-11 Fri 12:28]
+#+BLOG: smallchangebio
+#+TITLE: Notes: Bioinformatics Open Source Conference 2014 day 1 morning: Titus Brown, Genome Scale Data, OBF
+#+CATEGORY: conference
+#+TAGS: bioinformatics, open-bio, open-source
+#+OPTIONS: toc:nil num:nil
+
+I'm at the [[bosc][2014 Bioinformatics Open Source Conference (BOSC)]] in Boston. It's a
+great two day conference devoted to open source, science and community.
+Nomi Harris starts things off with an introduction to the goals and history of
+BOSC. She describes the evolution of BOSC since 2000: movement from open
+source advocacy to open source plus a community of developers. The emphasis is
+now on how to work better together and enable open science.
+
+#+LINK: bosc http://www.open-bio.org/wiki/BOSC_2014
+
+** A History of Bioinformatics (in the Year 2039)
+/Titus Brown/
+
+Titus introduces his talk: "It's hard to make predictions, especially about the
+future" as he pretends it's 25 years from now and gets to look back on
+Bioinformatics from that perspective: bioinformatics science fiction.  So read
+these notes as if Titus is talking from the future.
+
+In the 20s, there was a datapoalypse due to the increasing ability to sequence
+and sample everything: biology became a data-intensive science. Biology,
+however, had optimized itself for hypothesis-driven investigation, not data
+exploration.
+
+Issue 2 was the reproducibility crisis: a large percentage of papers
+could not replicate even with extensive effort. This is due to a lack of
+career/funding incentives for doing reproducible science. There was no
+independent replication.
+
+Issue 3 was that biology was weak in terms of computing education. Many labs had
+datasets generated but without expertise or plans of how to analyze them. As a
+result, had an emphasize on easy to use tools: however, they embodied so many
+assumptions that many results are weak. Emphasis on bioinformatics work as
+sweatshops doing service bioinformatics without any future career path. As a
+result, well-trained students left for data science.
+
+Came up with 3 rules for reviews: all data and source code must be in paper, full
+methods included in primary paper review and methods need publication in
+associated paper. Answer: more pre-prints. Open peer review led to replication
+studies, where a community of practice developed around replication.
+Shift in thinking about biology: biomedical enterprise rediscovers basic
+biology, rise of open science, investment in people.
+
+Biomedical community moves away from translational medicine into veterinary and
+agricultural animals as model organisms. Biotech pressured congress to decrease
+funding since adameic papers were often wrong without raw data, and funding
+crunch joined hypothesis discovery with data interpretation. Resulted in
+university collapse which led to a massive increase in creativity during
+research.
+
+Sage bionetworks: collected data from small consortia and made it available to
+everyone at publication. Led people to understand there was nothing to fear from
+making data available. NIH finally invested heavily in training: software, data
+and model carpentry.
+
+Current problems (in 2039): still unknown functional annotations, career paths
+still uncertain, glam data replaces glam publications. Many complex diseases
+remain poorly understood.
+
+BRAIN2050 10-year proposal to understand the brain, focusing on
+neurodegenerative diseases. Correlation is not causation: problem with current
+MIND project. Hard to extract data from recording all of the
+neurons. Computational modeling is critical: can we develop hypotheses that test
+against the data. Holistic approach needed.
+
+Focus less on reproducibility: strict requirement makes science slow. Can we
+compromise? Borrow idea of technical debt from software: replication debt. Do
+rapid iterations of analysis, then re-examine with semi-independent
+replication. Acknowledge debt to make it known to potential users of research.
+
+Invest in infrastructure for collaboration: enable notification of analyses to
+allow collaboration between previously unconnected groups. Build commercial
+software when basics understood. Invest in training as first class research
+citizen. Biology suggestions: needs to understand the full network system to
+understand complex biology.
+
+Conclusion: there will be a tremendous amount of change that we cannot
+predict. We need to invest in people and process and must help figure out the
+right process and provide career incentives. However, economics matter a
+lot. Need to convince the public that support for science matters.
+
+Plugs for other talks: [[schatz-talk][Mike Schatz on next ten years in quantitative biology]].
+
+#+LINK: schatz-talk http://schatzlab.cshl.edu/presentations/2014.03.24.Keystone%20BigData.pdf
+
+* Genome-scale Data and Beyond
+
+** ADAM: Fast, Scalable Genomic Analysis
+/Frank Nothaft/
+
+Frank talks about work at UC Berkeley, Mt Sinai, Broad on [[adam][ADAM]]: a distributed
+framework for scaling genome analysis. Toolsets -- avacado: distributed local
+assembler, RNAdam: RNA-seq analysis, bdg-services: ADAM clusters, Guacamole:
+distributed somatic variant caller. Provides a data format that can be cleanly
+parallelized. ADAM stack uses [[spark][Apache Spark]], [[avro][Avro]], [[parquet][Parquet]]. Principle is to avoid
+locking data in and play nicely with other tools. Parquet is an open source
+columnar file format that compresses well, limits IO and enables fast scans by
+only loading needed columns.
+
+One approach is to reimplement base quality score recalibration (BQSR). Have a
+fully parallel version that splits by reads, only requiring a shared 3Gb
+read-only table of variants (from dbSNP) to mask known variants. 2x faster than
+Picard on single cores, and 50x faster on cluster on Amazon with smaller
+machines. Have >99% concordant with BQSR; actually better due to error in GATK
+implementation.
+
+#+LINK: adam https://github.com/bigdatagenomics/adam
+#+LINK: spark http://spark.apache.org/
+#+LINK: avro https://avro.apache.org/
+#+LINK: parquet http://parquet.io/
+
+** Automated RNA-seq differential expression validation
+/Rory Kirchner/
+
+Contrast: 1/2 million hits for RNA-seq analysis pipelines, but poll on
+SeqAnswers: biggest problem in RNA-seq is a lack of reproducible pipelines.
+Complexity issue is the large number of tools and combinations of those tools.
+Implemented in [[bcbio][bcbio-nextgen]]. Describes all the goals for bcbio, stealing
+everything I'm going to talk about tomorrow. Nice slide of work in the RNA-seq
+pipeline that used. The validation framework enables evaluating actual changes
+in the pipeline: demonstrates example with trimming versus non-trimming -- no
+difference at all on high-quality validation set. Another nice plots shows
+difference in doing RNA-seq with 3 replicates at 100M/replicate, 15 minutes at
+20M reads. More replicates = better than deeper sequencing.
+
+#+LINK: bcbio https://github.com/chapmanb/bcbio-nextgen
+
+** New Frontiers of Genome Assembly with SPAdes 3.1
+/Andrey Prjibelski/
+
+[[spades][SPAdes]] initially designed for single-cell assembly but also works well on
+standard multi-cell material. Ranked high alongside Salzberg lab with
+MaSuCRa. Handles tricky non-diploid genomes like plants. Works with IonTorrent
+for error correction: IonHammer that corrects indels and mismatches. Alongside
+BayesHammer for Illumina reads. SPAdes works on Illumina [[basespace][BaseSpace platform]],
+DNANexus and Galaxy. Wow, integrated everywhere. With Illumina nextera mate
+pairs, have improved distribution of correct read pairs. Velvet assembled these
+better than SPAdes according to N50-based metrics, but in quality metrics SPAdes
+show better. Shows importance of establishing community benchmarks and
+values. Titus mentions memory usage a problem on large genomes.
+
+#+LINK: spades http://bioinf.spbau.ru/en/spades
+#+LINK: basespace https://basespace.illumina.com/home/index
+
+** SigSeeker: An Ensemble for Analysis of Epigenetic Data
+/Jens Lichtenberg/
+
+[[sigseeker][SigSeeker]] handles analysis of epigenetic methylation and histone
+modifications: CHiP-seq. Motivation: lots of tools but not good evaluations of processes.
+Idea was to provide an ensemble based approach to understand tradeoffs of
+tools. Ways to correlate: by location in the genome, and by intensity. Removes
+outliers to help resolve ones called consistently between tools. Produced nice
+correlations between all of the different tools. Also layered on top of biology
+for blood cell differentiation. Argues that adding tools adds power alongside
+addition of technical replicates.
+
+#+LINK: sigseeker http://sigseeker.org/
+
+** Galaxy as an Extensible Job Execution Platform
+/John Chilton/
+
+John talking about Galaxy integration with clusters. Goal is to convince that
+Galaxy runs jobs awesomely on clusters and clouds. The whole process is
+pluggable and John wants to convince you to use Galaxy as a platform. Galaxy
+Pulsar allows you to execute jobs in the same manner Galaxy does. Allows
+deployers to route jobs based on inputs: the dynamic job installations allows
+delaying of job, parameter collection from tools, pull resource usage from
+recent jobs. Dynamic job state handlers: enable resubmission of jobs to larger
+resources after hitting resource/time limits. New plugin infrastructure with
+Docker containers for installation.
+
+Added job metrics, collecting information about job runtime, cores and compute
+using collectl. Need to look at what John is doing with initial work in
+bcbio. Pulsar (formerly LWR) getting lots of usage under the covers at Galaxy by
+running jobs on TACC. Prototype using Pulsar on top of Mesos.
+
+** Open Bioinformatics Foundation (OBF) update
+/Hilmar Lapp/
+
+Hilmar provides an update on what is happening with the [[obf][Open Bioinformatics Foundation]].
+He describes all the work Open Bio does as a non-profit, volunteer
+run organization: BOSC, Codefests, Hackathons and GSoC. Interestingly, 120
+Open-Bio members but Biopython/BioPerl mailing list communities are 1000+
+people. OBF now associated with [[spi][Software in the Public Interest (SPI)]], can
+easily donate. Hilmar discusses the challenges associated with moving forward on
+progress using an all volunteer organization.
+
+#+LINK: obf http://www.open-bio.org/wiki/Main_Page
+#+LINK: spi http://www.spi-inc.org/
