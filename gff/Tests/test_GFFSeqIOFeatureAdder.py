@@ -318,6 +318,14 @@ class GFF3Test(unittest.TestCase):
         assert not f1.sub_features[0].qualifiers.has_key("ID")
         assert f2.qualifiers["Complete"] == ["true"]
 
+    def t2_key_whitespace(self):
+        """Fix keys with problematic whitespace.
+        """
+        tfile = os.path.join(self._test_dir, "spaces.gff3")
+        for i, line_info in enumerate(GFF.parse_simple(tfile)):
+            if i > 2:
+                assert line_info["quals"]["foo"] == "bar"
+
 class SolidGFFTester(unittest.TestCase):
     """Test reading output from SOLiD analysis, as GFF3.
 
@@ -634,6 +642,7 @@ class OutputTest(unittest.TestCase):
         gff_line = wrote_info[2]
         assert gff_line.split("\t")[0] == "ID1"
 
+
 def run_tests(argv):
     test_suite = testing_suite()
     runner = unittest.TextTestRunner(sys.stdout, verbosity = 2)
@@ -644,7 +653,7 @@ def testing_suite():
     """
     test_suite = unittest.TestSuite()
     test_loader = unittest.TestLoader()
-    test_loader.testMethodPrefix = 't_'
+    test_loader.testMethodPrefix = 't2_'
     tests = [GFF3Test, MapReduceGFFTest, SolidGFFTester, GFF2Tester,
              DirectivesTest, OutputTest]
     #tests = [GFF3Test]

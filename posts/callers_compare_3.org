@@ -1,4 +1,4 @@
-#+DATE: [2014-04-28 Mon 06:05]
+#+DATE: [2014-05-12 Mon 06:03]
 #+BLOG: bcbio
 #+POSTID: 586
 #+TITLE: Whole genome trio variant calling evaluation: low complexity regions, GATK VQSR and high depth filters
@@ -151,12 +151,12 @@ heterozygous variants at a combined depth, across the trio, of 200:
 #+END_HTML
 
 The cutoff proposed by Heng was to calculate the average depth of called
-variants and set the cutoff as the average depth plus 3 (or 4) times the square
-root of average depth. This dataset was an average depth of 169 for the trio,
-corresponding to a cutoff of 208 if we use the 3 multiplier, which compares
-nicely with a manual cutoff you'd set looking at the above graphs. Applying a
-cutoff of QUAL < 500 and DP > 208 produces a reduction in false positives with
-little impact on sensitivity:
+variants and set the cutoff as the average depth plus a multiplier of 3 or 4
+times the square root of average depth. This dataset was an average depth of 169
+for the trio, corresponding to a cutoff of 208 if we use the 3 multiplier, which
+compares nicely with a manual cutoff you'd set looking at the above
+graphs. Applying a cutoff of QUAL < 500 and DP > 208 produces a reduction in
+false positives with little impact on sensitivity:
 
 #+BEGIN_HTML
 <a href="http://i.imgur.com/zOcrnKS.png">
@@ -186,15 +186,15 @@ callset for evaluation, and include VQSR default settings, multiple tranche
 levels and GATK's suggested hard filters:
 
 #+BEGIN_HTML
-<a href="http://i.imgur.com/2MVu4xH.png">
-  <img src="http://i.imgur.com/2MVu4xH.png" width="700"
+<a href="http://i.imgur.com/c4yWTMv.png">
+  <img src="http://i.imgur.com/c4yWTMv.png" width="700"
        alt="VQSR tuning: SNPs">
 </a>
 #+END_HTML
 
 #+BEGIN_HTML
-<a href="http://i.imgur.com/W2Ytv4a.png">
-  <img src="http://i.imgur.com/W2Ytv4a.png" width="700"
+<a href="http://i.imgur.com/3yZnkA6.png">
+  <img src="http://i.imgur.com/3yZnkA6.png" width="700"
        alt="VQSR tuning: indels">
 </a>
 #+END_HTML
@@ -205,9 +205,8 @@ the GATK VQSR default. We learned these tips and tricks for tuning VQSR filterin
 
 - The default setting for VQSR is not a tranche level (like 99.0), but rather a
   LOD score of 0. In this experiment, that corresponded to a tranche of ~99.0 for
-  SNPs and ~98.0 for indels. The best-practice example documentation uses command line
-  parameter that specify a consistent tranche of 99.0 for both SNPs and indels, so
-  depending on which you follow as a default you'll get different sensitivities.
+  SNPs and ~98.5 for indels. The best-practice example documentation uses command line
+  parameter that specify a consistent tranche of 99.0 for both SNPs and indels.
 
 - To increase sensitivity, increase the tranche level. My expectations were that
   decreasing the tranche level would include more variants, but that actually

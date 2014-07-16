@@ -212,7 +212,7 @@ Tests for implementation and methods
   \scriptsize
   https://bcbio-nextgen.readthedocs.org/en/latest/contents/configuration.html#automated-sample-configuration
   \normalsize
-- Parameter documentation \\
+- Full documentation \\
   \scriptsize
   https://bcbio-nextgen.readthedocs.org/en/latest/contents/configuration.html#algorithm-parameters
   \normalsize
