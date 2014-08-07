@@ -1,0 +1,489 @@
+#+title: Scaling community developed variant calling analyses
+#+author: Brad Chapman \\ Bioinformatics Core, Harvard School of Public Health \\ https://github.com/chapmanb/bcbio-nextgen \\ http://j.mp/bcbiolinks
+#+date: 7 August 2014
+
+#+OPTIONS: toc:nil H:2
+
+#+startup: beamer
+#+LaTeX_CLASS: beamer
+#+latex_header: \usepackage{url}
+#+latex_header: \usepackage{hyperref}
+#+latex_header: \hypersetup{colorlinks=true}
+#+BEAMER_THEME: default
+#+BEAMER_COLOR_THEME: seahorse
+#+BEAMER_INNER_THEME: rectangles
+
+* Variant calling overview
+
+** Human whole genome sequencing
+
+[[./images5/human_genome.png]]
+
+\footnotesize
+http://ensembl.org/Homo_sapiens/Location/Genome
+\normalsize
+
+** High throughput sequencing
+
+[[./images5/reads.png]]
+
+** Variant calling
+
+[[./images5/SNV_calling.png]]
+
+\footnotesize
+http://en.wikipedia.org/wiki/SNV_calling_from_NGS_data
+\normalsize
+
+** Scale: exome to whole genome
+
+[[./images5/exome_proportion.png]]
+
+\footnotesize
+https://www.flickr.com/photos/119980645@N06/
+\normalsize
+
+* bcbio overview
+
+** White box software
+
+[[./images5/clear_box.jpg]]
+
+** Overview
+
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images3/bcbio_nextgen_highlevel.png]]
+
+\vspace{1cm}
+https://github.com/chapmanb/bcbio-nextgen
+
+** Uses
+
+\Large
+- Aligners: bwa-mem, novoalign, bowtie2
+- Variantion: FreeBayes, GATK, MuTecT, Scalpel, SnpEff, VEP, GEMINI, Lumpy, Delly
+- RNA-seq: Tophat, STAR, cufflinks, HTSeq
+- Quality control: fastqc, bamtools, RNA-SeQC
+- Manipulation: bedtools, bcftools, biobambam, sambamba, samblaster, samtools,
+  vcflib
+\normalsize
+
+** Provides
+
+\Large
+- Community -- collected set of expertise
+- Tool integration
+- Validation -- outputs + automated evaluation
+- Scaling
+- Installation of tools and data
+\normalsize
+
+* Community
+
+** Community: documentation
+
+[[./images/community-docs.png]]
+
+[[https://bcbio-nextgen.readthedocs.org]]
+
+** Community: contribution
+
+[[./images5/bcbio_github.png]]
+
+[[https://github.com/chapmanb/bcbio-nextgen]]
+
+* Variant quality
+
+** Validation
+
+\Large
+Tests for implementation and methods
+
+- Currently:
+  - \Large Family/population calling
+  - RNA-seq differential expression
+  - Structural variations
+- Expand to:
+  - \Large Cancer tumor/normal http://j.mp/cancer-var-chal
+\normalsize
+
+** Example evaluation
+
+\Large
+- Variant calling
+   - \Large GATK UnifiedGenotyper
+   - GATK HaplotypeCaller
+   - FreeBayes
+- Two preparation methods
+   - \Large Full (de-duplication, recalibration, realignment)
+   - Minimal (only de-duplication)
+\normalsize
+
+** Reference materials
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width .6\textwidth
+[[./images/giab.png]]
+
+[[http://www.genomeinabottle.org/]]
+#+END_CENTER
+
+** Quantify quality
+
+[[./images/minprep-callerdiff.png]]
+
+- Quantification details: [[http://j.mp/bcbioeval2]]
+
+** Validation enables scaling
+
+\Large
+- Little value in realignment when using haplotype aware caller
+- Little value in recalibration when using high quality reads
+- Streaming de-duplication approaches provide same quality without disk IO
+\normalsize
+
+* Scaling
+
+** Start point
+
+\Large
+- Initial pipeline scales with exomes
+- 50 whole genomes = 3 months
+- Next project: 1500 whole genomes
+\normalsize
+
+** End point
+
+\Large
+1500 whole genome scale -- 110Tb
+
+#+begin_src sh
+$ du -sh alz-p3f_2-g5/final
+3.4T  alz-p3f_2-g5/final
+$ ls -lhd *alz* | wc -l
+31
+#+end_src
+\normalsize
+
+** How?
+
+\Large
+- Network bandwidth
+- Avoid file intermediates
+- Parallel alignment
+- Parallel genome processing
+- Better shared filesystems: Lustre
+
+** Scaling: network bandwidth
+
+\Large
+1 GigE to Infiniband
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width .5\textwidth
+[[./images5/infiniband.jpg]]
+#+END_CENTER
+
+Dell Genomic Data Analysis Platform; Glen Otero
+\scriptsize
+http://www.dell.com/learn/us/en/555/hpcc/high-performance-computing-life-sciences?c=us&l=en&s=biz&cs=555
+\normalsize
+
+** Scaling: avoid intermediates
+
+#+begin_src python :exports code
+("{bwa} mem -M -t {num_cores} -R '{rg_info}' -v 1 "
+ "  {ref_file} {fastq_file} {pair_file} "
+ "| {samblaster} "
+ "| {samtools} view -S -u /dev/stdin "
+ "| {sambamba} sort -t {cores} -m {mem} --tmpdir {tmpdir}"
+ "   -o {tx_out_file} /dev/stdin")
+#+end_src
+
+** Scaling: Parallel alignment
+
+[[./images/bcbio_align_parallel.png]]
+
+\vspace{1.5cm}
+https://github.com/arq5x/grabix
+
+** Scaling: Parallel by genome
+
+[[./images/parallel-genome.png]]
+
+** Scaling: Lustre
+
+\Large
+480 cores, 30 samples
+
+\vspace{1cm}
+
+\begin{tabular}{lll}
+\hline
+Step & Lustre & NFS \\
+\hline
+alignment & 4.5h & 6.1h \\
+alignment post-processing & 7.0h & 20.7h \\
+\hline
+\end{tabular}
+
+* Timings
+
+** Scaling overview
+
+[[./images/bcbio_parallel_overview.png]]
+
+- Infrastructure details: [[http://j.mp/bcbioscale]]
+- IPython: \scriptsize [[http://ipython.org/ipython-doc/dev/parallel/index.html]] \normalsize
+
+** Current target environment
+
+\Large
+- Cluster scheduler
+  - \Large SLURM
+  - Torque
+  - SGE
+  - LSF
+- Shared filesystem
+  - \Large NFS
+  - Lustre
+- Local temporary disk
+  - \Large SSD
+\normalsize
+
+** Configuration into batch scripts
+
+***  :B_columns:
+    :PROPERTIES:
+    :BEAMER_env: columns
+    :END:
+
+**** Configuration                                                    :block:
+    :PROPERTIES:
+    :BEAMER_opt: t
+    :BEAMER_col: 0.5
+    :END:
+
+/Configuration/
+
+#+begin_src
+bwa:
+  cmd: bwa
+  cores: 16
+samtools:
+  cores: 16
+  memory: 2G
+gatk:
+  jvm_opts: ["-Xms750m", "-Xmx2750m"]
+#+end_src
+
+**** Batch file                                                       :block:
+    :PROPERTIES:
+    :BEAMER_opt: t
+    :BEAMER_col: 0.5
+    :END:
+
+/Batch file/
+
+#+begin_src
+#PBS -l nodes=1:ppn=16
+#PBS -l mem=45260mb
+#+end_src
+
+
+** Intel + Harvard FAS Research Computing
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width .5\textwidth
+[[./images3/fas_odyssey.png]]
+#+END_CENTER
+
+*** James Cuff, John Morrissey, Kristina Kermanshahche             :block:
+    :PROPERTIES:
+    :BEAMER_env: block
+    :END:
+    https://rc.fas.harvard.edu/
+
+** Evaluation details
+
+***  :B_columns:
+    :PROPERTIES:
+    :BEAMER_env: columns
+    :END:
+
+**** System                                                           :BMCOL:
+    :PROPERTIES:
+    :BEAMER_col: 0.5
+    :END:
+
+System
+
+- 560 cores
+- 4Gb RAM/core
+- Lustre filesystem
+- Infiniband network
+
+
+**** Samples                                                          :BMCOL:
+    :PROPERTIES:
+    :BEAMER_col: 0.5
+    :END:
+
+Samples
+
+- 75 samples
+- 30x whole genome (100Gb)
+- Illumina
+- Family-based calling
+
+** Timing: Alignment
+
+\begin{tabular}{lll}
+\hline
+Step & Time & Processes \\
+\hline
+Alignment preparation & 9.5 hours & BAM to fastq; bgzip; \\
+& & grabix index \\
+Alignment & 31 hours & bwa-mem alignment \\
+& & samblaster deduplication \\
+BAM merge & 5.5 hours & Merge alignment parts \\
+Post-processing & 11 hours & Calculate callable regions \\
+\hline
+\end{tabular}
+
+** Timing: Variant calling
+
+\begin{tabular}{lll}
+\hline
+Step & Time & Processes \\
+\hline
+Variant calling & 30 hours & FreeBayes \\
+Variant post-processing & 5 hours & Combine variant files; \\
+& & annotate: GATK and snpEff \\
+\hline
+\end{tabular}
+
+** Timing: Analysis and QC
+
+\begin{tabular}{lll}
+\hline
+Step & Time & Processes \\
+\hline
+GEMINI & 5 hours & Create GEMINI SQLite database \\
+Quality Control & 2.5 hours & FastQC, alignment and variant statistics \\
+\hline
+\end{tabular}
+
+** Timing: Overall
+
+\Large
+- 100 hours, ~4 days for 75 samples
+- ~1 1/2 hours per sample at 560 cores
+- In progress: optimize for single samples
+\normalsize
+
+
+* Current todo work
+
+** Additional scaling
+
+\Large
+- Better at profiling
+- HiSeq X Ten = more genomes
+- Better community support
+\normalsize
+
+** Improved profiling
+
+#+ATTR_LATEX: :width .7\textwidth
+[[./images5/workflowprofiler.png]]
+
+https://01.org/workflow-profiler
+
+** Improve batch size submission
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width .55\textwidth
+[[./images5/ipython_zmq.png]]
+#+END_CENTER
+
+\scriptsize
+http://ipython.org/ipython-doc/dev/development/parallel_messages.html
+\normalsize
+
+* Docker -- installation
+
+** Make installation easy
+
+#+ATTR_LATEX: :width 0.65\textwidth
+[[./images2/install_want.png]]
+
+*** Automated Install                                                 :block:
+    :PROPERTIES:
+    :BEAMER_env: exampleblock
+    :END:
+
+We made it easy to install a large number of biological tools. \\
+Good or bad idea?
+
+** Need a consistent support environment
+
+[[./images4/install_issues.png]]
+
+** Docker lightweight containers
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width .6\textwidth
+[[./images/homepage-docker-logo.png]]
+#+END_CENTER
+
+http://docker.io
+
+** Docker benefits
+
+\Large
+- Fully isolated
+- Reproducible -- store full environment with analysis (1Gb)
+- Improved installation -- single download + data
+
+** bcbio with Docker
+
+\Large
+- External Python wrapper
+   - \Large Installation
+   - Start and run containers
+   - Mount external data into containers
+   - Parallelize
+- All analysis tools inside Docker
+\normalsize
+
+\vspace{0.5cm}
+https://github.com/chapmanb/bcbio-nextgen-vm
+http://j.mp/bcbiodocker
+
+** Docker HPC parallelization
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width 1.05\textwidth
+[[./images2/docker-parallel.png]]
+#+END_CENTER
+
+http://ipython.org/ipython-doc/dev/parallel/index.html \\
+https://github.com/roryk/ipython-cluster-helper
+
+
+
+* Summary
+
+** Summary
+
+\Large
+- Community developed variant calling analyses
+- Validation enables science and scaling
+- Scaling from 50 to 1500 genomes
+- Current batch processing timings
+- To do: monitor, scale bottlenecks, improve install
+
+\Large
+https://github.com/chapmanb/bcbio-nextgen
+\normalsize

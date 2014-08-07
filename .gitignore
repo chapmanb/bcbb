@@ -14,5 +14,6 @@ distblast/dist/
 gff/*.egg-info/
 gff/build/
 gff/dist/
+talks/*/*.tex
 .ipynb_checkpoints
 .ropeproject
