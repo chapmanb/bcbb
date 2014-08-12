@@ -1,7 +1,7 @@
 #+BLOG: bcbio
 #+POSTID: 626
 #+DATE: [2014-07-31 Thu 21:09]
-#+TITLE: Validated structural variation detection using multiple callers
+#+TITLE: Validated whole genome structural variation detection using multiple callers
 #+CATEGORY: variation
 #+TAGS: bioinformatics, variant, ngs, structural, cnv, delly, lumpy, cn.mops
 #+OPTIONS: toc:nil num:nil
@@ -14,7 +14,7 @@ and validation into [[https://github.com/chapmanb/bcbio-nextgen][bcbio-nextgen]]
 always been unfortunate to not have reliable ways to detect larger structural
 variations: deletions, duplications, inversions, translocations and other
 disruptive events. Detecting these events with short read sequencing is
-difficult, and our goal in bcbio is to provide a global summary of predicted
+difficult, and our goal in bcbio is to create a global summary of predicted
 structural variants from multiple callers alongside measures of sensitivity
 and precision.
 
@@ -32,7 +32,7 @@ callers:
   developed by Günter Klambauer.
 
 bcbio integrates structural variation predictions from all approaches into a
-high level BED file. This provides a first pass way to identify potentially
+high level BED file. This is a first pass way to identify potentially
 disruptive large scale events. Here are example regions: a duplication
 called by all 3 callers, a deletion called by 2 callers, and a complex region
 with both deletions and duplications.
@@ -47,27 +47,33 @@ with both deletions and duplications.
 <br/>
 #+END_HTML
 
-This output provides a high level way to correlate larger events with regions of
-interest and quickly determine the individual tool support for each event.
-Using this, we are no longer blind to potential structural changes and can use
-the summary to target in-depth investigation with the more detailed metrics
-available from each caller and a read viewer like [[http://melissagymrek.com/pybamview/][PyBamView]]. The results
-can also help inform prioritization of SNP and Indel calls since structural
-rearrangements often associate with false positives.
+This output associates larger structural events with regions of interest in a
+high level way, while allowing us to quickly determine the individual tool
+support for each event.  Using this, we are no longer blind to potential
+structural changes and can use the summary to target in-depth investigation with
+the more detailed metrics available from each caller and a read viewer like
+[[http://melissagymrek.com/pybamview/][PyBamView]]. The results can also help inform prioritization of SNP and Indel
+calls since structural rearrangements often associate with false
+positives. Longer term we hope this structural variant summary and comparison
+work will be useful for community validation efforts like the [[http://genomicsandhealth.org/][Global Alliance
+for Genomics and Health benchmarking group]], the [[http://www.genomeinabottle.org/][Genome in a Bottle
+consortium]] and the [[https://www.synapse.org/#!Synapse:syn312572][ICGC-TCGA DREAM Mutation Calling challenge]].
 
 Below I'll describe a full evaluation of the sensitivity and precision of this
-combined approach using an NA12878 trio, as well as provide details for running
-and extending the work in [[https://github.com/chapmanb/bcbio-nextgen][bcbio-nextgen]].
+combined approach using an NA12878 trio, as well as describe how to run
+and extend this work using [[https://github.com/chapmanb/bcbio-nextgen][bcbio-nextgen]].
 
 This blog post is the culmination of a lot of work and support from the open
 source bioinformatics community. [[https://twitter.com/dfjenkins3][David Jenkins]] worked with our [[http://compbio.sph.harvard.edu/chb/][our group]]
 for the summer and headed up evaluation of structural variation results. We
 received wonderful support from Colby Chang, Ryan Layer, Ira Hall and Aaron
 Quinlan on both LUMPY and structural variation validation in general. They
-freely provided scripts and datasets for evaluation, which gave us the materials
-to make these comparisons. Günter Klambauer provided great practical advice on
-using cn.mops, and Tobias Rausch helped immensely with tips for speeding up
-DELLY runs on whole genomes. [[https://rc.fas.harvard.edu/][Harvard Research Computing]] provided critical
+freely shared scripts and datasets for evaluation, which gave us the materials
+to make these comparisons. Günter Klambauer gave us great practical advice on
+using cn.mops. Tobias Rausch helped immensely with tips for speeding up
+DELLY on whole genomes, and Ashok Ragavendran from
+[[http://talkowski.mgh.harvard.edu/people/][Mike Talkowski's lab]] generously discussed tricks for scaling DELLY runs.
+[[https://rc.fas.harvard.edu/][Harvard Research Computing]] provided critical
 support and compute for this analysis as part of a collaboration with [[https://01.org/][Intel]].
 
 * Evaluation
@@ -87,17 +93,17 @@ the [[ceph-pedigree][CEPH 1463 Pedigree]] as an input dataset. This consists of 
 reads from [[platinum][Illumina's platinum genomes]] project, and is the same dataset used in our
 previous analyses of population based SNP and small indel calling.
 
-Our goal is to provide expected boundaries on [[sensitivity][sensitivity]] -- the percentage of
+Our goal is to define boundaries on [[sensitivity][sensitivity]] -- the percentage of
 validated calls we detect -- and [[sensitivity][precision]] -- how many of the total calls overlap
 with validated regions. We required a simple overlap of the called regions with
 validated regions to consider a called variant as validated, and stratified
-results by event size to provide information on detection at different size ranges.
+results by event size to quantify detection metrics at different size ranges.
 
 The comparison highlights the value of providing a combined call set. I'd
 caution against using this as a comparison between methods. Accurate structural
 variation calling depends on multiple sources of evidence and we still have work
 to do in improving our ability to filter for maximal sensitivity and
-specificity. The ensemble method in this figure displays results of our final
+specificity. The ensemble method in the figure below displays results of our final
 calls, made from collapsing structural variant calls from all three input callers:
 
 #+BEGIN_HTML
@@ -107,30 +113,34 @@ calls, made from collapsing structural variant calls from all three input caller
 </a>
 #+END_HTML
 
-Across all size classes, we detect approximately half of structural
+Across all size classes, we detect approximately half of the structural
 variants and expect that about half of the called events are false
 positives. Smaller structural variants of less than 1kb are the most difficult to
 detect with these methods. Larger events from 1kb to 25kb have better
 sensitivity and precision. As the size of the events increase precision
 decreases, so larger called events tend to have more false positives.
 
-Beyond the expected sensitivity and precision, the biggest takeaway is that
+Beyond the values for sensitivity and precision, the biggest takeaway is that
 combining multiple callers helps detect additional variants we'd miss with any
-individual caller. Count based callers like cn.mops provided improved sensitivity on
-large deletions but can't resolve small deletions at 50x depth. Similarly, lumpy
-and delly capture different sets of variants across all of the size classes.
+individual caller. Count based callers like cn.mops enable improved sensitivity
+on large deletions but don't resolve small deletions at 50x depth using our
+current settings, although tuning can help detect these smaller sized events as
+well. Similarly, lumpy and delly capture different sets of variants across all
+of the size classes.
 
 The comparison also emphasizes the potential for improving both individual
 caller filtering and ensemble structural variant preparation. The ensemble
 method uses [[http://bedtools.readthedocs.org/en/latest/index.html][bedtools]] to create a merged superset of all individually called
 regions. This is the simplest possible approach to combine calls. Similarly,
 individual caller filters are intentionally simple as well. cn.mops calling
-performs no additional filtering beyond the defaults, and could use filters to
-remove smaller events below our detection threshold. Our [[delly-filter][DELLY filter]] requires 4
+performs no additional filtering beyond the defaults, and could use adjustment
+to detect and filter smaller events. Our [[delly-filter][DELLY filter]] requires 4
 supporting reads or both split and paired read evidence. Our [[lumpy-filter][LUMPY filter]]
-require at least 4 supporting reads to retain an event. These filters provided a
-useful starting point and resolution, but we hope to continue to refine and
-improve them over time.
+require at least 4 supporting reads to retain an event. We welcome discussion of
+the costs and tradeoffs of these approaches. For instance, requiring split and
+paired evidence for DELLY increases precision at the cost of sensitivity.  These
+filters are a useful starting point and resolution, but we hope to continue to
+refine and improve them over time.
 
 #+LINK: na12878_material http://ccr.coriell.org/Sections/Search/Sample_Detail.aspx?Ref=GM12878
 #+LINK: ceph-pedigree http://blog.goldenhelix.com/wp-content/uploads/2013/03/Utah-Pedigree-1463-with-NA12878.png
@@ -150,25 +160,26 @@ used in this comparison. The documentation contains [[https://bcbio-nextgen.read
 data and run the NA12878 trio calling and validation]]. This [[https://github.com/chapmanb/bcbio-nextgen/blob/master/config/examples/NA12878-trio-sv.yaml][input configuration
 file]] should be easily adjusted to run on your data of interest.
 
-The implementation aims to provide reasonable run times for whole genome
+The current implementation has reasonable run times for whole genome
 structural variant calling. We use [[https://github.com/GregoryFaust/samblaster][samblaster]] to perform duplicate
 marking alongside identification of discordant and split read pairs. The aligned
 reads from [[https://github.com/lh3/bwa][bwa]] stream directly into samblaster, adding minimal processing time to
 the run. For LUMPY calling, the pre-prepared split and discordant reads feed directly
 into [[https://github.com/cc2qe/speedseq][speedseq]], which nicely automates the process of running LUMPY. For DELLY,
 we [[delly-subsample][subsample correct pairs in the input BAM to 50 million reads]] and combine
-with these pre-extracted problematic pairs.
+with the pre-extracted problematic pairs to improve runtimes for whole genome
+inputs.
 
-We process three concurrently called 50x whole genome samples from FASTQ reads to
-validated structural variants in approximately 2 day using 32 cores. Following
+We processed three concurrently called 50x whole genome samples from FASTQ reads to
+validated structural variants in approximately 3 days using 32 cores. Following
 the preparation work described above, LUMPY calling took 6 hours, DELLY takes 24
 hours parallelized on 32 cores and cn.mops took 16 hours parallelized by
-chromosome on 16 cores. This is again an area where we hope to continue to
-improve scalability and parallelization, but provides a useful benchmark for our
-current capabilities.
+chromosome on 16 cores. This is a single data point for current capabilities,
+and is an area where we hope to continue to improve scalability and
+parallelization.
 
 The implementation and validation are fully integrated into the community
-developed [[bcbio][bcbio-nextgen]] project and we hope to expand work this by incorporating
+developed [[bcbio][bcbio-nextgen]] project and we hope to expand this work to incorporate
 additional structural variant callers like [[https://github.com/genome/pindel][Pindel]] and [[http://cnvkit.readthedocs.org/en/latest/][CNVkit]], as well as improving
 filtering and ensemble calling. We also want to expand structural variant
 validation to include tumor/normal cancer samples and targeted sequencing. We
