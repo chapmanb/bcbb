@@ -1,6 +1,6 @@
+#+DATE: [2014-08-12 Tue 13:22]
 #+BLOG: bcbio
 #+POSTID: 626
-#+DATE: [2014-07-31 Thu 21:09]
 #+TITLE: Validated whole genome structural variation detection using multiple callers
 #+CATEGORY: variation
 #+TAGS: bioinformatics, variant, ngs, structural, cnv, delly, lumpy, cn.mops
