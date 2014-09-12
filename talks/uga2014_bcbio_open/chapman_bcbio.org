@@ -104,7 +104,7 @@ https://github.com/chapmanb/bcbio-nextgen
 
 \Large
 - Aligners: bwa-mem, novoalign, bowtie2
-- Variantion: FreeBayes, GATK, MuTecT, Scalpel, SnpEff, VEP, GEMINI, Lumpy, Delly
+- Variantion: FreeBayes, GATK, Platypus, MuTecT, scalpel, SnpEff, VEP, GEMINI, Lumpy, Delly
 - RNA-seq: Tophat, STAR, cufflinks, HTSeq
 - Quality control: fastqc, bamtools, RNA-SeQC
 - Manipulation: bedtools, bcftools, biobambam, sambamba, samblaster, samtools,
@@ -133,6 +133,14 @@ https://github.com/chapmanb/bcbio-nextgen
 [[./images/huge_seq.png]]
 
 [[https://github.com/StanfordBioinformatics/HugeSeq]]
+
+
+** Quality differences between methods
+
+#+ATTR_LATEX: :width .7\textwidth
+[[./images/gcat_comparison.png]]
+
+[[http://www.bioplanet.com/gcat]]
 
 ** Solution
 
@@ -232,10 +240,10 @@ $ ls -lhd *alz* | wc -l
 
 \Large
 - Network bandwidth
+- Better shared filesystems: Lustre
 - Avoid file intermediates
 - Parallel alignment
 - Parallel genome processing
-- Better shared filesystems: Lustre
 
 ** Scaling: network bandwidth
 
@@ -251,6 +259,23 @@ Dell Genomic Data Analysis Platform; Glen Otero
 \scriptsize
 http://www.dell.com/learn/us/en/555/hpcc/high-performance-computing-life-sciences?c=us&l=en&s=biz&cs=555
 \normalsize
+
+** Scaling: Lustre filesystem
+
+\Large
+480 cores, 30 samples
+
+\vspace{1cm}
+
+\begin{tabular}{lll}
+\hline
+Step & Lustre & NFS \\
+\hline
+alignment & 4.5h & 6.1h \\
+alignment post-processing & 7.0h & 20.7h \\
+\hline
+\end{tabular}
+
 
 ** Scaling: avoid intermediates
 
@@ -273,23 +298,6 @@ https://github.com/arq5x/grabix
 ** Scaling: Parallel by genome
 
 [[./images/parallel-genome.png]]
-
-** Scaling: Lustre filesystem
-
-\Large
-480 cores, 30 samples
-
-\vspace{1cm}
-
-\begin{tabular}{lll}
-\hline
-Step & Lustre & NFS \\
-\hline
-alignment & 4.5h & 6.1h \\
-alignment post-processing & 7.0h & 20.7h \\
-\hline
-\end{tabular}
-
 
 ** Intel + Harvard FAS Research Computing
 
