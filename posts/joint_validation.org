@@ -1,0 +1,251 @@
+#+BLOG: bcbio
+#+POSTID: 664
+#+DATE: [2014-09-19 Fri 07:24]
+#+TITLE: Validating generalized incremental joint variant calling with GATK HaplotypeCaller, FreeBayes, Platypus and samtools
+#+CATEGORY: variation
+#+TAGS: bioinformatics, variant, ngs, validation, joint-calling, gatk, samtools, freebayes, platypus
+#+OPTIONS: toc:nil num:nil
+
+** Incremental joint variant calling
+
+Variant calling in large populations is challenging due to the difficulty in
+providing a consistent set of calls at all possible variable positions.
+A finalized set of calls from a large population should distinguish reference
+calls, without a variant, from no calls, positions without enough read support to
+make a call. Calling algorithms should also be able to make use of information
+from other samples in the population to help improve calling accuracy.
+
+There are two issues with trying to provide complete combined call sets.
+First, it is computationally expensive to call a large number of samples
+simultaneously. Second, adding any new samples to a callset requires repeating this
+expensive computation. This [[np1][N+1 problem]] highlights the inflexibility around
+simultaneous pooled calling of populations.
+
+The GATK team's recent 3.x release contain a solution to these issues:
+[[https://www.broadinstitute.org/gatk/guide/article?id=3893][Incremental joint variant discovery]]. The approach calls samples independently
+but produces a [[https://www.broadinstitute.org/gatk/guide/article?id=4017][genomic VCF (gVCF)]] output for each individual that contains
+probability information for reference calls at non-variant positions. The
+genotyping step combines these individual gVCF files, making use of the
+information from the independent samples to produce a final callset.
+
+We implemented GATK incremental joint calling in [[https://github.com/chapmanb/bcbio-nextgen][bcbio-nextgen]]
+along with a [[https://github.com/chapmanb/bcbio.variation.recall][generalized implementation]] that performs joint calling with other
+variant callers. This supports four variant callers:
+
+- [[https://www.broadinstitute.org/gatk/gatkdocs/org_broadinstitute_gatk_tools_walkers_haplotypecaller_HaplotypeCaller.php][GATK HaplotypeCaller]] (3.2-2) -- Follows current GATK recommended best
+  practices for calling, with Variant Quality Score Recalibration used on whole
+  genome and large population callsets.
+- [[https://github.com/ekg/freebayes][FreeBayes (0.9.14-15)]] -- A haplotype-based caller from Erik Garrison in
+  Gabor Marth's lab.
+- [[http://www.well.ox.ac.uk/platypus][Platypus (0.7.9.2)]] -- A recently published haplotype-based variant caller from
+  Andy Rimmer at the Wellcome Trust Centre for Human Genomics.
+- [[http://www.htslib.org/][samtools (1.0)]] -- The recently released version of samtools and
+  bcftools with a new [[http://samtools.github.io/bcftools/call-m.pdf][multiallelic calling method]]. John Marshall, Petr
+  Danecek, James Bonfield and Martin Pollard at Sanger have continued samtools
+  development from Heng Li's code base.
+
+The implementation includes integrated validation against the [[http://genomeinabottle.org/][Genome in a Bottle]]
+NA12878 reference standard, allowing comparisons between joint calling,
+multi-sample pooled calling and single sample calling.  Sensitivity and
+precision for joint calling is comparable to traditional pooled calling,
+suggesting we should optimize design of variant processing to cater towards
+individual calling and subsequent finalization of calls, rather than
+pooling. Generalized joint calling enables combining multiple sets of calls under an
+identical processing framework, which will be important as we seek
+to integrate large publicly available populations to extract biological signal
+in complex multi-gene diseases.
+
+#+LINK: np1 http://gatkforums.broadinstitute.org/discussion/4150/should-i-analyze-my-samples-alone-or-together
+
+** Terminology
+
+There is not a consistent set of terminology around combined variant
+calling, but to develop one, here is how I'll use the terms:
+
+- Joint calling -- Calling a group of samples together with algorithms
+  that do not need simultaneous access to all sample BAM files. This describes newer
+  methods like GATK's incremental joint calling that take into account variants
+  from other samples but don't need to load and process all BAM files
+  together to make these calls.
+- Pooled or batch calling -- Traditional grouped sample calling, where algorithms make
+  use of read data from all BAM files of a group. This scales to
+  smaller batches of samples.
+- Single sample calling -- Variant calling with a single sample only, not making
+  use of information from other samples.
+- Squaring off or Backfilling -- This describes a VCF file from a group of
+  samples that distinguishes reference from no-call at all positions called in
+  any sample within a group. We can then use the [[http://cdn.vanillaforums.com/gatk.vanillaforums.com/FileUpload/9f/f0619642db06b73b599253f42ef2bf.png][sample matrix]] to
+  consider call rate at any position. Large populations called in
+  smaller batches will not be able to distinguish reference from no-call at variants
+  unique to each sub-pool, so will need to be re-processed to achieve this.
+
+** Implementation
+
+[[bc][bcbio-nextgen]] automates the calling and validation used in this comparison.
+We aim to make it easy to install, use and extend.
+
+For GATK HaplotypeCaller based joint genotyping, we implement the
+[[gj][GATK best practices]] recommended by the Broad. Individual sample variant calls
+produce a gVCF output file that contains both variants as well as
+probability information about reference regions. Next, calls are jointly
+called using GenotypeGVFs to produce the final population VCF
+file. CombineGVCFs is also used to combine larger callsets into more manageable
+groups before performing the final genotyping work.
+
+For the other supported callers -- FreeBayes, Platypus and samtools -- we use a
+generalized recalling approach, implemented in [[bvr][bcbio.variation.recall]].
+[[bc][bcbio-nextgen]] first calls each individual sample as a standard VCF. We then combine these
+individual sample VCFs into a global summary of all variant positions called across all
+samples. Finally, we recall at each variant position in each sample, producing a
+globally squared off joint callset for each sample that we can merge back into the
+final joint VCF. This process parallelizes by chromosome region and by sample,
+allowing efficient use of resources in both clusters and [[bas][large multiple core machines]].
+
+bcbio.variation.recall generalizes to any variant caller that supports recalling
+with an input set of variants. Knowing the context of potential variants helps
+inform better calling. This method needs to have the individual sample BAM file
+available to perform recalling.  Having the reads present does provide the ability
+to improve recalling by taking advantage of realigning around existing variants,
+an approach we'll explore more in future work. The implementation is also
+general and could support gVCF based combining if non-GATK specific tools became
+available for individual callers.
+
+#+LINK: bc https://github.com/chapmanb/bcbio-nextgen
+#+LINK: gj http://www.broadinstitute.org/gatk/guide/article?id=3893
+#+LINK: bvr https://github.com/chapmanb/bcbio.variation.recall
+#+LINK: bas http://jermdemo.blogspot.com/2011/06/big-ass-servers-and-myths-of-clusters.html
+
+** Generalized joint calling
+
+We evaluated all callers against the NA12878 Genome in a Bottle reference
+standard using the [[na12878_material][NA12878/NA12891/NA12892 trio]] from the [[ceph-pedigree][CEPH 1463 Pedigree]],
+with 50x whole genome coverage from [[platinum][Illumina's platinum genomes]]. The validation
+provides putative true positives (concordant), false negatives (discordant
+missing), and false positives (discordant extra) for all callers:
+
+#+BEGIN_HTML
+<a href="http://i.imgur.com/ddsRkkd.png">
+  <img src="http://i.imgur.com/ddsRkkd.png" width="650"
+       alt="Incremental joint calling: GATK HaplotypeCaller, FreeBayes, Platypus, samtools">
+</a>
+#+END_HTML
+
+The post-calling filters provide similar levels of false positives to
+enable comparisons of sensitivity. Overall, there is not a large difference in
+sensitivity and precision for the four methods, although there are some areas to
+improve:
+
+- Platypus SNP and indel calling is slightly less sensitive than other
+  approaches. We worked on [[plc][Platypus calling parameters]] and [[plf][post-call filtering]]
+  to increase sensitivity from the defaults without introducing a large number of
+  false positives, but welcome suggestions for more improvements.
+- samtools indel calling needs additional work to reduce false positive indels
+  in joint and pooled calling. There is more detail on this below in the comparison with
+  single sample samtools calling.
+
+#+LINK: na12878_material http://ccr.coriell.org/Sections/Search/Sample_Detail.aspx?Ref=GM12878
+#+LINK: ceph-pedigree http://blog.goldenhelix.com/wp-content/uploads/2013/03/Utah-Pedigree-1463-with-NA12878.png
+#+LINK: platinum http://www.illumina.com/platinumgenomes/
+#+LINK: plc https://github.com/chapmanb/bcbio-nextgen/blob/9320479d8f21677b61ed1274b4da23d569c686ae/bcbio/variation/platypus.py#L29
+#+LINK: plf https://github.com/chapmanb/bcbio-nextgen/blob/9320479d8f21677b61ed1274b4da23d569c686ae/bcbio/variation/vfilter.py#L180
+
+** Joint versus pooled versus single approaches
+
+We validated the same NA12878 trio with pooled and single sample calling to
+assess the advantages of joint calling over single sample, and whether joint
+calling is comparable in quality to calling simultaneously. The full
+evaluation for pooled calling shows that performance is similar to joint methods:
+
+#+BEGIN_HTML
+<a href="http://i.imgur.com/Dna8hrI.png">
+  <img src="http://i.imgur.com/Dna8hrI.png" width="650"
+       alt="Pooled calling: GATK HaplotypeCaller, FreeBayes, Platypus, samtools">
+</a>
+#+END_HTML
+
+If you plot joint, pooled and single sample calling next to each other
+there are some interesting small differences between approaches that identify
+areas for further improvement. As an example, here are GATK HaplotypeCaller and
+samtools with the three approaches presented side by side:
+
+#+BEGIN_HTML
+<a href="http://i.imgur.com/bcCvXxP.png">
+  <img src="http://i.imgur.com/bcCvXxP.png" width="750"
+       alt="Joint, pooled and single calling: GATK HaplotypeCaller and samtools">
+</a>
+#+END_HTML
+
+GATK HaplotypeCaller sensitivity and specificity are close between the three
+methods, with small trade offs for different methods. For SNP calling, pooled
+calling is most sensitive at the cost of more false positives and single calling
+is more precise at the cost of some sensitivity. Joint calling is intermediate
+between these two extremes. For indel calling, joint calling is the most
+sensitive at the cost of more false positives, with pooled calling falling
+between joint and single sample calling.
+
+Samtools specificity is currently best tuned for single sample calling. Pooled
+calling provides better sensitivity, but at the cost of a larger number of false
+positives. The joint calling implementation regains a bit of this sensitivity
+but still suffers from increased false positives. The authors of samtools have
+calling well tuned for single samples, and there are opportunities to increase
+sensitivity when incorporating multiple samples via a joint method.
+
+Overall, this comparison identifies areas where we can hope to improve
+generalized joint calling. We plan to provide specific suggestions and feedback
+to samtools and other tool authors as part of a continuous validation and
+feedback process.
+
+** Reproducing and extending the analysis
+
+All variant callers and calling methods validated here are available for running
+in [[bc][bcbio-nextgen]]. bcbio automatically installs the generalized joint calling
+implementation, and it is also available as a java executable at
+[[bvr][bcbio.variation.recall]]. All tools are freely available, open source and community
+developed and we welcome your feedback and contributions.
+
+The documentation contains [[jval][full instructions for running the joint analysis]].
+This is an extended version of [[tval][previous work on validation of trio calling]] and uses
+the same input dataset with a bcbio configuration that includes single, pooled
+and joint calling:
+
+#+BEGIN_SRC
+mkdir -p NA12878-trio-eval/config NA12878-trio-eval/input NA12878-trio-eval/work-joint
+cd NA12878-trio-eval/config
+cd ../input
+wget https://raw.github.com/chapmanb/bcbio-nextgen/master/config/examples/NA12878-trio-wgs-validate-getdata.sh
+bash NA12878-trio-wgs-validate-getdata.sh
+wget https://raw.github.com/chapmanb/bcbio-nextgen/master/config/examples/NA12878-trio-wgs-joint.yaml
+cd ../work_joint
+bcbio_nextgen.py ../config/NA12878-trio-wgs-joint.yaml -n 16
+#+END_SRC
+#+BEGIN_HTML
+<br/>
+#+END_HTML
+
+Having a general joint calling implementation with good sensitivity and
+precision is a starting point for more research and development. Some goals
+building off this work are to:
+
+- Provide better [[ens][ensemble calling methods]] that scale to large multi-sample
+  calling projects.
+- Work with FreeBayes, Platypus and samtools tool authors to provide support for
+  gVCF style files to avoid the need to have BAM files present during joint calling,
+  and to improve sensitivity and precision during recalling-based joint approaches.
+- Combine variant calls with local reassembly to improve sensitivity and
+  precision. Erik Garrison's [[glia][glia]] provides streaming local
+  realignment given a set of potential variants. Jared Simpson used the
+  [[sga][SGA assembler]] to combine [[fbsga][FreeBayes calls with de-novo assembly]]. Ideally we could
+  identify difficult regions of the genome [[jkbwa][based on alignment information]] and
+  focus more computationally expensive assembly approaches there.
+
+We plan to continue working with the open source scientific community to
+integrate, extend and improve these tools and are happy for any feedback and
+suggestions.
+
+#+LINK: jval https://bcbio-nextgen.readthedocs.org/en/latest/contents/testing.html#whole-genome-trio-50x
+#+LINK: tval http://bcbio.wordpress.com/2014/05/12/wgs-trio-variant-evaluation/
+#+LINK: ens http://bcbio.wordpress.com/2013/10/21/updated-comparison-of-variant-detection-methods-ensemble-freebayes-and-minimal-bam-preparation-pipelines/
+#+LINK: glia https://github.com/ekg/glia
+#+LINK: sga https://github.com/jts/sga
+#+LINK: fbsga https://github.com/jts/sga-extra
+#+LINK: jkbwa http://knightlab.commons.yale.edu/gava-pt-2/
