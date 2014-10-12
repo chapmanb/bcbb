@@ -9,6 +9,8 @@ Installation from `bcbio-gff in pypi`_::
 
   pip install bcbio-gff
 
+This code is freely available for use under the `Biopython license <https://github.com/biopython/biopython/blob/master/LICENSE>`_.
+
 .. _GFF: http://www.sequenceontology.org/gff3.shtml
 .. _wiki documentation: http://biopython.org/wiki/GFF_Parsing
 .. _gffutils: https://github.com/daler/gffutils
