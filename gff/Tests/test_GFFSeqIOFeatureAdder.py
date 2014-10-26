@@ -315,7 +315,7 @@ class GFF3Test(unittest.TestCase):
         assert f1.qualifiers['ID'] == ['GL0000006']
         assert len(f1.sub_features) == 2
         assert f1.sub_features[0].qualifiers["Lack 3'-end"] == ["true"]
-        assert not f1.sub_features[0].qualifiers.has_key("ID")
+        assert not "ID" in f1.sub_features[0].qualifiers
         assert f2.qualifiers["Complete"] == ["true"]
 
     def t_key_whitespace(self):

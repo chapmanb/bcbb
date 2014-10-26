@@ -10,12 +10,12 @@ for line in open('BCBio/GFF/__init__.py'):
     if (line.startswith('__version__')):
         exec(line.strip())
 
-setup(name = "bcbio-gff",
-      version = __version__,
-      author = "Brad Chapman",
-      author_email = "chapmanb@50mail.com",
-      description = "Read and write Generic Feature Format (GFF) with Biopython integration.",
-      url = "https://github.com/chapmanb/bcbb/tree/master/gff",
-      use_2to3=True,
-      packages = find_packages()
+setup(name="bcbio-gff",
+      version=__version__,
+      author="Brad Chapman",
+      author_email="chapmanb@50mail.com",
+      description="Read and write Generic Feature Format (GFF) with Biopython integration.",
+      url="https://github.com/chapmanb/bcbb/tree/master/gff",
+      packages=find_packages(),
+      install_requires=["six"]
       )

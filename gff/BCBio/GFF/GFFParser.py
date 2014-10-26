@@ -145,7 +145,7 @@ def _gff_line_map(line, params):
                 pass
         # case for WormBase GFF -- everything labelled as Transcript or CDS
         for flat_name in ["Transcript", "CDS"]:
-            if gff_parts["quals"].has_key(flat_name):
+            if flat_name in gff_parts["quals"]:
                 # parent types
                 if gff_parts["type"] in [flat_name]:
                     if not gff_parts["id"]:
@@ -210,7 +210,7 @@ def _gff_line_map(line, params):
                     gff_info = _nest_gff2_features(gff_info)
                 # features that have parents need to link so we can pick up
                 # the relationship
-                if gff_info['quals'].has_key('Parent'):
+                if "Parent" in gff_info['quals']:
                     # check for self referential parent/child relationships
                     # remove the ID, which is not useful
                     for p in gff_info['quals']['Parent']:
@@ -397,7 +397,7 @@ class _AbstractMapReduceGFF:
         """Add sequence information contained in the GFF3 to records.
         """
         for rec in recs:
-            if base.has_key(rec.id):
+            if rec.id in base:
                 base[rec.id].seq = rec.seq
             else:
                 base[rec.id] = rec
@@ -465,7 +465,7 @@ class _AbstractMapReduceGFF:
     def _add_children_to_parent(self, cur_parent, children):
         """Recursively add children to parent features.
         """
-        if children.has_key(cur_parent.id):
+        if cur_parent.id in children:
             cur_children = children[cur_parent.id]
             ready_children = []
             for _, cur_child in cur_children:
@@ -493,7 +493,7 @@ class _AbstractMapReduceGFF:
     def _add_ann_to_rec(self, rec, key, vals):
         """Add a key/value annotation to the given SeqRecord.
         """
-        if rec.annotations.has_key(key):
+        if key in rec.annotations:
             try:
                 rec.annotations[key].extend(vals)
             except AttributeError:
