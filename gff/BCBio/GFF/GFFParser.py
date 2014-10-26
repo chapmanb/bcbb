@@ -21,6 +21,7 @@ import re
 import collections
 import urllib
 import itertools
+import warnings
 
 # Make defaultdict compatible with versions of python older than 2.4
 try:
@@ -33,6 +34,8 @@ from Bio.Seq import UnknownSeq
 from Bio.SeqRecord import SeqRecord
 from Bio import SeqFeature
 from Bio import SeqIO
+from Bio import BiopythonDeprecationWarning
+warnings.simplefilter("ignore", BiopythonDeprecationWarning)
 
 def _gff_line_map(line, params):
     """Map part of Map-Reduce; parses a line of GFF into a dictionary.
@@ -266,6 +269,9 @@ class _MultiIDRemapper:
                     return ("%s_%s" % (self._base_id, index + 1))
                 else:
                     return self._base_id
+        # if we haven't found a location match but parents are umabiguous, return that
+        if len(self._parents) == 1:
+            return self._base_id
         raise ValueError("Did not find remapped ID location: %s, %s, %s" % (
                 self._base_id, [p['location'] for p in self._parents],
                 feature_dict['location']))
@@ -396,7 +402,7 @@ class _AbstractMapReduceGFF:
             else:
                 base[rec.id] = rec
         return base
-    
+
     def _add_parent_child_features(self, base, parents, children):
         """Add nested features with parent child relationships.
         """
@@ -406,31 +412,30 @@ class _AbstractMapReduceGFF:
         for child_dict in children:
             child_feature = self._get_feature(child_dict)
             for pindex, pid in enumerate(child_feature.qualifiers['Parent']):
-                if multi_remap.has_key(pid):
+                if pid in multi_remap:
                     pid = multi_remap[pid].remap_id(child_dict)
                     child_feature.qualifiers['Parent'][pindex] = pid
                 children_prep[pid].append((child_dict['rec_id'],
-                    child_feature))
+                                           child_feature))
         children = dict(children_prep)
         # add children to parents that exist
         for cur_parent_dict in parents:
             cur_id = cur_parent_dict['id']
-            if multi_remap.has_key(cur_id):
+            if cur_id in multi_remap:
                 cur_parent_dict['id'] = multi_remap[cur_id].remap_id(
                         cur_parent_dict)
             cur_parent, base = self._add_toplevel_feature(base, cur_parent_dict)
             cur_parent, children = self._add_children_to_parent(cur_parent,
-                    children)
+                                                                children)
         # create parents for children without them (GFF2 or split/bad files)
         while len(children) > 0:
-            parent_id, cur_children = itertools.islice(children.items(),
-                    1).next()
+            parent_id, cur_children = itertools.islice(children.items(), 1).next()
             # one child, do not nest it
             if len(cur_children) == 1:
                 rec_id, child = cur_children[0]
                 loc = (child.location.nofuzzy_start, child.location.nofuzzy_end)
                 rec, base = self._get_rec(base,
-                        dict(rec_id=rec_id, location=loc))
+                                          dict(rec_id=rec_id, location=loc))
                 rec.features.append(child)
                 del children[parent_id]
             else:

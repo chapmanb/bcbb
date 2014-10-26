@@ -1,0 +1,11 @@
+1	manual	gene	9559	9672	.	+	.	ID=gene83;Name=rps12|lcl|NC_021456.1_cdsid_YP_008082803.1_8-gene;exception=trans-splicing
+1	manual	gene	112442	113241	.	+	.	ID=gene84;Name=rps12|lcl|NC_021456.1_cdsid_YP_008082803.1_8-gene;exception=trans-splicing
+1	manual	mRNA	9559	9672	.	+	.	ID=mRNA43;Parent=gene83,gene84;Name=rps12|lcl|NC_021456.1_cdsid_YP_008082803.1_8;exception=trans-splicing
+1	manual	mRNA	112442	113241	.	+	.	ID=mRNA43;Parent=gene83,gene84;Name=rps12|lcl|NC_021456.1_cdsid_YP_008082803.1_8;exception=trans-splicing
+1	manual	exon	9559	9672	.	+	.	Parent=mRNA43
+1	manual	CDS	9559	9672	.	+	0	Parent=mRNA43
+1	manual	exon	112442	112673	.	+	.	Parent=mRNA43
+1	manual	CDS	112442	112673	.	+	0	Parent=mRNA43
+1	manual	intron	112674	113215	.	+	.	Parent=mRNA43
+1	manual	exon	113216	113241	.	+	.	Parent=mRNA43
+1	manual	CDS	113216	113241	.	+	2	Parent=mRNA43

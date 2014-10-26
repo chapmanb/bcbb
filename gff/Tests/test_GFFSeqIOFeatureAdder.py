@@ -318,13 +318,28 @@ class GFF3Test(unittest.TestCase):
         assert not f1.sub_features[0].qualifiers.has_key("ID")
         assert f2.qualifiers["Complete"] == ["true"]
 
-    def t2_key_whitespace(self):
+    def t_key_whitespace(self):
         """Fix keys with problematic whitespace.
         """
         tfile = os.path.join(self._test_dir, "spaces.gff3")
         for i, line_info in enumerate(GFF.parse_simple(tfile)):
             if i > 2:
-                assert line_info["quals"]["foo"] == "bar"
+                assert line_info["quals"]["foo"] == ["bar"]
+
+    def t_trans_spliicing(self):
+        """Parsing of transspliced genes from GFF3 spec where child locations don't match to parents.
+        """
+        fname = os.path.join(self._test_dir, "trans_splicing.gff3")
+        with open(fname) as in_handle:
+            rec = GFF.parse(in_handle).next()
+            assert len(rec.features) == 2
+            assert rec.features[0].id == "gene83"
+            assert len(rec.features[0].sub_features) == 2
+            assert len(rec.features[0].sub_features[0].sub_features) == 7
+
+            assert rec.features[1].id == "gene84"
+            assert len(rec.features[1].sub_features) == 2
+            assert len(rec.features[1].sub_features[0].sub_features) == 7
 
 class SolidGFFTester(unittest.TestCase):
     """Test reading output from SOLiD analysis, as GFF3.
@@ -653,7 +668,7 @@ def testing_suite():
     """
     test_suite = unittest.TestSuite()
     test_loader = unittest.TestLoader()
-    test_loader.testMethodPrefix = 't2_'
+    test_loader.testMethodPrefix = 't_'
     tests = [GFF3Test, MapReduceGFFTest, SolidGFFTester, GFF2Tester,
              DirectivesTest, OutputTest]
     #tests = [GFF3Test]
