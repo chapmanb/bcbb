@@ -1,0 +1,280 @@
+#+BLOG: bcbio
+#+POSTID: 702
+#+DATE: [2014-11-05 Wed 06:55]
+#+TITLE: Timing cancer validation runs on Amazon Web Services with Lustre, Gluster and NFS
+#+CATEGORY: benchmarking
+#+TAGS: bioinformatics, variant, ngs, validation, benchmarking, collectl
+#+OPTIONS: toc:nil num:nil
+
+* Overview
+
+Our goal was to provide timing benchmarks for running a full variant calling
+analysis using [[bcbio][bcbio]] on AWS. The benchmark dataset
+was [[dream-about][a cancer tumor/normal evaluation]], from [[dream][the ICGC-TCGA DREAM challenge]],
+with 100x coverage in exome
+regions. We ran on AWS using 64 cores with two r3.8xlarge instancs. To
+compare to local compute, we also ran the same pipeline on
+Harvard FAS architecture using our Lustre Regal setup.
+
+#+LINK: bcbio http://github.com/chapmanb/bcbio-nextgen
+#+LINK: dream https://www.synapse.org/#!Synapse:syn312572
+#+LINK: dream-about https://bcbio-nextgen.readthedocs.org/en/latest/contents/testing.html#cancer-tumor-normal
+
+To summarize the results:
+
+- We developed a freely available version of bcbio on
+  AWS using docker. John Morrissey automated spinning up a cluster, creating a
+  Lustre stack and mounting it to the cluster. Ansible scripts bootstrap bcbio
+  to the latest version and tools, isolated in a Docker container. The process
+  then runs in a single step with automatic download of input data from S3, and
+  upload of results back to S3. This is still a work in progress but we can use
+  it for benchmarking now.
+
+- The AWS setup greatly outperformed the local runs, especially in IO
+  intensive steps like alignment post-processing. This is likely due to
+  having SSDs and no contention for network resources. Our local test is
+  on an in-production Lustre filesystem.
+
+- Lustre outperforms Gluster/NFS due to improved speed during
+  alignments. Measuring system resource usage with collectl, there are two primary
+  difference between Lustre and Gluster/NFS runs during this step. The
+  Gluster/NFS filesystems have more system CPU usage, corresponding to work by
+  the glusterfs daemon on the compute nodes. Additionally, there is more network
+  traffic for both Gluster and NFS during these step.
+
+- Gluster underperforms Lustre and NFS due to a slowdown during the
+  calculation of callable regions. Practically this step involves
+  reads from bgzipped compressed BAM files. We don't have a good measure of why
+  this slows down from the metric plots, but it seems likely to be due to contention
+  reading the BAM files since the callable metrics get calculated in parallel
+  for each chromosome.
+
+We ran the timings and analysis with a lot of brilliant help:
+
+- Ronen Artzi, Michael Heimlich, and Justin Johnson setup the Lustre, Gluster
+  and NFS benchmarks using a bcbio Starcluster setup at AstraZenenca.
+
+- John Morrissey automated the process of starting Lustre on AWS and
+  attaching it to a bcbio cluster. Robert Read with Intel provided great support
+  helping us get the CloudFormation templates running.
+
+- Glen Otero parsed the collectl data and provided graphs, which gave us a
+  detailed look into the potential causes of bottlenecks we found in the
+  timings.
+
+- James Cuff and the team at [[https://rc.fas.harvard.edu][Harvard FAS research computing]] setup and
+  administered the Regal Lustre setup through a collaboration with
+  Kristina Kermanshahche and Intel.
+
+* Reproducing the analysis
+
+After identifying a nice speed up using AWS when testing on AstraZeneca's bcbio
+[[starcluster][StarCluster]] setup, we wanted to be able to make the process automated and
+publicly available. Our goal was to have a platform we could support by being
+able to rapidly push fixes and updates.
+
+We decided to use [[elasticluster][Elasticluster]] for creating the processing cluster since it
+does not rely on a specific AMI. One of the previous challenges with supporting
+bcbio on AWS was having to push a new AMI for architecture
+changes. Elasticluster uses [[ansible][Ansible]] scripts to automate setup so we can extend
+and change the installation without needing to re-prepare AMIs. It also supports
+[[slurm][Slurm]] as a scheduler so we can avoid some of the idiosyncrasies of SGE.
+
+The process to launch the cluster and Lustre stack is fully automated and
+[[bcbio-aws-readme][documented in bcbio-nextgen-vm]]. It bootstrap a cluster run all of the way from a bare
+AWS account. Two commands will add IAM users, a VPC and create an Elasticluster
+config. Two more commands will launch a cluster and update to the latest
+bcbio. You create and mount a Lustre filesystem to the cluster with two more
+commands. Finally, we provides commands to stop the cluster and Lustre stack
+when finished.
+
+With a fully setup system, you can run the benchmark with only a couple of
+manual steps. First edit the system file to use 30 cores with 4Gb memory per
+core, changing the bwa, samtools, snpeff and freebayes specifications:
+
+#+BEGIN_SRC
+vim ~/install/bcbio-vm/data/galaxy/bcbio_system.yaml
+#+END_SRC
+#+BEGIN_HTML
+<br/>
+#+END_HTML
+
+Finally, create the work directory and use bcbio_vm to create a batch script for
+submission to SLURM:
+
+#+BEGIN_SRC
+sudo mkdir /scratch/cancer-dream-syn3-exome
+sudo chown ubuntu !$
+cd !$ && mkdir work && cd work
+bcbio_vm.py ipythonprep s3://bcbio-syn3-eval/cancer-dream-syn3-aws.yaml \
+                        slurm cloud -r 'mincores=30' -r 'timelimit=2-00:00:00' -n 60
+sbatch bcbio_submit.sh
+#+END_SRC
+#+BEGIN_HTML
+<br/>
+#+END_HTML
+
+The processing handles download of input data from S3 and upload back to S3 on
+finalization. We store data encrypted on S3 and manage access to S3 using
+[[instance-profile][IAM instance profiles]]. To run this benchmark yourself, copy the [[eval-config][configuration file]]
+into a bucket you own and bcbio will put the final data into this bucket.
+
+#+LINK: starcluster http://star.mit.edu/cluster/index.html
+#+LINK: elasticluster https://github.com/gc3-uzh-ch/elasticluster
+#+LINK: ansible http://www.ansible.com/home
+#+LINK: slurm http://slurm.schedmd.com
+#+LINK: bcbio-aws-readme https://github.com/chapmanb/bcbio-nextgen-vm#running-on-amazon-web-services-aws
+#+LINK: eval-config https://s3.amazonaws.com/bcbio-syn3-eval/cancer-dream-syn3-aws.yaml
+#+LINK: instance-profile http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html
+
+* Timing
+
+These are the timing results for running on the different setups, split by
+activity. The Docker run in the top table is slightly different than the other
+runs as it includes an alignment preparation step where the input data streams
+in from S3 and is simultaneously bgzipped and indexed. The Docker step also
+skips alignment post-processing since this relies on the non-free GATK and we
+don't yet have a clean way to distribute this with bcbio and Docker. For the
+remaining process steps, the Elasticluster/AWS/Docker run has similar numbers
+to what we found with the setup at AstraZeneca.
+
+** Lustre AWS + Docker + Elasticluster
+
+| Total                     | 4:12:00 |    |
+|---------------------------+---------+----|
+| alignment preparation     | 0:14:00 | ** |
+| alignment                 | 0:32:00 |    |
+| callable regions          | 0:18:00 |    |
+| alignment post-processing | 0:00:00 | ** |
+| variant calling           | 2:52:00 |    |
+| variant post-processing   | 0:03:00 |    |
+| prepped BAM merging       | 0:00:00 | ** |
+| validation                | 0:06:00 |    |
+| ensemble calling          | 0:03:00 |    |
+
+**  Lustre AWS -- AstraZeneca
+
+| Total                     | 4:08:00 |
+|---------------------------+---------|
+| alignment                 | 0:28:00 |
+| callable regions          | 0:45:00 |
+| alignment post-processing | 0:13:00 |
+| variant calling           | 2:14:00 |
+| variant post-processing   | 0:03:00 |
+| prepped BAM merging       | 0:05:00 |
+| validation                | 0:06:00 |
+| ensemble calling          | 0:03:00 |
+| quality control           | 0:05:00 |
+
+** NFS AWS -- AstraZeneca
+
+| Total                     | 4:31:00 |
+|---------------------------+---------|
+| alignment                 | 0:47:00 |
+| callable regions          | 0:43:00 |
+| alignment post-processing | 0:13:00 |
+| variant calling           | 2:16:00 |
+| variant post-processing   | 0:03:00 |
+| prepped BAM merging       | 0:13:00 |
+| validation                | 0:06:00 |
+| ensemble calling          | 0:02:00 |
+| quality control           | 0:05:00 |
+
+** Gluster AWS -- AstraZeneca
+
+| Total                     | 5:36:00 |
+|---------------------------+---------|
+| alignment                 | 0:47:00 |
+| callable regions          | 1:34:00 |
+| alignment post-processing | 0:20:00 |
+| variant calling           | 2:20:00 |
+| variant post-processing   | 0:03:00 |
+| prepped BAM merging       | 0:14:00 |
+| validation                | 0:07:00 |
+| ensemble calling          | 0:02:00 |
+| quality control           | 0:05:00 |
+
+** Lustre local -- Harvard FAS (Regal)
+
+| Total                     | 10:30:00 |
+|---------------------------+----------|
+| alignment                 |  0:53:00 |
+| callable regions          |  1:25:00 |
+| alignment post-processing |  4:36:00 |
+| variant calling           |  2:36:00 |
+| variant post-processing   |  0:22:00 |
+| prepped BAM merging       |  0:06:00 |
+| validation                |  0:09:00 |
+| ensemble calling          |  0:02:00 |
+| quality control           |  0:09:00 |
+
+* Resource usage
+
+** CPU
+
+Comparison of CPU usage during processing steps for Lustre, Gluster and
+NFS. During alignment -- the first major processing step in all three graphs --
+Gluster and NFS have a large portion of system CPU used -- the light green
+lines. This usage corresponds to work by the glusterfs daemon on that machine,
+likely causing the slowdowns.
+
+#+BEGIN_HTML
+<a href="http://i.imgur.com/P3sGQZg.png">
+  <img src="http://i.imgur.com/P3sGQZg.png" width="650"
+       alt="CPU resource usage for Lustre, Gluster and NFS">
+</a>
+#+END_HTML
+
+** Network
+
+Comparison of Network usage during processing for Lustre, Gluster and
+NFS. During alignment Gluster and NFS have increased network activity,
+especially input (the red line). The Gluster traffic is heavier than NFS which
+is heavier than Lustre. Gluster also has a steady higher amount of network
+traffic during variant calling that both NFS and Lustre do not. While this is
+not saturating and does not appear to influence variant calling timing now, it
+may indicate a potential bottleneck when scaling up to more simultaneous samples.
+
+#+BEGIN_HTML
+<a href="http://i.imgur.com/nVCQHcH.png">
+  <img src="http://i.imgur.com/nVCQHcH.png" width="650"
+       alt="Network resource usage for Lustre, Gluster and NFS">
+</a>
+#+END_HTML
+
+* Costs per hour
+
+These are the instance costs, per hour, for running a 2 node 64 core cluster and
+associated Lustre filesystem. Other costs will include EBS volumes, but
+these are small ($0.10/Gb/month) compared to the instance costs over these time
+periods. We plan to use S3 and Glacier for long term storage rather than the
+Lustre filesystem.
+
+|                         | AWS type   | n | each  | total |
+|-------------------------+------------+---+-------+-------|
+| compute entry node      | m3.large   | 1 | $0.14 |       |
+| compute worker nodes    | r3.8xlarge | 2 | $2.80 |       |
+|                         |            |   |       | $5.73 |
+| ost (object data store) | c3.2xlarge | 4 | $0.42 |       |
+| mdt (metadata target)   | c3.4xlarge | 1 | $0.84 |       |
+| mgt (management target) | c3.xlarge  | 1 | $0.21 |       |
+| NATDevice               | m3.medium  | 1 | $0.07 |       |
+| Lustre licensing        |            | 1 | $0.08 |       |
+|                         |            |   |       | $2.89 |
+|-------------------------+------------+---+-------+-------|
+|                         |            |   |       | $8.62 |
+
+* Work to do
+
+To finish the automated AWS, bcbio, Docker and Lustre setup we still need to:
+
+- Support pulling in the GATK and MuTect jars from S3 as part of processing.
+- Improve reference data support to not require indexes to be pre-loaded on
+  the bcbio AMI. We'll need to prepare tarballs of the data on S3 and
+  download and extract them as part of the first run.
+- Ease setup of configuration files from existing S3 buckets by automatically
+  identifying samples in buckets during template preparation step.
+- Make it easier to update bcbio_system to a target number of cores and memory
+  per core without manually configuring.
+- Provide cleaner re-runs using Docker so we do not require spinning up a Docker
+  instance to check if a step finished.
