@@ -29,8 +29,8 @@ configure the cluster. We automate the process with
 [[boto][the boto Python interface to AWS]] and [[ansible][Ansible scripts]]. [[bcbio-vm][bcbio_vm]] isolates
 code and tools inside a [[docker][Docker]] container allowing runs on any remote machine
 with a download of the Docker image and access to the shared filesystem.
-Analyses run directly from S3 buckets, with automatic download of input data
-and upload of final processed data.
+Analyses run directly from S3 buckets, with automatic streaming download
+of input data and upload of final processed data.
 
 #+LINK: bcbio http://github.com/chapmanb/bcbio-nextgen
 #+LINK: aws http://aws.amazon.com/
@@ -42,7 +42,7 @@ and upload of final processed data.
 
 Using this setup to benchmark analysis runs on AWS, we found that:
 
-- The AWS setup outperformed the local runs, especially in IO intensive steps
+- The AWS setup outperformed local runs, especially in IO intensive steps
   like alignment post-processing. AWS offers the opportunity to rent SSD backed
   storage and setup a cluster without contention for network resources. Our
   local test is on an in-production Lustre filesystem attached to a large highly
@@ -62,7 +62,7 @@ Using this setup to benchmark analysis runs on AWS, we found that:
   reading the BAM files since the callable metrics get calculated in parallel
   for each chromosome.
 
-We developed bcbio on AWS and ran these timings and analysis with a lot of
+We developed bcbio on AWS and ran these timing benchmarks with a lot of
 brilliant help:
 
 - John Morrissey automated the process of starting a bcbio cluster on AWS and
@@ -102,14 +102,16 @@ brilliant help:
 
 The process to launch the cluster and an NFS or optional Lustre shared
 filesystem is [[awsdocs][fully automated and documented]]. It sets up permissions, VPCs,
-clusters and share filesystems from a basic AWS account, so requires minimal
-manual work. Two commands will add IAM users, a VPC and create an Elasticluster
-config. Two more commands will launch a cluster and update to the latest
-bcbio. You create and mount a Lustre filesystem to the cluster with two more
-commands. Finally, terminate the cluster and Lustre stack when finished.
+clusters and shared filesystems from a basic AWS account, so requires minimal
+manual work. ~bcbio_vm.py~ has commands to:
+
+- Add an IAM user, a VPC and create the Elasticluster config.
+- Launch a cluster and bootstrap with the latest bcbio code and data.
+- Create and mount a Lustre filesystem attached to the cluster
+- Terminate the cluster and Lustre stack upon completion.
 
 The processing handles download of input data from S3 and upload back to S3 on
-finalization. We store data encrypted on S3 and manage access to S3 using
+finalization. We store data encrypted on S3 and manage access using
 [[instance-profile][IAM instance profiles]]. The examples below show how to run both a somatic variant
 calling evaluation and an RNA-seq evaluation.
 
@@ -142,7 +144,7 @@ Lustre filesystem:
 
 #+BEGIN_SRC
 bcbio_vm.py elasticluster ssh bcbio
-sudo mkdir /scratch/cancer-dream-syn3-exome
+sudo mkdir -p/scratch/cancer-dream-syn3-exome
 sudo chown ubuntu !$
 cd !$ && mkdir work && cd work
 bcbio_vm.py ipythonprep s3://YOURBUCKET-syn3-eval/cancer-dream-syn3-aws.yaml \
@@ -182,7 +184,7 @@ create a batch script that we submit to SLURM. This example uses an NFS filesyst
 
 #+BEGIN_SRC
 bcbio_vm.py elasticluster ssh bcbio
-mkdir ~/run/eval-rna-seqc
+mkdir -p ~/run/eval-rna-seqc
 cd !$ && mkdir work && cd work
 bcbio_vm.py ipythonprep s3://YOURBUCKET-eval-rna-seqc/eval-rna-seqc.yaml \
                         slurm cloud -r 'mincores=30' -r 'timelimit=2-00:00:00' -n 60
@@ -192,11 +194,15 @@ sbatch bcbio_submit.sh
 <br/>
 #+END_HTML
 
-The results will get upload back into your initial S3 bucket as
+This will process three replicates from two different SEQC panels, performing
+adapter trimming, alignment with [[star][STAR]] and produce counts, [[cufflinks][Cufflinks quantitation]]
+and quality control metrics. The results will get upload back into your initial S3 bucket as
 YOURBUCKET-eval-rna-seqc/final, and you can shut down the cluster used for processing.
 
 #+LINK: seqc-paper http://www.nature.com/nbt/journal/v32/n9/full/nbt.2957.html
 #+LINK: seqc-details https://bcbio-nextgen.readthedocs.org/en/latest/contents/testing.html#rnaseq-example
+#+LINK: star https://github.com/alexdobin/STAR
+#+LINK: cufflinks http://cufflinks.cbcb.umd.edu/
 
 * Timing
 
