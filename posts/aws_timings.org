@@ -1,39 +1,52 @@
 #+BLOG: bcbio
 #+POSTID: 702
-#+DATE: [2014-11-05 Wed 06:55]
-#+TITLE: Timing cancer validation runs on Amazon Web Services with Lustre, Gluster and NFS
+#+TITLE: Benchmarking variation and RNA-seq analyses on Amazon Web Services with Docker
 #+CATEGORY: benchmarking
 #+TAGS: bioinformatics, variant, ngs, validation, benchmarking, collectl
 #+OPTIONS: toc:nil num:nil
 
 * Overview
 
-Our goal was to provide timing benchmarks for running a full variant calling
-analysis using [[bcbio][bcbio]] on AWS. The benchmark dataset
-was [[dream-about][a cancer tumor/normal evaluation]], from [[dream][the ICGC-TCGA DREAM challenge]],
-with 100x coverage in exome
-regions. We ran on AWS using 64 cores with two r3.8xlarge instancs. To
-compare to local compute, we also ran the same pipeline on
-Harvard FAS architecture using our Lustre Regal setup.
+We developed a freely available, easy to run implementation of [[bcbio][bcbio-nextgen]] on
+Amazon Web Services (AWS) using [[docker][Docker]]. bcbio is a community developed tool
+providing validated and scalable variant calling and RNA-seq analysis. The AWS
+implementation automates all of the steps of building a cluster, attaching high
+performance shared filesystems, and running an analysis. This makes bcbio
+readily available to the research community without the need to install and
+configure a local installation.
+
+We provide timing benchmarks for running a full variant calling analysis using
+[[bcbio][bcbio]] on AWS. The benchmark dataset was [[dream-about][a cancer tumor/normal evaluation]], from
+[[dream][the ICGC-TCGA DREAM challenge]], with 100x coverage in exome regions. We compared
+the results of running this dataset on 3 different networked filesystems:
+Lustre, NFS and Gluster. We also have a ready to run example RNA-seq dataset
+using inputs from [[seqc-paper][the Sequencing Quality Control (SEQC) project]].
+
+The entire installation bootstraps from standard Ubuntu AMIs, enabling
+adjustment of the tools, genome data and installation without needing to
+re-prepare AMIs. The implementation uses [[elasticluster][Elasticluster]] to provision and
+configure the cluster. We automate the process with
+[[boto][the boto Python interface to AWS]] and [[ansible][Ansible scripts]]. [[bcbio-vm][bcbio_vm]] isolates
+code and tools inside a [[docker][Docker]] container allowing runs on any remote machine
+with a download of the Docker image and access to the shared filesystem.
+Analyses run directly from S3 buckets, with automatic download of input data
+and upload of final processed data.
 
 #+LINK: bcbio http://github.com/chapmanb/bcbio-nextgen
+#+LINK: aws http://aws.amazon.com/
+#+LINK: docker https://docker.com/
 #+LINK: dream https://www.synapse.org/#!Synapse:syn312572
 #+LINK: dream-about https://bcbio-nextgen.readthedocs.org/en/latest/contents/testing.html#cancer-tumor-normal
+#+LINK: boto http://boto.readthedocs.org/en/latest/
+#+LINK: bcbio-vm https://github.com/chapmanb/bcbio-nextgen-vm
 
-To summarize the results:
+Using this setup to benchmark analysis runs on AWS, we found that:
 
-- We developed a freely available version of bcbio on
-  AWS using docker. John Morrissey automated spinning up a cluster, creating a
-  Lustre stack and mounting it to the cluster. Ansible scripts bootstrap bcbio
-  to the latest version and tools, isolated in a Docker container. The process
-  then runs in a single step with automatic download of input data from S3, and
-  upload of results back to S3. This is still a work in progress but we can use
-  it for benchmarking now.
-
-- The AWS setup greatly outperformed the local runs, especially in IO
-  intensive steps like alignment post-processing. This is likely due to
-  having SSDs and no contention for network resources. Our local test is
-  on an in-production Lustre filesystem.
+- The AWS setup outperformed the local runs, especially in IO intensive steps
+  like alignment post-processing. AWS offers the opportunity to rent SSD backed
+  storage and setup a cluster without contention for network resources. Our
+  local test is on an in-production Lustre filesystem attached to a large highly
+  utilized cluster provided by [[fas][Harvard FAS research computing]].
 
 - Lustre outperforms Gluster/NFS due to improved speed during
   alignments. Measuring system resource usage with collectl, there are two primary
@@ -49,64 +62,90 @@ To summarize the results:
   reading the BAM files since the callable metrics get calculated in parallel
   for each chromosome.
 
-We ran the timings and analysis with a lot of brilliant help:
+We developed bcbio on AWS and ran these timings and analysis with a lot of
+brilliant help:
 
-- Ronen Artzi, Michael Heimlich, and Justin Johnson setup the Lustre, Gluster
-  and NFS benchmarks using a bcbio Starcluster setup at AstraZenenca.
+- John Morrissey automated the process of starting a bcbio cluster on AWS and
+  attaching a Lustre filesystem. He also automated the approach to generating
+  graphs of resource usage from collectl stats and provided critical front line
+  and testing and improvements to all the components of the bcbio AWS
+  interaction.
 
-- John Morrissey automated the process of starting Lustre on AWS and
-  attaching it to a bcbio cluster. Robert Read with Intel provided great support
-  helping us get the CloudFormation templates running.
+- Kristina Kermanshahche and Robert Read with Intel provided great support
+  helping us get the [[icel][Lustre ICEL CloudFormation]] templates running.
+
+- Ronen Artzi, Michael Heimlich, and Justin Johnson at [[az][AstraZenenca]] setup the
+  Lustre, Gluster and NFS benchmarks using a bcbio [[starcluster][StarCluster]] instance. This
+  initial validation was essential for convincing us of the value of moving to a
+  shared filesystem on AWS.
+
+- Jason Tetrault, Karl Gutwin and Hank Wu at [[biogen][Biogen]] provided valuable feedback,
+  suggestions and resources for developing bcbio on AWS.
 
 - Glen Otero parsed the collectl data and provided graphs, which gave us a
   detailed look into the potential causes of bottlenecks we found in the
   timings.
 
-- James Cuff and the team at [[https://rc.fas.harvard.edu][Harvard FAS research computing]] setup and
-  administered the Regal Lustre setup through a collaboration with
-  Kristina Kermanshahche and Intel.
+- James Cuff, Paul Edmon and the team at [[fas][Harvard FAS research computing]]
+  built and administered the Regal Lustre setup used for local testing.
+
+- John Kern and other members of the bcbio community tested, debugged and helped
+  identify issues with the implementation. Feedback and contributions are the
+  backbone of bcbio development.
+
+#+LINK: icel https://wiki.hpdd.intel.com/display/PUB/Intel+Cloud+Edition+for+Lustre*+Software
+#+LINK: fas https://rc.fas.harvard.edu/
+#+LINK: az www.astrazeneca.com
+#+LINK: biogen http://www.biogenidec.com/
 
 * Reproducing the analysis
 
-After identifying a nice speed up using AWS when testing on AstraZeneca's bcbio
-[[starcluster][StarCluster]] setup, we wanted to be able to make the process automated and
-publicly available. Our goal was to have a platform we could support by being
-able to rapidly push fixes and updates.
-
-We decided to use [[elasticluster][Elasticluster]] for creating the processing cluster since it
-does not rely on a specific AMI. One of the previous challenges with supporting
-bcbio on AWS was having to push a new AMI for architecture
-changes. Elasticluster uses [[ansible][Ansible]] scripts to automate setup so we can extend
-and change the installation without needing to re-prepare AMIs. It also supports
-[[slurm][Slurm]] as a scheduler so we can avoid some of the idiosyncrasies of SGE.
-
-The process to launch the cluster and Lustre stack is fully automated and
-[[bcbio-aws-readme][documented in bcbio-nextgen-vm]]. It bootstrap a cluster run all of the way from a bare
-AWS account. Two commands will add IAM users, a VPC and create an Elasticluster
+The process to launch the cluster and an NFS or optional Lustre shared
+filesystem is [[awsdocs][fully automated and documented]]. It sets up permissions, VPCs,
+clusters and share filesystems from a basic AWS account, so requires minimal
+manual work. Two commands will add IAM users, a VPC and create an Elasticluster
 config. Two more commands will launch a cluster and update to the latest
 bcbio. You create and mount a Lustre filesystem to the cluster with two more
-commands. Finally, we provides commands to stop the cluster and Lustre stack
-when finished.
+commands. Finally, terminate the cluster and Lustre stack when finished.
 
-With a fully setup system, you can run the benchmark with only a couple of
-manual steps. First edit the system file to use 30 cores with 4Gb memory per
-core, changing the bwa, samtools, snpeff and freebayes specifications:
+The processing handles download of input data from S3 and upload back to S3 on
+finalization. We store data encrypted on S3 and manage access to S3 using
+[[instance-profile][IAM instance profiles]]. The examples below show how to run both a somatic variant
+calling evaluation and an RNA-seq evaluation.
+
+#+LINK: starcluster http://star.mit.edu/cluster/index.html
+#+LINK: elasticluster https://github.com/gc3-uzh-ch/elasticluster
+#+LINK: ansible http://www.ansible.com/home
+#+LINK: awsdocs https://bcbio-nextgen.readthedocs.org/en/latest/contents/cloud.html
+#+LINK: instance-profile http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html
+
+** Running a somatic variant calling evaluation
+
+This analysis performs evaluation of variant calling using
+[[dream-about][tumor/normal somatic sample from the DREAM challenge]].
+To run, prepare an S3 bucket to run the analysis from. Copy the [[eval-config][configuration file]]
+to your own personal bucket and add a [[gatk][GATK]] jar. You can use the AWS console or
+any available S3 client to do this. For example, using the [[awscli][AWS command line client]]:
 
 #+BEGIN_SRC
-vim ~/install/bcbio-vm/data/galaxy/bcbio_system.yaml
+aws s3 mb s3://YOURBUCKET-syn3-eval/
+aws s3 cp s3://bcbio-syn3-eval/cancer-dream-syn3-aws.yaml s3://YOURBUCKET-syn3-eval/
+aws s3 cp GenomeAnalysisTK.jar s3://YOURBUCKET-syn3-eval/jars/
 #+END_SRC
 #+BEGIN_HTML
 <br/>
 #+END_HTML
 
-Finally, create the work directory and use bcbio_vm to create a batch script for
-submission to SLURM:
+Now ssh to the cluster head node, create the work directory and use bcbio_vm to
+create a batch script that we submit to SLURM. This example uses an attacked
+Lustre filesystem:
 
 #+BEGIN_SRC
+bcbio_vm.py elasticluster ssh bcbio
 sudo mkdir /scratch/cancer-dream-syn3-exome
 sudo chown ubuntu !$
 cd !$ && mkdir work && cd work
-bcbio_vm.py ipythonprep s3://bcbio-syn3-eval/cancer-dream-syn3-aws.yaml \
+bcbio_vm.py ipythonprep s3://YOURBUCKET-syn3-eval/cancer-dream-syn3-aws.yaml \
                         slurm cloud -r 'mincores=30' -r 'timelimit=2-00:00:00' -n 60
 sbatch bcbio_submit.sh
 #+END_SRC
@@ -114,29 +153,63 @@ sbatch bcbio_submit.sh
 <br/>
 #+END_HTML
 
-The processing handles download of input data from S3 and upload back to S3 on
-finalization. We store data encrypted on S3 and manage access to S3 using
-[[instance-profile][IAM instance profiles]]. To run this benchmark yourself, copy the [[eval-config][configuration file]]
-into a bucket you own and bcbio will put the final data into this bucket.
+This runs alignment and variant calling with multiple callers (MuTect,
+FreeBayes, VarDict and VarScan), validates against the
+[[dream][DREAM validation dataset truth calls]] and uploads the results back
+to S3 in YOURBUCKET-syn3-eval/final.
 
-#+LINK: starcluster http://star.mit.edu/cluster/index.html
-#+LINK: elasticluster https://github.com/gc3-uzh-ch/elasticluster
-#+LINK: ansible http://www.ansible.com/home
-#+LINK: slurm http://slurm.schedmd.com
-#+LINK: bcbio-aws-readme https://github.com/chapmanb/bcbio-nextgen-vm#running-on-amazon-web-services-aws
 #+LINK: eval-config https://s3.amazonaws.com/bcbio-syn3-eval/cancer-dream-syn3-aws.yaml
-#+LINK: instance-profile http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html
+#+LINK: awscli https://aws.amazon.com/cli/
+#+LINK: gatk https://www.broadinstitute.org/gatk/
+
+** Running a RNA-seq evaluation
+
+This example runs an RNA-seq analysis using inputs from
+[[seqc-paper][the Sequencing Quality Control (SEQC) project]]. Full details on the analysis are
+available in the [[seqc-detail][bcbio example run documentation]]. To setup the run, we copy the
+input configuration from a publicly available S3 bucket into your own personal bucket:
+
+#+BEGIN_SRC
+aws s3 mb s3://YOURBUCKET-eval-rna-seqc/
+aws s3 cp s3://bcbio-eval-rna-seqc/eval-rna-seqc.yaml s3://YOURBUCKET-eval-rnaseqc/
+#+END_SRC
+#+BEGIN_HTML
+<br/>
+#+END_HTML
+
+Now ssh to the cluster head node, create the work directory and use bcbio_vm to
+create a batch script that we submit to SLURM. This example uses an NFS filesystem:
+
+#+BEGIN_SRC
+bcbio_vm.py elasticluster ssh bcbio
+mkdir ~/run/eval-rna-seqc
+cd !$ && mkdir work && cd work
+bcbio_vm.py ipythonprep s3://YOURBUCKET-eval-rna-seqc/eval-rna-seqc.yaml \
+                        slurm cloud -r 'mincores=30' -r 'timelimit=2-00:00:00' -n 60
+sbatch bcbio_submit.sh
+#+END_SRC
+#+BEGIN_HTML
+<br/>
+#+END_HTML
+
+The results will get upload back into your initial S3 bucket as
+YOURBUCKET-eval-rna-seqc/final, and you can shut down the cluster used for processing.
+
+#+LINK: seqc-paper http://www.nature.com/nbt/journal/v32/n9/full/nbt.2957.html
+#+LINK: seqc-details https://bcbio-nextgen.readthedocs.org/en/latest/contents/testing.html#rnaseq-example
 
 * Timing
 
-These are the timing results for running on the different setups, split by
-activity. The Docker run in the top table is slightly different than the other
-runs as it includes an alignment preparation step where the input data streams
-in from S3 and is simultaneously bgzipped and indexed. The Docker step also
-skips alignment post-processing since this relies on the non-free GATK and we
-don't yet have a clean way to distribute this with bcbio and Docker. For the
-remaining process steps, the Elasticluster/AWS/Docker run has similar numbers
-to what we found with the setup at AstraZeneca.
+We ran on AWS using 64 cores with two r3.8xlarge instancs. To compare to local
+compute, we also ran the same pipeline on Harvard FAS architecture using our
+Lustre Regal setup. These are the timing results for running on the different
+setups, split by activity. The Docker run in the top table is slightly different
+than the other runs as it includes an alignment preparation step where the input
+data streams in from S3 and is simultaneously bgzipped and indexed. The Docker
+step also skips alignment post-processing since this relies on the non-free GATK
+and we don't yet have a clean way to distribute this with bcbio and Docker. For
+the remaining process steps, the Elasticluster/AWS/Docker run has similar
+numbers to what we found with the setup at AstraZeneca.
 
 ** Lustre AWS + Docker + Elasticluster
 
@@ -264,17 +337,21 @@ Lustre filesystem.
 |-------------------------+------------+---+-------+-------|
 |                         |            |   |       | $8.62 |
 
+
+* Architecture
+
+- [[black-triangle][Black triangle moment]]
+- Docker
+- Ansible
+- Elasticluster/[[slurm][Slurm]] as a scheduler.
+- S3 interaction
+
+#+LINK: black-triangle https://web.archive.org/web/20131122230658/http://rampantgames.com/blog/2004/10/black-triangle.html
+#+LINK: slurm http://slurm.schedmd.com
+
 * Work to do
 
 To finish the automated AWS, bcbio, Docker and Lustre setup we still need to:
 
-- Support pulling in the GATK and MuTect jars from S3 as part of processing.
-- Improve reference data support to not require indexes to be pre-loaded on
-  the bcbio AMI. We'll need to prepare tarballs of the data on S3 and
-  download and extract them as part of the first run.
-- Ease setup of configuration files from existing S3 buckets by automatically
-  identifying samples in buckets during template preparation step.
-- Make it easier to update bcbio_system to a target number of cores and memory
-  per core without manually configuring.
-- Provide cleaner re-runs using Docker so we do not require spinning up a Docker
-  instance to check if a step finished.
+- Support encryption of EBS volumes for both NFS and Lustre. We encrypt data
+  stored in S3.
