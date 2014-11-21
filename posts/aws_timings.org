@@ -16,17 +16,17 @@ readily available to the research community without the need to install and
 configure a local installation.
 
 We provide timing benchmarks for running a full variant calling analysis using
-[[bcbio][bcbio]] on AWS. The benchmark dataset was [[dream-about][a cancer tumor/normal evaluation]], from
+[[bcbio][bcbio]] on AWS. The benchmark dataset was [[#dream-about][a cancer tumor/normal evaluation]], from
 [[dream][the ICGC-TCGA DREAM challenge]], with 100x coverage in exome regions. We compared
 the results of running this dataset on 3 different networked filesystems:
 Lustre, NFS and Gluster. We also have a ready to run example RNA-seq dataset
-using inputs from [[seqc-paper][the Sequencing Quality Control (SEQC) project]].
+using inputs from [[#seqc-paper][the Sequencing Quality Control (SEQC) project]].
 
 The entire installation bootstraps from standard Ubuntu AMIs, enabling
 adjustment of the tools, genome data and installation without needing to
 re-prepare AMIs. The implementation uses [[elasticluster][Elasticluster]] to provision and
 configure the cluster. We automate the process with
-[[boto][the boto Python interface to AWS]] and [[ansible][Ansible scripts]]. [[bcbio-vm][bcbio_vm]] isolates
+[[boto][the boto Python interface to AWS]] and [[ansible][Ansible scripts]]. [[bcbiovm][bcbio-vm]] isolates
 code and tools inside a [[docker][Docker]] container allowing runs on any remote machine
 with a download of the Docker image and access to the shared filesystem.
 Analyses run directly from S3 buckets, with automatic streaming download
@@ -36,9 +36,9 @@ of input data and upload of final processed data.
 #+LINK: aws http://aws.amazon.com/
 #+LINK: docker https://docker.com/
 #+LINK: dream https://www.synapse.org/#!Synapse:syn312572
-#+LINK: dream-about https://bcbio-nextgen.readthedocs.org/en/latest/contents/testing.html#cancer-tumor-normal
+#+LINK: #dream-about https://bcbio-nextgen.readthedocs.org/en/latest/contents/testing.html#cancer-tumor-normal
 #+LINK: boto http://boto.readthedocs.org/en/latest/
-#+LINK: bcbio-vm https://github.com/chapmanb/bcbio-nextgen-vm
+#+LINK: bcbiovm https://github.com/chapmanb/bcbio-nextgen-vm
 
 Using this setup to benchmark analysis runs on AWS, we found that:
 
@@ -112,20 +112,20 @@ manual work. ~bcbio_vm.py~ has commands to:
 
 The processing handles download of input data from S3 and upload back to S3 on
 finalization. We store data encrypted on S3 and manage access using
-[[instance-profile][IAM instance profiles]]. The examples below show how to run both a somatic variant
+[[#instance-profile][IAM instance profiles]]. The examples below show how to run both a somatic variant
 calling evaluation and an RNA-seq evaluation.
 
 #+LINK: starcluster http://star.mit.edu/cluster/index.html
 #+LINK: elasticluster https://github.com/gc3-uzh-ch/elasticluster
 #+LINK: ansible http://www.ansible.com/home
 #+LINK: awsdocs https://bcbio-nextgen.readthedocs.org/en/latest/contents/cloud.html
-#+LINK: instance-profile http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html
+#+LINK: #instance-profile http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html
 
 ** Running a somatic variant calling evaluation
 
 This analysis performs evaluation of variant calling using
-[[dream-about][tumor/normal somatic sample from the DREAM challenge]].
-To run, prepare an S3 bucket to run the analysis from. Copy the [[eval-config][configuration file]]
+[[#dream-about][tumor/normal somatic sample from the DREAM challenge]].
+To run, prepare an S3 bucket to run the analysis from. Copy the [[evalconfig][configuration file]]
 to your own personal bucket and add a [[gatk][GATK]] jar. You can use the AWS console or
 any available S3 client to do this. For example, using the [[awscli][AWS command line client]]:
 
@@ -160,15 +160,15 @@ FreeBayes, VarDict and VarScan), validates against the
 [[dream][DREAM validation dataset truth calls]] and uploads the results back
 to S3 in YOURBUCKET-syn3-eval/final.
 
-#+LINK: eval-config https://s3.amazonaws.com/bcbio-syn3-eval/cancer-dream-syn3-aws.yaml
+#+LINK: evalconfig https://s3.amazonaws.com/bcbio-syn3-eval/cancer-dream-syn3-aws.yaml
 #+LINK: awscli https://aws.amazon.com/cli/
 #+LINK: gatk https://www.broadinstitute.org/gatk/
 
 ** Running a RNA-seq evaluation
 
 This example runs an RNA-seq analysis using inputs from
-[[seqc-paper][the Sequencing Quality Control (SEQC) project]]. Full details on the analysis are
-available in the [[seqc-detail][bcbio example run documentation]]. To setup the run, we copy the
+[[#seqc-paper][the Sequencing Quality Control (SEQC) project]]. Full details on the analysis are
+available in the [[#seqc-details][bcbio example run documentation]]. To setup the run, we copy the
 input configuration from a publicly available S3 bucket into your own personal bucket:
 
 #+BEGIN_SRC
@@ -199,10 +199,71 @@ adapter trimming, alignment with [[star][STAR]] and produce counts, [[cufflinks]
 and quality control metrics. The results will get upload back into your initial S3 bucket as
 YOURBUCKET-eval-rna-seqc/final, and you can shut down the cluster used for processing.
 
-#+LINK: seqc-paper http://www.nature.com/nbt/journal/v32/n9/full/nbt.2957.html
-#+LINK: seqc-details https://bcbio-nextgen.readthedocs.org/en/latest/contents/testing.html#rnaseq-example
+#+LINK: #seqc-paper http://www.nature.com/nbt/journal/v32/n9/full/nbt.2957.html
+#+LINK: #seqc-details https://bcbio-nextgen.readthedocs.org/en/latest/contents/testing.html#rnaseq-example
 #+LINK: star https://github.com/alexdobin/STAR
 #+LINK: cufflinks http://cufflinks.cbcb.umd.edu/
+
+
+* Architecture
+
+The implementation provides both a practical way to run large scale variant
+calling and RNA-seq analysis, as well as a flexible backend architecture
+suitable for production quality runs. This
+writeup might feel a bit like a [[#black-triangle][black triangle moment]] since I also wrote about
+[[#bcbio-cloudman][running bcbio on AWS three years ago]]. That implementation was a demonstration
+for small scale usage rather than a production ready system. We now have a setup we can
+support and run on large scale projects thanks to numerous changes in
+the backend architecture:
+
+- Amazon, and cloud based providers in general, now provide high end filesystems
+  and networking. Our AWS runs are fast because they use SSD backend storage, fast
+  networking connectivity and high end processors that would be difficult to
+  invest in for a local cluster. Renting these is economically feasible now
+  that we have an approach to provision resources, run the analysis, and tear
+  everything down. The dichotomy between local cluster hardware and cloud
+  hardware will continue to expand with upcoming improvements in
+  [[awsc4][compute (Haswell processors)]] and [[aws16tb][storage (16Tb EBS SSD volumes]]).
+
+- Isolating all of the software and code inside [[docker][Docker]] containers enables rapid
+  pushes of fixes and improvements. From an open source support perspective,
+  Amazon provides a consistent cluster environment we have full control
+  over, limiting the space of potential system specific issues. From a
+  researcher's perspective, this will allow use of bcbio without needing to
+  spend time installing and testing locally.
+
+- The setup runs from standard Ubuntu virtual machines using [[ansible][Ansible scripts]]
+  and [[elasticluster][Elasticluster]]. This means we no longer need to support building and
+  updating AMIs for changes in the architecture or code. This simplifies testing
+  and pushing fixes, which should let us spend less time on support and more on
+  development. It also provides a path to support bcbio on container specific
+  management services like [[awsecs][Amazon's EC2 container service]].
+
+- All long term data storage happens in [[awss3][Amazon's S3 object store]], including both
+  analysis specific data as well as general reference genome data. Downloading
+  reference data for an analysis on demand removes the requirement to maintain
+  large shared EBS volumes. On the analysis side, you maintain only the input
+  files and high value output files in S3, removing the intermediates upon
+  completion of the analysis.
+
+All of these architectural changes provide a setup that is easier to maintain
+and scale over time. Our goal moving ahead is to provide a researcher
+friendly interface to setting up and running analyses using [[http://galaxyproject.org/][Galaxy]]. We hope to
+achieve that through the in-development [[cwl][Common Workflow Language]] from Galaxy, [[arvados][Arvados]],
+[[sevenbridge][Seven Bridges]] and the [[openbio][open bioinformatics community]].
+
+#+LINK: #black-triangle https://web.archive.org/web/20131122230658/http://rampantgames.com/blog/2004/10/black-triangle.html
+#+LINK: slurm http://slurm.schedmd.com
+#+LINK: #bcbio-cloudman https://bcbio.wordpress.com/2011/11/29/making-next-generation-sequencing-analysis-pipelines-easier-with-biocloudcentral-and-galaxy-integration/
+#+LINK: #bcbio-scaling https://bcbio.wordpress.com/2013/05/22/scaling-variant-detection-pipelines-for-whole-genome-sequencing-analysis/
+#+LINK: awsc4 http://aws.amazon.com/blogs/aws/new-c4-instances/
+#+LINK: aws16tb http://www.infoq.com/news/2014/11/new-features-ec2-ebs-s3
+#+LINK: awsecs http://aws.amazon.com/ecs/
+#+LINK: awss3 http://aws.amazon.com/s3/
+#+LINK: cwl https://github.com/rabix/common-workflow-language
+#+LINK: arvados https://arvados.org/
+#+LINK: sevenbridges https://www.sbgenomics.com/
+#+LINK: openbio http://www.open-bio.org/wiki/Main_Page
 
 * Timing
 
@@ -343,21 +404,10 @@ Lustre filesystem.
 |-------------------------+------------+---+-------+-------|
 |                         |            |   |       | $8.62 |
 
-
-* Architecture
-
-- [[black-triangle][Black triangle moment]]
-- Docker
-- Ansible
-- Elasticluster/[[slurm][Slurm]] as a scheduler.
-- S3 interaction
-
-#+LINK: black-triangle https://web.archive.org/web/20131122230658/http://rampantgames.com/blog/2004/10/black-triangle.html
-#+LINK: slurm http://slurm.schedmd.com
-
 * Work to do
 
 To finish the automated AWS, bcbio, Docker and Lustre setup we still need to:
 
 - Support encryption of EBS volumes for both NFS and Lustre. We encrypt data
   stored in S3.
+- Support spot instances using clusterk in place of Elasticluster.
