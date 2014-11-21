@@ -16,11 +16,11 @@ readily available to the research community without the need to install and
 configure a local installation.
 
 We provide timing benchmarks for running a full variant calling analysis using
-[[bcbio][bcbio]] on AWS. The benchmark dataset was [[#dream-about][a cancer tumor/normal evaluation]], from
+[[bcbio][bcbio]] on AWS. The benchmark dataset was [[dream_about][a cancer tumor/normal evaluation]], from
 [[dream][the ICGC-TCGA DREAM challenge]], with 100x coverage in exome regions. We compared
 the results of running this dataset on 3 different networked filesystems:
 Lustre, NFS and Gluster. We also have a ready to run example RNA-seq dataset
-using inputs from [[#seqc-paper][the Sequencing Quality Control (SEQC) project]].
+using inputs from [[seqc_paper][the Sequencing Quality Control (SEQC) project]].
 
 The entire installation bootstraps from standard Ubuntu AMIs, enabling
 adjustment of the tools, genome data and installation without needing to
@@ -36,7 +36,7 @@ of input data and upload of final processed data.
 #+LINK: aws http://aws.amazon.com/
 #+LINK: docker https://docker.com/
 #+LINK: dream https://www.synapse.org/#!Synapse:syn312572
-#+LINK: #dream-about https://bcbio-nextgen.readthedocs.org/en/latest/contents/testing.html#cancer-tumor-normal
+#+LINK: dream_about https://bcbio-nextgen.readthedocs.org/en/latest/contents/testing.html#cancer-tumor-normal
 #+LINK: boto http://boto.readthedocs.org/en/latest/
 #+LINK: bcbiovm https://github.com/chapmanb/bcbio-nextgen-vm
 
@@ -95,7 +95,7 @@ brilliant help:
 
 #+LINK: icel https://wiki.hpdd.intel.com/display/PUB/Intel+Cloud+Edition+for+Lustre*+Software
 #+LINK: fas https://rc.fas.harvard.edu/
-#+LINK: az www.astrazeneca.com
+#+LINK: az http://www.astrazeneca.com
 #+LINK: biogen http://www.biogenidec.com/
 
 * Reproducing the analysis
@@ -112,19 +112,19 @@ manual work. ~bcbio_vm.py~ has commands to:
 
 The processing handles download of input data from S3 and upload back to S3 on
 finalization. We store data encrypted on S3 and manage access using
-[[#instance-profile][IAM instance profiles]]. The examples below show how to run both a somatic variant
+[[instance_profile][IAM instance profiles]]. The examples below show how to run both a somatic variant
 calling evaluation and an RNA-seq evaluation.
 
 #+LINK: starcluster http://star.mit.edu/cluster/index.html
 #+LINK: elasticluster https://github.com/gc3-uzh-ch/elasticluster
 #+LINK: ansible http://www.ansible.com/home
 #+LINK: awsdocs https://bcbio-nextgen.readthedocs.org/en/latest/contents/cloud.html
-#+LINK: #instance-profile http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html
+#+LINK: instance_profile http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html
 
 ** Running a somatic variant calling evaluation
 
 This analysis performs evaluation of variant calling using
-[[#dream-about][tumor/normal somatic sample from the DREAM challenge]].
+[[dream_about][tumor/normal somatic sample from the DREAM challenge]].
 To run, prepare an S3 bucket to run the analysis from. Copy the [[evalconfig][configuration file]]
 to your own personal bucket and add a [[gatk][GATK]] jar. You can use the AWS console or
 any available S3 client to do this. For example, using the [[awscli][AWS command line client]]:
@@ -167,8 +167,8 @@ to S3 in YOURBUCKET-syn3-eval/final.
 ** Running a RNA-seq evaluation
 
 This example runs an RNA-seq analysis using inputs from
-[[#seqc-paper][the Sequencing Quality Control (SEQC) project]]. Full details on the analysis are
-available in the [[#seqc-details][bcbio example run documentation]]. To setup the run, we copy the
+[[seqc_paper][the Sequencing Quality Control (SEQC) project]]. Full details on the analysis are
+available in the [[seqc_details][bcbio example run documentation]]. To setup the run, we copy the
 input configuration from a publicly available S3 bucket into your own personal bucket:
 
 #+BEGIN_SRC
@@ -199,8 +199,8 @@ adapter trimming, alignment with [[star][STAR]] and produce counts, [[cufflinks]
 and quality control metrics. The results will get upload back into your initial S3 bucket as
 YOURBUCKET-eval-rna-seqc/final, and you can shut down the cluster used for processing.
 
-#+LINK: #seqc-paper http://www.nature.com/nbt/journal/v32/n9/full/nbt.2957.html
-#+LINK: #seqc-details https://bcbio-nextgen.readthedocs.org/en/latest/contents/testing.html#rnaseq-example
+#+LINK: seqc_paper http://www.nature.com/nbt/journal/v32/n9/full/nbt.2957.html
+#+LINK: seqc_details https://bcbio-nextgen.readthedocs.org/en/latest/contents/testing.html#rnaseq-example
 #+LINK: star https://github.com/alexdobin/STAR
 #+LINK: cufflinks http://cufflinks.cbcb.umd.edu/
 
@@ -210,10 +210,10 @@ YOURBUCKET-eval-rna-seqc/final, and you can shut down the cluster used for proce
 The implementation provides both a practical way to run large scale variant
 calling and RNA-seq analysis, as well as a flexible backend architecture
 suitable for production quality runs. This
-writeup might feel a bit like a [[#black-triangle][black triangle moment]] since I also wrote about
-[[#bcbio-cloudman][running bcbio on AWS three years ago]]. That implementation was a demonstration
+writeup might feel a bit like a [[blacktriangle][black triangle moment]] since I also wrote about
+[[bcbiocloudman][running bcbio on AWS three years ago]]. That implementation was a demonstration
 for small scale usage rather than a production ready system. We now have a setup we can
-support and run on large scale projects thanks to numerous changes in
+support and run on [[bcbioscaling][large scale projects]] thanks to numerous changes in
 the backend architecture:
 
 - Amazon, and cloud based providers in general, now provide high end filesystems
@@ -252,10 +252,10 @@ friendly interface to setting up and running analyses using [[http://galaxyproje
 achieve that through the in-development [[cwl][Common Workflow Language]] from Galaxy, [[arvados][Arvados]],
 [[sevenbridge][Seven Bridges]] and the [[openbio][open bioinformatics community]].
 
-#+LINK: #black-triangle https://web.archive.org/web/20131122230658/http://rampantgames.com/blog/2004/10/black-triangle.html
+#+LINK: blacktriangle https://web.archive.org/web/20131122230658/http://rampantgames.com/blog/2004/10/black-triangle.html
 #+LINK: slurm http://slurm.schedmd.com
-#+LINK: #bcbio-cloudman https://bcbio.wordpress.com/2011/11/29/making-next-generation-sequencing-analysis-pipelines-easier-with-biocloudcentral-and-galaxy-integration/
-#+LINK: #bcbio-scaling https://bcbio.wordpress.com/2013/05/22/scaling-variant-detection-pipelines-for-whole-genome-sequencing-analysis/
+#+LINK: bcbiocloudman https://bcbio.wordpress.com/2011/11/29/making-next-generation-sequencing-analysis-pipelines-easier-with-biocloudcentral-and-galaxy-integration/
+#+LINK: bcbioscaling https://bcbio.wordpress.com/2013/05/22/scaling-variant-detection-pipelines-for-whole-genome-sequencing-analysis/
 #+LINK: awsc4 http://aws.amazon.com/blogs/aws/new-c4-instances/
 #+LINK: aws16tb http://www.infoq.com/news/2014/11/new-features-ec2-ebs-s3
 #+LINK: awsecs http://aws.amazon.com/ecs/
