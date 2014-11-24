@@ -226,7 +226,7 @@ the backend architecture:
 All of these architectural changes provide a setup that is easier to maintain
 and scale over time. Our goal moving ahead is to provide a researcher friendly
 interface to setting up and running analyses. We hope to achieve that through
-the in-development [[cwl][Common Workflow Language]] from [[http://galaxyproject.org/][Galaxy]], [[arvados][Arvados]], [[sevenbridge][Seven Bridges]],
+the in-development [[cwl][Common Workflow Language]] from [[http://galaxyproject.org/][Galaxy]], [[arvados][Arvados]], [[sevenbridges][Seven Bridges]],
 [[taverna][Taverna]] and the [[openbio][open bioinformatics community]].
 
 #+LINK: blacktriangle https://web.archive.org/web/20131122230658/http://rampantgames.com/blog/2004/10/black-triangle.html
@@ -253,7 +253,7 @@ the new bcbio AWS infrastructure to provide a common set of run times
 along with resource plots. AWS runs used 64 total cores with two r3.8xlarge instances
 clustered in a single [[awspc][placement group]].
 
-#+LINK: awspg
+#+LINK: awspc
 
 Using this setup to benchmark analysis runs on AWS, we found that:
 
