@@ -22,7 +22,7 @@ the results of running this dataset on 3 different networked filesystems:
 Lustre, NFS and Gluster. We also have a ready to run example RNA-seq dataset
 using inputs from [[seqc_paper][the Sequencing Quality Control (SEQC) project]].
 
-The entire installation bootstraps from standard Ubuntu AMIs, enabling
+The entire installation bootstraps from standard Linux AMIs, enabling
 adjustment of the tools, genome data and installation without needing to
 re-prepare AMIs. The implementation uses [[elasticluster][Elasticluster]] to provision and
 configure the cluster. We automate the process with
@@ -40,35 +40,12 @@ of input data and upload of final processed data.
 #+LINK: boto http://boto.readthedocs.org/en/latest/
 #+LINK: bcbiovm https://github.com/chapmanb/bcbio-nextgen-vm
 
-Using this setup to benchmark analysis runs on AWS, we found that:
-
-- The AWS setup outperformed local runs, especially in IO intensive steps
-  like alignment post-processing. AWS offers the opportunity to rent SSD backed
-  storage and setup a cluster without contention for network resources. Our
-  local test is on an in-production Lustre filesystem attached to a large highly
-  utilized cluster provided by [[fas][Harvard FAS research computing]].
-
-- Lustre outperforms Gluster/NFS due to improved speed during
-  alignments. Measuring system resource usage with collectl, there are two primary
-  difference between Lustre and Gluster/NFS runs during this step. The
-  Gluster/NFS filesystems have more system CPU usage, corresponding to work by
-  the glusterfs daemon on the compute nodes. Additionally, there is more network
-  traffic for both Gluster and NFS during these step.
-
-- Gluster underperforms Lustre and NFS due to a slowdown during the
-  calculation of callable regions. Practically this step involves
-  reads from bgzipped compressed BAM files. We don't have a good measure of why
-  this slows down from the metric plots, but it seems likely to be due to contention
-  reading the BAM files since the callable metrics get calculated in parallel
-  for each chromosome.
-
-We developed bcbio on AWS and ran these timing benchmarks with a lot of
-brilliant help:
+We developed bcbio on AWS and ran the timing benchmarks with a lot of brilliant help:
 
 - John Morrissey automated the process of starting a bcbio cluster on AWS and
   attaching a Lustre filesystem. He also automated the approach to generating
   graphs of resource usage from collectl stats and provided critical front line
-  and testing and improvements to all the components of the bcbio AWS
+  testing and improvements to all the components of the bcbio AWS
   interaction.
 
 - Kristina Kermanshahche and Robert Read with Intel provided great support
@@ -107,7 +84,7 @@ manual work. ~bcbio_vm.py~ has commands to:
 
 - Add an IAM user, a VPC and create the Elasticluster config.
 - Launch a cluster and bootstrap with the latest bcbio code and data.
-- Create and mount a Lustre filesystem attached to the cluster
+- Create and mount a Lustre filesystem attached to the cluster.
 - Terminate the cluster and Lustre stack upon completion.
 
 The processing handles download of input data from S3 and upload back to S3 on
@@ -196,7 +173,7 @@ sbatch bcbio_submit.sh
 
 This will process three replicates from two different SEQC panels, performing
 adapter trimming, alignment with [[star][STAR]] and produce counts, [[cufflinks][Cufflinks quantitation]]
-and quality control metrics. The results will get upload back into your initial S3 bucket as
+and quality control metrics. The results upload back into your initial S3 bucket as
 YOURBUCKET-eval-rna-seqc/final, and you can shut down the cluster used for processing.
 
 #+LINK: seqc_paper http://www.nature.com/nbt/journal/v32/n9/full/nbt.2957.html
@@ -226,13 +203,13 @@ the backend architecture:
   [[awsc4][compute (Haswell processors)]] and [[aws16tb][storage (16Tb EBS SSD volumes]]).
 
 - Isolating all of the software and code inside [[docker][Docker]] containers enables rapid
-  pushes of fixes and improvements. From an open source support perspective,
+  deployment of fixes and improvements. From an open source support perspective,
   Amazon provides a consistent cluster environment we have full control
   over, limiting the space of potential system specific issues. From a
   researcher's perspective, this will allow use of bcbio without needing to
   spend time installing and testing locally.
 
-- The setup runs from standard Ubuntu virtual machines using [[ansible][Ansible scripts]]
+- The setup runs from standard Linux base images using [[ansible][Ansible scripts]]
   and [[elasticluster][Elasticluster]]. This means we no longer need to support building and
   updating AMIs for changes in the architecture or code. This simplifies testing
   and pushing fixes, which should let us spend less time on support and more on
@@ -247,10 +224,10 @@ the backend architecture:
   completion of the analysis.
 
 All of these architectural changes provide a setup that is easier to maintain
-and scale over time. Our goal moving ahead is to provide a researcher
-friendly interface to setting up and running analyses using [[http://galaxyproject.org/][Galaxy]]. We hope to
-achieve that through the in-development [[cwl][Common Workflow Language]] from Galaxy, [[arvados][Arvados]],
-[[sevenbridge][Seven Bridges]] and the [[openbio][open bioinformatics community]].
+and scale over time. Our goal moving ahead is to provide a researcher friendly
+interface to setting up and running analyses. We hope to achieve that through
+the in-development [[cwl][Common Workflow Language]] from [[http://galaxyproject.org/][Galaxy]], [[arvados][Arvados]], [[sevenbridge][Seven Bridges]],
+[[taverna][Taverna]] and the [[openbio][open bioinformatics community]].
 
 #+LINK: blacktriangle https://web.archive.org/web/20131122230658/http://rampantgames.com/blog/2004/10/black-triangle.html
 #+LINK: slurm http://slurm.schedmd.com
@@ -264,19 +241,48 @@ achieve that through the in-development [[cwl][Common Workflow Language]] from G
 #+LINK: arvados https://arvados.org/
 #+LINK: sevenbridges https://www.sbgenomics.com/
 #+LINK: openbio http://www.open-bio.org/wiki/Main_Page
+#+LINK: taverna http://www.taverna.org.uk/
 
 * Timing
 
-We ran on AWS using 64 cores with two r3.8xlarge instancs. To compare to local
-compute, we also ran the same pipeline on Harvard FAS architecture using our
-Lustre Regal setup. These are the timing results for running on the different
-setups, split by activity. The Docker run in the top table is slightly different
-than the other runs as it includes an alignment preparation step where the input
-data streams in from S3 and is simultaneously bgzipped and indexed. The Docker
-step also skips alignment post-processing since this relies on the non-free GATK
-and we don't yet have a clean way to distribute this with bcbio and Docker. For
-the remaining process steps, the Elasticluster/AWS/Docker run has similar
-numbers to what we found with the setup at AstraZeneca.
+This section contains in-progress timing results, split by activity, for running
+on a variety of bcbio setups: on the elasticluster Docker AWS implementation
+described above, on a custom bcbio AWS installation at AstraZeneca, and on local
+[[fas][Harvard FAS]] machines. We're in the process of re-running all benchmarks using
+the new bcbio AWS infrastructure to provide a common set of run times
+along with resource plots. AWS runs used 64 total cores with two r3.8xlarge instances
+clustered in a single [[awspc][placement group]].
+
+#+LINK: awspg
+
+Using this setup to benchmark analysis runs on AWS, we found that:
+
+- The AWS setup outperformed local runs, especially in IO intensive steps like
+  alignment post-processing. AWS offers the opportunity to rent SSD backed
+  storage and setup a 10GigE connected cluster without contention for network
+  resources. Our local test is on an in-production Lustre filesystem attached to
+  a large highly utilized cluster provided by [[fas][Harvard FAS research computing]].
+
+- Lustre outperforms Gluster/NFS due to improved speed during the IO intensive
+  alignment and callable region calculation steps. Measuring system resource
+  usage with collectl, there are two primary difference between Lustre and
+  Gluster/NFS runs during this step. The Gluster/NFS filesystems have more
+  system CPU usage, corresponding to work by the glusterfs daemon on the compute
+  nodes. Additionally, there is more network traffic for both Gluster and NFS
+  during these step. There is also a slowdown during the calculation of callable
+  regions. Practically this step involves reads from bgzipped compressed BAM
+  files. We don't have a good measure of why this slows down from the metric
+  plots, but it seems likely to be due to contention reading the BAM files since
+  the callable metrics get calculated in parallel for each chromosome.
+
+The Docker run in the top table is slightly different than the other
+runs as it includes an alignment preparation step where the input data streams
+in from S3 and is simultaneously bgzipped and indexed. The Docker step also
+skips alignment post-processing since we didn't have a clean way to run GATK
+inside Docker when we ran this. For the remaining process steps, the
+Elasticluster/AWS/Docker run has similar numbers to what we found with
+our AstraZeneca runs, so we have some confidence the re-run benchmarks will
+look similar.
 
 ** Lustre AWS + Docker + Elasticluster
 
@@ -350,6 +356,10 @@ numbers to what we found with the setup at AstraZeneca.
 
 * Resource usage
 
+We have a new automated approach to extract and plot resource usage graphs from
+a bcbio run and will be refreshing this section with those plots as we finalize
+additional benchmarking runs on the publicly available bcbio framework.
+
 ** CPU
 
 Comparison of CPU usage during processing steps for Lustre, Gluster and
@@ -392,7 +402,7 @@ Lustre filesystem.
 
 |                         | AWS type   | n | each  | total |
 |-------------------------+------------+---+-------+-------|
-| compute entry node      | m3.large   | 1 | $0.14 |       |
+| compute entry node      | c3.large   | 1 | $0.11 |       |
 | compute worker nodes    | r3.8xlarge | 2 | $2.80 |       |
 |                         |            |   |       | $5.73 |
 | ost (object data store) | c3.2xlarge | 4 | $0.42 |       |
@@ -410,4 +420,4 @@ To finish the automated AWS, bcbio, Docker and Lustre setup we still need to:
 
 - Support encryption of EBS volumes for both NFS and Lustre. We encrypt data
   stored in S3.
-- Support spot instances using clusterk in place of Elasticluster.
+- Work on supporting spot instances either using clusterk or with Elasticluster.
