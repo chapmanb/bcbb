@@ -18,8 +18,8 @@ configure a local installation.
 We provide timing benchmarks for running a full variant calling analysis using
 [[bcbio][bcbio]] on AWS. The benchmark dataset was [[dream_about][a cancer tumor/normal evaluation]], from
 [[dream][the ICGC-TCGA DREAM challenge]], with 100x coverage in exome regions. We compared
-the results of running this dataset on 3 different networked filesystems:
-Lustre, NFS and Gluster. We also have a ready to run example RNA-seq dataset
+the results of running this dataset on 2 different networked filesystems:
+Lustre and NFS. We also have a ready to run example RNA-seq dataset
 using inputs from [[seqc_paper][the Sequencing Quality Control (SEQC) project]].
 
 The entire installation bootstraps from standard Linux AMIs, enabling
@@ -51,7 +51,7 @@ We developed bcbio on AWS and ran the timing benchmarks with a lot of brilliant 
 - Kristina Kermanshahche and Robert Read with Intel provided great support
   helping us get the [[icel][Lustre ICEL CloudFormation]] templates running.
 
-- Ronen Artzi, Michael Heimlich, and Justin Johnson at [[az][AstraZenenca]] setup the
+- Ronen Artzi, Michael Heimlich, and Justin Johnson at [[az][AstraZenenca]] setup
   Lustre, Gluster and NFS benchmarks using a bcbio [[starcluster][StarCluster]] instance. This
   initial validation was essential for convincing us of the value of moving to a
   shared filesystem on AWS.
@@ -116,7 +116,7 @@ aws s3 cp GenomeAnalysisTK.jar s3://YOURBUCKET-syn3-eval/jars/
 #+END_HTML
 
 Now ssh to the cluster head node, create the work directory and use bcbio_vm to
-create a batch script that we submit to SLURM. This example uses an attacked
+create a batch script that we submit to SLURM. This example uses an attached
 Lustre filesystem:
 
 #+BEGIN_SRC
@@ -125,7 +125,7 @@ sudo mkdir -p/scratch/cancer-dream-syn3-exome
 sudo chown ubuntu !$
 cd !$ && mkdir work && cd work
 bcbio_vm.py ipythonprep s3://YOURBUCKET-syn3-eval/cancer-dream-syn3-aws.yaml \
-                        slurm cloud -r 'mincores=30' -r 'timelimit=2-00:00:00' -n 60
+                        slurm cloud -n 60
 sbatch bcbio_submit.sh
 #+END_SRC
 #+BEGIN_HTML
@@ -161,10 +161,10 @@ create a batch script that we submit to SLURM. This example uses an NFS filesyst
 
 #+BEGIN_SRC
 bcbio_vm.py elasticluster ssh bcbio
-mkdir -p ~/run/eval-rna-seqc
-cd !$ && mkdir work && cd work
+mkdir -p ~/run/eval-rna-seqc/work
+cd !$
 bcbio_vm.py ipythonprep s3://YOURBUCKET-eval-rna-seqc/eval-rna-seqc.yaml \
-                        slurm cloud -r 'mincores=30' -r 'timelimit=2-00:00:00' -n 60
+                        slurm cloud -n 60
 sbatch bcbio_submit.sh
 #+END_SRC
 #+BEGIN_HTML
@@ -246,12 +246,9 @@ the in-development [[cwl][Common Workflow Language]] from [[http://galaxyproject
 * Timing
 
 This section contains in-progress timing results, split by activity, for running
-on a variety of bcbio setups: on the elasticluster Docker AWS implementation
-described above, on a custom bcbio AWS installation at AstraZeneca, and on local
-[[fas][Harvard FAS]] machines. We're in the process of re-running all benchmarks using
-the new bcbio AWS infrastructure to provide a common set of run times
-along with resource plots. AWS runs used 64 total cores with two r3.8xlarge instances
-clustered in a single [[awspc][placement group]].
+on the elasticluster Docker AWS implementation and on local [[fas][Harvard FAS]]
+machines. AWS runs use two c3.8xlarge instances clustered in a single
+[[awspc][placement group]], providing 64 total cores and 60Gb of memory per machine.
 
 #+LINK: awspc
 
@@ -263,132 +260,90 @@ Using this setup to benchmark analysis runs on AWS, we found that:
   resources. Our local test is on an in-production Lustre filesystem attached to
   a large highly utilized cluster provided by [[fas][Harvard FAS research computing]].
 
-- Lustre outperforms Gluster/NFS due to improved speed during the IO intensive
-  alignment and callable region calculation steps. Measuring system resource
-  usage with collectl, there are two primary difference between Lustre and
-  Gluster/NFS runs during this step. The Gluster/NFS filesystems have more
-  system CPU usage, corresponding to work by the glusterfs daemon on the compute
-  nodes. Additionally, there is more network traffic for both Gluster and NFS
-  during these step. There is also a slowdown during the calculation of callable
-  regions. Practically this step involves reads from bgzipped compressed BAM
-  files. We don't have a good measure of why this slows down from the metric
-  plots, but it seems likely to be due to contention reading the BAM files since
-  the callable metrics get calculated in parallel for each chromosome.
+- Lustre outperforms NFS due to improved speed during the IO intensive alignment
+  and callable region calculation steps. Measuring system resource usage with
+  collectl, there are two primary difference between Lustre and NFS runs during
+  this step. The NFS filesystems have more system CPU usage, corresponding to
+  work by the glusterfs daemon on the compute nodes. Additionally, there is more
+  network traffic for NFS during these step. There is also a slowdown during the
+  calculation of callable regions. Practically this step involves reads from
+  bgzipped compressed BAM files. We don't have a good measure of why this slows
+  down from the metric plots, but it seems likely to be due to contention
+  reading the BAM files since the callable metrics get calculated in parallel
+  for each chromosome.
 
-The Docker run in the top table is slightly different than the other
-runs as it includes an alignment preparation step where the input data streams
-in from S3 and is simultaneously bgzipped and indexed. The Docker step also
-skips alignment post-processing since we didn't have a clean way to run GATK
-inside Docker when we ran this. For the remaining process steps, the
-Elasticluster/AWS/Docker run has similar numbers to what we found with
-our AstraZeneca runs, so we have some confidence the re-run benchmarks will
-look similar.
+** NFS: AWS + Docker + Elasticluster
 
-** Lustre AWS + Docker + Elasticluster
+| Total                     | 4:40 |
+|---------------------------+------|
+| prepare samples **        | 0:10 |
+| alignment preparation **  | 0:16 |
+| alignment                 | 0:52 |
+| callable regions          | 0:15 |
+| alignment post-processing | 0:08 |
+| variant calling           | 2:28 |
+| variant post-processing   | 0:04 |
+| validation                | 0:05 |
+| quality control           | 0:06 |
 
-| Total                     | 4:12:00 |    |
-|---------------------------+---------+----|
-| alignment preparation     | 0:14:00 | ** |
-| alignment                 | 0:32:00 |    |
-| callable regions          | 0:18:00 |    |
-| alignment post-processing | 0:00:00 | ** |
-| variant calling           | 2:52:00 |    |
-| variant post-processing   | 0:03:00 |    |
-| prepped BAM merging       | 0:00:00 | ** |
-| validation                | 0:06:00 |    |
-| ensemble calling          | 0:03:00 |    |
+** Lustre: AWS + Docker + Elasticluster
 
-**  Lustre AWS -- AstraZeneca
+** Lustre: local -- Harvard FAS (Regal)
 
-| Total                     | 4:08:00 |
-|---------------------------+---------|
-| alignment                 | 0:28:00 |
-| callable regions          | 0:45:00 |
-| alignment post-processing | 0:13:00 |
-| variant calling           | 2:14:00 |
-| variant post-processing   | 0:03:00 |
-| prepped BAM merging       | 0:05:00 |
-| validation                | 0:06:00 |
-| ensemble calling          | 0:03:00 |
-| quality control           | 0:05:00 |
-
-** NFS AWS -- AstraZeneca
-
-| Total                     | 4:31:00 |
-|---------------------------+---------|
-| alignment                 | 0:47:00 |
-| callable regions          | 0:43:00 |
-| alignment post-processing | 0:13:00 |
-| variant calling           | 2:16:00 |
-| variant post-processing   | 0:03:00 |
-| prepped BAM merging       | 0:13:00 |
-| validation                | 0:06:00 |
-| ensemble calling          | 0:02:00 |
-| quality control           | 0:05:00 |
-
-** Gluster AWS -- AstraZeneca
-
-| Total                     | 5:36:00 |
-|---------------------------+---------|
-| alignment                 | 0:47:00 |
-| callable regions          | 1:34:00 |
-| alignment post-processing | 0:20:00 |
-| variant calling           | 2:20:00 |
-| variant post-processing   | 0:03:00 |
-| prepped BAM merging       | 0:14:00 |
-| validation                | 0:07:00 |
-| ensemble calling          | 0:02:00 |
-| quality control           | 0:05:00 |
-
-** Lustre local -- Harvard FAS (Regal)
-
-| Total                     | 10:30:00 |
-|---------------------------+----------|
-| alignment                 |  0:53:00 |
-| callable regions          |  1:25:00 |
-| alignment post-processing |  4:36:00 |
-| variant calling           |  2:36:00 |
-| variant post-processing   |  0:22:00 |
-| prepped BAM merging       |  0:06:00 |
-| validation                |  0:09:00 |
-| ensemble calling          |  0:02:00 |
-| quality control           |  0:09:00 |
+| Total                     | 10:30 |
+|---------------------------+-------|
+| alignment                 |  0:53 |
+| callable regions          |  1:25 |
+| alignment post-processing |  4:36 |
+| variant calling           |  2:36 |
+| variant post-processing   |  0:22 |
+| prepped BAM merging       |  0:06 |
+| validation                |  0:09 |
+| quality control           |  0:09 |
 
 * Resource usage
 
-We have a new automated approach to extract and plot resource usage graphs from
-a bcbio run and will be refreshing this section with those plots as we finalize
-additional benchmarking runs on the publicly available bcbio framework.
+bcbio graphs [[collectl][collectl]] usage statistics about CPU, memory, disk and network
+usage, enabling direct examination of resources that limit each of the processing
+steps. bcbio retrieves collectl statistics from the server [[bcbiodoc_graph][and prepares graphs]]
+of resource usage thanks to work from John Morrissey and Glen Otero.
+
+We'll highlight some interesting comparisons between NFS and Lustre below.
+For more details, look at the full set of resource usage graphs:
+
+- [[nfsstats][NFS AWS run]]
+
+#+LINK: bcbiodoc_graph https://bcbio-nextgen.readthedocs.org/en/latest/contents/cloud.html#graphing-resource-usage
+#+LINK: collectl http://collectl.sourceforge.net/
+#+LINK: nfsstats http://imgur.com/a/AZjuC
 
 ** CPU
 
-Comparison of CPU usage during processing steps for Lustre, Gluster and
-NFS. During alignment -- the first major processing step in all three graphs --
-Gluster and NFS have a large portion of system CPU used -- the light green
-lines. This usage corresponds to work by the glusterfs daemon on that machine,
-likely causing the slowdowns.
+Comparison of CPU usage during processing steps for Lustre and NFS.
+
+*** NFS
 
 #+BEGIN_HTML
-<a href="http://i.imgur.com/P3sGQZg.png">
-  <img src="http://i.imgur.com/P3sGQZg.png" width="650"
-       alt="CPU resource usage for Lustre, Gluster and NFS">
+<a href="http://i.imgur.com/vJvG5By.png">
+  <img src="http://i.imgur.com/vJvG5By.png" width="650"
+       alt="Compute-based CPU resource usage for NFS">
 </a>
 #+END_HTML
 
 ** Network
 
-Comparison of Network usage during processing for Lustre, Gluster and
-NFS. During alignment Gluster and NFS have increased network activity,
-especially input (the red line). The Gluster traffic is heavier than NFS which
-is heavier than Lustre. Gluster also has a steady higher amount of network
-traffic during variant calling that both NFS and Lustre do not. While this is
-not saturating and does not appear to influence variant calling timing now, it
-may indicate a potential bottleneck when scaling up to more simultaneous samples.
+Comparison of Network usage during processing for Lustre and NFS. During
+alignment NFS has increased network activity, especially input (the red
+line). While this is not saturating and doesn't greatly change timing now, it
+may indicate a potential bottleneck when scaling up to more simultaneous
+samples.
+
+*** NFS
 
 #+BEGIN_HTML
-<a href="http://i.imgur.com/nVCQHcH.png">
-  <img src="http://i.imgur.com/nVCQHcH.png" width="650"
-       alt="Network resource usage for Lustre, Gluster and NFS">
+<a href="http://i.imgur.com/CzfZEZG.png">
+  <img src="http://i.imgur.com/CzfZEZG.png"
+       alt="Network resource usage NFS">
 </a>
 #+END_HTML
 
@@ -397,22 +352,22 @@ may indicate a potential bottleneck when scaling up to more simultaneous samples
 These are the instance costs, per hour, for running a 2 node 64 core cluster and
 associated Lustre filesystem. Other costs will include EBS volumes, but
 these are small ($0.10/Gb/month) compared to the instance costs over these time
-periods. We plan to use S3 and Glacier for long term storage rather than the
+periods. We use S3 and Glacier for long term storage rather than the
 Lustre filesystem.
 
-|                         | AWS type   | n | each  | total |
-|-------------------------+------------+---+-------+-------|
-| compute entry node      | c3.large   | 1 | $0.11 |       |
-| compute worker nodes    | r3.8xlarge | 2 | $2.80 |       |
-|                         |            |   |       | $5.73 |
-| ost (object data store) | c3.2xlarge | 4 | $0.42 |       |
-| mdt (metadata target)   | c3.4xlarge | 1 | $0.84 |       |
-| mgt (management target) | c3.xlarge  | 1 | $0.21 |       |
-| NATDevice               | m3.medium  | 1 | $0.07 |       |
-| Lustre licensing        |            | 1 | $0.08 |       |
-|                         |            |   |       | $2.89 |
-|-------------------------+------------+---+-------+-------|
-|                         |            |   |       | $8.62 |
+|                         | AWS type   | n | each  | total    |
+|-------------------------+------------+---+-------+----------|
+| compute entry node      | c3.large   | 1 | $0.11 |          |
+| compute worker nodes    | c3.8xlarge | 2 | $1.68 |          |
+|                         |            |   |       | $3.47/hr |
+| ost (object data store) | c3.2xlarge | 4 | $0.42 |          |
+| mdt (metadata target)   | c3.4xlarge | 1 | $0.84 |          |
+| mgt (management target) | c3.xlarge  | 1 | $0.21 |          |
+| NATDevice               | m3.medium  | 1 | $0.07 |          |
+| Lustre licensing        |            | 1 | $0.48 |          |
+|                         |            |   |       | $3.28/hr |
+|-------------------------+------------+---+-------+----------|
+|                         |            |   |       | $6.75/hr |
 
 * Work to do
 
