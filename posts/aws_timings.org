@@ -360,7 +360,7 @@ Lustre filesystem:
 
 #+BEGIN_SRC
 bcbio_vm.py elasticluster ssh bcbio
-sudo mkdir -p/scratch/cancer-dream-syn3-exome
+sudo mkdir -p /scratch/cancer-dream-syn3-exome
 sudo chown ubuntu !$
 cd !$ && mkdir work && cd work
 bcbio_vm.py ipythonprep s3://YOURBUCKET-syn3-eval/cancer-dream-syn3-aws.yaml \
