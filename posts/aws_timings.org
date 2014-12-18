@@ -155,12 +155,13 @@ elasticluster Docker AWS implementation and on local [[fas][Harvard FAS]] machin
   distinguish Lustre versus NFS performance. However, the resource plots at this
   scale show potential future network bottlenecks during alignment,
   post-processing and other IO intensive steps. Generally, having Lustre scaled
-  across 4 [[lun][LUNs]] enables better distribution of disk and network resources.
+  across 4 [[lun][LUNs]] per object storage server (OSS) enables better
+  distribution of disk and network resources.
 
 AWS runs use two c3.8xlarge instances clustered in a single [[awspg][placement group]],
-providing 64 total cores and 60Gb of memory per machine. Our local run was
-comparable with 64 total cores and 128Gb of memory per machine, on a Lustre
-filesystem. Here are the run times, in hours, for each of the benchmarking runs:
+providing 32 cores and 60Gb of memory per machine. Our local run was comparable
+with 32 cores and 128Gb of memory per machine, on a Lustre filesystem. Here
+are the run times, in hours, for each of the benchmarking runs:
 
 #+LINK: awspg http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/placement-groups.html
 #+LINK: lun http://en.wikipedia.org/wiki/Logical_unit_number
