@@ -1,20 +1,30 @@
-#+DATE: [2014-12-18 Thu 06:48]
+#+DATE: [2014-12-19 Fri 10:17]
 #+BLOG: bcbio
 #+POSTID: 702
 #+TITLE: Benchmarking variation and RNA-seq analyses on Amazon Web Services with Docker
 #+CATEGORY: benchmarking
-#+TAGS: bioinformatics, variant, ngs, validation, benchmarking, collectl
+#+TAGS: bioinformatics, variant, rna-seq, ngs, validation, benchmarking, collectl, docker, aws
 #+OPTIONS: toc:nil num:nil
 
 * Overview
 
 We developed a freely available, easy to run implementation of [[bcbio][bcbio-nextgen]] on
-Amazon Web Services (AWS) using [[docker][Docker]]. bcbio is a community developed tool
+[[aws][Amazon Web Services (AWS)]] using [[docker][Docker]]. bcbio is a community developed tool
 providing validated and scalable variant calling and RNA-seq analysis. The AWS
 implementation automates all of the steps of building a cluster, attaching high
 performance shared filesystems, and running an analysis. This makes bcbio
 readily available to the research community without the need to install and
 configure a local installation.
+
+The entire installation bootstraps from standard Linux AMIs, enabling
+adjustment of the tools, genome data and installation without needing to
+prepare custom AMIs. The implementation uses [[elasticluster][Elasticluster]] to provision and
+configure the cluster. We automate the process with
+[[boto][the boto Python interface to AWS]] and [[ansible][Ansible scripts]]. [[bcbiovm][bcbio-vm]] isolates
+code and tools inside a [[docker][Docker]] container allowing runs on any remote machine
+with a download of the Docker image and access to the shared filesystem.
+Analyses run directly from S3 buckets, with automatic streaming download
+of input data and upload of final processed data.
 
 We provide timing benchmarks for running a full variant calling analysis using
 [[bcbio][bcbio]] on AWS. The benchmark dataset was [[dream_about][a cancer tumor/normal evaluation]], from
@@ -22,16 +32,6 @@ We provide timing benchmarks for running a full variant calling analysis using
 the results of running this dataset on 2 different networked filesystems:
 Lustre and NFS. We also show benchmarks for an RNA-seq dataset
 using inputs from [[seqc_paper][the Sequencing Quality Control (SEQC) project]].
-
-The entire installation bootstraps from standard Linux AMIs, enabling
-adjustment of the tools, genome data and installation without needing to
-re-prepare AMIs. The implementation uses [[elasticluster][Elasticluster]] to provision and
-configure the cluster. We automate the process with
-[[boto][the boto Python interface to AWS]] and [[ansible][Ansible scripts]]. [[bcbiovm][bcbio-vm]] isolates
-code and tools inside a [[docker][Docker]] container allowing runs on any remote machine
-with a download of the Docker image and access to the shared filesystem.
-Analyses run directly from S3 buckets, with automatic streaming download
-of input data and upload of final processed data.
 
 #+LINK: bcbio http://github.com/chapmanb/bcbio-nextgen
 #+LINK: aws http://aws.amazon.com/
@@ -41,7 +41,13 @@ of input data and upload of final processed data.
 #+LINK: boto http://boto.readthedocs.org/en/latest/
 #+LINK: bcbiovm https://github.com/chapmanb/bcbio-nextgen-vm
 
-We developed bcbio on AWS and ran the timing benchmarks with a lot of brilliant help:
+We developed bcbio on AWS and ran these timing benchmarks thanks to work with
+great partners. A collaboration with [[biogen][Biogen]] and [[http://www.massgeneral.org/research/researchlab.aspx?id=1402][Rudy Tanzi's group at MGH]] funded
+the development of bcbio on AWS. A second collaboration with
+[[http://www.intel.com/content/www/us/en/healthcare-it/healthcare-overview.html][Intel Health and Life Sciences]]
+and [[az][AstraZenenca]] funded the somatic variant calling
+benchmarking work. We're thankful for all the relationships that make this work
+possible:
 
 - John Morrissey automated the process of starting a bcbio cluster on AWS and
   attaching a Lustre filesystem. He also automated the approach to generating
@@ -49,7 +55,7 @@ We developed bcbio on AWS and ran the timing benchmarks with a lot of brilliant 
   testing and improvements to all the components of the bcbio AWS
   interaction.
 
-- Kristina Kermanshahche and Robert Read with Intel provided great support
+- Kristina Kermanshahche and Robert Read at [[http://www.intel.com/content/www/us/en/healthcare-it/healthcare-overview.html][Intel]] provided great support
   helping us get the [[icel][Lustre ICEL CloudFormation]] templates running.
 
 - Ronen Artzi, Michael Heimlich, and Justin Johnson at [[az][AstraZenenca]] setup
@@ -103,19 +109,24 @@ the backend architecture:
   researcher's perspective, this will allow use of bcbio without needing to
   spend time installing and testing locally.
 
-- The setup runs from standard Linux base images using [[ansible][Ansible scripts]]
-  and [[elasticluster][Elasticluster]]. This means we no longer need to support building and
-  updating AMIs for changes in the architecture or code. This simplifies testing
-  and pushing fixes, which should let us spend less time on support and more on
-  development. It also provides a path to support bcbio on container specific
-  management services like [[awsecs][Amazon's EC2 container service]].
+- The setup runs from standard Linux base images using [[ansible][Ansible scripts]] and
+  [[elasticluster][Elasticluster]]. This means we no longer need to build and update
+  AMIs for changes in the architecture or code. This simplifies testing and
+  pushing fixes, letting us spend less time on support and more on
+  development. Since we avoid having a pre-built AMI, the process of
+  building and running bcbio on AWS is fully auditable for both security and
+  scientific accuracy. Finally, it provides a path to support bcbio on container
+  specific management services like [[awsecs][Amazon's EC2 container service]].
 
 - All long term data storage happens in [[awss3][Amazon's S3 object store]], including both
   analysis specific data as well as general reference genome data. Downloading
   reference data for an analysis on demand removes the requirement to maintain
   large shared EBS volumes. On the analysis side, you maintain only the input
   files and high value output files in S3, removing the intermediates upon
-  completion of the analysis.
+  completion of the analysis. Removing the need to manage storage of
+  EBS volumes also provides a cost savings ([[http://aws.amazon.com/s3/pricing/][$0.03/Gb/month for S3]] versus
+  [[http://aws.amazon.com/ebs/pricing/][$0.10+/Gb/month for EBS]]) and allows the option of archiving in [[https://aws.amazon.com/glacier/][Glacier]] for
+  long term storage.
 
 All of these architectural changes provide a setup that is easier to maintain
 and scale over time. Our goal moving ahead is to provide a researcher friendly
@@ -137,12 +148,12 @@ the in-development [[cwl][Common Workflow Language]] from [[http://galaxyproject
 #+LINK: openbio http://www.open-bio.org/wiki/Main_Page
 #+LINK: taverna http://www.taverna.org.uk/
 
-* Timing -- variant calling
+* Variant calling -- benchmarking AWS versus local
 
 We benchmarked somatic variant calling in two environments: on the
-elasticluster Docker AWS implementation and on local [[fas][Harvard FAS]] machines:
+elasticluster Docker AWS implementation and on local [[fas][Harvard FAS]] machines.
 
-- AWS processing was twice as fast as local runs. The gains occur in disk IO intensive
+- AWS processing was twice as fast as a local run. The gains occur in disk IO intensive
   steps like alignment post-processing. AWS offers the opportunity to rent SSD backed
   storage and obtain a 10GigE connected cluster without contention for network
   resources. Our local test machines have an in-production Lustre filesystem attached to
@@ -151,17 +162,20 @@ elasticluster Docker AWS implementation and on local [[fas][Harvard FAS]] machin
 - At this scale Lustre and NFS have similar throughput, with Lustre
   outperforming NFS during IO intensive steps like alignment, post-processing
   and large BAM file merging. From [[bcbioscaling][previous benchmarking work]] we'll need to
-  process addition samples in parallel to fully stress the shared filesystem and
-  distinguish Lustre versus NFS performance. However, the resource plots at this
-  scale show potential future network bottlenecks during alignment,
+  process additional samples in parallel to fully stress the shared filesystem and
+  differentiate Lustre versus NFS performance. However, the resource plots at this
+  scale show potential future bottlenecks during alignment,
   post-processing and other IO intensive steps. Generally, having Lustre scaled
   across 4 [[lun][LUNs]] per object storage server (OSS) enables better
   distribution of disk and network resources.
 
 AWS runs use two c3.8xlarge instances clustered in a single [[awspg][placement group]],
 providing 32 cores and 60Gb of memory per machine. Our local run was comparable
-with 32 cores and 128Gb of memory per machine, on a Lustre filesystem. Here
-are the run times, in hours, for each of the benchmarking runs:
+with two compute machines, each with 32 cores and 128Gb of memory, connected to
+a Lustre filesystem. The benchmark is [[dream_about][a cancer tumor/normal evaluation]] consisting of alignment, recalibration,
+realignment and variant detection with four different callers. The input is
+a tumor/normal pair from the [[dream][the ICGC-TCGA DREAM challenge]] with 100x
+coverage in exome regions. Here are the times, in hours, for each benchmark:
 
 #+LINK: awspg http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/placement-groups.html
 #+LINK: lun http://en.wikipedia.org/wiki/Logical_unit_number
@@ -180,22 +194,25 @@ are the run times, in hours, for each of the benchmarking runs:
 | prepped BAM merging       |         0:03 |      0:18 |           0:06 |
 | validation                |         0:05 |      0:05 |           0:09 |
 | population database       |         0:06 |      0:07 |           0:09 |
+#+begin_html
+ <br />
+#+end_html
 
-* Resource usage plots
+To provide more insight into the timing differences between these benchmarks, we
+automated collection and plotting of resource usage on AWS runs.
 
-bcbio graphs [[collectl][collectl]] usage statistics about CPU, memory, disk and network
-usage, enabling direct examination of resources that limit each of the processing
-steps. bcbio retrieves collectl statistics from the server [[bcbiodoc_graph][and prepares graphs]]
-of resource usage thanks to work from John Morrissey and Glen Otero. These plots
-allow in-depth insight into limiting or worrisome factors during individual
-steps in the workflow.
+* Variant calling -- resource usage plots
+
+bcbio retrieves [[collectl][collectl]] usage statistics from the server [[bcbiodoc_graph][and prepares graphs]] of
+CPU, memory, disk and network usage. These plots allow in-depth insight into
+limiting factors during individual steps in the workflow.
 
 We'll highlight some interesting comparisons between NFS and Lustre during the
-variant calling benchmarking. During this benchmark, the two limiting factors
-were CPU usage and IO to the shared filesystem (both disk and network
-traffic). We also measure memory usage but that was not a limiting factor for
-these analyses. For all of the plots, look at the full set of resource usage
-graphs for each run:
+variant calling benchmarking. During this benchmark, the two critical resources
+were CPU usage and disk IO on the shared filesystems.  We also measure memory
+usage but that was not a limiting factor with these analyses. In addition to the
+comparisons highlighted below, we have the full set of resource usage graphs
+available for each run:
 
 - [[nfsstats][Variant calling with NFS on AWS]]
 - [[lustre_stats][Variant calling with Lustre on AWS]]
@@ -236,8 +253,8 @@ For alignment and alignment post-processing the Lustre runs show more stable CPU
 usage. NFS specifically spends more time in the CPU wait state (red line) during
 IO intensive steps. On larger scale projects this may become a limiting factor
 in processing throughput. The variant calling step was slower on Lustre than
-NFS, and doesn't show consistent CPU usage. We'll have to investigate this
-slowdown further, since no other metrics show an obvious bottleneck.
+NFS, with inconsistent CPU usage. We'll have to investigate this
+slowdown further, since no other metrics point to an obvious bottleneck.
 
 ** Shared filesystem network usage and IO
 
@@ -269,20 +286,19 @@ multiple disks. Including more processes with additional read/writes will
 help determine how these differences translate to scaling on larger numbers of
 simultaneous samples.
 
-* Timing -- RNA-seq
+* RNA-seq benchmarking
 
-In addition to the variant calling comparisons, we also ran an RNA-seq analysis
+We also ran an RNA-seq analysis
 using 4 samples from [[seqc_paper][the Sequencing Quality Control (SEQC) project]]. Each sample
 has 15 million 100bp paired reads. bcbio handled trimming, alignment with [[star][STAR]],
 and quantitation with [[dexseq][DEXSeq]] and [[cufflinks][Cufflinks]]. We ran on a single AWS c3.8xlarge
 machines with 32 cores, 60Gb of memory, and attached SSD storage.
 
 RNA-seq optimization in bcbio is at an earlier stage than variant calling.
-We've done a lot of up-front work to speed up trimming and
-aligning, but haven't yet optimized the expression and count steps.
-The analysis runs quickly in 6 1/2 hours, but there is still room for further
-optimization, and this is a nice example of how we can use benchmarking plots to
-identify targets for additional work:
+We've done work to speed up trimming and aligning, but haven't yet optimized the
+expression and count steps. The analysis runs quickly in 6 1/2 hours, but there
+is still room for further optimization, and this is a nice example of how we can
+use benchmarking plots to identify targets for additional work:
 
 | Total               | 6:25 |
 |---------------------+------|
@@ -291,9 +307,12 @@ identify targets for additional work:
 | alignment           | 0:24 |
 | estimate expression | 3:41 |
 | quality control     | 1:16 |
+#+begin_html
+ <br />
+#+end_html
 
 The [[rnaseq_stats][RNA-seq collectl plots]] show the cause of the slower steps during expression
-estimation and quality control. For instance, here is CPU usage over the run:
+estimation and quality control. Here is CPU usage over the run:
 
 #+BEGIN_HTML
 <a href="http://i.imgur.com/D43c94L.png">
@@ -338,7 +357,7 @@ calling evaluation and an RNA-seq evaluation.
 #+LINK: awsdocs https://bcbio-nextgen.readthedocs.org/en/latest/contents/cloud.html
 #+LINK: instance_profile http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html
 
-** Running a somatic variant calling evaluation
+** Running the somatic variant calling evaluation
 
 This analysis performs evaluation of variant calling using
 [[dream_about][tumor/normal somatic sample from the DREAM challenge]].
@@ -381,7 +400,7 @@ to S3 in YOURBUCKET-syn3-eval/final.
 #+LINK: awscli https://aws.amazon.com/cli/
 #+LINK: gatk https://www.broadinstitute.org/gatk/
 
-** Running a RNA-seq evaluation
+** Running the RNA-seq evaluation
 
 This example runs an RNA-seq analysis using inputs from
 [[seqc_paper][the Sequencing Quality Control (SEQC) project]]. Full details on the analysis are
@@ -397,15 +416,13 @@ aws s3 cp s3://bcbio-eval-rna-seqc/eval-rna-seqc.yaml s3://YOURBUCKET-eval-rnase
 #+END_HTML
 
 Now ssh to the cluster head node, create the work directory and use bcbio_vm to
-create a batch script that we submit to SLURM. This example uses an NFS filesystem:
+run on 32 cores using the attached EBS SSD filesystem:
 
 #+BEGIN_SRC
 bcbio_vm.py elasticluster ssh bcbio
 mkdir -p ~/run/eval-rna-seqc/work
-cd !$
-bcbio_vm.py ipythonprep s3://YOURBUCKET-eval-rna-seqc/eval-rna-seqc.yaml \
-                        slurm cloud -n 60
-sbatch bcbio_submit.sh
+cd ~/run/eval-rna-seqc/work
+bcbio_vm.py run s3://YOURBUCKET-eval-rna-seqc/eval-rna-seqc.yaml -n 32
 #+END_SRC
 #+BEGIN_HTML
 <br/>
@@ -421,11 +438,12 @@ YOURBUCKET-eval-rna-seqc/final, and you can shut down the cluster used for proce
 #+LINK: star https://github.com/alexdobin/STAR
 #+LINK: cufflinks http://cufflinks.cbcb.umd.edu/
 
-* Costs per hour -- variant calling
+* Costs per hour
 
 These are the instance costs, per hour, for running a 2 node 64 core cluster and
-associated Lustre filesystem. For NFS runs, the compute costs are identical.
-Other costs will include EBS volumes, but these are small ($0.10/Gb/month)
+associated Lustre filesystem on AWS. For NFS runs, the compute costs are identical but
+there will not be any additional instances for the shared filesystem.
+Other run costs will include EBS volumes, but these are small ($0.13/Gb/month)
 compared to the instance costs over these time periods. We use S3
 for long term storage rather than the Lustre or NFS filesystems.
 
@@ -445,7 +463,7 @@ for long term storage rather than the Lustre or NFS filesystems.
 
 * Work to do
 
-The bcbio AWS implementation is [[awsdocs][freely available and documented]] and we plan to
+The bcbio AWS implementation is [[awsdocs][freely available and documented]] and we'll
 continue to develop and support it. Some of the areas of immediate improvement
 we hope to tackle in the future include:
 
@@ -456,9 +474,9 @@ we hope to tackle in the future include:
 - Run directly on container-based parallel frameworks like Amazon's
   [[ec2_cont][EC2 container service]], which is also supported by the [[coreos_cont][CoreOS framework]].
 
-- Add spot instance support using [[clusterk][Clusterk]] or Elasticluster directly.
+- Add spot instance support using [[clusterk][Clusterk]] or Elasticluster.
 
-We welcome feedback on the implementation and usage as we continue to improve it.
+We welcome feedback on the implementation, usage and benchmarking results.
 
 #+LINK: aws_security http://d0.awsstatic.com/whitepapers/compliance/AWS_dBGaP_Genomics_on_AWS_Best_Practices.pdf
 #+LINK: clusterk http://clusterk.com/
