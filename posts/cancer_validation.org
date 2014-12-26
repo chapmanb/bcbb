@@ -1,0 +1,124 @@
+#+TITLE: Validating multiple cancer variant callers and prioritizing impact variants
+#+CATEGORY: validation
+#+TAGS: bioinformatics, variant, ngs, validation, cancer, somatic, mutect, freebayes, vardict, scalpel
+#+OPTIONS: toc:nil num:nil
+
+* Overview
+
+We included multiple somatic variant callers in [[bcbio][bcbio-nextgen]] and validated them
+against a synthetic reference call set from [[dream][the ICGC-TCGA DREAM challenge]]. We've
+previously [[jointval][validated germline variant calling methods]], but cancer calling is
+additionally challenging. Tumor samples have mixed cellularity due to
+contaminating normal sample, and consist of multiple sub-clones with different
+somatic variations. Low-frequency sub-clonal variations can be critical to
+understand disease progression, but are challenging to detect with high
+sensitivity and precision.
+
+Publicly available whole genome truth sets like the
+[[giab][NA12878 Genome in a Bottle reference materials]] don't currently exist for cancer
+calling, but the [[dream][DREAM challenge]] has been working to improve this situation by
+providing a set of [[dream_synthetic][synthetic datasets]] that include cellularity and multiple
+sub-clones. There is also on ongoing validation contest with real, non-simulated
+data, so longer term the community can hopefully move to fully consented real genome
+reference material.
+
+In this work, we [[dream_about][evaluated cancer tumor/normal variant calling]] using
+[[dream_synthetic][synthetic dataset 3]] from the DREAM challenge using multiple approaches to detect
+SNPs, indels and structural variants.
+
+#+LINK: bcbio http://github.com/chapmanb/bcbio-nextgen
+#+LINK: dream https://www.synapse.org/#!Synapse:syn312572
+#+LINK: dream_synthetic https://www.synapse.org/#!Synapse:syn312572/wiki/62018
+#+LINK: dream_about https://bcbio-nextgen.readthedocs.org/en/latest/contents/testing.html#cancer-tumor-normal
+#+LINK: jointval http://bcb.io/2014/10/07/joint-calling/
+#+LINK: giab http://genomeinabottle.org/
+
+* Variant caller validation
+
+We used a large collection of open source variant callers to calls SNPs, Indels
+and structural variants:
+
+- [[mutect][MuTect (1.1.5)]] -- A SNP only caller build on GATK UnifiedGenotyper from the
+  Broad Institute.
+- [[vardict][VarDict (2014-12-15)]] -- A SNP and indel caller from Zhongwu Lai and the
+  oncology team at AstraZeneca.
+- [[freebayes][FreeBayes (0.9.20-1)]] -- A haplotype aware realigning caller for SNPs and
+  indels from Erik Garrison and Gabor Marth's lab.
+- [[varscan][VarScan (2.3.7)]] -- A heuristic/statistic based somatic SNP and indel caller
+  from Dan Koboldt and The Genome Institute at Washington University.
+- [[scalpel][Scalpel (0.3.1)]] -- Micro-assembly based Indel caller from Giuseppe Narzisi and
+  the Schatz lab. We pair Scalpel with MuTect to provide a complete set of small
+  variant calls.
+- [[https://github.com/arq5x/lumpy-sv][LUMPY (0.2.7)]] -- A [[http://genomebiology.com/2014/15/6/R84/abstract][probabilistic structural variant caller]] incorporating both split
+  read and read pair discordance, developed by Ryan Layer in
+  [[http://quinlanlab.org/][Aaron Quinlan]] and [[http://faculty.virginia.edu/irahall/][Ira Hall's]] labs.
+- [[https://github.com/tobiasrausch/delly][DELLY (0.6.1)]] -- An [[http://bioinformatics.oxfordjournals.org/content/28/18/i333.abstract][integrated paired-end and split-end structural variant caller]]
+  developed by Tobias Rausch.
+- [[wham][WHAM (1.5.1)]] -- A structural variant caller that can incorporate association
+  testing from Zev Kronenberg in Mark Yandell's lab at the University of Utah.
+
+bcbio runs these callers and provides simple ensemble methods to combine
+[[ensemble_snp][small variants (SNPs, indels]]) and [[ensemble_sv][structural variants]] into final combined
+callsets.
+
+#+LINK: mutect https://www.broadinstitute.org/cancer/cga/mutect
+#+LINK: vardict https://github.com/AstraZeneca-NGS/VarDict
+#+LINK: varscan http://varscan.sourceforge.net/
+#+LINK: scalpel http://scalpel.sourceforge.net/
+#+LINK: freebayes https://github.com/ekg/freebayes
+#+LINK: wham https://github.com/jewmanchue/wham
+#+LINK: ensemble_snp http://bcb.io/2013/10/21/updated-comparison-of-variant-detection-methods-ensemble-freebayes-and-minimal-bam-preparation-pipelines/
+#+LINK: ensemble_sv http://bcb.io/2014/08/12/validated-whole-genome-structural-variation-detection-using-multiple-callers/
+
+Using the 100x whole genome tumor/normal pair from [[dream_synthetic][DREAM synthetic dataset 3]]
+we evaluated each of the callers for sensitivity and precision:
+
+#+BEGIN_HTML
+<a href="http://i.imgur.com/o5Dd3p8.png">
+  <img src="http://i.imgur.com/o5Dd3p8.png" width="700"
+       alt="Cancer evaluation for all callers">
+</a>
+#+END_HTML
+
+We also looked at structural variant calls across different classes:
+
+* Improvements in filtering
+
+Our evaluation comparisons show our best effort attempts to provide good quality
+calls for every caller. The final results often come from multiple rounds of
+improving sensitivity and precision, by adjusting program parameters or
+downstream filtering. The goal of tightly integrating bcbio with validation is
+that the community can work on defining a set of parameters and filters that
+work best in multiple cases, and then use these directly within the same
+framework.
+
+In presenting the final results only, it may not be clear that simply plugging
+a specific tool into a custom bash script will not always produce the same
+results we see here. As an example, here are the improvements in sensitivity and
+precision from our initial implementation:
+
+#+BEGIN_HTML
+<a href="http://i.imgur.com/NJFaoas.png">
+  <img src="http://i.imgur.com/NJFaoas.png" width="700"
+       alt="FreeBayes caller improvements">
+</a>
+#+END_HTML
+
+The original implementation used a [[vcflib][vcfsamplediff based]] approach to filtering, as
+recommended on the [[fb_filterorig][FreeBayes mailing list]]. The current, improved, version uses a
+[[fb_filter][custom filter based on genotype likelihoods]], based on the approach in the
+[[speedseq][speeseq pipeline]].
+
+#+LINK: fb_filter https://github.com/chapmanb/bcbio-nextgen/blob/4fe770cc1343f8e1a3f3fab1771bad13eb94df7a/bcbio/variation/freebayes.py#L217
+#+LINK: fb_filterorig https://groups.google.com/d/msg/freebayes/beLYRuHMkQE/RwFMniDmBYoJ
+#+LINK: vcflib https://github.com/ekg/vcflib
+#+LINK: speedseq https://github.com/cc2qe/speedseq
+
+* Tumor-only prioritization
+
+#+BEGIN_HTML
+<a href="">
+  <img src="" width="700"
+       alt="">
+</a>
+#+END_HTML
