@@ -300,13 +300,13 @@ expression and count steps. The analysis runs quickly in 6 1/2 hours, but there
 is still room for further optimization, and this is a nice example of how we can
 use benchmarking plots to identify targets for additional work:
 
-| Total               | 6:25 |
-|---------------------+------|
-| organize samples    | 0:32 |
-| adapter trimming    | 0:32 |
-| alignment           | 0:24 |
-| estimate expression | 3:41 |
-| quality control     | 1:16 |
+| Total                   | 6:25 |
+|-------------------------+------|
+| genome data preparation | 0:32 |
+| adapter trimming        | 0:32 |
+| alignment               | 0:24 |
+| estimate expression     | 3:41 |
+| quality control         | 1:16 |
 #+begin_html
  <br />
 #+end_html

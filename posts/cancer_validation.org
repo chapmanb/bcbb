@@ -5,26 +5,50 @@
 
 * Overview
 
-We included multiple somatic variant callers in [[bcbio][bcbio-nextgen]] and validated them
-against a synthetic reference call set from [[dream][the ICGC-TCGA DREAM challenge]]. We've
-previously [[jointval][validated germline variant calling methods]], but cancer calling is
-additionally challenging. Tumor samples have mixed cellularity due to
-contaminating normal sample, and consist of multiple sub-clones with different
-somatic variations. Low-frequency sub-clonal variations can be critical to
-understand disease progression, but are challenging to detect with high
-sensitivity and precision.
+The post discusses our work to validate multiple cancer variant callers in
+[[bcbio][bcbio-nextgen]] using a synthetic reference call set from
+[[dream][the ICGC-TCGA DREAM challenge]].  We've previously [[jointval][validated germline variant calling methods]],
+but cancer calling is additionally challenging. Tumor samples have mixed cellularity
+due to contaminating normal sample, and consist of multiple sub-clones with
+different somatic variations. Low-frequency sub-clonal variations can be
+critical to understand disease progression, but are challenging to detect with
+high sensitivity and precision.
 
 Publicly available whole genome truth sets like the
 [[giab][NA12878 Genome in a Bottle reference materials]] don't currently exist for cancer
-calling, but the [[dream][DREAM challenge]] has been working to improve this situation by
-providing a set of [[dream_synthetic][synthetic datasets]] that include cellularity and multiple
-sub-clones. There is also on ongoing validation contest with real, non-simulated
-data, so longer term the community can hopefully move to fully consented real genome
-reference material.
+calling, but groups have been working to provide standards for use in evaluating
+callers. The [[dream][DREAM challenge]] provides a set of [[dream_synthetic][synthetic datasets]] that include cellularity and multiple
+sub-clones. There is also on ongoing DREAM contest with real, non-simulated
+data. In addition, the [[icgc][ICGC]] has done extensive work on
+[[icgc_calling][assessing the challenges in cancer variant calling]] and produced a detailed
+comparison of [[icgc_pipelines][multiple variant calling pipelines]]. Finally, [[bina][Bina]] recently
+released a [[bina_varsim][simulation framework called varsim]] that they used to
+[[bina_varsim_cancer][compare multiple callers]] as part of their [[bina_cancer][cancer benchmarking]]. We're excited
+about all this community benchmarking and hope this work can contribute to the
+goal of having fully consented real genome reference materials with a good
+understanding of variant caller tradeoffs.
 
-In this work, we [[dream_about][evaluated cancer tumor/normal variant calling]] using
-[[dream_synthetic][synthetic dataset 3]] from the DREAM challenge using multiple approaches to detect
+In this work, we [[dream_about][evaluated cancer tumor/normal variant calling]] with
+[[dream_synthetic][synthetic dataset 3]] from the DREAM challenge, using multiple approaches to detect
 SNPs, indels and structural variants.
+
+Cancer variant calling in [[bcbio][bcbio]] is due to contributions and support from
+multiple members of the community:
+
+- [[miika][Miika Ahdesmaki]] and [[justin][Justin Johnson]] at [[az][AstraZeneca]] collaborated with our group
+  on integrating and evaluating multiple variant callers. Their financial
+  support helped fund our time on this comparison, and their scientific
+  contributions improved SNP and indel calling.
+
+- [[luca][Luca Beltrame]] integrated a number of cancer variant callers into bcbio and
+  provided the initial framework for somatic calling.
+
+- [[lorena][Lorena Pantano]] integrated variant callers and performed lots of benchmarking
+  work.
+
+We're continually grateful to the bcbio community for all the contributions and
+support. The [[mutect_commit][MuTect commit history for bcbio]] is a great example of multiple
+distributed collaborators working together.
 
 #+LINK: bcbio http://github.com/chapmanb/bcbio-nextgen
 #+LINK: dream https://www.synapse.org/#!Synapse:syn312572
@@ -32,13 +56,26 @@ SNPs, indels and structural variants.
 #+LINK: dream_about https://bcbio-nextgen.readthedocs.org/en/latest/contents/testing.html#cancer-tumor-normal
 #+LINK: jointval http://bcb.io/2014/10/07/joint-calling/
 #+LINK: giab http://genomeinabottle.org/
+#+LINK: icgc https://icgc.org/
+#+LINK: icgc_pipelines http://biorxiv.org/content/early/2014/12/24/013177
+#+LINK: icgc_calling http://biorxiv.org/content/early/2014/12/24/013177
+#+LINK: bina http://www.bina.com/
+#+LINK: bina_varsim https://github.com/bioinform/varsim
+#+LINK: bina_varsim_cancer http://info.bina.com/hs-fs/hub/419826/file-1900487108-pdf/Posters/ASHG_2014_VarSim.pdf
+#+LINK: bina_cancer http://info.bina.com/cancer-resources
+#+LINK: justin https://twitter.com/BioInfo
+#+LINK: miika https://github.com/mjafin
+#+LINK: luca https://github.com/lbeltrame
+#+LINK: az http://www.astrazeneca.com/Home
+#+LINK: lorena https://github.com/lpantano
+#+LINK: mutect_commit https://github.com/chapmanb/bcbio-nextgen/commits/master/bcbio/variation/mutect.py
 
 * Variant caller validation
 
 We used a large collection of open source variant callers to calls SNPs, Indels
 and structural variants:
 
-- [[mutect][MuTect (1.1.5)]] -- A SNP only caller build on GATK UnifiedGenotyper from the
+- [[mutect][MuTect (1.1.5)]] -- A SNP only caller built on GATK UnifiedGenotyper from the
   Broad Institute.
 - [[vardict][VarDict (2014-12-15)]] -- A SNP and indel caller from Zhongwu Lai and the
   oncology team at AstraZeneca.
@@ -99,7 +136,7 @@ precision from our initial implementation:
 
 #+BEGIN_HTML
 <a href="http://i.imgur.com/NJFaoas.png">
-  <img src="http://i.imgur.com/NJFaoas.png" width="700"
+  <img src="http://i.imgur.com/NJFaoas.png" width="500"
        alt="FreeBayes caller improvements">
 </a>
 #+END_HTML
