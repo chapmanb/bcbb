@@ -30,6 +30,7 @@ def _convert_to_csv(vcf_file, good_bed, bad_bed):
     buffer_size = 25  # bp around break ends
     out_file = "%s-metrics.csv" % utils.splitext_plus(vcf_file)[0]
     if not utils.file_uptodate(out_file, vcf_file):
+        lrts = []
         good = _read_bed(good_bed)
         bad = _read_bed(bad_bed)
         with open(out_file, "w") as out_handle:
@@ -50,8 +51,11 @@ def _convert_to_csv(vcf_file, good_bed, bad_bed):
                         else:
                             cur_class = None
                         if cur_class:
+                            lrts.append(rec.INFO["LRT"])
                             for attr in attrs:
                                 writer.writerow([rec.CHROM, start, end, cur_class, attr, rec.INFO[attr]])
+        import numpy as np
+        print np.mean(lrts), np.median(lrts), np.percentile(lrts, 25), max(lrts), min(lrts)
     return out_file
 
 def _read_bed(in_file):

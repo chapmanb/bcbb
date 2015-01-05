@@ -49,6 +49,9 @@ multiple members of the community:
 - [[lorena][Lorena Pantano]] integrated variant callers and performed lots of benchmarking
   work.
 
+- The [[wwcrc][Wolfson Wohl Cancer Research Centre]] provided support for validation of
+  somatic callers.
+
 - James Cuff, Paul Edmon and the team at [[fas][Harvard FAS research computing]]
   provided compute infrastructure and support that enabled the large number
   of benchmarking runs it takes to get good quality calling.
@@ -77,6 +80,7 @@ validating a caller.
 #+LINK: az http://www.astrazeneca.com/Home
 #+LINK: lorena https://github.com/lpantano
 #+LINK: mutect_commit https://github.com/chapmanb/bcbio-nextgen/commits/master/bcbio/variation/mutect.py
+#+LINK: wwcrc http://www.gla.ac.uk/researchinstitutes/cancersciences/ics/
 
 * Variant caller validation
 
@@ -122,14 +126,20 @@ well as a support vector machine step.
 
 Using the 100x whole genome tumor/normal pair from [[dream_synthetic][DREAM synthetic dataset 3]]
 we evaluated each of the callers for sensitivity and precision on small variants
-(SNPs and indels):
+(SNPs and indels). This synthetic dataset contains 100% tumor cellularity with 3
+subclones at allele frequencies of 50%, 33% and 20%.
 
 #+BEGIN_HTML
-<a href="http://i.imgur.com/Enmjgo5.png">
-  <img src="http://i.imgur.com/Enmjgo5.png" width="700"
+<a href="http://i.imgur.com/Ck8AJQk.png">
+  <img src="http://i.imgur.com/Ck8AJQk.png" width="700"
        alt="Cancer evaluation for SNPs and indels">
 </a>
 #+END_HTML
+
+In addition to the whole genome results, the [[cancer_val_album][validation album]] includes
+results from running against the same dataset limited to exome regions. This has
+identical patterns of sensitivity and specificity. It runs quicker, so is useful
+for evaluating changes to filtering or program parameters.
 
 We also looked at structural variant calls for deletions, duplications and
 inversions. Here is the precision and sensitivity for deletions across multiple
