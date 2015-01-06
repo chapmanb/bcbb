@@ -16,7 +16,7 @@ high sensitivity and precision.
 
 Publicly available whole genome truth sets like the
 [[giab][NA12878 Genome in a Bottle reference materials]] don't currently exist for cancer
-calling, but groups have been working to provide standards for use in evaluating
+calling, but groups have been working to prepare standards for use in evaluating
 callers. The [[dream][DREAM challenge]] provides a set of [[dream_synthetic][synthetic datasets]] that include cellularity and multiple
 sub-clones. There is also on ongoing DREAM contest with real, non-simulated
 data. In addition, the [[icgc][ICGC]] has done extensive work on
@@ -44,12 +44,12 @@ multiple members of the community:
   contributions improved SNP and indel calling.
 
 - [[luca][Luca Beltrame]] integrated a number of cancer variant callers into bcbio and
-  provided the initial framework for somatic calling.
+  wrote the initial framework for somatic calling.
 
 - [[lorena][Lorena Pantano]] integrated variant callers and performed lots of benchmarking
   work.
 
-- The [[wwcrc][Wolfson Wohl Cancer Research Centre]] provided support for validation of
+- The [[wwcrc][Wolfson Wohl Cancer Research Centre]] supported work on validation of
   somatic callers.
 
 - James Cuff, Paul Edmon and the team at [[fas][Harvard FAS research computing]]
@@ -84,11 +84,11 @@ validating a caller.
 
 * Variant caller validation
 
-We used a large collection of open source variant callers to calls SNPs, Indels
+We used a large collection of open source variant callers to detect SNPs, Indels
 and structural variants:
 
-- [[mutect][MuTect (1.1.5)]] -- A SNP only caller built on GATK UnifiedGenotyper from the
-  Broad Institute.
+- [[mutect][MuTect (1.1.5)]] -- A SNP only caller, built on GATK UnifiedGenotyper, from the
+  Broad Institute. MuTect requires a license if used for commercial purposes.
 - [[vardict][VarDict (2014-12-15)]] -- A SNP and indel caller from Zhongwu Lai and the
   oncology team at AstraZeneca.
 - [[freebayes][FreeBayes (0.9.20-1)]] -- A haplotype aware realigning caller for SNPs and
@@ -106,7 +106,7 @@ and structural variants:
 - [[wham][WHAM (1.5.1)]] -- A structural variant caller that can incorporate association
   testing from Zev Kronenberg in Mark Yandell's lab at the University of Utah.
 
-bcbio runs these callers and provides simple ensemble methods to combine
+bcbio runs these callers and uses simple ensemble methods to combine
 [[ensemble_snp][small variants (SNPs, indels]]) and [[ensemble_sv][structural variants]] into final combined
 callsets. The [[ensemble_bvr][new small variant ensemble method]] uses a simplified approach from
 our previous implementation, picking variants to pass based on being present in
@@ -138,26 +138,21 @@ subclones at allele frequencies of 50%, 33% and 20%.
 
 In addition to the whole genome results, the [[cancer_val_album][validation album]] includes
 results from running against the same dataset limited to exome regions. This has
-identical patterns of sensitivity and specificity. It runs quicker, so is useful
+identical patterns of sensitivity and precision. It runs quicker, so is useful
 for evaluating changes to filtering or program parameters.
 
-We also looked at structural variant calls for deletions, duplications and
+We also looked at structural variant calls for larger deletions, duplications and
 inversions. Here is the precision and sensitivity for deletions across multiple
 size classes:
 
 #+BEGIN_HTML
-<a href="http://i.imgur.com/RLVymD0.png">
-  <img src="http://i.imgur.com/RLVymD0.png" width="700"
-       alt="Cancer evaluation for structural variants">
+<a href="http://i.imgur.com/NFOT0RP.png">
+  <img src="http://i.imgur.com/NFOT0RP.png" width="700"
+       alt="Cancer evaluation for structural variants -- deletions.">
 </a>
 #+END_HTML
 
 The [[cancer_val_album][full album of validation results]] includes duplication and inversions.
-
-The biggest current issue is precision in the combined ensemble calls. We
-currently use the union of all calls but could likely improve this by taking an
-approach that works similarly to the small variant ensemble approach and only
-passes calls that appear in a specified number of callers.
 
 #+LINK: cancer_val_album http://imgur.com/a/qba5k
 
@@ -201,7 +196,7 @@ pairs. The filters to separate pre-existing [[germline][germline mutations]] fro
 [[somatic][cancer specific somatic mutations]] rely on the presence of variants in the normal
 sample. In some cases, we don't have matched normal samples to do this filtering. Two
 common examples are [[ffpe][FFPE samples]] and tumor cell lines. For these
-sample, we'd like to be able to prioritize likely tumor specific variations for
+samples, we'd like to be able to prioritize likely tumor specific variations for
 followup using publicly available resources.
 
 We implemented a prioritization strategy from tumor-only samples in bcbio that
@@ -221,10 +216,10 @@ same set of necessarily imperfect known variants and population level mutations.
 We took the approach of using published tumor data with validated
 mutations. [[https://twitter.com/druvus][Andreas Sjödin]] identified a [[val_paper][Hepatoblastoma exome sequencing paper]]
 with [[val_dataset][publicly available sample data]] and 23 validated cancer related variations
-across 5 samples. This provides a baseline to help determine how stringent to be
+across 5 samples. This is a baseline to help determine how stringent to be
 in removing potential germline variants.
 
-The prioritization provides a 35-50x enrichment in variants of interest without
+The prioritization enriches variants of interest by 35-50x without
 losing sensitivity to confirmed variants:
 
 | sample | caller    | confirmed | enrichment | additional | filtered |
@@ -246,7 +241,7 @@ losing sensitivity to confirmed variants:
 | HB9T   | vardict   | 2 / 2     |        36x |       1488 |    53098 |
 
 We consistently missed one confirmed mutation in the HB2T sample. This variant,
-reported as a somatic mutation in an [[C2orf57][uncharacterized open reading frame, C2orf57]],
+reported as a somatic mutation in an [[C2orf57][uncharacterized open reading frame (C2orf57]]),
 may actually be a germline mutation in the study sub-population. The variant is
 present at a [[missing_exac][10% frequency in the East Asian population]] but only 2% in the
 overall population, based on data from both the ExAC and 1000 genomes
