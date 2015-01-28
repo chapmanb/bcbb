@@ -11,12 +11,12 @@ The post discusses our work to validate multiple cancer variant callers in
 but cancer calling is additionally challenging. Tumor samples have mixed cellularity
 due to contaminating normal sample, and consist of multiple sub-clones with
 different somatic variations. Low-frequency sub-clonal variations can be
-critical to understand disease progression but are challenging to detect with
+critical to understand disease progression but are difficult to detect with
 high sensitivity and precision.
 
 Publicly available whole genome truth sets like the
 [[giab][NA12878 Genome in a Bottle reference materials]] don't currently exist for cancer
-calling, but groups have been working to prepare standards for use in evaluating
+calling, but other groups have been working to prepare standards for use in evaluating
 callers. The [[dream][DREAM challenge]] provides a set of [[dream_synthetic][synthetic datasets]] that include cellularity and multiple
 sub-clones. There is also on ongoing DREAM contest with real, non-simulated
 data. In addition, the [[icgc][ICGC]] has done extensive work on
