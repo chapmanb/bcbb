@@ -19,10 +19,10 @@ import os
 import copy
 import re
 import collections
-import urllib
 import itertools
 import warnings
-
+from six.moves import urllib
+from six import viewkeys
 # Make defaultdict compatible with versions of python older than 2.4
 try:
     collections.defaultdict
@@ -124,7 +124,7 @@ def _gff_line_map(line, params):
             else:
                 quals[key].append('true')
         for key, vals in quals.items():
-            quals[key] = [urllib.unquote(v) for v in vals]
+            quals[key] = [urllib.parse.unquote(v) for v in vals]
         return quals, is_gff2
 
     def _nest_gff2_features(gff_parts):
@@ -326,7 +326,7 @@ class _AbstractMapReduceGFF:
             else:
                 cur_dict = copy.deepcopy(base_dict)
             cur_dict = self._results_to_features(cur_dict, results)
-            all_ids = cur_dict.keys()
+            all_ids = list(viewkeys(cur_dict))
             all_ids.sort()
             for cur_id in all_ids:
                 yield cur_dict[cur_id]
@@ -429,7 +429,7 @@ class _AbstractMapReduceGFF:
                                                                 children)
         # create parents for children without them (GFF2 or split/bad files)
         while len(children) > 0:
-            parent_id, cur_children = itertools.islice(children.items(), 1).next()
+            parent_id, cur_children = next(itertools.islice(children.items(), 1))
             # one child, do not nest it
             if len(cur_children) == 1:
                 rec_id, child = cur_children[0]
