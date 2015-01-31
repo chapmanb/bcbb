@@ -22,7 +22,6 @@ import collections
 import itertools
 import warnings
 from six.moves import urllib
-from six import viewkeys
 # Make defaultdict compatible with versions of python older than 2.4
 try:
     collections.defaultdict
@@ -326,7 +325,7 @@ class _AbstractMapReduceGFF:
             else:
                 cur_dict = copy.deepcopy(base_dict)
             cur_dict = self._results_to_features(cur_dict, results)
-            all_ids = list(viewkeys(cur_dict))
+            all_ids = list(cur_dict.keys())
             all_ids.sort()
             for cur_id in all_ids:
                 yield cur_dict[cur_id]
