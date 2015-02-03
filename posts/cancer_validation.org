@@ -5,13 +5,13 @@
 
 * Overview
 
-The post discusses our work to validate multiple cancer variant callers in
+The post discusses work validating multiple cancer variant callers in
 [[bcbio][bcbio-nextgen]] using a synthetic reference call set from
 [[dream][the ICGC-TCGA DREAM challenge]].  We've previously [[jointval][validated germline variant calling methods]],
 but cancer calling is additionally challenging. Tumor samples have mixed cellularity
 due to contaminating normal sample, and consist of multiple sub-clones with
 different somatic variations. Low-frequency sub-clonal variations can be
-critical to understand disease progression but are difficult to detect with
+critical to understand disease progression but are more difficult to detect with
 high sensitivity and precision.
 
 Publicly available whole genome truth sets like the
@@ -23,7 +23,7 @@ data. In addition, the [[icgc][ICGC]] has done extensive work on
 [[icgc_calling][assessing the challenges in cancer variant calling]] and produced a detailed
 comparison of [[icgc_pipelines][multiple variant calling pipelines]]. Finally, [[bina][Bina]] recently
 released a [[bina_varsim][simulation framework called varsim]] that they used to
-[[bina_varsim_cancer][compare multiple callers]] as part of their [[bina_cancer][cancer benchmarking]]. We're excited
+[[bina_varsim_cancer][compare multiple callers]] as part of their [[bina_cancer][cancer benchmarking]]. I'm excited
 about all this community benchmarking and hope this work can contribute to the
 goal of having fully consented real patient reference materials, leading to
 a good understanding of variant caller tradeoffs.
@@ -46,17 +46,18 @@ multiple members of the community:
 - [[luca][Luca Beltrame]] integrated a number of cancer variant callers into bcbio and
   wrote the initial framework for somatic calling.
 
-- [[lorena][Lorena Pantano]] integrated variant callers and performed lots of benchmarking
-  work.
+- [[lorena][Lorena Pantano]] integrated variant callers and performed benchmarking
+  work. Our group, the [[hbc][Harvard Chan school Bioinformatics core]], provides
+  valuable code and contributions to bcbio development and validation work.
 
-- The [[wwcrc][Wolfson Wohl Cancer Research Centre]] supported work on validation of
+- The [[wwcrc][Wolfson Wohl Cancer Research Centre]] supported our work on validation of
   somatic callers.
 
 - James Cuff, Paul Edmon and the team at [[fas][Harvard FAS research computing]]
   provided compute infrastructure and support that enabled the large number
   of benchmarking runs it takes to get good quality calling.
 
-We're continually grateful to the community for all the contributions and
+I'm continually grateful to the community for all the contributions and
 support. The [[mutect_commit][MuTect commit history for bcbio]] is a great example of multiple
 distributed collaborators working towards the shared goal of integrating and
 validating a caller.
@@ -81,6 +82,7 @@ validating a caller.
 #+LINK: lorena https://github.com/lpantano
 #+LINK: mutect_commit https://github.com/chapmanb/bcbio-nextgen/commits/master/bcbio/variation/mutect.py
 #+LINK: wwcrc http://www.gla.ac.uk/researchinstitutes/cancersciences/ics/
+#+LINK: hbc http://hsphbio.ghost.io/
 
 * Variant caller validation
 
@@ -104,14 +106,14 @@ and structural variants:
 - [[https://github.com/tobiasrausch/delly][DELLY (0.6.1)]] -- An [[http://bioinformatics.oxfordjournals.org/content/28/18/i333.abstract][integrated paired-end and split-end structural variant caller]]
   developed by Tobias Rausch.
 - [[wham][WHAM (1.5.1)]] -- A structural variant caller that can incorporate association
-  testing from Zev Kronenberg in Mark Yandell's lab at the University of Utah.
+  testing, from Zev Kronenberg in Mark Yandell's lab at the University of Utah.
 
 bcbio runs these callers and uses simple ensemble methods to combine
 [[ensemble_snp][small variants (SNPs, indels]]) and [[ensemble_sv][structural variants]] into final combined
-callsets. The [[ensemble_bvr][new small variant ensemble method]] uses a simplified approach from
-our previous implementation, picking variants to pass based on being present in
-a configurable number of samples. This performs well and is faster and more
-scalable than our previous implementation that made use of both this approach as
+callsets. The [[ensemble_bvr][new small variant ensemble method]] uses a simplified majority rule
+classifier that picks variants to pass based on being present in
+a configurable number of samples. This performs well and is faster than the
+previous implementation that made use of both this approach as
 well as a support vector machine step.
 
 #+LINK: mutect https://www.broadinstitute.org/cancer/cga/mutect
@@ -184,10 +186,17 @@ recommended on the [[fb_filterorig][FreeBayes mailing list]]. The current, impro
 [[fb_filter][custom filter based on genotype likelihoods]], based on the approach in the
 [[speedseq][speeseq pipeline]].
 
+In general, you can find all of the integration work for individual callers
+in the [[https://github.com/chapmanb/bcbio-nextgen/tree/master/bcbio/variation][bcbio source code]], broken down by caller. For instance, here is the
+integration work on [[https://github.com/chapmanb/bcbio-nextgen/blob/master/bcbio/variation/mutect.py][MuTect]]. The goal is to make all of the configuration
+settings and filters fully transparent so users can understand how they work
+when using bcbio, or transplant them into their own custom pipelines.
+
 #+LINK: fb_filter https://github.com/chapmanb/bcbio-nextgen/blob/4fe770cc1343f8e1a3f3fab1771bad13eb94df7a/bcbio/variation/freebayes.py#L217
 #+LINK: fb_filterorig https://groups.google.com/d/msg/freebayes/beLYRuHMkQE/RwFMniDmBYoJ
 #+LINK: vcflib https://github.com/ekg/vcflib
 #+LINK: speedseq https://github.com/cc2qe/speedseq
+#+LINK: bcbiovdir
 
 * Tumor-only prioritization
 
@@ -250,6 +259,14 @@ study authors are all from China. This helps demonstrate the effectiveness of
 large population frequencies, stratified by population, in prioritizing and
 evaluating variant calls.
 
+The major challenge with tumor-only prioritization approaches is that you can't
+expect to accurately filter private germline mutations that you won't find in
+genome-wide catalogs. With a sample set using a small number of validated
+variants it's hard to estimate the proportion of 'additional' variants in
+the table above that are false positives versus the proportion that are
+additional tumor-only mutations not specifically evaluated in the study. We plan
+to continue to refine filtering with additional validated datasets.
+
 #+LINK: gemini https://github.com/arq5x/gemini
 #+LINK: 1000g http://www.1000genomes.org/
 #+LINK: esp http://evs.gs.washington.edu/EVS/
@@ -265,3 +282,32 @@ evaluating variant calls.
 #+LINK: val_dataset http://www.ebi.ac.uk/ena/data/view/SRP037747
 #+LINK: missing_exac http://exac.broadinstitute.org/variant/2-232458818-C-T
 #+LINK: C2orf57 http://useast.ensembl.org/Homo_sapiens/Gene/Summary?db=core;g=ENSG00000177673;r=2:231592901-231594283;t=ENST00000313965;redirect=no
+
+* Future work
+
+This is a baseline for assessing SNP, indel and structural variant calls in
+cancer analyses. It also prioritizes impact variants in cases where we lack
+normal matched normals. We plan to continue to improve cancer variant calling in
+[[bcbio][bcbio]] and some areas of future focus include:
+
+- Evaluating calling and tumor-only prioritization on
+  [[horizon][Horizon reference standards]]. They contain a larger set of
+  [[horizonvars][validated mutations]] at a variety of frequencies.
+
+- Informing variant calling using estimates of tumor purity and sub-clonal
+  frequency. bcbio integrates [[cnvkit][CNVkit]], a targeted CNV caller, which exports
+  read count segmentation data as input for [[theta][THetA2]]. THetA2 estimates normal
+  contamination and sub-cloncal frequencies. We can use these values to inform
+  callers like FreeBayes, which takes inputs on contamination, CNVs and population
+  frequencies.
+
+- Focusing on difficult to call genomic regions and provide additional mechanisms
+  to better resolve and improve caller accuracy in these regions.
+
+As always, we welcome suggestions, contributions and feedback.
+
+#+LINK: horizon http://www.horizondx.com/our-products/q-seq-hdx-reference-standards
+#+LINK: horizonvars http://www.horizondx.com/media/item/202
+#+LINK: cnvkit  http://cnvkit.readthedocs.org/en/latest/
+#+LINK: theta https://github.com/raphael-group/THetA
+#+LINK: discovar http://www.broadinstitute.org/software/discovar/blog/
