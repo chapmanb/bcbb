@@ -267,6 +267,10 @@ the table above that are false positives versus the proportion that are
 additional tumor-only mutations not specifically evaluated in the study. We plan
 to continue to refine filtering with additional validated datasets.
 
+Practically, bcbio automatically runs prioritization with all tumor-only
+analyses. It filters variants by adding a ``LowPriority`` filter to the output VCF
+so users can readily identify variants flagged during the prioritization.
+
 #+LINK: gemini https://github.com/arq5x/gemini
 #+LINK: 1000g http://www.1000genomes.org/
 #+LINK: esp http://evs.gs.washington.edu/EVS/
