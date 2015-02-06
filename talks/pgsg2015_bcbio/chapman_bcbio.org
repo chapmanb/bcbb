@@ -1,0 +1,455 @@
+#+title: Scalable and Validated Variant Calling Work in the Bioinformatics Core
+#+author: Brad Chapman \\ Bioinformatics Core, Harvard Chan School \\ https://github.com/chapmanb/bcbio-nextgen \\ http://bcb.io \\ http://j.mp/bcbiolinks
+#+date: 6 February 2015
+
+#+OPTIONS: toc:nil H:2
+
+#+startup: beamer
+#+LaTeX_CLASS: beamer
+#+latex_header: \usepackage{url}
+#+latex_header: \usepackage{hyperref}
+#+latex_header: \hypersetup{colorlinks=true}
+#+BEAMER_THEME: default
+#+BEAMER_COLOR_THEME: seahorse
+#+BEAMER_INNER_THEME: rectangles
+
+* core overview
+
+** Bioinformatics Core
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width 1.05\textwidth
+[[./images7/20150204_HBC_Team.png]]
+#+END_CENTER
+
+** What we do
+
+\LARGE
+- Project design
+- Analysis and consulting
+- Teaching and training
+- Infrastructure
+
+** Find us
+
+\LARGE
+FXB 202B \\
+\vspace{0.5cm}
+\Large
+http://hsphbio.ghost.io \\
+\vspace{0.2cm}
+http://bioinformatics.hms.harvard.edu
+
+** Summary
+
+\LARGE
+- What is bcbio?
+- Validation
+- Support
+- Scaling
+
+* Variant calling overview
+
+** Human whole genome sequencing
+
+[[./images5/human_genome.png]]
+
+\footnotesize
+http://ensembl.org/Homo_sapiens/Location/Genome
+\normalsize
+
+** High throughput sequencing
+
+[[./images5/reads.png]]
+
+** Variant calling
+
+[[./images5/SNV_calling.png]]
+
+\footnotesize
+http://en.wikipedia.org/wiki/SNV_calling_from_NGS_data
+\normalsize
+
+** Scale: exome to whole genome
+
+[[./images5/exome_proportion.png]]
+
+\footnotesize
+https://www.flickr.com/photos/119980645@N06/
+\normalsize
+
+* bcbio overview
+
+** White box software
+
+[[./images5/clear_box.jpg]]
+
+** Overview
+
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images3/bcbio_nextgen_highlevel.png]]
+
+\vspace{1cm}
+https://github.com/chapmanb/bcbio-nextgen
+
+** Uses
+
+\Large
+- Aligners: bwa-mem, novoalign, bowtie2
+- Variantion: FreeBayes, GATK, Platypus, MuTecT, scalpel, SnpEff, VEP, GEMINI, Lumpy, Delly
+- RNA-seq: Tophat, STAR, cufflinks, HTSeq
+- Quality control: fastqc, bamtools, RNA-SeQC
+- Manipulation: bedtools, bcftools, biobambam, sambamba, samblaster, samtools,
+  vcflib
+\normalsize
+
+** Provides
+
+\Large
+- Community -- collected set of expertise
+- Validation
+- Scaling
+- Multi-architecture parallel processing
+\normalsize
+
+* Community
+
+** Complex, rapidly changing pipelines
+
+[[./images2/gatk_changes.png]]
+
+** Quality differences between methods
+
+#+ATTR_LATEX: :width .7\textwidth
+[[./images/gcat_comparison.png]]
+
+[[http://www.bioplanet.com/gcat]]
+
+** Benefits of improved filtering
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width 0.8\textwidth
+[[./images7/freebayes_improve-syn3-tumor.png]]
+#+END_CENTER
+
+http://j.mp/cancervalpre
+
+** Solution
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width .5\textwidth
+[[./images/community.png]]
+#+END_CENTER
+
+\scriptsize
+[[http://www.amazon.com/Community-Structure-Belonging-Peter-Block/dp/1605092770]]
+\normalsize
+
+** Community: contribution
+
+[[./images5/bcbio_github.png]]
+
+[[https://github.com/chapmanb/bcbio-nextgen]]
+
+** Community: documentation
+
+[[./images/community-docs.png]]
+
+[[https://bcbio-nextgen.readthedocs.org]]
+
+** Community
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width 0.75\textwidth
+[[./images7/bcbio_contributors.png]]
+#+END_CENTER
+
+** Community: GEMINI
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width 0.8\textwidth
+[[./images7/gemini_overview.png]]
+#+END_CENTER
+
+http://gemini.readthedocs.org
+
+
+* Validation
+
+** Validation
+
+\Large
+Tests for implementation and methods
+
+- Family/population calling
+- Structural variations
+- Cancer tumor/normal
+\normalsize
+
+** Reference materials
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width .6\textwidth
+[[./images/giab.png]]
+
+[[http://www.genomeinabottle.org/]]
+#+END_CENTER
+
+** Joint variant calling definitions
+
+\Large
+- Single sample calling
+- Pooled calling
+- Joint calling
+- Squaring off/backfilling
+
+\vspace{1cm}
+http://j.mp/bcbiojoint
+
+** Squared off VCF
+
+#+ATTR_LATEX: :width 1.1\textwidth
+[[./images7/squaredoff.png]]
+#+END_CENTER
+
+\scriptsize
+http://gatkforums.broadinstitute.org/discussion/4150/should-i-analyze-my-samples-alone-or-together
+
+
+** Scaling and analysis flexibility
+
+\Large
+- Parallelize: call samples individually
+- Add single new sample to analysis
+- Combine existing populations
+- Inform calls based on previously known variants
+
+** Implementation
+
+\Large
+- GATK HaplotypeCaller -- gVCFs
+- FreeBayes -- recalling
+- Platypus -- recalling
+- samtools 1.x -- recalling
+
+\vspace{1cm}
+\normalsize
+https://github.com/chapmanb/bcbio.variation.recall
+
+** Multiple approaches work well
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width 1.1\textwidth
+[[./images7/joint.png]]
+#+END_CENTER
+
+** Joint vs batch vs single
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width 0.9\textwidth
+[[./images7/method_compare-gatk-NA12878.png]]
+#+END_CENTER
+
+** Structural variations
+
+\Large
+- Goal: identify regions with potential issues
+- Rough boundaries for additional analysis
+- Ensemble: union of all calls
+- Understand sensitivity and precision
+
+\vspace{1.0cm}
+http://j.mp/bcbiosv
+
+** Structural variant callers
+
+- \Large LUMPY \small https://github.com/arq5x/lumpy-sv
+\vspace{0.1cm}
+- \Large Delly \small https://github.com/tobiasrausch/delly
+\vspace{0.1cm}
+- \Large cn.mops \small http://www.bioconductor.org/packages/release/bioc/html/cn.mops.html
+\vspace{0.1cm}
+- \Large CNVkit \small http://cnvkit.readthedocs.org/
+\vspace{0.1cm}
+- \Large WHAM \small https://github.com/jewmanchue/wham
+
+** Structural variant evaluation
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images7/cancer-svs.png]]
+#+END_CENTER
+
+
+* Support
+
+** Making bcbio easy to use
+
+#+ATTR_LATEX: :width 0.65\textwidth
+[[./images2/install_want.png]]
+
+*** Automated Install                                                 :block:
+    :PROPERTIES:
+    :BEAMER_env: exampleblock
+    :END:
+
+We made it easy to install a large number of biological tools. \\
+Good or bad idea?
+
+** Need a consistent support environment
+
+[[./images4/install_issues.png]]
+
+** Docker lightweight containers
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width .6\textwidth
+[[./images/homepage-docker-logo.png]]
+#+END_CENTER
+
+http://docker.com
+
+** Docker benefits
+
+\Large
+- Fully isolated
+- Reproducible -- store full environment with analysis (1Gb)
+- Improved installation -- single download + data
+
+** bcbio + Docker + Amazon Web Services
+
+\Large
+- Ready to run
+- Easy interface to start/stop clusters
+- Pull/push data from encrypted S3
+- Lustre and encrypted NFS filesystems
+
+\vspace{0.5cm}
+http://bcb.io/2014/12/19/awsbench/
+
+** Harvard HPC
+
+\LARGE
+- Odyssey at FAS \\
+  https://rc.fas.harvard.edu/
+\vspace{0.5cm}
+- Orchestra at HMS \\
+  https://rc.hms.harvard.edu/
+
+* Scaling
+
+** Scaling: Start point
+
+\Large
+- Initial pipeline scales with exomes
+- 50 whole genomes = 3 months
+- Next project: 1500 whole genomes
+\normalsize
+
+** Scaling: End point
+
+\Large
+1500 whole genome scale -- 110Tb
+
+#+begin_src sh
+$ du -sh alz-p3f_2-g5/final
+3.4T  alz-p3f_2-g5/final
+$ ls -lhd *alz* | wc -l
+31
+#+end_src
+\normalsize
+
+
+** Scaling: network bandwidth
+
+\Large
+1 GigE to Infiniband
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width .5\textwidth
+[[./images5/infiniband.jpg]]
+#+END_CENTER
+
+Dell Genomic Data Analysis Platform; Glen Otero
+\scriptsize
+http://www.dell.com/learn/us/en/555/hpcc/high-performance-computing-life-sciences?c=us&l=en&s=biz&cs=555
+\normalsize
+
+** Scaling: shared filesystem
+
+\Large
+480 cores, 30 samples
+
+\vspace{0.75cm}
+
+\begin{tabular}{lll}
+\hline
+Step & Lustre & NFS \\
+\hline
+alignment & 4.5h & 6.1h \\
+alignment post-processing & 7.0h & 20.7h \\
+\hline
+\end{tabular}
+
+\Large
+\vspace{0.75cm}
+*** James Cuff, John Morrissey (FAS) \\ Kristina Kermanshahche (Intel) :block:
+
+** Scaling: avoid intermediates
+
+#+begin_src python :exports code
+("{bwa} mem -M -t {num_cores} -R '{rg_info}' -v 1 "
+ "  {ref_file} {fastq_file} {pair_file} "
+ "| {samblaster} "
+ "| {samtools} sort -@ {cores} -m {mem} -T {tmp_file}"
+ "   -o {tx_out_file} /dev/stdin")
+#+end_src
+
+** Scaling: Parallel by genome
+
+[[./images/parallel-genome.png]]
+
+** Scaling: AWS benchmarking
+
+|                           | AWS (Lustre) |
+|---------------------------+--------------+
+| Total                     |         4:42 |
+|---------------------------+--------------+
+| genome data preparation   |         0:04 |
+| alignment preparation     |         0:12 |
+| alignment                 |         0:29 |
+| callable regions          |         0:44 |
+| alignment post-processing |         0:13 |
+| variant calling           |         2:35 |
+| variant post-processing   |         0:05 |
+| prepped BAM merging       |         0:03 |
+| validation                |         0:05 |
+
+100X cancer tumor/normal exome on 64 cores (2 c3.8xlarge)
+
+** Scaling: Resource usage plots
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width 0.8\textwidth
+[[./images7/benchmark_cpu_plot.png]]
+#+END_CENTER
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width 0.8\textwidth
+[[./images7/benchmark_io_plot.png]]
+#+END_CENTER
+
+* Summary
+
+** Summary
+
+\Large
+- bcbio -- community built variant calling and RNA-seq analyses
+- Validation -- measure quality = good science
+- Support -- AWS and local HPC
+- Scaling -- diverse teams
+
+\vspace{0.3cm}
+\Large
+https://github.com/chapmanb/bcbio-nextgen
+\normalsize
