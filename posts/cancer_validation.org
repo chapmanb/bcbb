@@ -144,19 +144,26 @@ identical patterns of sensitivity and precision. It runs quicker, so is useful
 for evaluating changes to filtering or program parameters.
 
 We also looked at structural variant calls for larger deletions, duplications and
-inversions. Here is the precision and sensitivity for deletions across multiple
+inversions. Here is the precision and sensitivity for duplications across multiple
 size classes:
 
 #+BEGIN_HTML
-<a href="http://i.imgur.com/NFOT0RP.png">
-  <img src="http://i.imgur.com/NFOT0RP.png" width="700"
-       alt="Cancer evaluation for structural variants -- deletions.">
+<a href="http://i.imgur.com/csQPl5p.png">
+  <img src="http://i.imgur.com/csQPl5p.png" width="700"
+       alt="Cancer evaluation for structural variants -- duplications.">
 </a>
 #+END_HTML
 
-The [[cancer_val_album][full album of validation results]] includes duplication and inversions.
+The [[cancer_val_album][full album of validation results]] includes the comparisons for deletion
+and inversion events. These comparisons measure the contributions of individual
+callers within [[ensemblesv][an ensemble approach]] that attempts to maximize sensitivity and
+specificity for the combined callset. Keep in mind that each of the individual
+results make use of other caller information in filtering. Our goal is to create
+an approach to improve the final calls, rather than a platform for unbiased
+comparison of structural variant callers.
 
 #+LINK: cancer_val_album http://imgur.com/a/qba5k
+#+LINK: ensemblesv http://bcb.io/2014/08/12/validated-whole-genome-structural-variation-detection-using-multiple-callers/
 
 * Improvements in filtering
 
@@ -294,19 +301,21 @@ cancer analyses. It also prioritizes impact variants in cases where we lack
 normal matched normals. We plan to continue to improve cancer variant calling in
 [[bcbio][bcbio]] and some areas of future focus include:
 
+- Informing variant calling using estimates of tumor purity and sub-clonal
+  frequency. bcbio integrates [[cnvkit][CNVkit]], a copy number caller, which exports
+  read count segmentation data. Tools like [[theta][THetA2]], [[https://github.com/morrislab/phylowgs][phyloWGS]] and [[https://github.com/uci-cbcl/PyLOH][PyLOH]]
+  use these inputs to estimate normal contamination and sub-clonal frequencies.
+
+- Focusing on difficult to call genomic regions and provide additional
+  mechanisms to better resolve and improve caller accuracy in these
+  regions. Using small variant calls to define problematic genome areas with
+  large structural rearrangements can help prioritize and target the use of more
+  computationally expensive methods for copy number assessment, structural
+  variant calling and de-novo assembly.
+
 - Evaluating calling and tumor-only prioritization on
   [[horizon][Horizon reference standards]]. They contain a larger set of
   [[horizonvars][validated mutations]] at a variety of frequencies.
-
-- Informing variant calling using estimates of tumor purity and sub-clonal
-  frequency. bcbio integrates [[cnvkit][CNVkit]], a targeted CNV caller, which exports
-  read count segmentation data as input for [[theta][THetA2]]. THetA2 estimates normal
-  contamination and sub-cloncal frequencies. We can use these values to inform
-  callers like FreeBayes, which takes inputs on contamination, CNVs and population
-  frequencies.
-
-- Focusing on difficult to call genomic regions and provide additional mechanisms
-  to better resolve and improve caller accuracy in these regions.
 
 As always, we welcome suggestions, contributions and feedback.
 

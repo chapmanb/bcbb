@@ -341,14 +341,16 @@ filesystem is [[awsdocs][fully automated and documented]]. It sets up permission
 clusters and shared filesystems from a basic AWS account, so requires minimal
 manual work. ~bcbio_vm.py~ has commands to:
 
-- Add an IAM user, a VPC and create the Elasticluster config.
+- Add an IAM user, a VPC and prepare the Elasticluster config.
 - Launch a cluster and bootstrap with the latest bcbio code and data.
 - Create and mount a Lustre filesystem attached to the cluster.
 - Terminate the cluster and Lustre stack upon completion.
 
 The processing handles download of input data from S3 and upload back to S3 on
 finalization. We store data encrypted on S3 and manage access using
-[[instance_profile][IAM instance profiles]]. The examples below show how to run both a somatic variant
+[[instance_profile][IAM instance profiles]]. We store in progress analysis data on an
+[[aws_en][encrypted EBS volume]] that is NFS-mounted across the cluster.
+The examples below show how to run both a somatic variant
 calling evaluation and an RNA-seq evaluation.
 
 #+LINK: starcluster http://star.mit.edu/cluster/index.html
@@ -356,6 +358,7 @@ calling evaluation and an RNA-seq evaluation.
 #+LINK: ansible http://www.ansible.com/home
 #+LINK: awsdocs https://bcbio-nextgen.readthedocs.org/en/latest/contents/cloud.html
 #+LINK: instance_profile http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html
+#+LINK: aws_en http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSEncryption.html
 
 ** Running the somatic variant calling evaluation
 
@@ -420,8 +423,8 @@ run on 32 cores using the attached EBS SSD filesystem:
 
 #+BEGIN_SRC
 bcbio_vm.py elasticluster ssh bcbio
-mkdir -p ~/run/eval-rna-seqc/work
-cd ~/run/eval-rna-seqc/work
+mkdir -p /encrypted/eval-rna-seqc/work
+cd /encrypted/eval-rna-seqc/work
 bcbio_vm.py run s3://YOURBUCKET-eval-rna-seqc/eval-rna-seqc.yaml -n 32
 #+END_SRC
 #+BEGIN_HTML
@@ -467,9 +470,9 @@ The bcbio AWS implementation is [[awsdocs][freely available and documented]] and
 continue to develop and support it. Some of the areas of immediate improvement
 we hope to tackle in the future include:
 
-- Supporting encryption at rest on EBS volumes for both NFS and Lustre to meet
-  the [[aws_security][security requirements for storing genomic data on AWS]]. We currently
-  encrypt data stored in S3.
+- Supporting encryption at rest for the Lustre filesystem in continuing work to
+  meet the [[aws_security][security requirements for storing genomic data on AWS]]. We currently
+  encrypt data stored in S3 and at rest on the NFS-mounted ~/encrypted~ drive.
 
 - Run directly on container-based parallel frameworks like Amazon's
   [[ec2_cont][EC2 container service]], which is also supported by the [[coreos_cont][CoreOS framework]].
