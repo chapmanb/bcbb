@@ -1,5 +1,8 @@
-#+TITLE: Validating multiple cancer variant callers and prioritizing impact variants
-#+CATEGORY: validation
+#+BLOG: bcbio
+#+POSTID: 748
+#+DATE: [2015-03-05 Thu 06:13]
+#+TITLE: Validating multiple cancer variant callers and prioritization in tumor-only samples
+#+CATEGORY: cancer
 #+TAGS: bioinformatics, variant, ngs, validation, cancer, somatic, mutect, freebayes, vardict, scalpel
 #+OPTIONS: toc:nil num:nil
 
@@ -30,7 +33,7 @@ a good understanding of variant caller tradeoffs.
 
 In this work, we [[dream_about][evaluated cancer tumor/normal variant calling]] with
 [[dream_synthetic][synthetic dataset 3]] from the DREAM challenge, using multiple approaches to detect SNPs,
-indels and structural variants. A simple ensemble approach combines inputs from
+indels and structural variants. A majority voting ensemble approach combines inputs from
 multiple callers into a final callset with good sensitivity and precision. We
 also provide a prioritization method to enrich for somatic mutations in tumor
 samples without matched normals.
@@ -47,13 +50,13 @@ multiple members of the community:
   wrote the initial framework for somatic calling.
 
 - [[lorena][Lorena Pantano]] integrated variant callers and performed benchmarking
-  work. Our group, the [[hbc][Harvard Chan school Bioinformatics core]], provides
-  valuable code and contributions to bcbio development and validation work.
+  work. Members of our group, the [[hbc][Harvard Chan school Bioinformatics core]],
+  regularly contribute to bcbio development and validation work.
 
 - The [[wwcrc][Wolfson Wohl Cancer Research Centre]] supported our work on validation of
   somatic callers.
 
-- James Cuff, Paul Edmon and the team at [[fas][Harvard FAS research computing]]
+- James Cuff, Paul Edmon and the team at [[https://rc.fas.harvard.edu/][Harvard FAS research computing]]
   provided compute infrastructure and support that enabled the large number
   of benchmarking runs it takes to get good quality calling.
 
@@ -102,7 +105,7 @@ and structural variants:
   variant calls.
 - [[https://github.com/arq5x/lumpy-sv][LUMPY (0.2.7)]] -- A [[http://genomebiology.com/2014/15/6/R84/abstract][probabilistic structural variant caller]] incorporating both split
   read and read pair discordance, developed by Ryan Layer in
-  [[http://quinlanlab.org/][Aaron Quinlan]] and [[http://faculty.virginia.edu/irahall/][Ira Hall's]] labs.
+  [[http://quinlanlab.org/][Aaron Quinlan]] and [[http://genome.wustl.edu/people/groups/detail/hall-lab/][Ira Hall's]] labs.
 - [[https://github.com/tobiasrausch/delly][DELLY (0.6.1)]] -- An [[http://bioinformatics.oxfordjournals.org/content/28/18/i333.abstract][integrated paired-end and split-end structural variant caller]]
   developed by Tobias Rausch.
 - [[wham][WHAM (1.5.1)]] -- A structural variant caller that can incorporate association
@@ -113,8 +116,8 @@ bcbio runs these callers and uses simple ensemble methods to combine
 callsets. The [[ensemble_bvr][new small variant ensemble method]] uses a simplified majority rule
 classifier that picks variants to pass based on being present in
 a configurable number of samples. This performs well and is faster than the
-previous implementation that made use of both this approach as
-well as a support vector machine step.
+previous implementation that made use of both this approach and
+a subsequent support vector machine step.
 
 #+LINK: mutect https://www.broadinstitute.org/cancer/cga/mutect
 #+LINK: vardict https://github.com/AstraZeneca-NGS/VarDict
@@ -154,13 +157,17 @@ size classes:
 </a>
 #+END_HTML
 
-The [[cancer_val_album][full album of validation results]] includes the comparisons for deletion
-and inversion events. These comparisons measure the contributions of individual
+The [[cancer_val_album][full album of validation results]] includes the comparisons for deletion and
+inversion events. These comparisons measure the contributions of individual
 callers within [[ensemblesv][an ensemble approach]] that attempts to maximize sensitivity and
 specificity for the combined callset. Keep in mind that each of the individual
 results make use of other caller information in filtering. Our goal is to create
-an approach to improve the final calls, rather than a platform for unbiased
-comparison of structural variant callers.
+the best possible combined calls, rather than a platform for unbiased
+comparison of structural variant callers. We're also actively working on
+improving sensitivity and specificity for individual callers and expect the
+numbers to continue to evolve. For example, [[https://github.com/jewmanchue/][Zev Kronenberg]] added WHAM's ability
+to identify different classes of structural changes, and we're still in the
+process of improving the classifier.
 
 #+LINK: cancer_val_album http://imgur.com/a/qba5k
 #+LINK: ensemblesv http://bcb.io/2014/08/12/validated-whole-genome-structural-variation-detection-using-multiple-callers/
@@ -169,11 +176,11 @@ comparison of structural variant callers.
 
 Our evaluation comparisons show best effort attempts to provide good quality
 calls for every caller. The final results often come from multiple rounds of
-improving sensitivity and precision, by adjusting program parameters or
+improving sensitivity and precision by adjusting program parameters or
 downstream filtering. The goal of tightly integrating bcbio with validation is
 that the community can work on defining a set of parameters and filters that
 work best in multiple cases, and then use these directly within the same
-framework for processing production data.
+framework for processing real data.
 
 In presenting the final results only, it may not be clear that plugging
 a specific tool into a custom bash script will not always produce the same
@@ -209,7 +216,7 @@ when using bcbio, or transplant them into their own custom pipelines.
 
 The above validations were all done on cancer calling with tumor and normal
 pairs. The filters to separate pre-existing [[germline][germline mutations]] from
-[[somatic][cancer specific somatic mutations]] rely on the presence of variants in the normal
+[[somatic][cancer specific somatic mutations]] rely on the presence of a normal
 sample. In some cases, we don't have matched normal samples to do this filtering. Two
 common examples are [[ffpe][FFPE samples]] and tumor cell lines. For these
 samples, we'd like to be able to prioritize likely tumor specific variations for
@@ -270,9 +277,10 @@ The major challenge with tumor-only prioritization approaches is that you can't
 expect to accurately filter private germline mutations that you won't find in
 genome-wide catalogs. With a sample set using a small number of validated
 variants it's hard to estimate the proportion of 'additional' variants in
-the table above that are false positives versus the proportion that are
+the table above that are germline false positives versus the proportion that are
 additional tumor-only mutations not specifically evaluated in the study. We plan
-to continue to refine filtering with additional validated datasets.
+to continue to refine filtering with additional validated datasets to help
+improve this discrimination.
 
 Practically, bcbio automatically runs prioritization with all tumor-only
 analyses. It filters variants by adding a ``LowPriority`` filter to the output VCF
@@ -303,8 +311,9 @@ normal matched normals. We plan to continue to improve cancer variant calling in
 
 - Informing variant calling using estimates of tumor purity and sub-clonal
   frequency. bcbio integrates [[cnvkit][CNVkit]], a copy number caller, which exports
-  read count segmentation data. Tools like [[theta][THetA2]], [[https://github.com/morrislab/phylowgs][phyloWGS]] and [[https://github.com/uci-cbcl/PyLOH][PyLOH]]
-  use these inputs to estimate normal contamination and sub-clonal frequencies.
+  read count segmentation data. Tools like [[theta][THetA2]], [[https://github.com/morrislab/phylowgs][phyloWGS]], [[https://github.com/uci-cbcl/PyLOH][PyLOH]]
+  and [[https://github.com/genome/sciclone][sciClone]] use these inputs to estimate normal contamination and sub-clonal
+  frequencies.
 
 - Focusing on difficult to call genomic regions and provide additional
   mechanisms to better resolve and improve caller accuracy in these
