@@ -1,0 +1,559 @@
+% Don't like 10pt? Try 11pt or 12pt
+\documentclass[10pt]{article}
+
+% This is a helpful package that puts math inside length specifications
+\usepackage{calc}
+
+
+% Simpler bibsection for CV sections
+% (thanks to natbib for inspiration)
+\makeatletter
+\newlength{\bibhang}
+\setlength{\bibhang}{1em}
+\newlength{\bibsep}
+ {\@listi \global\bibsep\itemsep \global\advance\bibsep by\parsep}
+\newenvironment{bibsection}%
+        {\vspace{-\baselineskip}\begin{list}{}{%
+       \setlength{\leftmargin}{\bibhang}%
+       \setlength{\itemindent}{-\leftmargin}%
+       \setlength{\itemsep}{\bibsep}%
+       \setlength{\parsep}{\z@}%
+        \setlength{\partopsep}{0pt}%
+        \setlength{\topsep}{0pt}}}
+        {\end{list}\vspace{-.6\baselineskip}}
+\makeatother
+
+% Layout: Puts the section titles on left side of page
+\reversemarginpar
+
+%
+%         PAPER SIZE, PAGE NUMBER, AND DOCUMENT LAYOUT NOTES:
+%
+% The next \usepackage line changes the layout for CV style section
+% headings as marginal notes. It also sets up the paper size as either
+% letter or A4. By default, letter was used. If A4 paper is desired,
+% comment out the letterpaper lines and uncomment the a4paper lines.
+%
+% As you can see, the margin widths and section title widths can be
+% easily adjusted.
+%
+% ALSO: Notice that the includefoot option can be commented OUT in order
+% to put the PAGE NUMBER *IN* the bottom margin. This will make the
+% effective text area larger.
+%
+% IF YOU WISH TO REMOVE THE ``of LASTPAGE'' next to each page number,
+% see the note about the +LP and -LP lines below. Comment out the +LP
+% and uncomment the -LP.
+%
+% IF YOU WISH TO REMOVE PAGE NUMBERS, be sure that the includefoot line
+% is uncommented and ALSO uncomment the \pagestyle{empty} a few lines
+% below.
+%
+
+%% Use these lines for letter-sized paper
+\usepackage[paper=letterpaper,
+            %includefoot, % Uncomment to put page number above margin
+            marginparwidth=1.2in,     % Length of section titles
+            marginparsep=.05in,       % Space between titles and text
+            margin=1in,               % 1 inch margins
+            includemp]{geometry}
+
+%% Use these lines for A4-sized paper
+%\usepackage[paper=a4paper,
+%            %includefoot, % Uncomment to put page number above margin
+%            marginparwidth=30.5mm,    % Length of section titles
+%            marginparsep=1.5mm,       % Space between titles and text
+%            margin=25mm,              % 25mm margins
+%            includemp]{geometry}
+
+%% More layout: Get rid of indenting throughout entire document
+\setlength{\parindent}{0in}
+
+%% This gives us fun enumeration enumerationvironments. compactitem will be nice.
+\usepackage{paralist}
+
+%% Reference the last page in the page number
+%
+% NOTE: comment the +LP line and uncomment the -LP line to have page
+%       numbers without the ``of ##'' last page reference)
+%
+% NOTE: uncomment the \pagestyle{empty} line to get rid of all page
+%       numbers (make sure includefoot is commented out above)
+%
+\usepackage{fancyhdr,lastpage}
+\pagestyle{fancy}
+%\pagestyle{empty}      % Uncomment this to get rid of page numbers
+\fancyhf{}\renewcommand{\headrulewidth}{0pt}
+\fancyfootoffset{\marginparsep+\marginparwidth}
+\newlength{\footpageshift}
+\setlength{\footpageshift}
+          {0.5\textwidth+0.5\marginparsep+0.5\marginparwidth-2in}
+\lfoot{\hspace{\footpageshift}%
+       \parbox{4in}{\, \hfill %
+                    \arabic{page} of \protect\pageref*{LastPage} % +LP
+%                    \arabic{page}                               % -LP
+                    \hfill \,}}
+
+% Finally, give us PDF bookmarks
+\usepackage{color,hyperref}
+\definecolor{darkblue}{rgb}{0.0,0.0,0.3}
+\hypersetup{colorlinks,breaklinks,
+            linkcolor=darkblue,urlcolor=darkblue,
+            anchorcolor=darkblue,citecolor=darkblue}
+
+%%%%%%%%%%%%%%%%%%%%%%%% End Document Setup %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%% Helper Commands %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% The title (name) with a horizontal rule under it
+%
+% Usage: \makeheading{name}
+%
+% Place at top of document. It should be the first thing.
+\newcommand{\makeheading}[1]%
+        {\hspace*{-\marginparsep minus \marginparwidth}%
+         \begin{minipage}[t]{\textwidth+\marginparwidth+\marginparsep}%
+                {\large \bfseries #1}\\[-0.15\baselineskip]%
+                 \rule{\columnwidth}{1pt}%
+         \end{minipage}}
+
+% The section headings
+%
+% Usage: \section{section name}
+%
+% Follow this section IMMEDIATELY with the first line of the section
+% text. Do not put whitespace in between. That is, do this:
+%
+%       \section{My Information}
+%       Here is my information.
+%
+% and NOT this:
+%
+%       \section{My Information}
+%
+%       Here is my information.
+%
+% Otherwise the top of the section header will not line up with the top
+% of the section. Of course, using a single comment character (%) on
+% empty lines allows for the function of the first example with the
+% readability of the second example.
+\renewcommand{\section}[2]%
+        {\pagebreak[2]\vspace{1.3\baselineskip}%
+         \phantomsection\addcontentsline{toc}{section}{#1}%
+         \hspace{0in}%
+         \marginpar{
+         \raggedright \scshape #1}#2}
+
+% An itemize-style list with lots of space between items
+\newenvironment{outerlist}[1][\enskip\textbullet]%
+        {\begin{itemize}[#1]}{\end{itemize}%
+         \vspace{-.6\baselineskip}}
+
+% An environment IDENTICAL to outerlist that has better pre-list spacing
+% when used as the first thing in a \section
+\newenvironment{lonelist}[1][\enskip--]%
+        {\vspace{-\baselineskip}\begin{list}{#1}{%
+        \setlength{\partopsep}{0pt}%
+        \setlength{\topsep}{0pt}}}
+        {\end{list}\vspace{-.6\baselineskip}}
+
+% An itemize-style list with little space between items
+\newenvironment{innerlist}[1][\enskip\textbullet]%
+        {\begin{compactitem}[#1]}{\end{compactitem}}
+
+% An environment IDENTICAL to innerlist that has better pre-list spacing
+% when used as the first thing in a \section
+\newenvironment{loneinnerlist}[1][\enskip\textbullet]%
+        {\vspace{-\baselineskip}\begin{compactitem}[#1]}
+        {\end{compactitem}\vspace{-.6\baselineskip}}
+
+% To add some paragraph space between lines.
+% This also tells LaTeX to preferably break a page on one of these gaps
+% if there is a needed pagebreak nearby.
+\newcommand{\blankline}{\quad\pagebreak[2]}
+
+% Uses hyperref to link DOI
+\newcommand\doilink[1]{\href{http://dx.doi.org/#1}{#1}}
+\newcommand\doi[1]{doi:\doilink{#1}}
+
+% For \url{SOME_URL}, links SOME_URL to the url SOME_URL
+\providecommand*\url[1]{\href{#1}{#1}}
+% Same as above, but pretty-prints SOME_URL in teletype fixed-width font
+\renewcommand*\url[1]{\href{#1}{\texttt{#1}}}
+
+% For \email{ADDRESS}, links ADDRESS to the url mailto:ADDRESS
+\providecommand*\email[1]{\href{mailto:#1}{#1}}
+% Same as above, but pretty-prints ADDRESS in teletype fixed-width font
+%\renewcommand*\email[1]{\href{mailto:#1}{\texttt{#1}}}
+
+% Dashes for itemize lists
+\def\labelitemi{--}
+
+%%%%%%%%%%%%%%%%%%%%%%%% End Helper Commands %%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%% Begin CV Document %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+\makeheading{Brad Chapman}
+
+\section{Contact Information}
+%
+% NOTE: Mind where the & separators and \\ breaks are in the following
+%       table.
+%
+% ALSO: \rcollength is the width of the right column of the table
+%       (adjust it to your liking; default is 1.85in).
+%
+\newlength{\rcollength}\setlength{\rcollength}{1.85in}%
+%
+\begin{tabular}[t]{@{}p{\textwidth-\rcollength}p{\rcollength}}
+35 Partridge Avenue & 1-617-447-8586 \\
+Somerville, MA 02145, USA & \email{chapmanb@50mail.com} \\
+\end{tabular}
+
+\section{Education}
+%
+Ph.D., University of Georgia, Plant Biology, August 2004
+\newline
+B.S., Michigan State University, Botany and Plant Pathology, May 1999
+
+\section{Community and code}
+\begin{lonelist}
+  \item Open source community involvement:
+    \begin{innerlist}
+      \item[] \href{http://bcb.io}{Blog: Code sharing,
+          scientific discussion and documentation}
+      \item[] \href{http://www.open-bio.org/wiki/BOSC_2015}{Bioinformatics open source conference organizer since 2011}
+      \item[] \href{http://biopython.org}{Biopython project contributor since 2000}
+    \end{innerlist}
+  \item Developed \href{https://github.com/chapmanb/bcbio-nextgen}{bcbio},
+    providing validated, scalable, community developed variant calling and
+    RNA-seq analysis
+  \item Daily programming in Python, Clojure, R and Javascript. Familiarity with
+    Perl, Java and C++. (code repositories: \href{http://github.com/chapmanb}{GitHub},
+    \href{http://bitbucket.org/chapmanb/}{Bitbucket}).
+  \item Comfortable interacting with large datasets in local clusters
+    and on containerized cloud environments.
+\end{lonelist}
+
+\section{Experience}
+%
+\textbf{Harvard T.H. Chan School of Public Health} Research Scientist. Mar 2011-Present
+\begin{itemize}
+  \item Established external collaborations with multiple partners in both
+    academia and industry to enable critical infrastructure development
+  \item Provided scaling and analysis for large scale whole genome sequencing
+    projects
+  \item Building reference standards and validation to ensure accuracy and
+    reproducibility of analyses
+  \item Custom research support in collaboration with researchers,
+    including variant calling, RNA-seq, detection of low frequency HIV
+    populations, shRNA, and transposon insertion analysis.
+    (\href{https://github.com/hbc/projects}{code for recent projects}).
+\end{itemize}
+
+\textbf{Massachusetts General Hospital} Bioinformatics Specialist II. Sep 2008-Mar 2011
+\begin{itemize}
+  \item Custom next-generation sequencing analysis in collaboration with
+    researchers in the hospital; RNA-seq, ChIP-seq, short RNA, and SNP 
+    analyses for a wide variety of organisms including Human, Mouse, Arabidopsis,
+    C elegans, and Drosophila.
+    (\href{https://github.com/chapmanb/mgh_projects}{code for recent projects}).
+  \item Developed LIMS integrating our Illumina sequencing core with 
+    the Galaxy platform (\href{https://bitbucket.org/chapmanb/galaxy-central}{code}).
+    Included an automated pipeline to process sequencing data, allowing our 
+    group to focus on custom analyses while providing researchers with rapid
+    access to their raw sequences and alignments
+    (\href{https://github.com/chapmanb/bcbb/tree/master/nextgen}{code}).
+\end{itemize}
+
+\textbf{Gen9} Bioinformatics consultant. Nov 2009-Oct 2010
+\begin{itemize}
+  \item[] Part time consultant at synthetic biology startup. Created a server
+    automating a novel synthetic construct design approach.
+    Provided documentation, training and support for transferring system
+    maintenance to internal programming team.
+\end{itemize}
+
+\textbf{Codon Devices} Research Scientist, Bioinformatics. 2005-2008
+\begin{itemize}
+  \item Designed and implemented automated oligo-based gene synthesis
+  strategies that drove all revenue generating business. Combined
+  existing academic approaches with internal development efforts using
+  continuous feedback from production pipeline.
+  \item Provided informatics platform for unique synthesis products, including
+  large variant libraries and long construct assemblies.
+  \item Directed remote programming team in Bangladesh
+    to provide an e-commerce website.
+\end{itemize}
+
+\textbf{Plate Genome Mapping Laboratory, University of Georgia} PhD student. 1999-2004
+\begin{itemize}
+  \item Developed phylogentic algorithms for dating duplication events
+  in plant species using whole genome comparative data.
+  \item Evaluated duplicate gene evolution through analysis of SNP
+  accumulation, generating a new hypothesis explaining the prevalence of
+  large scale duplications in plants.
+\end{itemize}
+
+\textbf{University of Georgia} Teaching assistant. 2002-2003
+\begin{itemize}
+  \item[] Teaching Assistant -- Introduction to Gene Technology; Bioinformatics Applications.
+\end{itemize}
+
+\textbf{USDA Beltsville Agricultural Research Center, Autar Mattoo} Summer research scientist. 1999
+\begin{itemize}
+  \item[] RNA isolation and detection of transgenic tomatoes by RT-PCR and
+  northern hybridization.
+\end{itemize}
+
+\textbf{Cornell University, Susan McCouch} Summer research scientist. 1998
+\begin{itemize}
+  \item[] Sub-cloning and sequencing of rice bacterial artificial chromosomes.
+\end{itemize}
+
+\textbf{University of Minnesota, Neil Olszewski} Summer research scientist. 1997
+\begin{itemize}
+  \item[] Cloning and protein expression in \textit{Escherichia coli}.
+\end{itemize}
+
+\textbf{Michigan State University, Mariam Sticklen} Research scientist. 1996-1999
+\begin{itemize}
+  \item[] Development of transgenic maize by particle bombardment and
+  detection via PCR and Southern hybridization.
+\end{itemize}
+
+\section{Publications}
+\begin{bibsection}
+  \item \href{http://bioinformatics.oxfordjournals.org/content/31/2/299.long}
+    {Harris NL, Cock PJ, Chapman BA, Goecks J, Hotz HR, Lapp H.
+     The Bioinformatics Open Source Conference (BOSC). 2015.
+     \textit{Bioinformatics}}
+
+ \item \href{http://www.nature.com/nbt/journal/v32/n3/full/nbt.2835.html}
+   {Zook JM, Chapman B, Wang J, Mittelman D, Hofmann O, Hide W, Salit M.
+    Integrating human sequence data sets provides a resource of benchmark SNP
+    and indel genotype calls. 2014. \textit{Natyre Biotechnoly}}
+
+  \item \href{http://www.nature.com/nature/journal/v514/n7522/full/nature13824.html}
+    {Sun J, Ramos A, Chapman B, Johnnidis JB, Le L, Ho YJ, Klein A, Hofmann O,
+     Camargo FD.
+     Clonal dynamics of native haematopoiesis. 2014.
+     \textit{Nature}}
+
+  \item \href{http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0090485}
+    {Li JZ, Chapman B, Charlebois P, Hofmann O, Weiner B, Porter AJ, Samuel R,
+     Vardhanabhuti S, Zheng L, Eron J, Taiwo B, Zody MC, Henn MR, Kuritzkes DR,
+     Hide W; ACTG A5262 Study Team, Wilson CC, Berzins BI, Acosta EP, Bastow B,
+     Kim PS, Read SW, Janik J, Meres DS, Lederman MM, Mong-Kryspin L, Shaw KE,
+     Zimmerman LG, Leavitt R, De La Rosa G, Jennings A.
+     omparison of illumina and 454 deep sequencing in participants failing
+     raltegravir-based antiretroviral therapy. 2014.
+     \textit{PLoS One}}
+
+  \item \href{http://www.biomedcentral.com/1471-2105/15/S14/S7}
+    {Möller S, Afgan E, Banck M, Bonnal RJ, Booth T, Chilton J, Cock PJ, Gumbel
+     M, Harris N, Holland R, Kalaš M, Kaján L, Kibukawa E, Powel DR, Prins P,
+     Quinn J, Sallou O, Strozzi F, Seemann T, Sloggett C, Soiland-Reyes S,
+     Spooner W, Steinbiss S, Tille A, Travis AJ, Guimera R, Katayama T, Chapman
+     BA.
+     Community-driven development for computational biology at Sprints,
+     Hackathons and Codefests. 2014.
+     \textit{BMC Bioinformatics}}
+
+  \item \href{http://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1003153}
+    {Paila U, Chapman BA, Kirchner R, Quinlan AR.
+     GEMINI: integrative exploration of genetic variation and genome
+     annotations. 2013. \textit{PLoS Comput Biol}}
+
+  \item \href{http://www.nature.com/nature/journal/v493/n7434/full/nature11779.html}
+    {Tabach Y, Billi AC, Hayes GD, Newman MA, Zuk O, Gabel H, Kamath R, Yacoby
+     K, Chapman B, Garcia SM, Borowsky M, Kim JK, Ruvkun G.
+     Identification of small RNA pathway genes using patterns of phylogenetic
+     conservation and divergence. 2013. \textit{Nature}}
+
+  \item \href{http://www.neurology.org/content/80/19/1762.long}
+    {Lieber DS, Calvo SE, Shanahan K, Slate NG, Liu S, Hershman SG, Gold NB,
+     Chapman BA, Thorburn DR, Berry GT, Schmahmann JD, Borowsky ML, Mueller DM,
+     Sims KB, Mootha VK.
+     Targeted exome sequencing of suspected mitochondrial disorders. 2013.
+     \textit{Neurology}}
+
+  \item \href{http://www.jbiomedsem.com/content/4/1/6}
+    {Katayama T et al.
+    The 3rd DBCLS BioHackathon: improving life science data integration with
+    Semantic Web technologies. 2013. \textit{J Biomed Semantics}}
+
+  \item \href{http://www.biomedcentral.com/1471-2105/13/209}
+    {Talevich E, Invergo BM, Cock PJ, Chapman BA.
+    Bio.Phylo: A unified toolkit for processing, analyzing and
+    visualizing phylogenetic trees in Biopython. 2012.
+    \textit{BMC Bioinformatics.}}
+
+  \item \href{http://www.biomedcentral.com/1471-2105/13/315}
+    {Afgan E, Chapman B, Taylor J.
+     CloudMan as a platform for tool, data, and analysis distribution. 2012.
+     \textit{BMC Bioinformatics}}
+
+  \item \href{http://cda.currentprotocols.com/WileyCDA/CPUnit/refId-bi1109.html}
+    {Afgan E, Chapman B, Jadan M, Franke V, Taylor J. Using cloud
+      computing infrastructure with CloudBioLinux, CloudMan, and
+      Galaxy. 2012. \textit{Curr Protoc Bioinformatics.}}
+
+  \item \href{http://www.biomedcentral.com/1471-2105/13/42/}
+   {Krampis K, Booth T, Chapman B, Tiwari B, Bicak M, Field D, and Nelson K.
+    Cloud BioLinux: pre-configured and on-demand bioinformatics
+    computing for the genomics community. 2012. \textit{BMC Bioinformatics}.}
+
+  \item \href{http://www.nature.com/ng/journal/v44/n2/full/ng.1054.html}
+    {Sansone SA et al. Toward interoperable bioscience data. 2012.
+    \textit{Nature Genetics}.}
+
+  \item \href{http://nar.oxfordjournals.org/content/40/D1/D984.long}
+    {Ho Sui SJ, Begley K, Reilly D, Chapman B, McGovern R, Rocca-Sera
+      P, Maguire E, Altschuler GM, Hansen TA, Sompallae R, Krivtsov A,
+      Shivdasani RA, Armstrong SA, Culhane AC, Correll M, Sansone SA,
+      Hofmann O, and Hide W. The Stem Cell Discovery Engine: an
+    integrated repository and analysis system for cancer stem cell
+    comparisons. 2012. \textit{Nucleic Acids Res}.}
+
+  \item \href{http://www.cell.com/cell-reports/abstract/S2211-1247(11)00018-0}
+    {Yuan CC, Matthews AGW, Jin Y, Chen CF, Chapman BA, Ohsumi TK,
+      Glass KC, Kutateladze TG, Borowsky ML,
+      Struhl K and, Oettinger MA. Histone H3R2 Symmetric Dimethylation
+      and Histone H3K4 Trimethylation Are Tightly Correlated in
+      Eukaryotic Genomes. 2012. \textit{Cell Reports}.}
+
+  \item \href{http://www.pnas.org/content/108/51/20497.abstract}
+    {Simon MD, Wang CI, Kharchenko PV, West JA, Chapman BA,
+     Alekseyenko AA, Borowsky ML, Kuroda MI, and Kingston RE.
+     The genomic binding sites of a noncoding RNA. 2011.
+     \textit{Proc Natl Acad Sci U S A.}.}
+
+  \item \href{http://genesdev.cshlp.org/content/25/20/2210.abstract}
+    {Grau DJ, Chapman BA, Garlick JD, Borowsky M, Francis NJ, and Kingston
+    RE. Compaction of chromatin by diverse Polycomb group proteins
+    requires localized regions of high charge. 2011. \textit{Genes Dev.}}
+
+  \item \href{http://www.biomedcentral.com/1471-2105/11/S12/S4}
+    {Afgan E, Baker D, Coraor N, Chapman B, Nekrutenko A, and J Taylor.
+    Galaxy CloudMan: delivering cloud compute clusters. 2010. \textit{BMC
+    Bioinformatics}.}
+
+  \item \href{http://www.cell.com/chemistry-biology/retrieve/pii/S1074552110004059}
+    {Lippow SM, Moon TS, Basu S, Yoon S, Li X, Chapman BA, Robison K, Lipovšek D 
+    and KLJ Prather.
+    Engineering enzyme specificity using computational
+     design of a defined-sequence library. 2010. \textit{Chem Biol}}
+
+   \item \href{http://nar.oxfordjournals.org/content/38/8/2594.long}
+     {Blake WJ, Chapman BA, Zindal A, Lee ME, Lippow SM and BM Baynes.
+     Pairwise selection assembly for sequence-independent
+     construction of long-length DNA. 2010. \textit{Nucleic Acids Res}}
+
+  \item \href{http://bioinformatics.oxfordjournals.org/content/25/11/1422.long}
+    {Cock PJA, Antao T, Chang JT, Chapman BA, Cox CJ, Dalke A, Friedberg I,
+    Hamelryck T, Kauff F, Wilczynski B and MJL de Hoon.
+    Biopython: freely available Python tools for
+     computational molecular biology and bioinformatics. 2009.
+     \textit{Bioinformatics}}
+
+  \item \href{http://www.google.com/patents/about?id=j2yYAAAAEBAJ}
+    {Afeyan N, Church G, Jacobson J, Baynes BM, Nesmith KG, Chapman BA 
+    and B Strack-Louge.
+    Methods for Assembly of High Fidelity Synthetic
+     Polynucleotides. 2006. WO/2006/044956}
+
+   \item \href{http://www.pnas.org/content/103/8/2730.long}
+     {Chapman BA, Bowers JE, Feltus FA and AH Paterson.
+     Buffering of crucial functions by paleologous
+     duplicated genes may contribute cyclicality to angiosperm genome
+     duplication. 2006. \textit{Proc Natl Acad Sci USA}}
+
+  \item \href{http://linkinghub.elsevier.com/retrieve/pii/S0168-9525(06)00296-4}
+    {Paterson AH, Chapman BA, Kissinger JC, Bower JE, Feltus FA and JC Estill.
+    Many gene and domain families have convergent fates
+    following independent whole-genome duplication events in
+    \textit{Arabidopsis}, \textit{Oryza}, \textit{Saccharomyces} and
+    \textit{Tetraodon}. 2006. \textit{Trends Genet}}
+
+  \item \href{http://bioinformatics.oxfordjournals.org/content/20/2/180.abstract}
+    {Chapman BA, Bowers JE, Schulze SR and AH Paterson.
+    A comparative phylogenetic approach for dating whole genome
+    duplication events. 2004. \textit{Bioinformatics}}
+
+  \item \href{http://www.pnas.org/content/101/26/9903.long}
+    {Paterson AH, Bowers JE and BA Chapman.
+    Ancient polyplodization predating divergence of the
+    cereals, and its consequences for comparative genomics. 2004.
+    \textit{Proc Natl Acad Sci USA}}
+
+  \item \href{http://linkinghub.elsevier.com/retrieve/pii/S0958166904000308}
+    {Paterson AH, Bowers JE, Chapman BA, Peterson DG, Rong J and TM Wicker. 
+    Comparative genome analysis of monocots and dicots, towards characterization 
+    of angiosperm diversity. 2004. \textit{Curr Opin Biotech}}
+
+  \item \href{http://www.nature.com/nature/journal/v422/n6930/full/nature01521.html}
+    {Bowers JE, Chapman BA, Rong J and AH Paterson. 
+    Unravelling angiosperm genome evolution by phylogenetic analysis of
+    chromosomal duplication events. 2003. \textit{Nature}}
+
+  \item \href{http://linkinghub.elsevier.com/retrieve/pii/S0959437X03001400}
+    {Paterson AH, Bowers JE, Peterson DG, Estill JC and BA Chapman.
+    Structure and evolution of cereal genomes. 2003. \textit{Curr Opin Genet Devel}}
+
+  \item \href{http://linkinghub.elsevier.com/retrieve/pii/S016894520300061X}
+    {Zhong H, Teymouri F, Chapman B, Maqbool S, Sabzikar R, El-Maghraby Y, 
+    Dale B and MB Sticklen.
+    The dicot pea (\textit{Possum sativum} L.) rbcS transit peptide directs the
+    \textit{Alcaligenes eutrophus} polyhydroxybutyrate enzymes into
+    the monocot maize (\textit{Zea mays} L.) chloroplasts. 2003.
+    \textit{Plant Sci}}
+
+  \item \href{http://dx.doi.org/10.1007/s00122-003-1231-2}
+    {Blair MW, Garris AJ, Iyer AS, Chapman BA, Kresovich S and SR McCouch.
+    High resolution genetic mapping and candidate gene identification 
+    at the \textit{xa5} locus for bacterial blight 
+    resistance in rice (\textit{Oryza sativa} L.). 2003. \textit{Theor Appl Genet}}
+  
+  \item \href{http://www.ucpress.edu/book.php?isbn=9780520231573}
+    {Chapman BA, Jacobo CM, Bunch RA and AH Paterson. 
+    Cactus breeding and biotechnology. 2002. 
+    in \textit{Cacti: Biology and Uses}}
+\end{bibsection}
+
+% \section{References}
+% %
+% Mark Borowsky (\email{borowsky@molbio.mgh.harvard.edu})
+% %
+% \begin{outerlist}
+%   \item[] Mark worked with me for 2 years as director of the Bioinformatics
+%     core at Mass General Hospital. He can discuss my current work collaborating
+%     with research scientists, analyzing Illumina sequencing projects, and leading
+%     Galaxy integration efforts.
+% \end{outerlist}
+
+% \blankline
+
+% Stan Letovsky (\email{letovsky@bu.edu})
+% %
+% \begin{outerlist}
+%   \item[] Stan was director of informatics for 2 years while I worked at Codon. He
+%     is familiar with my high level interactions and relationships within the company,
+%     and ability to coordinate complex projects.
+% \end{outerlist}
+
+% \blankline
+
+% Mark Pytlik (\email{mpytlik@gmail.com})
+% %
+% \begin{outerlist}
+%   \item[] Mark and I worked together for 4 years at Codon Devices. He can help with
+%     questions about my coding, development work and interactions within a software team.
+% \end{outerlist}
+
+
+\end{document}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%% End CV Document %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
