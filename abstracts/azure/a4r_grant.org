@@ -1,0 +1,39 @@
+#+TiTLE: Making scalable validated whole genome variant analysis available on Azure
+#+AUTHOR: Brad Chapman, Bioinformatics Core, Harvard Chan School
+#+DATE: 16 April 2015
+#+OPTIONS: toc:nil num:nil
+#+LaTeX_HEADER: \usepackage{fullpage}
+#+LaTeX_HEADER: \pagenumbering{gobble}
+
+High-throughput human resequencing characterizes whole genome changes with the
+goal of linking variations to diseases. Individual researchers who want to
+perform variant calling on sequencing samples from Illumina or other
+technologies currently need to chain together a large collection of rapidly
+changing tools. Integrating, configuring and scaling these tools involves
+duplicated effort across individual research groups and companies.
+
+We contribute to a community developed tool providing variant calling and
+RNA-seq analysis called bcbio (https://github.com/chapmanb/bcbio-nextgen). It
+emphasizes validation of tools to ensure accurate results. For example, this
+recent post describes work on validating cancer variant callers:
+http://bcb.io/2015/03/05/cancerval/. Since this is a pre-competitive space of
+interest to both academic and industrial research groups, we've been able to
+establish productive, wide-ranging community collaborations.
+
+We developed an implementation of bcbio on Amazon Web Services
+(http://bcb.io/2014/12/19/awsbench/) and would like to also make this available
+to researchers using Azure. We've been initially working with Bob Davidson on
+porting over the existing implementation which uses bcbio on top of
+ElastiCluster. We'd like to use this grant to support that work, become more
+familiar with Azure, and prepare for a transition to defining bcbio workflows
+with the Common Workflow Language (CWL:
+https://github.com/common-workflow-language/common-workflow-language). This
+would enable running bcbio with multiple infrastructure providers like Arvados
+(https://arvados.org/), which has already been ported to both Amazon Web
+Services and Google Compute Engine.
+
+The overall goal is to create a clean implementation of bcbio that runs across
+multiple architectures, building on top of open source infrastructure tools like
+Arvados. This would provide wide availability of up to date variant calling for
+the Azure community. In this grant we hope to make the initial steps towards
+this goal by exploring implementations on Azure.
