@@ -439,9 +439,9 @@ class _AbstractMapReduceGFF:
                 del children[parent_id]
             else:
                 cur_parent, base = self._add_missing_parent(base, parent_id,
-                        cur_children)
+                                                            cur_children)
                 cur_parent, children = self._add_children_to_parent(cur_parent,
-                        children)
+                                                                    children)
         return base
 
     def _identify_dup_ids(self, parents):
@@ -522,14 +522,14 @@ class _AbstractMapReduceGFF:
         """Add a new feature that is missing from the GFF file.
         """
         base_rec_id = list(set(c[0] for c in cur_children))
-        assert len(base_rec_id) == 1
+        assert len(base_rec_id) > 0
         feature_dict = dict(id=parent_id, strand=None,
-                type="inferred_parent", quals=dict(ID=[parent_id]),
-                rec_id=base_rec_id[0])
-        coords = [(c.location.nofuzzy_start, c.location.nofuzzy_end) 
-                for r, c in cur_children]
+                            type="inferred_parent", quals=dict(ID=[parent_id]),
+                            rec_id=base_rec_id[0])
+        coords = [(c.location.nofuzzy_start, c.location.nofuzzy_end)
+                  for r, c in cur_children]
         feature_dict["location"] = (min([c[0] for c in coords]),
-                max([c[1] for c in coords]))
+                                    max([c[1] for c in coords]))
         return self._add_toplevel_feature(base, feature_dict)
 
     def _add_toplevel_feature(self, base, feature_dict):
