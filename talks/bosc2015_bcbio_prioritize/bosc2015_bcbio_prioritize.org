@@ -1,0 +1,73 @@
+#+title: Prioritization of structural variants based on known biological information
+#+author: Brad Chapman \\ Bioinformatics Core, Harvard Chan School \\ http://j.mp/bcbiolinks
+#+date: 10 July 2015
+
+#+OPTIONS: toc:nil H:2
+
+#+startup: beamer
+#+LaTeX_CLASS: beamer
+#+LaTeX_CLASS_OPTIONS: [14pt]
+#+latex_header: \usepackage{url}
+#+latex_header: \usepackage{hyperref}
+#+latex_header: \hypersetup{colorlinks=true}
+#+BEAMER_THEME: default
+#+BEAMER_COLOR_THEME: seahorse
+#+BEAMER_INNER_THEME: rectangles
+
+* bcbio prioritization
+
+** Community developed variant calling
+
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images/bcbio_nextgen_highlevel.png]]
+
+\vspace{1cm}
+https://github.com/chapmanb/bcbio-nextgen
+
+** Structural changes critical in cancer
+
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images/nature14169-sf2.jpg]]
+
+\scriptsize
+http://www.nature.com/nature/journal/v518/n7540/full/nature14169.html
+
+** Structural variants hard to detect
+
+#+ATTR_LATEX: :width 0.9\textwidth
+[[./images/sv-dup-val.png]]
+
+\footnotesize
+http://bcb.io/2015/03/05/cancerval/
+
+** Prioritize variants in known regions
+
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images/prioritize-overview.png]]
+
+** Public cancer variant databases
+
+- CIViC: https://civic.genome.wustl.edu
+- IntOGen: http://www.intogen.org
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width 0.3\textwidth
+[[./images/biology-of-cancer.jpg]]
+#+END_CENTER
+\vspace{0.01cm}
+\scriptsize
+http://www.amazon.com/The-Biology-Cancer-Robert-Weinberg/dp/0815340761
+\normalsize
+
+** Prioritization -- summary
+
+- Structural variants critical but hard
+- Use known biological information
+- Support community databases
+- bcbio.prioritize \\
+  \small
+  https://github.com/chapmanb/bcbio.prioritize
+  \normalsize
+- bcbio \\
+  \small
+  https://github.com/chapmanb/bcbio-nextgen
