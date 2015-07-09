@@ -16,7 +16,7 @@
 
 * bcbio prioritization
 
-** Community developed variant calling
+** Validated, community developed tools
 
 #+ATTR_LATEX: :width 1.0\textwidth
 [[./images/bcbio_nextgen_highlevel.png]]
@@ -24,7 +24,7 @@
 \vspace{1cm}
 https://github.com/chapmanb/bcbio-nextgen
 
-** Structural changes critical in cancer
+** Structural variants critical in cancer
 
 #+ATTR_LATEX: :width 1.0\textwidth
 [[./images/nature14169-sf2.jpg]]
@@ -40,7 +40,7 @@ http://www.nature.com/nature/journal/v518/n7540/full/nature14169.html
 \footnotesize
 http://bcb.io/2015/03/05/cancerval/
 
-** Prioritize variants in known regions
+** Prioritize in previously known regions
 
 #+ATTR_LATEX: :width 1.0\textwidth
 [[./images/prioritize-overview.png]]
