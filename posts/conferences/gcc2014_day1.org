@@ -1,0 +1,174 @@
+#+BLOG: smallchangebio
+#+POSTID: 76
+#+DATE: [2014-07-01 Tue 12:13]
+#+BLOG: smallchangebio
+#+TITLE: Notes, Galaxy Community Conference 2014 day 1 morning: Steven Salzberg, deployment, visualization, reproducibility
+#+CATEGORY: conference
+#+TAGS: bioinformatics, galaxy, open-source
+#+OPTIONS: toc:nil num:nil
+
+I'm at the [[gcc][2014 Galaxy Community Conference]] in Baltimore. After two days at the
+[[gcc-hack][Galaxy Hackathon]] and a [[gcc-cbl][presentation on CloudBioLinux]] at the
+[[gcc-train][Galaxy training day]], it's now time for the conference. These
+are my notes from the talks and discussions from the morning
+
+#+LINK: gcc https://wiki.galaxyproject.org/Events/GCC2014
+#+LINK: gcc-hack https://wiki.galaxyproject.org/Events/GCC2014/Hackathon
+#+LINK: gcc-train https://wiki.galaxyproject.org/Events/GCC2014/TrainingDay
+#+LINK: gcc-cbl https://github.com/chapmanb/bcbb/blob/master/talks/gcc2014_cloudbiolinux/chapman_cbl.pdf?raw=true
+
+** Transcriptome assembly: Computational challenges of NGS data
+/Steven Salzberg, Johns Hopkins/
+
+Steven's lab focuses on exome sequencing, transcriptome sequencing and RNA-seq,
+microbiome studies and de novo assembly. He starts by talking about [[bowtie2][Bowtie2]],
+[[tophat][TopHat]] and [[cufflinks][Cufflinks]]; they handle alignment, spliced alignment and transcript
+assembly, respectively.
+
+The next generation of Tuxedo suite tools in development:
+bowtie2 -> HISAT -> stringtie -> ballgown. Motivations: pseudogenes cause
+alignment issues and 14,000 pseudogenes in the human genome. TopHat2 works
+around this by working in two stages: discovering splice sites and then
+realigning to avoid problems with reads incorrectly aligning to pseudogenes. In
+validation work, biggest improvement are in regions with short-anchored reads.
+Based on speed on STAR, motivated to make TopHat2 faster -- HISAT: Hierarchical
+Indexing for Spliced Alignment of Transcripts. The major issue is that BWT is
+not local, so you have to start over at each splice site instead of being able
+to take advantage of the FM index. Now create local indexes corresponding to
+small 64k regions of the genome, overlapping by 1k. Creates 48000 indexes, but
+is only 4.3Gb for human genomes. HISATs algorithm: use global index where read
+fully in an index, use local index for regions with small anchor region,
+skipping to nearby local indexes when read hit an intron. Big advantage for
+looking up short indexes since you don't have to dig through the whole
+index. This also works for large anchors, which is an easier problem.
+
+Measured performance of HISAT. First approach, simulated data including lots of
+different types of anchor sizes. Speed tests show reads/sec aligned does better
+than STAR. Sensitivity of HISAT is equivalent and slightly better than TopHat
+with some additional tweaks to algorithm: 3 versions of HISAT currently under
+evaluation. These also handle tricky cases with 1-7 base anchors over exons.
+
+Expectation for HISAT release is this summer -- soon.
+
+[[stringtie][StringTie]] is a new method for transcriptome assembly. Provides two new ideas:
+assemble reads de novo to provide "super-reads"; create a flow network to
+assemble and quantitate simultaneously. First step uses [[masurca][MaSuRCA]] which creates
+long reads by extending original reads forward and backwards until not
+unique. These super reads get aligned to the genome, potentially capturing more
+exons. Following this, build an alternative splice graph and then use this to
+create the flow network.
+
+Splice graph made up of nodes as exons and connections as potential combinations
+between the exons. Cufflinks idea is to create the most parsimonious
+representation of this splice graph. StringTie builds a splice graph, then
+converts into a flow network and finds the maximum flow through the network:
+flow = number of reads to assign to different isoforms.
+
+Accuracy, evaluated
+through simulated examples: both have nice sensitivity and precision
+improvements over Cufflinks -- 20% increase in sensitivity. On transcripts with
+read support: 80% sensitivity and 75% precision. Evaluation on real data with
+"known" genes, also provides a good improvement over TopHat.
+
+For speed, much faster than Cufflinks. 29 minutes versus 81 minutes, Cufflinks
+versus StringTie, 95 versus 941 on another dataset. So 3-10x faster.
+
+Awesome question from Angel Pizzaro about independent benchmarks for measuring
+transcriptomes. Steven happy to share his data but no standard benchmark
+available. We need a community doing this for RNA-seq.
+
+#+LINK: bowtie2 http://bowtie-bio.sourceforge.net/bowtie2/index.shtml
+#+LINK: tophat http://ccb.jhu.edu/software/tophat/index.shtml
+#+LINK: cufflinks http://cufflinks.cbcb.umd.edu/
+#+LINK: masurca http://www.genome.umd.edu/masurca.html
+#+LINK: stringtie http://ccb.jhu.edu/software/stringtie/
+
+** The Galaxy framework as a unifying bioinformatics solution for multi-omic data analysis
+/Pratik Jagtap, University of Minnesota/
+
+Pratik works on integrating proteomic tools into Galaxy. Shows examples of
+proteomic workflows, which look so foreign when you deal with genomic data
+regularly. However, similar challenges to genomics to learn from: quality of
+underlying database representations essential for good results. Provide Galaxy
+workflows to help improve these representations. Have nice integrated genome
+viewers within Galaxy. Shows examples of biological results achieved with this
+platform; I like how they are working on the ground squirrel, described
+succinctly as a non-model organism. Proteomics results help improve in-progress
+genome. The GalaxyP community project drives this software development and data
+submission process.
+
+** iReport: HTML Reporting in Galaxy
+/Saskia Hiltemann, Erasmus University Medical Center/
+
+[[ireport][iReport]] is a method to show workflows that have a lot of outputs, enabling the
+ability to view these directly in Galaxy. Outputs in iFuse2 report included SVs,
+small variants, CNVs and provides a visualization from each of these. Results
+are fully interactive via jQuery. iReport creates these type of HTML reports
+from workflow outputs without having to do all that work from scratch.
+
+Saskia shows a [[ireport-example][iReport example output]] that demonstrates the
+capabilities. Awesome ability to combine multiple result types into useful
+output. I will definitely investigate as a useful way to coordinate outputs for
+bcbio integrated into Galaxy.
+
+#+LINK: ireport-example http://tinyurl.com/llrzz9w
+#+LINK: ireport https://toolshed.g2.bx.psu.edu/view/saskia-hiltemann/ireport
+
+** Galaxy Deployment on Heterogenous Hardware
+/Carrie Ganote, National Center for Genome Analysis Support/
+
+Carrie is talking about approaches to putting Galaxy on multiple
+architectures. The National Center for Genome Analysis support provides
+bioinformatics support and cluster access for free; fully grant funded.
+Awesome. Doing a collaboration with Brian Haas at the Broad getting Trinity
+working well with Galaxy. Have multiple Galaxy integrations connected with 3
+different local computes with shared filesystem and remote systems that do not
+have a shared filesystem. Carrie describes in-depth issues dealing with Galaxy:
+can't communicate with Torque due to PBS configuration changes, integration with
+DRMAA. To get things working with Cray, need to create a shell wrapper around
+the Galaxy wrapper submit script; ugh too many wrappers. Also integrated with
+the Open Science Grid dealing with unevently distributed resources.
+
+** A journal’s experiences of reproducing published data analyses using Galaxy
+/Peter Li, GigaScience/
+
+[[gigascience][GigaScience]] focuses on reproducibility in published results, but primarily
+papers do not provide enough information to reproduce. Investigated whether
+results in a GigaScience journal could reproduce in Galaxy. Pilot project was to
+reproduce SOAPdenovo2, specifically a table comparing to SOAPdenovo1 and
+ALLPATHs. Paper has tarball of shell scripts and data for re-running -- good
+stuff. Idea was to convert these over to Galaxy: download datasets used into
+Galaxy history; wrapped tools used in comparison.
+
+The downloaded pipeline shell script did not have automated way to go from run
+output to N50 comparison stats used in paper. Paper methods did not have enough
+to replicate, and needed an additional step not described in methods. Figured
+out by asking authors but not represented in shell script or paper.
+
+After adding in the missing steps to Galaxy workflow, replicated the original
+results from the paper. Got similar results for SOAPdenovo1 and ALLPATHS,
+although numbers were not identical.
+
+Observations: reproduction work is difficult, required a lot of time and effort,
+help from authors. Sigh.
+
+#+LINK: gigascience http://www.gigasciencejournal.com/
+
+** Enabling Dynamic Science with Flexible Infrastructure
+/Anushka Brownley and Aaron Gardner, BioTeam/
+
+BioTeam focuses on providing IT expertise for scientific work. They do great
+work and well regarded in the scientific community.[[slipstream][BioTeam SlipStream]] is a
+dedicated compute resource pre-installed and configured with Galaxy. The goal is
+to connect SlipStream with additional resources: Amazon and other local
+infrastructure. Aaron shows example where jobs spill over from SlipStream to
+existing SGE cluster when busy. Managed to do this both locally and on Amazon
+with [[starcluster][StarCluster]]. In both cases modified SGE only to achieve this integration.
+
+The move forward to the future is to use LWR to enable this, look at
+[[docker][Docker containerization]] for the toolshed, and use Mesos for heterogenous
+scheduling.
+
+#+LINK: slipstream http://bioteam.net/slipstream/
+#+LINK: starcluster http://star.mit.edu/cluster/index.html
+#+LINK: docker http://www.docker.com/

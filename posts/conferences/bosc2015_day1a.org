@@ -1,0 +1,164 @@
+#+BLOG: smallchangebio
+#+POSTID: 87
+#+DATE: [2015-07-10 Fri 06:31]
+#+BLOG: smallchangebio
+#+TITLE: Notes: Bioinformatics Open Source Conference 2015 day 1 morning -- Holly Bik and Data Science
+#+CATEGORY: conference
+#+TAGS: bioinformatics, open-bio, open-source
+#+OPTIONS: toc:nil num:nil
+
+I'm at the [[bosc][2015 Bioinformatics Open Source Conference (BOSC)]] in Dublin, Ireland.
+BOSC is a two day community conference devoted to open source and science. Nomi
+Harris starts the day off with an introduction to BOSC -- this is the 16th
+annual year. The theme this year in Open Source, Open Door: we have a strong
+interest in improving diversity at BOSC. Some of the work in progress includes:
+reaching out to many under-represented groups and sending personal invitations,
+adding a code of conduct to both BOSC and ISMB, appointing [[https://twitter.com/sarahmhird][Sarah Hird]] as the
+BOSC outreach coodinator, and providing financial support for scientists who
+might otherwise not be able to attend.
+
+#+LINK: bosc http://www.open-bio.org/wiki/BOSC_2015
+
+* Keynote
+** Holly Bik -- Bioinformatics: Still a scary world for biologists
+
+[[https://twitter.com/hollybik][Holly]] plans to talk about her experience transitioning from biology to
+bioinformatics. 2010 is the year that Holly saw the command line for the first
+time, and will give her perspective as an end user. Holly works on marine
+nematodes, although environmental sequencing allows you to sample everything
+you'll find. So you might be looking at nematodes, but will find plenty of other
+tiny eukaryotes to study: neglected taxa in understudied habitats.
+
+Holly provides a motivating example: the impact of the
+[[https://en.wikipedia.org/wiki/Deepwater_Horizon_oil_spill][Deepwater Horizon oil spill]] in September of 2010. She then describes her
+biology experience: collecting deep water samples, nematode classification,
+drawing of nematodes. None of that was a good preparation for the command line.
+Holly had to adpat to a fast-moving field: collecting 1000s of samples, dealing
+with bias and contamination error, using multiple approaches. Holly quotes
+[[https://en.wikipedia.org/wiki/There_are_known_knowns][Donald Rumsfeld about known unknowns]]. Holly feels confident knowing how to do
+basic scripting and debugging. Known unknowns: new techs like Hadoop, Drupal,
+etc creates a barrier. Unknown unknowns: distributed computing, binary formatted
+files that aren't clearly different than previous text files.
+
+Holly mentions the useful point that how you call yourself influences people's
+perceptions. Computational biologist says one thing to people and Marine
+Biologist says another. How do we properly present ourselves both in jobs and
+grants.
+
+Two options for biologists who need bioinformatics: hacking it together yourself
+or using pre-packaged tools. She awesomely compares to the
+[[https://en.wikipedia.org/wiki/The_Oregon_Trail_%28video_game%29][Oregon trail game]]. I had no idea that Oregon trail was so comparable to
+biology + bioinformatics. Do not try to cross the river yourself.
+
+How to learn and get going? Hardest part is intermediate learners: lots of
+resources for early adopters but less as you already known something but want to
+level up.
+
+Holly talks about her open-source work on [[http://phinch.org/][Phinch]] -- research-driven data
+visualation. Provides visualization of data in chrome. Really nice interface
+designed by actual interface designers. It's a prototype framework, currently
+has five unique visualizations for summarizing data. Allows you to look at both
+high and low level patterns.
+Visualization helps make this data available to citizen scientists.
+
+Next phases of development: phylogenetic visualizations, open public APIs with a
+self-sustaining developer community.
+[[https://github.com/PitchInteractiveInc/Phinch][Code on GitHub]].
+
+Main points: provide more interdisciplinary training, collaboration and
+interaction for intermediate learners. Tools that actually take advantage of
+biology and reduce the need for biological expertise.
+
+We have a new Q/A format we're trying out with questions from twitter and index
+cards. On training courses -- found that in-person courses are much more useful
+than online because of actually following through and finishing them. Teach
+people to Google their error messages -- yes please.
+
+* Data Science
+
+**  Mónica Muñoz-Torres -- Apollo: Scalable & collaborative curation for improved comparative genomics
+
+Moni works at LBL on [[http://genomearchitect.org/][WebApollo]] with Nathan Dunn and Suzi Lewis. Goal is to
+improve Manual Annotation and improve scalability of this work. Architecture has
+3 components: web based front end, annotation editing enging and server side
+data service. Uses Google Web Toolkit on front end, Grails on the backend plus
+single datastore with PostgreSQL. Moni describes a lot of the pain of
+refactoring and difficulty in working with new technologies to estimate times.
+[[https://github.com/GMOD/Apollo][Code on GitHub]].
+
+** Kévin Rue-Albrecht -- GOexpress: Visualize gene expression using gene ontology
+
+Kévin talks about motivations behind [[http://www.bioconductor.org/packages/release/bioc/html/GOexpress.html][GOexpress]],
+an R/Bioconductor tool for making sense of gene expression data. Shows huge map
+to demonstrate the difficult in identifying the effect of a treatment. Often
+have multiple experimenal factors, noise in the data and clustering driven by a
+few genes of large effects. For instance, MHC drives clustering in animals and
+need to cluster genes by effects to determine this and actually look at signal.
+Uses random forest and ANOVA methods to classify genes and separates by
+ontology. Expose selection of genes through a Shiny web application. Tricky
+parts with random forest -- need to run permutations to get p-values that
+everyone wants. [[https://github.com/kevinrue/GOexpress][Code on GitHub]].
+
+** Peter Amstutz -- Arvados: A Free Software Platform for Big Data Science
+
+Peter talks about computational reproducibility with [[https://arvados.org/][Arvados]], first motivating
+with examples of how we improve our ability to run complex pipelines. Components
+of Arvaods: [[https://arvados.org/projects/arvados/wiki/Keep][Keep content addressable storage]]. It's versioned, immutable and
+manifests allow reorganization. I wish I understood filesystems better to know
+how Hadoop-y file systems different from this. [[https://arvados.org/projects/arvados/wiki/Computation_and_Pipeline_Processing][Crunch]] is the computational
+engine. uses Keep for data, Git for code and Docker for tools to have a full set
+of reproducible components. This architecture allows moving analyses between
+multiple instances. Arvados provides facilities for this sharing -- both public
+and between groups in private. Ends by mentioning writing
+[[https://github.com/common-workflow-language/common-workflow-language][Common workflow language]] and move towards better workflow standards that will be
+in a talk by Michael later.
+
+** Sebastian Schoenherr -- Bringing Hadoop into Bioinformatics with Cloudgene and CloudMan
+
+Sebastian motivates by talking about a BOSC talk fom 2012 by [[https://github.com/afgane][Enis Afgan]] on
+[[http://cloudman.irb.hr/][CloudMan]], and describes the awesome work on automating Galaxy + AWS. Sebastian
+also talked about CloudGene talk from himself in 2012. Now [[http://cloudgene.uibk.ac.at/][CloudGene]] is more of
+a software as a service platform, providing dedicated services for a given
+workflow. Supports the full Hadoop stack: Spark, MRv2, Pig. Lots in common with
+CloudMan and decided to combine projects, using CloudGene for Hadoop execution
+within CloudMan. Presents a cool use for hadoop -- [[http://imputationserver.sph.umich.edu/][Michigan Imputation Server]]: a
+free service to provide QC + Phasing + Imputation. Really nice, and provides a
+platform for building more services.
+
+** Michael Hoffman -- Segway: semi-automated genome annotation
+
+[[https://www.pmgenomics.ca/hoffmanlab/proj/segway/][Segway]] finds patterns from multiple biological signal tracks like ChIP-seq. It
+discovers patterns and then provides annotation, visualization and
+interpretation. Genome segmentation breaks up the genome into non-overlapping
+segments, then pushes around boundaries to maximize similarity within regions.
+Uses a generalized HMM to discover structure in the inputs based on a specific
+number of classifications to segment by. Michael makes good point that coders
+are biologists too and can use his knowledge of chromatin structure to develop
+hypotheses from these inputs and then test those. Use this knowledge to apply
+labels for each segment of the genome. This provides nice annotation tracks for
+making sense of variations in non-coding regions. Nicely able to ensure that
+Segway signals match with the expected biology. Michael makes another good point
+about the importance of looking in depth at specific regions, and then using
+this to do biological experiments to confirm.
+
+** Konstantin Okonechnikov -- QualiMap 2.0: quality control of high throughput sequencing data
+
+[[http://qualimap.bioinfo.cipf.es/][Qualimap]] does a comprehensive job of running quality control of seuencing data.
+The new version of BAM QC was redesigned to add many new metrics. Added a method
+to combine results from multiple bam results together and summarize them. Runs a
+PCA analysis to detect outliers in a group of results. Also redesigned RNA-seq
+quality control. Konstantin highlights the larger number of folks from the
+community who contribute to QualiMap.
+
+** Andrew Lonie -- A Genomics Virtual Laboratory
+
+Andrew talks about [[https://genome.edu.au/][the Genomics Virtual Lab (GVL)]] which supplies compute along
+with a set of tools to work on top of it. Awesome resource for Australian
+Bioinformatics with CloudMan, Galaxy. Provides reproducibie, redeployable platforms.
+
+** Tony Burdett -- BioSolr: Building better search for bioinformatics
+
+[[http://www.flax.co.uk/blog/2014/06/11/biosolr-building-better-search-for-bioinformatics/][BioSolr]] provides an optimized approach for complexity of life sciences data on
+top of Solr, Lucene and Elastic Search. The mission is to build a community of
+users around improving searching for biology. Provides faceting with ontologies,
+plugins for joining indexes with external indexes to provide federated search.

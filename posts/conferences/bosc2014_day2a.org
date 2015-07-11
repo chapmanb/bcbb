@@ -1,0 +1,224 @@
+#+BLOG: smallchangebio
+#+POSTID: 84
+#+DATE: [2014-07-11 Fri 17:31]
+#+TITLE: Notes: Bioinformatics Open Source Conference 2014 day 2: Philip Bourne, Software Interoperability, Open Science
+#+CATEGORY: conference
+#+TAGS: bioinformatics, open-bio, open-source
+#+OPTIONS: toc:nil num:nil
+
+I'm at the [[bosc][2014 Bioinformatics Open Source Conference (BOSC)]] in Boston. It's a
+great two day conference devoted to open source, science and community. These
+are my notes from the day 2 morning session. [[nextday][Next Day Video]] recorded all the
+talks and they're available on the [[video-obf][Open Bio video site]].
+
+Other notes:
+
+- [[day1a][Day 1 morning]]
+- [[day1b][Day 1 afternoon]]
+
+#+LINK: bosc http://www.open-bio.org/wiki/BOSC_2014
+#+LINK: day1a http://smallchangebio.wordpress.com/2014/07/11/notes-bioinformatics-open-source-conference-2014-day-1-morning-titus-brown-genome-scale-data-obf/
+#+LINK: day1b http://smallchangebio.wordpress.com/2014/07/11/notes-bioinformatics-open-source-conference-2014-day-1-afternoon-visualization-project-updates-and-lightning-talks/
+#+LINK: nextday http://nextdayvideo.com/
+#+LINK: video-obf http://video.open-bio.org/
+
+** Biomedical Research as an Open Digital Enterprise
+/Philip Bourne/
+
+Philip starts off apologizing for not writing a line of code in the last 14
+years. He talks about current funding issue in science: lack of growth in NIH
+funding but exponential increase in biological data. Hard to quantify right now:
+how much do we spend on data and software? Futher, how much should we be
+spending to achieve the maximum benefit? Biggest current issue is
+reproducibility; critical to improve public perception of biological research as
+well as fundamentally important to good science.
+
+From a funders perspective, it's a time to squeeze every penny to maximize the
+amount of research that can be done with money. Two approaches: top down and
+bottom up. Top down: regulations on data, data sharing policies, digital
+enablement and move towards reproducibility. Emphasizes the importance of
+discussions between communities for working with large data. Bottom up
+approaches: collaboration, open source and standards.
+
+Mentions the current issue that software developers are in great demand, and
+rewards outside of academia are greater than inside. Need new business models
+and software best practices. Current challenge: elements of the research life
+cycle are not connected. Presents nice graph of areas where he feels like we're
+doing well and struggling.
+
+Presents public/private partnership called The Commons. Idea is to have agile
+pilots testing out ideas and new funding strategies. One example, porting dbGAP
+to the cloud. The commons is a conceptual framework, analagous to the
+internet. Meant as a collaboration using researching objects with unique
+identifiers and provenance. Commons meant to handle long tail of data that does
+not fit anywhere, high throughput data from big facilities and clinical data
+rules. Brilliant, smart and on-point ideas: excited about what NIH/NSF is
+doing.
+
+What does the Commons enable? Dropbox like storage, quality metrics and
+metadata, bringing compute next to data, and giving places to collaborate and
+discover. The most critical element is establishing a business model: current
+thinking is to provide a broker service. Idea to is have a series of pilots to
+evaluate, and hoping to make decisions by 2015.
+
+Great discussion questions. Ann Loraine: 20% time on grants for more exploratory
+research. Titus Brown: how can we speed up review/grant process to work with
+agile processes? Thomas Down: can we improve incentives/fun for making data
+available? Currently not as fun as actually doing science. Really awesome to see
+so much discussion during Philip's talk.
+
+Great example of current software folks to talk to: MyExperiment, Galaxy. Also
+would suggest iPlant, SAGE Synapse, Figshare. Lots of new Big Data to knowledge
+(BD2K) grants coming.
+
+Overall talk idea is to foster an ecosystem of biomedical research as a
+digital enterprise.
+
+* Software Interoperability
+
+** Pathview: an R/Bioconductor Package for Pathway-based Data Integration and Visualization
+/Weijun Luo/
+
+[[pathview][Pathview]] provides pathway visualization using KEGG-based pathway. Bioconductor R
+package. High level API calls to get very nice visualizations of multiple sample
+experiments layered on top of named pathways. Nice automated segmentation and
+labeling of attributes. Supports over 3000 species: everything in KEGG with
+sequenced genomes. Takes care of ID mess by supporting everything. Nice
+[[gage-workflow][workflow for running RNA-seq processing]], then feeding into Pathview and GAGE for
+visualization.
+
+#+LINK: pathview http://www.bioconductor.org/packages/release/bioc/html/pathview.html
+#+LINK: gage-workflow http://www.bioconductor.org/packages/release/bioc/vignettes/gage/inst/doc/RNA-seqWorkflow.pdf
+
+** Use of Semantically Annotated Resources in the Mobyle2 Web Framework
+/Hervé Ménager/
+
+[[mobyle][Mobyle]] is a web-based bioinformatics workbench. Currently working on Mobyle2
+re-write which includes groupware functionality, secure data sharing, REST API
+and ontology bsaed annotations. Re-write deals with issues with current
+classification and typing systems, specifically designed to provide improved
+sharing. Ontology describes relationships using [[edam][EDAM ontology]]. With these, can
+now annotate formats of inputs/outputs to enable automated conversions and
+improved chaining of tools. Can also do cool stuff like automated splitting.
+
+#+LINK: mobyle http://mobyle.pasteur.fr/cgi-bin/portal.py#welcome
+#+LINK: edam http://edamontology.org/page
+
+** Towards Ubiquitous OWL Computing: Simplifying Programmatic Authoring of and Querying with OWL Axioms
+/Hilmar Lapp/
+
+Hilmar describes work done by [[balhoff][Jim Balhoff]] at NESCent on using [[owl][RDF and OWL]] to
+improve computational data mining. Done as part of [[phenoscape][PhenoScape]] project with the
+goal of understanding causes of diversification. Very difficult to author
+ontology axioms at scale: translating complex assertions into rules make my head
+hurt. [[scowl][Scowl]] tool provides a declarative approach to defining these. This also
+helps make ontologies easier to declare and version control. Similar work is
+[[tawny-owl][Tawny OWL]] from Phil Lord. Second tool is to handle Ontology driven queries in
+SPARQL: [[owlet][owlet]]. Vision is to make programming with ontologies easy: small tools
+to fill gaps and holes.
+
+#+LINK: balhoff https://github.com/balhoff?tab=repositories
+#+LINK: owl https://en.wikipedia.org/wiki/Web_Ontology_Language
+#+LINK: phenoscape http://phenoscape.org/
+#+LINK: scowl https://github.com/phenoscape/scowl
+#+LINK: tawny-owl https://github.com/phillord/tawny-owl
+#+LINK: owlet https://github.com/phenoscape/owlet
+
+** Integrating Taverna Player into Scratchpads
+/Robert Haines/
+
+Describes works integrating [[scratchpads][Scratchpads]] and [[taverna][Taverna]]. Scratchpads are websites
+that hold data for you and your community. Scratchpads is a Drupal backend with
+lots of models: 500 sites using this system hosting on two application
+servers. Taverna provides the workflow system and uses Taverna Player which is a
+Rudy on Rails plugin that talks to Taverna's REST interface. Wow, a lot of
+Taverna calling Taverna calling Taverna: very modular setup. The integration
+happened to joining two biodiversity communities and make it easier to
+disseminate data via Scratchpads. With Taverna allows running on this
+generalized disseminated data. Interesting work to have multiple ways to do
+this: both tight and lightweight integration.
+
+#+LINK: scratchpads http://scratchpads.eu/
+#+LINK: taverna http://taverna.org.uk/
+
+** Small Tools for Bioinformatics
+/Pjotr Prins/
+
+Pjotr talks about approaches to improving how we can better integrate tools,
+manage workflows. Bioinformatics is often about not invented here and monolithic
+solutions. Does this happen because of technology and deployment. Wrote up a
+[[manifesto][Bioinformatics Manifesto]] to build small tools, which should each do the smallest
+possible task well. Idea is to make each part anti-fragile so the whole system
+can be more robust. 3 examples of tools that do this: [[pfff][Pfff]] is a replacement for
+md5 comparisons that samples files so scales to large inputs. [[sambamba][sambamba]] is a
+great tool with samtools like functionality and parallelization. [[bio-vcf][bio-vcf]] is a
+fast VCF parser and filtering tool.
+
+#+LINK: manifesto https://github.com/pjotrp/bioinformatics
+#+LINK: pfff https://github.com/pfff/pfff
+#+LINK: sambamba https://github.com/lomereiter/sambamba
+#+LINK: bio-vcf https://github.com/pjotrp/bioruby-vcf
+
+* Open Science and Reproducible Research
+
+** SEEK for Science: A Data Management Platform which Supports Open and Reproducible Science
+/Carole Goble/
+
+Carole talks about [[seek][SEEK]] work enabling systems biology, linking models and
+experimental work. Idea is to preserve results, organize data, exchange and
+share data. Difficulty in dealing with home-brewed solutions from each
+lab. Tricky to deal with both small and large data, lots of different inputs to
+mix together. Catalogue data as the critical component using [[isatools][ISA metadata]]. They
+integrate a crazy incredible number of standards and other tools in general;
+beautiful reuse. Use [[jerm][Just Enough Results Model (JERM)]] to describe relationships
+between everything done in experiments. [[researchobject][Research Object]] provides nice way to
+provide tagging and provenance of research work. Funded to extend this as open
+system for european systems biology data.
+
+#+LINK: seek http://www.seek4science.org/
+#+LINK: isattools http://isacommons.org/
+#+LINK: jerm http://seek4science.org/jerm
+#+LINK: researchobject http://www.researchobject.org/
+
+** Arvados: Achieving Computational Reproducibility and Data Provenance in Large-Scale Genomic Analyses
+/Brett Smith/
+
+[[arvados][Arvados]] is a open source platform for managing and computing on biological
+data. Parts of Arvados: [[keep][Keep]] provides immutable content addressable storage,
+providing git-like behavior for data. Objects tracked and managed through the
+[[api-server][Arvados API server]]. Jobs submitted as big ol' JSON format. Uses Docker to manage
+images. Everything gets GUID identifiers for data, code and docker images so
+get provenance for everything run.
+
+#+LINK: arvados http://arvados.org/
+#+LINK: keep https://arvados.org/projects/arvados/wiki/Keep
+#+LINK: api-server https://arvados.org/projects/arvados/wiki/REST_API_Server
+
+** Enhancing the Galaxy Experience through Community Involvement
+/Daniel Blankenberg/
+
+Dan describing work to involve the [[galaxy][Galaxy]] community in development and
+analysis. He starts by describing all off the awesome stuff that Galaxy does
+with shout out to Galaxy on AWS using [[cloudman][CloudMan]]. Interesting stats on running
+jobs on Galaxy main -- leveling off due to complete usage of resources: need to
+diversify big jobs on Cloud or local installations. Awesome plots of community
+code contributions, 51 unique users in the past year. They've moved to
+[[biostar-galaxy][BioStar interface for answering questions]].
+
+#+LINK: galaxy http://usegalaxy.org
+#+LINK: cloudman http://usecloudman.org/
+#+LINK: biostar-galaxy https://biostar.usegalaxy.org/
+
+** Open as a Strategy for Durability, Reproducibility and Scalability
+/Jonathan Rees/
+
+Jonathan motivates with example of chicken evolution; my son would love
+this. The problem is that the tree of life is hard to find, hence the
+[[treeoflife][Open Tree of Life]]. Nice resource and love the continued chicken examples; ready
+for a viewing of [[chicken][Chicken Chicken Chicken]]. Has nice browser and API views to the
+tree. Trick part is getting the trees, which references back to Ross' talk
+yesterday. Big emphasis on actually open data (CC0) and publications
+(CC-BY). All data going into GitHub as JSON.
+
+#+LINK: treeoflife http://blog.opentreeoflife.org/
+#+LINK: chicken https://www.youtube.com/watch?v=yL_-1d9OSdk

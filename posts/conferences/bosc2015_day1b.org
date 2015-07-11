@@ -1,0 +1,130 @@
+#+BLOG: smallchangebio
+#+POSTID: 91
+#+DATE: [2015-07-11 Sat 01:01]
+#+BLOG: smallchangebio
+#+TITLE: Notes: Bioinformatics Open Source Conference 2015 day 1 afternoon -- Standards, Interoperability and Diversity Panel
+#+CATEGORY: conference
+#+TAGS: bioinformatics, open-bio, open-source
+#+OPTIONS: toc:nil num:nil
+
+I'm at the [[http://www.open-bio.org/wiki/BOSC_2015][2015 Bioinformatics Open Source Conference (BOSC)]] in Dublin, Ireland.
+BOSC is a two day community conference devoted to open source and open science.
+These are my notes on the day 1 afternoon session on standards and
+interoperability, and the panel on improving diversity in the BOSC community.
+
+* Standards and Interoperability
+
+** Portable workflow and tool descriptions with the CWL 
+/Michael R. Crusoe/
+
+Michael providing an overview of the
+[[https://github.com/common-workflow-language/common-workflow-language][Common Workflow Language]], which is a great standard developed out of
+Codefest 2014 and the BOSC community. It provides a way to define workflows and
+tools in a re-usable and interoperable way. Looked at many existing standards
+and approaches. Giving a showout to [[http://www.wf4ever-project.org/][Worflow4Ever]] which was an awesome standard
+to build off. 
+
+** From peer-reviewed to peer-reproduced: a role for research objects in scholarly publishing in the life sciences
+/Alejandra Gonzalez-Beltran/
+
+Alejandra talking about research objects and the ability to use them to improve
+reproducibility. Work is
+[[http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0127612][published in PLOS-One]] and builds off [[http://www.isa-tools.org/][ISATools]], Galaxy and GigaScience. Took an
+article on SOAPdenovo2 and built up the infrastructure that should have been
+present: description of the experimental steps in ISATab, running in Galaxy.
+Publishing findings as nanopublications in RDF and linked the statements of
+results with experimental descriptions. The idea behind Research Objects is that
+they bring together data, analysis and conclusions.
+
+** Demystifying the Interoperability of Disparate Genomic Resources
+/Daniel Blankenberg/
+
+Dan starts by describing what Galaxy is, trying to correct some earlier
+misconceptions and define the goals of the project. Awesome new thing is the
+interactive support for iPython and RStudio. Main goal of talk is talking about
+getting data into Galaxy in more automated ways, including multiple files and
+metadata and GenomeSpace. Export data out of Galaxy to places like UCSC or to
+other sinks like GenomeSpace. Whew, a whirlwind tour.
+
+** Increasing the utility of Galaxy workflows
+/John Chilton/
+
+John is talking about Galaxy workflows, designed for biologists. However only
+used by 15% of users, perhaps because of limitations. It previously only
+scheduled jobs, but now handles map/reduce system operations and has a real
+workflow engine. Now have Collection types (list and paired). Support for
+dealing with these via a nice web interface and build the sample relationships
+themselves. Now can do solid sample tracking and tools can consumed paired
+datasets. John shows some nice examples of community developed workflows. The
+workflow engine and model is so nice now, lots of great features. I'm looking
+forward to building on top of it with bcbio when everything will be CWL.
+
+** Kipper: A software package for sequence database versioning for Galaxy bioinformatics servers
+/Damion Dooley/
+
+[[https://github.com/Public-Health-Bioinformatics/kipper][Kipper]] focuses on helping to recreate sequencing analysis by organizing
+reference databases. Some of them are nice and you can get and download previous
+databases, but large stuff like NCBI is continuously updated. Kipper is a Python
+script that keeps track of everything.
+
+** Evolution of the Galaxy tool ecosystem - happier developers, happier users
+/Martin Čech/
+
+Martin talks about recent improvements to the tool shed to make it easier to use
+for developers. Galaxy involved with the ICGC-TCGA DREAM challenge for
+re-running. Awesome. [[https://github.com/galaxyproject/planemo][Planemo]] helps in testing and developing new tools, treating
+Galaxy as a transparent dependency.
+
+** Bionode - Modular and universal bioinformatics
+/Bruno Vieira/
+
+[[bionode.io][Bionode]] is a javascript library for working with biological data. Works both in
+the browser and locally with node.js. Really nice looking code: [[https://github.com/bionode/bionode][Code in GitHub]].
+Also takls about the really cool [[https://github.com/wurmlab/oswitch][oSwitch]] to help make it easy to run local
+commands in Docker containers with the actual tools.
+
+** The EDAM Ontology
+/Hervé Ménager/
+
+[[http://edamontology.org/page][EDAM Ontology]] describes bioinformatics operations, data types and topics. It's a
+critical way to define reproducibile workfows so we know what is happening where
+and can convert between different tools that do the work. It's part of ELIXIR so
+will be in new infrastructure.
+
+** Panel Discussion -- Open Source, Open Door: Increasing diversity in the bioinformatics open source community
+/Mónica Muñoz-Torres, Holly Bik, Michael R. Crusoe, Aleksandra Pawlik, Jason Williams/
+
+Moni is chairing the panel, talking about our goals at BOSC to have a more
+diverse community. We want to welcome underrepresented members of all types, to
+help encirch the set of skills and opinions in our community. The experience of
+the panelists is so incredible: helping bring new scientists into the community
+from all levels. There are a large number of cultures and communities we
+interact with, how can we better at that.
+
+The goal of the panel is in starting the conversation and hearing people's
+voices. Goal is to hear about the situations that make people feel uncomfortable
+and try to remedy them. How can we set up BOSC to not make people feel excluded?
+
+How do you start get involved with the community? Holly's recommendation:
+volunteer to help with organizing. Yes please, we'd love to have more help with
+BOSC organizing. Conversely, how to bring more people into your community?
+Provide role models for the people you want to attract. Need to build and
+encourage diverse set of role models.
+
+How can you get more diverse applicants? Often get a large number of men
+applications and very few women applicants. Suggestions: pay better, more
+flexibility for working hours. Paying undergraduates to work in the lab to
+create a more diverse environment. Co-mentoring with other groups -- say more
+biology focused and more computational focused. Also a numbers problem: we need
+to be investing in education of under-represented of younger students. Can we
+sell and provide a clear career path for bioinformatics so people want to go
+into bioinformatics?
+
+Suggestions for helping to improve diversity and open science. Collaborate with
+folks who don't normally do that and bring your diverse, open worldview into the
+collaboration.
+
+Bioinformatics is a chance for more people to get involved. All you need is an
+internet connection and community. The barrier is the knowledge. We need to
+motivate and welcome people to become involved, then provide the training to get
+them there.

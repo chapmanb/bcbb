@@ -1,0 +1,20 @@
+#+TITLE: Notes: Bioinformatics Open Source Conference 2014 day 2 afternoon:
+#+CATEGORY: conference
+#+TAGS: bioinformatics, open-bio, open-source
+#+OPTIONS: toc:nil num:nil
+
+I'm at the [[bosc][2014 Bioinformatics Open Source Conference (BOSC)]] in Boston. It's a
+great two day conference devoted to open source, science and community. These
+are my notes from the day 2 morning session. [[nextday][Next Day Video]] recorded all the
+talks and they're available on the [[video-obf][Open Bio video site]].
+
+Other notes:
+
+- [[day1a][Day 1 morning]]
+- [[day1b][Day 1 afternoon]]
+
+#+LINK: bosc http://www.open-bio.org/wiki/BOSC_2014
+#+LINK: day1a http://smallchangebio.wordpress.com/2014/07/11/notes-bioinformatics-open-source-conference-2014-day-1-morning-titus-brown-genome-scale-data-obf/
+#+LINK: day1b http://smallchangebio.wordpress.com/2014/07/11/notes-bioinformatics-open-source-conference-2014-day-1-afternoon-visualization-project-updates-and-lightning-talks/
+#+LINK: nextday http://nextdayvideo.com/
+#+LINK: video-obf http://video.open-bio.org/

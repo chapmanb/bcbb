@@ -1,0 +1,145 @@
+#+BLOG: smallchangebio
+#+POSTID: 78
+#+DATE: [2014-07-01 Tue 17:31]
+#+BLOG: smallchangebio
+#+TITLE: Notes, Galaxy Community Conference 2014 day 1 afternoon: State of the Galaxy, IonTorrent, Lightning Talks
+#+CATEGORY: conference
+#+TAGS: bioinformatics, galaxy, open-source
+#+OPTIONS: toc:nil num:nil
+
+I'm at the [[gcc][2014 Galaxy Community Conference]] in Baltimore. These are my notes
+from the day 1 afternoon session, following up on [[gcc-notes-1][notes from the morning]]
+session.
+
+#+LINK: gcc-notes-1 http://smallchangebio.wordpress.com/2014/07/01/notes-galaxy-community-conference-2014-day-1-morning-steven-salzberg-deployment-visualization-reproducibility/
+
+** State of the Galaxy
+/Anton Nekrutenko and James Taylor, Galaxy Project/
+
+Anton and James talk about the history and current status of Galaxy. Start off
+by recapping previous GCCs: went from 75 to 250 attendees. Nice numbers about
+growth in contributors over the past year. For Galaxy main, job usage became a
+crisis: more jobs than hardware could handle. Galaxy main switched over to TACC
+last October. Biggest issue is that with more data, jobs are now longer.
+
+Summarization of new features: new visualizations and full visualization
+framework, dataset collections, [[galaxy-biostar][Galaxy BioStar community]], Toolshed with
+automated installation, data managers.
+
+New stuff that is coming: organization of the toolshed, want to make the
+toolshed process more straightforward. New workflow scheduling engine and
+streaming to improve scaling on large datasets. Visualization a planned focus
+for the next year. Goal is to think about a distributed Galaxy ecosystem that
+includes federation and data localization. This is hard, but would be so
+awesome. Also want to figure out use of Docker integration with Galaxy. A nice
+discussion by Anton about scalable training, to better coordinate how training
+works across institutions.
+
+#+LINK: galaxy-biostar https://biostar.usegalaxy.org/
+
+** Update on Ion Torrent Sequencing – Accurate, Long Reads
+/Mike Lelivelt -- Ion Torrent/
+
+Mike talks about the role of Ion Torrent sequencing in world where Illumina
+dominates: challenging and driving cost and accuracy. Mike talks about work to
+improve indels with inherent chemistry limitations in homopolymers. New
+chemistry: Hi-Q that provides improved resolution of SNPs and indels. Shows a
+nice IGV plot and errors are now random instead of systematic. Advantage is that
+depth and consensus can now resolve issues.
+
+Mike talks through great work re-evaluating the Genome in a Bottle
+paper. Biggest issue was using bwa + GATK, which are not good with Ion Torrent
+inputs. Recommended workflow is TMAP + TVC. We need a place to find these best
+practices and tools. [[tmap][TMAP]] and [[ts-githum][Torrent Suite]] are available on GitHub but not
+clear externally where to get and compile. After registration on IonCommunity
+site, can find recommended approaches: [[ion-rnaseq][RNA-seq recommendations]]. Need similar
+summaries of recommendations for variant calling. They are releasing new
+versions of Torrent Caller and TMAP soon as easy to use separate command line
+programs, so a great time to work on integrating it.
+
+#+LINK: tmap https://github.com/iontorrent/TMAP
+#+LiNK: ts-github https://github.com/iontorrent/TS
+#+LiNK: ion-rnaseq http://ioncommunity.lifetechnologies.com/docs/DOC-7062
+
+** The Galaxy Tool Shed: A Framework for Building Galaxy Tools
+/Greg von Kuster, Penn State University/
+
+Greg talks about recent work on the Galaxy toolshed to enable building tool
+dependencies automatically. Shows a demo with HVIS tool that makes Hilbert
+curves. He walks through the process of bootstrapping a toolshed installation on
+the local machine. This allows you to test and evaluate the tool locally in
+entirely isolated environment. Once validated, this can get exported to Galaxy
+toolshed, where it is run through a similar isolated framework for testing every
+48 hours.
+
+**  Integrating the NCBI BLAST+ suite into Galaxy
+/Peter Cock, The James Hutton Institute/
+
+Peter talks about his work integrating BLAST+ into Galaxy. He emphasizes the
+importance of making tools freely distributable so we can automated installation
+and distribution. They have done awesome work creating a community around
+developing these tools on GitHub, with functional tests automatically run via
+TravisCI. Good example of tricky tool because they needed to add new Galaxy
+datatypes to support potential output formats. BLAST tools had a lot of repeated
+XML and used macros to reduce this. Downside is the added complexity to the tool
+definitions.
+
+On their local instance, they have Galaxy job splitting enabled which batches
+files into groups of 1000 query sequences. Peter also has a wrapper script which
+caches BLAST databases on individual nodes. Current work in progress is to
+create data managers for BLAST databases.
+
+** deepTools: a flexible platform for exploring deep-sequencing data
+/Björn Grüning, University of Freiburg/
+
+[[deeptools][deepTools]] aims to standardize work to do quality control and conversion to
+bigWig format. Some tools available: bamCorrelate compares similarity between
+multiple BAM files. bamCoverage does the conversion of BAM to bigWig. bamCompare
+shows the differences between two BAM files. heatmapper: beautiful visualization
+of BAM coverage across all genes. Really need to integrate this work into
+bcbio-nextgen. They also have an awesome [[deeptools-galaxy][Galaxy instance]] for exploring usage.
+Finally to add they've got a docker instance with everything pre-installed.
+
+** Lightning talks
+
+Lots of 5 minute talks. Will try to keep up.
+
+David van Enckevort talks about work building a scalable Galaxy cluster in the
+Netherlands. Using Galaxy in a clinical setting for NGS and proteomics
+work. Main bottleneck is I/O performance of file intermediates.
+
+Marius talks about [[ms][Mississippi]], a tool suite to work on short RNA work. Main
+components: trimming of small RNAs, uploaded bowtie to handle short regions,
+cascade tool provides a quick overview of small RNA targets. Have nice
+visualizations to look at the size distribution of reads and small RNA
+properties with good look faceted plots.
+
+Next talk is on handling online streaming analytics for heart rate
+variability. Used BioBlend to retrieve and execute workflows, and provided a
+custom Django GUI for users to select workflows. Future work includes adding an
+intermediate distribute queue via Celery for streaming.
+
+Yvan talks about a use case for the structuration of the biologist community,
+where they did a project in France to bring together scientists working in
+multiple areas. Found that with more automation, need additional human expertise
+to train and improve.
+
+Ira talks about visualization of proteomics data in Galaxy. Protviz was an
+initial visualization tool build within Galaxy by communicating with an outside
+server. Unfortunately leads to confusing error messages and issues during
+communication. Issues is that data is in multiple places leading to long lead
+times for visualization. Results are not self-contained and difficult to install
+and maintain. Improved approaches does processing up front and gather results
+in a SQLite database, now integrated directly into Galaxy visualization based on
+prototype at Galaxy hackathon.
+
+Nate talks about what the Galaxy team had to go through to move Galaxy main over
+to TACC thanks to collaboration with iPlant collaboration. Got a 10Gb/s
+connection to XSEDE via PSC. Tried using GlobusOnline, GridFTP and ended up with
+rsync. To transfer 600Tb, had to slow down because of saturating 10Gb line;
+ended up taking 2 months. Used Pulsar and hierarchical object store to help
+manage infrastructure
+
+#+LINK: deeptools-galaxy http://deeptools.ie-freiburg.mpg.de/
+#+LINK: deeptools https://github.com/fidelram/deepTools
+#+LINK: ms http://mississippi.fr

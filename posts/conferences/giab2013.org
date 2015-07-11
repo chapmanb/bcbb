@@ -1,0 +1,153 @@
+#+BLOG: smallchangebio
+#+POSTID: 67
+#+DATE: [2013-08-16 Fri 12:15]
+#+TITLE: Genome in a Bottle Consortium 2013: standards for validating high-throughput variant detection
+#+CATEGORY: conference
+#+TAGS: bioinformatics, ngs, giab,
+#+OPTIONS: toc:nil num:nil
+
+These are my notes from the 2013 [[giab][Genome in a Bottle]] Consortium
+meeting, focused around developing reference materials and standards
+for measuring variation detection for human genome sequencing. The
+consortium is a fully open community that seeks to expand its scope to
+include additional materials and standards within the general goal of
+being able to accurately characterize how well a sequencing analysis
+performs. Marc Salit provided a nice introductory overview of these
+goals and presented an open invitation to define the scope and plans
+for the consortium.
+
+** Talks
+
+Justin Zook described his work on developing the current Genome in a
+Bottle reference materials: an integrated call set for the
+well-sequenced NA12878 genome. The goal is to define genotypes with
+high confidence, including distinguishing homozygous reference and
+uncertain calls to assess both false positives as well as negatives.
+It's a stringent set of calls integrating 12 different inputs and
+after stringent filtering has 2.3 million variants covering 82.3% of
+the genome. The reference calls are available on the
+[[gcat][GCAT variant comparison platform]] for comparison. One current
+difficulty with comparing high quality datasets is different variant
+representations: important to normalize these.
+
+Michael Eberle from Illumina talked about their [[platinum][Platinum Genome]]
+initiative. Goal is to develop a catalog of known mutations and
+toolkit to compare algorithms to it. Using a pedigree analysis on 17
+individuals in the NA12878 family. The family structure allows
+generation of haplotypes, allowing identification of errors. Use calls
+from GATK, cortex_var, Isaac and complete genomics. Identify CNVs
+using BreakDancer and Grouper. After initial predictions, overlap
+between methods and corroborate based on read counts. Of the confident
+772 total events identified by this method: 408 called by both, 266 by
+BreakDancer, 98 by Grouper. Another idea is to look at variants in
+these regions since you expect loss of heterozygosity in deleted
+regions. Found more deletions than amplifications in CNVs.
+Biggest current gap is in events from 30bp to 2kb.
+
+Francisco De La Vega from [[rtg][Real Time Genomics]] discussed approaches to
+using trios to help develop reference materials. By assessing
+Mendelian inheritance from the full family using Bayesian priors for
+parents and children, improve calling. By specifically investigating
+relationships, this does better than standard family based calling,
+ala GATK populations. Got 150k more calls than GATK using this
+approach. Has 94.1% sensitivity in GiaB regions compared to 92.5% for
+GATK. Reduces mendelian inconsistency dramatically, which makes good
+sense since the approach optimizes for that.
+
+Deanna Church discussed the [[getrm][GeT-RM]] project from NCBI and CDC. GeT-RM
+incorporates data from 12 labs. Integration is a pain and have to
+deal with each input format specifically. They have a nice browser
+that allows viewing the calls in-line with the BAM files. This helps
+identify discordant variants and potential causes from specific
+submissions. Identified regions verified from multiple submissions
+but with no alignment evidence. Website provides high quality
+variants in VCF format and BED file of Sanger verified regions. Plans
+going forward involve development of additional web tools, including
+incorporation with new genome reference: GRCh38 is coming soon. A lot
+of realignment is coming as well.
+
+** Working groups
+
+*** Reference Materials Selection
+
+In progress cancer calling assessment work: NCI Cancer spike in,
+TGen-Illumina tumor-normal pairs, HorizonDX cell lines. Jason Lih from
+NCI has a set of plasmid constructs with engineered mutations relative
+to cancer. Sanger confirmed sequences. Stephanie Pond from Illumina
+collaborating with TGen on COLO829B/COLO829: has 37 confirmed
+mutations. Also have 9 synthetic fusion constructs spiked into
+COLO829. Jonathan Frampton from Horizon Diagnostics has engineered
+cancer mutations in 3 cancer cell lines. Lots of nice setups for
+replicating FFPE and dilution series. Have ~36 additional mutations.
+Kara Norman from AcroMetrix discussed engineered cell line controls
+with 12-26 engineered variations from COSMIC.
+
+*** Reference Material Characterization
+
+General goal: get as much data as possible. Would like to be able to
+apply Moleculo to NA12878 to get phasing information. Also add in
+20-30x PacBio data, Optimal mapping from BioNanoGenomics, 454 and Ion.
+For PGP trio data, plan to characterize with Illumina, Complete,
+PacBio and Moleculo. Overall should help with phasing completeness
+and help resolve conflicts.
+
+*** Bioinformatics working group
+
+Reviewed the data release policy, which follows the Fort Lauderdale
+approach: can get data but can't publish on it until the consortium
+does. Existing resources for NA12878: NIST, X Prize, Illumina
+Platinum Genomes, 1000 genomes, Real Time Genomics, Broad chr20 and
+exome. Personalis has CNV calls for NA12878.
+
+For data integration, trying to use pedigree methods and
+multi-platform methods together. Critical issue is handling growth in
+datasets. Emphasize importance of recognizing heterogeneity across
+the genome, which the performance metrics group handles. Quality of
+variants is difficult to assess since not calibrated across multiple
+approaches: need a way to map the quality onto a standard scale
+during data integration.
+
+Data from NA12878 and parents NA12891/NA12892 available from
+[[ftp-giab][FTP/Aspera site at NCBI]] and a mirrored [[s3-giab][giab Amazon S3 bucket]].
+
+Goal is to develop automated workflows for future reference materials
+so we can handle multiple new genomes including PGP data.
+
+#+LINK: s3-giab http://s3.amazonaws.com/giab/
+#+LINK: ftp-giab ftp://ftp-trace.ncbi.nih.gov/giab/ftp/data/NA12878/variant_calls/NIST/
+
+*** Performance metrics
+
+- Metrics to measure
+  - Laboratory side: library prep, platform, lots of other metrics
+  - How do you motivate to make this worth while? Hard problem to
+    capture and upload.
+  - Other issues: lots of variables with lots of incompleteness,
+    tricky statistics.
+  - Decisions: flattened key/value JSON structure for metadata.
+    Circulate list of things to provide.
+- Provide better characterization of trusted/non-trusted genome
+  regions with provided BED files of:
+  - Trusted regions: robust across multiple technologies and
+    protocols
+  - Less trusted regions: difficult to call in regions that might be
+    do-able on specific technologies or approaches but are not as reliable.
+  - Non called regions: Regions we cannot characterize.
+- Development of infrastructure to assess and report accuracy.
+  General goal is to merge existing software tools.
+  - [[getrm][Get-RM]]
+  - X Prize/Harvard School of Public Health: [[bcbio.variation][bcbio.variation]] handles
+    comparison of variant calls to reference genomes and reporting of
+    concordant/discordants
+  - Harvard School of Public Health: [[bcbio-nextgen][bcbio-nextgen]] pipeline for
+    variant calling and comparison
+  - [[mason][Chris Mason's]] software (name?)
+
+#+LINK: giab http://www.genomeinabottle.org/
+#+LINK: gcat http://bioplanet.com/gcat
+#+LINK: platinum http://www.platinumgenomes.org
+#+LINK: rtg http://www.realtimegenomics.com/
+#+LINK: getrm http://www.ncbi.nlm.nih.gov/variation/tools/get-rm
+#+LINK: mason http://www.masonlab.net/
+#+LINK: bcbio.variation https://github.com/chapmanb/bcbio.variation
+#+LINK: bcbio-nextgen https://github.com/chapmanb/bcbio-nextgen
