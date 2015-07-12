@@ -1,0 +1,195 @@
+#+BLOG: smallchangebio
+#+POSTID: 95
+#+DATE: [2015-07-11 Sat 07:31]
+#+BLOG: smallchangebio
+#+TITLE: Notes: Bioinformatics Open Source Conference 2015 day 2 morning -- Ewan Birney, Open Science and Reproducibility
+#+CATEGORY: conference
+#+TAGS: bioinformatics, open-bio, open-source
+#+OPTIONS: toc:nil num:nil
+
+I'm at the [[http://www.open-bio.org/wiki/BOSC_2015][2015 Bioinformatics Open Source Conference (BOSC)]] in Dublin, Ireland.
+BOSC is a two day community conference devoted to open source and open science.
+These are my notes on the morning session with a keynote from Ewan Birney and a
+section on Open Science and Reproducibility.
+
+My other notes from the conference:
+
+- [[https://smallchangebio.wordpress.com/2015/07/10/bosc2015day1a/][Holly Bik and Data Science]]
+- [[https://smallchangebio.wordpress.com/2015/07/11/bosc2015day1b/][Standards, Interoperability and Diversity Panel]]
+
+* Keynote
+
+** Big Data in Biology and why open source matters
+/Ewan Birney/
+
+Ewan is a founder of BOSC and former director of OpenBio, so we're excited to
+have him giving a keynotes. We start with lots of stories and memories about his
+impact on the current set of community members in BOSC.
+
+Ewan starts by reminding us that we're going through a revolution. The cost of
+sequencing in 10 years dropped from millions to thousands: mansion versus
+season tickets to Arsenal. He is brilliantly good at describing the high level
+picture of the importance of sequencing technology and changes.
+
+3 reasons why open source code matters:
+
+1. Scientific transperency: providing access to your data and analysis approach
+   is a fundamental process of science
+
+2. Efficiency: library scale code re-use. It's a careful art and need to do more
+   than just make your code available. Bugs can have downstream consequences on
+   conclusions -- have an extra big job to avoid bugs so need to risk pool for
+   key components.
+
+3. Community: sharing code allows people to specialize in specific areas,
+   outlasts any individual's contribution. Challenge is to fund and support
+   these community projects.
+
+Infrastructures are crucial and we only notice them when they fail. Hard to work
+on because you only hear about it when something is wrong. Life sciences is
+about small details: lots of data types, metadata. EMBL-EBI can scale in terms
+of data, but won't scale in terms of people and expertise. ELIXIR makes this a
+joint problem tackled across Europe. The goal is to scale in terms of expertise
+and collaboration.
+
+Now Ewan talks about his work on storing information in DNA. Dreamed up over
+beers, and then came up with ways to encode binary as DNA in small easily made
+chunks with redundancy. Stored picture of EBI, Martin Luther King's I have a
+dream speech, the Watson/Crick paper and Shakespeare's sonnets.
+
+Good questions around scaling and the cloud. Growing need to practice healthcare
+and work with research science. For access reasons, need fedarated systems that
+can share data. Will not be able to aggregate data, so need to make this future
+work for us.
+
+Question about how to financially support open-source infrastructure developers.
+Need to look at how Linux/Apache foundations work and try to build off their
+success at supporting paid developers managing a larger volunteer community.
+
+* Open Science and Reproducibility
+
+** A curriculum for teaching Reproducible Computational Science bootcamps
+/Hilmar Lapp/
+
+There is a reproducibility issue in science -- we're not that good at
+reproducing results and it's time consuming to do it. Reproducible science makes
+it easier and faster to build upon. Computationally it's especially hard because
+of dependency and tool issues.
+Reproducible Science Curriculum Workshop and Hackathon in Durham aimed at
+improving this. The earlier you start doing this in a project, the more benefits
+it accrues to yourself. Promoting literate programming via
+IPython/RStudio/Knitr. Curriculum teaches both new users and those that have
+some expertise but could convince to switch to new approaches. Held two
+workshops so far: in May and June -- changed to focus more on literate
+programming earlier since you didn't need to convince people. There was a ton of
+awareness and demand for these courses. Future plans are to tweak and improve
+workshop, teach more. Need to figure out how to fund and sustain this effort --
+it's funded through 2015. All materials
+[[https://github.com/Reproducible-Science-Curriculum][available on GitHub]].
+
+** Research shared: www.researchobject.org
+/Norman Morrison/
+
+[[http://www.researchobject.org/][Research Objects]] are part of a framework to enable reproducible, transpart
+objects. Want to have a manifest of materials/resources available inside
+research containers. The manifest is a plain text file full of dates, DOIs and
+links to resources about what it contains. Lots of scope for ontologies and
+naming. Tutorials and specifications for everything
+[[https://github.com/ResearchObject][available on GitHub]]. Lots of cool use cases showing how make results fully
+computable and available. FAIR = Findable, Accessible, Interoperable, Reproducible.
+Awesome graph of the time costs of moving to reproducibility.
+
+** Nextflow: a tool for deploying reproducible computational pipelines
+/Paolo Di Tommaso/
+
+[[http://nextflow.io/][Nextflow]] provides a declarative syntax to write parallel and scalable workflows.
+It has a nice domain specific language (DSL) based on Dataflow. This is a
+declarative model for concurrent processes. Under the covers it uses async
+channels and handles parallelization implicitly by input/output definitions.
+Think of program like a network. Implicitly handles parallelizing over multiple
+inputs. It is platform agnostic, so scales out from multicore to all the
+standard cluster managers.
+
+Why is it so hard to deploy a pipeline? Big issues: many dependencies that
+change quickly. To migigate this, manage a pipeline as a self-contained GitHub
+repository. Use Docker to manage tools. Provides a nice
+[[https://github.com/nextflow-io/rnatoy][example pipeline on GitHub]] to demonstrate. GitHub provides versioning that feeds
+right into Nextflow.
+
+** Free beer today: how iPlant + Agave + Docker are changing our assumptions about reproducible science
+/John Fonner/
+
+John works on [[http://www.iplantcollaborative.org/][iPlant]], tackling problems in cyberinfrastructure for the plant
+community. They have a bunch of storage and compute, API level services for
+command line access, then a web based user interface for interactivity. iPlant
+has a [[https://de.iplantcollaborative.org/de/][Discovery Environment]] for managing data and analysis history. [[https://atmo.iplantcollaborative.org/application][Atmosphere]]
+is an open cloud for Life Sciences, can request additional resources. [[http://preview.agaveapi.co/][Agavi]]
+provides a programming interface for building things on top of iPlant. Handles
+pretty much everything you'd need to build on it. Uses Docker to store
+dependencies and tools alongside a GitHub repo with code. Agave is handling job
+provenance, sample data and platform integration along with sharing and cluster
+execution.
+
+** The 500 builds of 300 applications in the HeLmod repository will at least get you started on a full suite of scientific applications
+/Aaron Kitzmiller/
+
+Lots of ways to publish code, which is good. Problem is that there are so many
+different ways to install these that it take a lot of work to build them.  Built
+HELmod on top of Lmod to manage a huge set of scientific dependencies for a
+clean environment. Has 500 specification files allowing installation of all
+these tools. Really nice shared resource -- we should all be building modules
+together instead of at each facility. [[https://github.com/fasrc/helmod][HELmod GitHub repo]]
+
+** Bioboxes: Standardised bioinformatics tools using Docker containers
+/Peter Belmann/
+
+[[http://bioboxes.org/][bioboxes]] motivated by docker-based benchmarking projects ([[http://cami-challenge.org/faq][CAMI]] and
+[[http://nucleotid.es/][nucleotid.es]]). Standards project to provide a way to specify inputs and outputs
+of boxes. This allows you to easily interchange tools for benchmarking. Nice
+community project for specifying these.
+
+** The perfect fit for reproducible interactive research: Galaxy, Docker, IPython
+/Björn Grüning/
+
+Björn talks about his brilliant work to combine Galaxy, IPython and Docker.
+Galaxy can run Docker containers and has a rich set of visualizations. What was
+missing was a way to interact and tweak your data. Invented the concept of an
+interactive environment in Galaxy -- spins up Docker container that works
+against Galaxy data. This is a sharable Galaxy data object so has all those
+advantages. RStudio is also integrated if you prefer R over Python. Also has a
+Docker based way to install and use Galaxy quickly.
+
+** COPO: Bridging the Gap from Data to Publication in Plant Science
+/Robert Davey/
+
+Cultural issues to help get scientsits to deposit metadata. Idea: make it easier
+and more connected so there is a bigger benefit to users and overcome this
+cultural barrier. This allows you to build graphs of interconnected data, and
+track usage of your data. Can be helpful in describing the value of your data.
+[[https://twitter.com/copo_project][COPO project]].
+
+** ELIXIR UK building on Data and Software Carpentry to address the challenges in computational training for life scientists
+/Aleksandra Pawlik/
+
+Aleksandra has 1 slide for her lightning talk -- brilliant. ELIXIR is adopting
+software carpentry as a training model. Really awesome to be spreading a single
+teaching model across multiple countries. It feels like finally we are not
+developing independent materials everywhere and can have good training for everyone.
+
+** Parallel recipes: towards a common coordination language for scientific workflow management systems
+/Yves Vandriessche/
+
+Yves builds tools for people who build tools. Scripts deal with the complexity
+of gluing together applications but we need more distributed jobs. The biggest
+issue in this move is ordering dependencies when running in parallel. Integrated
+CWL workflow specification into precipes.
+[[https://github.com/yvdriess/precipes][Code on GitHub]].
+
+** openSNP - personal genomics and the public domain
+/Bastian Greshake/
+
+[[https://www.opensnp.org/][OpenSNP]] is about open data and personal genomics. The idea is to provide a way
+to upload and share genotype and phenotype data along with genotyping from
+23andme. Mines [[http://www.snpedia.com/index.php/SNPedia][SNPedia]] to provide useful feedback to users. Provides complete
+dumps of data and APIs. 2000 genetic datasets and 4000 people registered. Users
+have mined his data and provided back interpretations.

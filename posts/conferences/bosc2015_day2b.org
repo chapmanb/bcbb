@@ -1,0 +1,181 @@
+#+BLOG: smallchangebio
+#+TITLE: Notes: Bioinformatics Open Source Conference 2015 day 2 afternoon: Translational, Visualization and Lightning Talks
+#+CATEGORY: conference
+#+TAGS: bioinformatics, open-bio, open-source
+#+OPTIONS: toc:nil num:nil
+
+I'm at the [[http://www.open-bio.org/wiki/BOSC_2015][2015 Bioinformatics Open Source Conference (BOSC)]] in Dublin, Ireland.
+BOSC is a two day community conference devoted to open source and open science.
+These are notes about translational biology, visualization and last minute
+lightning talks.
+
+My other notes from the conference:
+
+- [[https://smallchangebio.wordpress.com/2015/07/10/bosc2015day1a/][Holly Bik and Data Science]]
+- [[https://smallchangebio.wordpress.com/2015/07/11/bosc2015day1b/][Standards, Interoperability and Diversity Panel]]
+- [[https://smallchangebio.wordpress.com/2015/07/11/notes-bioinformatics-open-source-conference-2015-day-2-morning-ewan-birney-open-science-and-reproducibility/][Ewan Birney, Open Science and Reproducibility]]
+
+* Translational Bioinformatics
+
+** CIViC: Crowdsourcing the Clinical Interpretation of Variants in Cancer
+/Malachi Griffith/
+
+Large scale cancer genome sequencing is becoming routine. We can get lots of
+mutations but bottleneck is in visualization and interpretation of events. Shows
+example sample interpretations from
+[[http://www.foundationmedicine.com/][Foundation Medicine]] done by paid curators. We should be doing this in public,
+and need resources to support this. Resources at WashU: [[http://docm.genome.wustl.edu/][DoCM]] and [[https://civic.genome.wustl.edu/#/home][CIViC]].
+Issue is that there are many hospitals and researchers building up lists of
+variants we should care about in cancer -- this needs to be done together.
+Existing resources aren't meant to be programmable and have non open licenses so
+hard to use. Principles of CIViC: interpretations should be freely available and
+debated openly. Content needs to be transparent and kept up to date. Need
+interface for both API and web interface. Access should remain free. Hope is
+that CIViC will end up in a precision medicine treatment cycle: capture
+information from trying to help late stage cancer patients who are fine with
+experimental treatments. CIViC is trying to capture known clinically actionable
+genes, so very specific goals to avoid going in two many directions. Currently
+has 500 evidence statements from 230 published sources.
+
+** From Fastq To Drug Recommendation - Automated Cancer Report Generation using OncoRep & Omics Pipe
+/Tobias Meissner/
+
+Tobias talks about work on defining actionable targets that can get prescribed
+to the patient. Aim for 2 week turnaround for sequencing and analysis. Most time
+spent in analysis so benefits from automation and reproducibility improvements.
+[[https://bitbucket.org/sulab/omics_pipe][Omics Pipe]] does the process work and [[https://bitbucket.org/sulab/oncorep][OncoRep]] prepares the clinical report.
+Introduces example of real patient that has been through multiple rounds of drug
+treatments. Omics Pipe implements best practice pipelines that run out of the
+box. OncoRep prepares a HTML patient report based on calls generated using
+knitr. Links back to evidence. Provides a PDF patient report, generated with sweave.
+
+** Cancer Informatics Collaboration and Computation: Two Initiatives of the U.S. National Cancer Institute
+/Ishwar Chandramouliswaran/
+
+Ishwar from the [[http://www.cancer.gov/][National Cancer Institute (NCI)]] presenting the
+collaborative [[https://nciphub.org/][NCIP Hub]] intitiatve. Idea is to make tools available for
+biologists. The idea is to fit these in with MOOCs for learning and training.
+NCIP Hub provides a home for content and keep transparent metrics about usage.
+The second initiative is the [[https://cbiit.nci.nih.gov/ncip/nci-cancer-genomics-cloud-pilots][Cancer Cloud Initiative]]
+with three implementations: Seven Bridges, Broad and Institute for Systems
+Biology. Please partitipate in the evaluation with $2 million in cloud credits.
+
+* Bioinformatics Open Source Project Updates
+** Biopython Project Update 2015
+/João Rodrigues/
+
+João talking about [[http://biopython.org/wiki/Main_Page][Biopython project]]. Mentions all of the diverse conitributions
+to the source code. Also talks about the benefit of
+[[https://developers.google.com/open-source/gsoc/][Google Summer of Code (GSoC)]] for
+recruiting and retaining contributors. Eric Talevich was a student, then mentor,
+then administrator for GSoC -- open source career prorgression. João talks about
+improvements in Biopython the last year, demos some cool functionality from
+KEGG. Beyond the code: Docker containers with Biopython + dependencies that
+supports IPython notebooks. Tiago wrote a book: [[http://shop.oreilly.com/product/9781782175117.do][Bioinformatics with Python Cookbook]].
+
+** The biogems community: Challenges in distributed software development in bioinformatics
+/George Githinji and Pjotr Prins/
+
+BioRuby migrated into [[http://biogems.info/][BioGems]]. The idea is to decentralize the contribution
+process so there is no longer a central idea, and instead promote and rank the
+new packages. Show a lot of metrics of downloads, GitHub issues, mailing list
+activity: good question about how to measure success. Published paper on
+[[https://github.com/lomereiter/sambamba][sambamba]], saw a big uptick in downloads and GitHub issues: both bug reports and
+feature requests.
+
+** Apache Taverna: Sustaining research software at the Apache Software Foundation
+/Stian Soiland-Reyes/
+
+[[http://taverna.incubator.apache.org/][Apache Taverna]] is a workflow system that has been in development since 2001.
+Since 2006, productionized Taverna to make it easier to install and run. Since
+2014 moved to Apache incubating project. Stian describes the typical evolution of
+research software: incidentally open source and then developed ad-hoc over time
+in different directions than initially expected. There is a strong need for open
+development so original starters aren't leaders of the project. Move the focus
+towards the people that are doing things; move towards a [[http://www.communitywiki.org/DoOcracy][do-ocracy]]. Looked at
+ways to change the legal ownwership of Taverna. Decided to move towards Apache
+-- they favor community over code and move towards longer term sustainability.
+
+* Visualization
+
+** Simple, Shareable, Online RNA Secondary Structure Diagrams
+/Peter Kerpedjiev/
+
+Peter is talking about making it easy to show RNA secondary structure: tool
+called [[https://github.com/pkerpedjiev/forna][forna]] with d3 goodness. Goal of making these is to show things that are
+hard to visualize. Simplify 3d structures back to 2d to make them easier to see.
+Convert 1d to 2d to make them obvious. Nice examples. Another tool that does
+this is [[http://www.lix.polytechnique.fr/Labo/Pauline.Pommeret/RNA/doc/_build/html/index.html][RNA-PDB]]. Can make more complex applications with d3 and [[https://github.com/pkerpedjiev/rnaplot][rnaPlot]] layout.
+Container component is [[https://github.com/pkerpedjiev/fornac][fornac]].
+
+** BioJS 2.0: an open source standard for biological visualization
+/Guy Yachdav/
+
+[[http://biojs.net/][BioJS]] is a set of reusable blocks for representing biological data on the web.
+Have an [[http://biojs.io/][online registry]] to make it easy to discover new packages. Uses npm for
+installation. Looking for new components and contributors.
+
+** Visualising Open PHACTS linked data with widgets
+/Ian Dunlop/
+
+[[http://www.openphacts.org/][OpenPHACTS]] brings together a large number of pharmaceutical resources into an
+integrated infrastructure. Uses RDF under the covers but has an API to query.
+Lots of nice [[https://github.com/openphacts/ops-html-widgets][visualization widgets]] and [[https://github.com/openphacts/openphacts-vis-compoundinfo][compound displays]]
+included with BioJS.
+
+* Late-Breaking Lightning Talks
+** Biospectra-by-sequencing genetic analysis platform
+/Aurelie Laugraud/
+
+Originally called Genotyping by Sequencing (GBS) -- cheap and easy way to
+sequence only part of a genome. Used first on maize because they have lots of
+population data and a massive genome. Analysis pipeline called TASSEL with both
+reference and non-reference pipelines. BioSpectra-by-Sequencing (BSS). Brings
+together a community to make tools available for existing data.
+
+** hyloToAST: Bioinformatics tools for species-level analysis and visualization of complex microbial communities
+/Shareef Dabdoub/
+
+Shareef highlight issues found with QIMME that led them to develope [[https://github.com/smdabdoub/phylotoast][PhyloToAST]]
+which modifies and extends the main pipeline. Includes new plots through
+matplotlib -- nice 2d + 3d on same data to readily distinguish. Also added
+automatic export of data into the [[http://itol.embl.de/][the interactive tree of life (iTOL)]].
+
+** Otter/ZMap/SeqTools: A productive alternative to web browser genome visualisation
+/Gemma Guest/
+
+Gemma talks about visualization and annotation tools from the Sanger.
+[[https://www.sanger.ac.uk/resources/software/otterlace/][Otter]] does interactive graphical annotation.
+[[http://www.sanger.ac.uk/resources/software/zmap/][ZMap]] is a high performace genome browser.
+[[http://www.sanger.ac.uk/resources/software/seqtools/][SeqTools and Blixem]] provides a tool for visualizing sequence alignments at a
+higher level of detail compared to ZMap. Dotter provides detailed comparisons of
+two sequences.
+
+** bioaRchive: enabling reproducibility of Bioconductor package versions
+/Nitesh Turaga/
+
+Nitesh is part of the Galaxy team at Johns Hopkins. Issue with Bioconductor is
+that it's quite difficult to get an older version of tools -- you can only
+really get the latest. [[https://bioarchive.galaxyproject.org][bioarchive]] provides a nice browsable website and packages
+of old version of tools. Can use standard install.packages and point to
+bioarchive. For Galaxy, this now makes all versions available for full
+reproducibility. Future goals are to get bioconductor involved in the process
+and integrate with biocLite.
+
+** Developing an Arvados BWA-GATK pipeline
+/Pjotr Prins/
+
+Pjotr working at a HiSeq X-10 facility. 18k genomes per year and 50 genomes per
+day. Existing pipeline takes 3 days on the cluster. Bottleneck is the shared
+filesystem. Decided to try using Arvados based on conversations at BOSC last
+year. Took a week to port Perl script over to Arvados. Runs in 2 days with 1 run
+and flat performance with 8 samples on AWS. Nice ability to share pipelines in
+Arvados.
+
+** Out of the box cloud solution for Next-Generation Sequencing analysis
+/Freerk van Dijk/
+
+Put together a VM for NGS analysis using Molgenis. Can download image, upload
+data to the VM and then run. Used OpenStack framework for running. Used
+[[https://hpcugent.github.io/easybuild/][easyBuild]] to install the software. Define the inputs with a CSV file. Generates
+jobs through Molgenis. Nice setup, creates a Reproducible, Scalble and Portable system.
