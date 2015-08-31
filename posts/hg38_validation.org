@@ -147,7 +147,7 @@ are how to validate and ensure that our existing tools work well with the change
 * Validation
 
 Our primary goal was to provide variant calling on hg38 with [[joint_val][automated
-validation]]. Based on [[heng_38-val][Heng Li's validation of build 38 using haploid/diploid
+validation]]. Based on [[heng_38_val][Heng Li's validation of build 38 using haploid/diploid
 comparisons with CHM1/NA12878]] we expected to find improved variant detection in
 build 38 with a reduction in false positives.
 
@@ -261,7 +261,7 @@ All of the data and code used here are freely available to build off this
 work. A [[hg38_scripts][GitHub repository contains the scripts used to convert build 37 to 38]],
 along with links to the prepared Genome in a Bottle truth sets and validation
 outputs. Configuration files and input data for re-running the validations are
-in [[bcbio_38-val][the bcbio example pipeline documentation]]. We welcome re-analyses and
+in [[bcbio_38_val][the bcbio example pipeline documentation]]. We welcome re-analyses and
 re-interpretation of these results.
 
 For build 38, all of the resources in bcbio use the 'chr' prefixed naming scheme
