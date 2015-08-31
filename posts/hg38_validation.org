@@ -185,7 +185,7 @@ discordancy:
 Both hg38 and hg38_noalt (without alternative haplotypes) have improved
 detection of SNPs and indels compared to hg19. The full hg38 also demonstrate a
 reduction in false positives relative to hg38_noalt, showing the advantage of
-alternative haplotypes for resolving mapping issues. The [[fb_platinum-plot][FreeBayes calls]] look
+alternative haplotypes for resolving mapping issues. The [[fb_platinum_plot][FreeBayes calls]] look
 similar and resolve slightly better than GATK with more concordant SNPs
 and indels.
 
@@ -248,11 +248,11 @@ caution in interpreting results.
 
 #+LINK: val_album http://imgur.com/a/2Ezon
 #+LINK: joint_val http://bcb.io/2014/10/07/joint-calling/
-#+LINK: heng_38-val https://github.com/lh3/bwa/blob/master/README-alt.md#preliminary-evaluation
+#+LINK: heng_38_val https://github.com/lh3/bwa/blob/master/README-alt.md#preliminary-evaluation
 #+LINK: freebayes https://github.com/ekg/freebayes
 #+LINK: gath_hc https://www.broadinstitute.org/gatk/guide/tooldocs/org_broadinstitute_gatk_tools_walkers_haplotypecaller_HaplotypeCaller.php
 #+LINK: bwa https://github.com/lh3/bwa
-#+LINK: fb_platinum-plot http://i.imgur.com/byZN0kY.png
+#+LINK: fb_platinum_plot http://i.imgur.com/byZN0kY.png
 #+LINK: giab_paper http://www.nature.com/nbt/journal/v32/n3/full/nbt.2835.html
 
 * Scripts, chromosome naming and future work
@@ -290,7 +290,7 @@ regions with multiple alternative alleles. hg38 is a great first step in moving
 towards a more accurate, graph-based, representation of human heterogeneity.
 
 #+LINK: hg38_scripts https://github.com/hbc/giab_remap_38
-#+LINK: bcbio_38-val https://bcbio-nextgen.readthedocs.org/en/latest/contents/testing.html#human-genome-build-38
+#+LINK: bcbio_38_val https://bcbio-nextgen.readthedocs.org/en/latest/contents/testing.html#human-genome-build-38
 #+LINK: hg38_naming ftp://ftp.ncbi.nlm.nih.gov/genbank/genomes/Eukaryotes/vertebrates_mammals/Homo_sapiens/GRCh38/seqs_for_alignment_pipelines/README_ANALYSIS_SETS
 #+LINK: ucsc_naming https://www.biostars.org/p/94826/#116487
 #+LINK: vg https://github.com/ekg/vg
