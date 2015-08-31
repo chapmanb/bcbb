@@ -1,0 +1,296 @@
+#+DATE: [2015-08-31 Mon 06:13]
+#+BLOG: bcbio
+#+POSTID: 757
+#+TITLE: Validated variant calling with human genome build 38
+#+CATEGORY: variation
+#+TAGS: bioinformatics, variant, ngs, validation, freebayes, gatk, hg38
+#+OPTIONS: toc:nil num:nil
+
+This post describes a ready to run [[bcbio][bcbio implementation]] of variant calling and
+validation on human genome build 38, demonstrating its utility for improving
+variant detection.
+
+[[announce-38][Human genome build 38]] (hg38, GRCh38) offers a major upgrade over the previous
+build, 37 (hg19, GRCh37). The new genome reflects our increased understanding of
+the heterogeneity within human sub-populations and contains a large number of
+alternative genomic loci that better capture our knowledge of genome structure.
+Better genomic representation improves mapping, avoiding a source of hard to
+remove false positives during variant calling.
+
+Practically, the community has been slow to move to build 38 in the year and a
+half since it's official release. There was a [[reddit-switching][nice discussion in the
+bioinformatics subreddit]] about adoption challenges. Our experience has been that
+researchers want the improvements in 38 but three areas hold them back:
+
+- Lack of validated truth sets for build 38. We make extensive use of the
+  NA12878 truth sets from [[giab][the Genome in a Bottle consortium]] and [[platinum-genomes][Illumina's
+  platinum genomes]] for germline calling, and the [[dream][ICGC-TCGA DREAM challenge]] for
+  cancer calling. Not having these ground truths for build 38 holds back being
+  able to validate and improve analysis tools.
+
+- Lack of resources for build 38. Tools like [[gemini][GEMINI]] provide a large number of
+  [[gemini-data][external annotations associated with variations]], many of which are not yet
+  available for build 38. Over time, these resources will become increasingly
+  available but we need a stop gap solution to convert hg19-only resources to
+  hg38. Tools like [[liftover][liftOver]], [[crossmap][CrossMap]] and [[ncbi-remap][NCBI remap]] enable this, but
+  we need evaluations of their usage.
+
+- Some tools have hardcoded assumptions that only work on hg19/GRCh37. Here
+  we'll focus on small variant calling tools implemented in [[bcbio][bcbio]], which support
+  analysis on hg38.
+
+The first two issues, lack of validation sets and resources, drive the
+lack of movement of tools and projects to build 38. The goal of this post is to
+encourage use of build 38 by:
+
+- Providing support for variant calling on hg38 in [[bcbio][bcbio]]. [[bcbio-install][bcbio installation]] now
+  includes automated installation for two build 38 genome targets: hg38 -- [[hg38-full][the
+  full hg38 build from 1000 genomes with decoy and HLA alternative alleles]]; and
+  hg38-noalt -- [[hg38-noalt][hg38 with no alternative loci, from NCBI]].
+
+- Validating hg38 variant calling against two truth sets. The first is Genome in
+  a Bottle NA12878 build 37 calls converted to 38 coordinates. The second uses
+  the Illumina Platinum Genome NA12878 truth set which was natively prepared by
+  alignment to build 38.
+
+- Comparing coordinate conversion methods. We used [[ncbi-remap][NCBi's Remap]] and [[crossmap][CrossMap]]
+  with a [[ucsc-chain][UCSC chain file]] to convert the Genome in a Bottle reference prior to
+  validating, allowing us to compare the effectiveness of both methods.
+
+The results demonstrate improved detection sensitivity for hg38 over hg19,
+especially in small insertions and deletions. There is also a reduction in false
+positives SNPs, which is especially evident when comparing variant calling between
+the full hg38 genome versus hg38 without alternative loci.
+
+Both coordinate conversion methods are a reasonable alternative when full
+realignment and reanalysis is impractical. Validation results with NCBI Remap
+and CrossMap using UCSC chain file are comparable to results using fully
+reanalyzed reference genomes. There is a loss of some validated SNPs and
+additional remapped SNPs that don't validate with variant calling,
+
+This work is possible thanks to our collaborations with the [[wwcrc][Wolfson Wohl Cancer
+Research Centre]] and [[az][AstraZeneca Oncology]]. It is also due to help from members of
+the bcbio community, as [[bcbio-38][the extensive discussion around build 38 support
+demonstrates]]. I'd like to especially thank [[deanna][Deanna Church]], who wrote the original
+scripts for remapping Genome in a Bottle to build 38; [[laura][Laura Clarke,]] who prepared
+a number of hg38 resources from the 1000 genomes project; and [[alison][Alison Meynert]],
+who used CrossMap to generate the resource files used by GATK variant calling.
+I'm so grateful to the great community and collaborations that make this work
+possible.
+
+#+LINK: announce-38 http://genomeref.blogspot.com/2013/12/announcing-grch38.html
+#+LINK: reddit-switching https://www.reddit.com/r/genome/comments/3b3s3t/switch_from_hg19build37_to_hg20build38/
+#+LINK: giab http://genomeinabottle.org/
+#+LINK: platinum-genomes http://www.illumina.com/platinumgenomes/
+#+LINK: dream https://www.synapse.org/#!Synapse:syn312572/wiki/
+#+LINK: gemini http://gemini.readthedocs.org/en/latest/
+#+LINK: gemini-data http://gemini.readthedocs.org/en/latest/content/database_schema.html#the-variants-table
+#+LINK: hla https://en.wikipedia.org/wiki/Human_leukocyte_antigen
+#+LINK: hla-typing https://github.com/lh3/bwa/blob/master/README-alt.md#hla-typing
+#+LINK: hla-graph https://twitter.com/erikgarrison/status/636089957979942912
+
+#+LINK: liftover http://genome.ucsc.edu/cgi-bin/hgLiftOver
+#+LINK: crossmap http://crossmap.sourceforge.net/
+#+LINK: ncbi-remap http://www.ncbi.nlm.nih.gov/genome/tools/remap
+#+LINK: ucsc-chain http://hgdownload.cse.ucsc.edu/goldenPath/hg19/liftOver/
+#+LINK: bcbio https://github.com/chapmanb/bcbio-nextgen
+#+LINK: bcbio-install https://bcbio-nextgen.readthedocs.org/en/latest/contents/installation.html
+
+#+LINK: hg38-full ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/GRCh38_reference_genome/
+#+LINK: hg38-noalt ftp://ftp.ncbi.nlm.nih.gov/genbank/genomes/Eukaryotes/vertebrates_mammals/Homo_sapiens/GRCh38/seqs_for_alignment_pipelines/
+
+#+LINK: az http://www.astrazeneca.com/Home
+#+LINK: wwcrc http://www.gla.ac.uk/researchinstitutes/cancersciences/ics/facilities/wwcrc/
+#+LINK: deanna https://twitter.com/deannachurch
+#+LINK: bcbio-38 https://github.com/chapmanb/bcbio-nextgen/issues/817
+#+LINK: laura https://www.ebi.ac.uk/about/people/laura-clarke
+#+LINK: alison https://www.linkedin.com/pub/alison-meynert/25/b19/556
+
+* Why support build 38?
+
+Moving to hg38 requires an investment in validation, resource preparation
+and tool integration. This effort is worthwhile because of the
+improvements which help eliminate errors due to the genome build itself. Deanna
+Church has a [[deanna-38][great slide deck]] that summarizes the advantages of build 38:
+
+- Removal of false positives due to missing genomic regions in the reference
+  build. If a region is missing from the reference build but a nearly identical
+  segment is present, the read from the missing region will map to the incorrect
+  segment. This results in incorrect, hard to remove, variants in that segment.
+
+- Better capture of the diversity of the human genome by inclusion of
+  alternative haplotypes. A reference assembly is a useful construct for
+  creating a shared coordinate space for collaborating, but sub-populations need
+  to have representations of their unique sequences to ensure correct analysis.
+  This is especially true for medically important genes where we're soon be
+  making clinical decisions.
+
+- The inclusion of [[hla-graph][highly diverse ]][[hla][human leukocyte antigen (HLA) regions]] allows
+  [[hla-typing][HLA typing]], enabling insight into these important immune system genes.
+
+- Moving to a [[deanna-graph][graph based representation of the human genome]]. Capturing the
+  heterogeneity of human populations requires [[ucsc-graph][cataloging and representing]] all
+  potential variants, especially larger structural variations present only in
+  sub-populations. hg38 is a nice step that prepares our tools and analysis
+  methods to consider alternative haplotypes across the genome.
+
+In short, the smart people at the [[grc][Genome Reference Consortium]] produced a
+thoroughly improved version of the human genome based on our increasing
+knowledge of variability. It's a scientific improvement, and the main challenges
+are how to validate and ensure that our existing tools work well with the changes.
+
+#+LINK: deanna-38 http://www.slideshare.net/GenomeRef/transitioning-to-grch38
+#+LINK: deanna-graph http://www.genomebiology.com/2015/16/1/13
+#+LINK: ucsc-graph http://news.ucsc.edu/2015/01/genome-variation.html
+#+LINK: grc http://www.ncbi.nlm.nih.gov/projects/genome/assembly/grc/index.shtml
+
+* Validation
+
+Our primary goal was to provide variant calling on hg38 with [[joint-val][automated
+validation]]. Based on [[heng-38-val][Heng Li's validation of build 38 using haploid/diploid
+comparisons with CHM1/NA12878]] we expected to find improved variant detection in
+build 38 with a reduction in false positives.
+
+We aligned 50x NA12878 reads, available from [[platinum-genomes][Illumina Platinum Genomes]], using
+[[bwa][bwa-mem]] (v0.7.12) and performed variant calling with [[gatk_hc][GATK HaplotypeCaller]]
+(v3.3-0) and [[freebayes][FreeBayes]] (v0.9.21-7). We used build 37 (hg19/GRCh37) and two build
+38 (hg38/GRCh38) reference sets -- with and without alternative alleles.
+
+** Illumina Platinum Genomes
+
+The easiest validations to interpret were Illumina's Platinum Genomes truth
+sets, since they are natively prepared against hg38. Illumina created their
+build 38 truth set by mapping and calling using 4 different approaches,
+performing pedigree checks and combining resultant calls. Below are the results
+of comparing calls from bcbio against this truth set. The comparison separates
+SNPs and indels, grouping calls into correct concordant results and 3 sections of
+discordancy:
+
+- Discordant (missing) -- Calls present in the truth set that are
+  missing in our evaluation calls. These are likely false negatives.
+- Discordant (extra) -- Calls present in our evaluation calls but not
+  in the truth set. These are likely false positives.
+- Discordant (shared) -- Overlapping calls present in both datasets that are
+  non-identical. For SNPs, this is due to heterozygote/homozygote differences.
+  For indels, these are typically different resolutions of the insertion or
+  deletion event.
+
+#+BEGIN_HTML
+<a href="http://i.imgur.com/66b2uKg.png">
+  <img src="http://i.imgur.com/66b2uKg.png" width="700"
+       alt="GATK HaplotyperCaller, Illumina Platinum Genomes truth set">
+</a>
+#+END_HTML
+
+Both hg38 and hg38-noalt (without alternative haplotypes) have improved
+detection of SNPs and indels compared to hg19. The full hg38 also demonstrate a
+reduction in false positives relative to hg38-noalt, showing the advantage of
+alternative haplotypes for resolving mapping issues. The [[fb-platinum-plot][FreeBayes calls]] look
+similar and resolve slightly better than GATK with more concordant SNPs
+and indels.
+
+** Genome in a Bottle reference with coordinate remapping
+
+We also validated build 38 calls against the Genome in a Bottle NA12878 truth
+set. Genome in a Bottle uses inputs from [[giab-paper][multiple sequencing technologies and
+callers]], but is only currently available for build 37. To prepare it for this
+comparison we converted the coordinates to build 38 in two ways: using [[ncbi-remap][NCBi's
+remap]] and [[crossmap][CrossMap]] with a [[ucsc-chain][UCSC chain file]]. This adds an additional layer into
+the comparison since we're now also considering three potential sources of
+errors in the evaluation:
+
+- Incorrect calls in the evaluation dataset
+- Errors in the truth set
+- Incorrect or missing variants created during coordinate conversion
+
+This evaluates coordinate conversion methods at the cost of more ambiguity in
+evaluating the concordant and discordant calls. For GATK HaplotypeCaller, we see
+an improvement in indel resolution in hg38 for both coordinate conversion
+methods, but a bigger jump using Remap. For SNP calling, we have fewer
+concordant variants, due to a loss or mismapping of calls in difficult regions.
+NCBI remap pulls over a larger number of variants that end up as discordant
+missing values in the comparison, indicating the possibility of better resolving
+these in the future. We also don't see a false positive reduction in hg38
+compared to hg38-noalt, reflecting a failure to remap more difficult variants:
+
+#+BEGIN_HTML
+<a href="http://i.imgur.com/KznbNh2.png">
+  <img src="http://i.imgur.com/KznbNh2.png" width="700"
+       alt="GATK Haplotyper Caller, Genome in a Bottle truth set">
+</a>
+#+END_HTML
+
+The FreeBayes validation on the coordinate converted Genome in a Bottle set
+show similar patterns but we detect more SNPs in the Remap variants compared
+with CrossMap. We don't see a difference in indel resolution between CrossMap
+and Remap. This reflects some GATK bias in the Genome in a Bottle
+dataset, which uses HaplotypeCaller for variant resolution:
+
+#+BEGIN_HTML
+<a href="http://i.imgur.com/pFydf4K.png">
+  <img src="http://i.imgur.com/pFydf4K.png" width="700"
+       alt="FreeBayes, Genome in a Bottle truth set">
+</a>
+#+END_HTML
+
+** Conclusions
+
+Both the native and coordinate converted validation sets inspire confidence that
+we can call variants well on hg38. They also demonstrate improvements due to
+better alignment with the alternative alleles, with improved indel resolution
+and removal of false positives SNPs.
+
+Coordinate conversion of build 37 resources with CrossMap and Remap captures
+the majority of the signal in the validations, with some loss in more difficult
+regions. Continued work to cooordinate convert missing resources to 38 should
+also provide additional information about edge cases where we should use more
+caution in interpreting results.
+
+#+LINK: val-album http://imgur.com/a/2Ezon
+#+LINK: joint-val http://bcb.io/2014/10/07/joint-calling/
+#+LINK: heng-38-val https://github.com/lh3/bwa/blob/master/README-alt.md#preliminary-evaluation
+#+LINK: freebayes https://github.com/ekg/freebayes
+#+LINK: gath_hc https://www.broadinstitute.org/gatk/guide/tooldocs/org_broadinstitute_gatk_tools_walkers_haplotypecaller_HaplotypeCaller.php
+#+LINK: bwa https://github.com/lh3/bwa
+#+LINK: fb-platinum-plot http://i.imgur.com/byZN0kY.png
+#+LINK: giab-paper http://www.nature.com/nbt/journal/v32/n3/full/nbt.2835.html
+
+* Scripts, chromosome naming and future work
+
+All of the data and code used here are freely available to build off this
+work. A [[hg38-scripts][GitHub repository contains the scripts used to convert build 37 to 38]],
+along with links to the prepared Genome in a Bottle truth sets and validation
+outputs. Configuration files and input data for re-running the validations are
+in [[bcbio-38-val][the bcbio example pipeline documentation]]. We welcome re-analyses and
+re-interpretation of these results.
+
+For build 38, all of the resources in bcbio use the 'chr' prefixed naming scheme
+(chr1, chr2, chr3...). In pre-release discussions about build 38 UCSC, Ensembl,
+NCBI and other major providers agreed on this as the preferred nomenclature.
+[[hg38-namimg][NCBI's build 38 analysis sets]] use it, along with documentation about the
+naming conventions. Unfortunately, some groups [[ucsc-naming][decided to stay with non-prefixed
+names]] (1, 2, 3...). There is too much interesting biology I'd prefer to
+work on, rather than spending time dealing with naming issues and supporting two
+sets of resources. In bcbio we've decided not to perpetuate this dual naming
+scheme for another genome release and will convert non-conforming naming over to
+the 'chr' prefixed naming scheme.
+
+Currently bcbio has validated SNP and indel calling for hg38. We plan to support
+structural variant validations, using lifted over resources from Genome in a
+Bottle and the [[dream][ICGC-TCGA DREAM challenge data]]. We also want to work on
+validating RNA-seq tools and results on build 38.
+
+For small variant calling, we hope to continue to work with the community to
+coordinate convert additional 37 only resources to hg38. Supporting build 38 in
+[[gemini][GEMINI]] is one of the last large hurdles. We also plan to integrate tools like
+[[vg][Erik Garrison's vg]] for mapping and variant calling against variant graphs.
+Continuing to move to graph based methods will provide us with a more reliable
+assessment of variation in sub-populations, and improved variant calling in
+regions with multiple alternative alleles. hg38 is a great first step in moving
+towards a more accurate, graph-based, representation of human heterogeneity.
+
+#+LINK: hg38-scripts https://github.com/hbc/giab_remap_38
+#+LINK: bcbio-38-val https://bcbio-nextgen.readthedocs.org/en/latest/contents/testing.html#human-genome-build-38
+#+LINK: hg38-naming ftp://ftp.ncbi.nlm.nih.gov/genbank/genomes/Eukaryotes/vertebrates_mammals/Homo_sapiens/GRCh38/seqs_for_alignment_pipelines/README_ANALYSIS_SETS
+#+LINK: ucsc-naming https://www.biostars.org/p/94826/#116487
+#+LINK: vg https://github.com/ekg/vg
