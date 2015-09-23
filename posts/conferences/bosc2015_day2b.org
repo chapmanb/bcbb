@@ -1,4 +1,7 @@
 #+BLOG: smallchangebio
+#+POSTID: 97
+#+DATE: [2015-07-11 Sat 12:04]
+#+BLOG: smallchangebio
 #+TITLE: Notes: Bioinformatics Open Source Conference 2015 day 2 afternoon: Translational, Visualization and Lightning Talks
 #+CATEGORY: conference
 #+TAGS: bioinformatics, open-bio, open-source

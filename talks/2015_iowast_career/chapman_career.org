@@ -1,0 +1,373 @@
+#+title: Building community developed open source infrastructure to support large-scale biology
+#+author: Brad Chapman \\ Bioinformatics Core, Harvard Chan School \\ https://bcb.io \\ http://j.mp/bcbiolinks
+#+date: 23 September 2015
+
+#+OPTIONS: toc:nil H:2
+
+#+startup: beamer
+#+LaTeX_CLASS: beamer
+#+latex_header: \usepackage{url}
+#+latex_header: \usepackage{hyperref}
+#+latex_header: \hypersetup{colorlinks=true}
+#+BEAMER_THEME: default
+#+BEAMER_COLOR_THEME: seahorse
+#+BEAMER_INNER_THEME: rectangles
+
+* My background
+
+** Overview
+
+\Large
+- My background
+- Research scientist at a core facility
+- The open source bioinformatics community
+- Why you want to work as a research scientist
+- How to prepare yourself
+
+** Undergrad Michigan State (Ecology)
+
+#+ATTR_LATEX: :width .75\textwidth
+[[./images7/Austrian_pine.jpg]]
+
+\tiny https://en.wikipedia.org/wiki/Pinus_nigra
+
+** Undergrad Michigan State (Plant transformation)
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width .5\textwidth
+[[./images7/Genegun.jpg]]
+#+END_CENTER
+
+\tiny https://en.wikipedia.org/wiki/Gene_gun
+
+** PhD University of Georgia (Duplicate evolution)
+
+[[./images6/uga_paper.png]]
+
+** Synthetic biology startup (2004-2009)
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width .5\textwidth
+[[./images6/codon_devices.png]]
+#+END_CENTER
+
+\vspace{1.5cm}
+
+\scriptsize
+http://www.synthesis.cc/2009/04/on-the-demise-of-condon-devices.html
+\normalsize
+
+** Bioinformatics core -- Harvard Chan School
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width .6\textwidth
+[[./images7/harvard_chan.png]]
+
+\vspace{1cm}
+
+http://bioinformatics.sph.harvard.edu/
+#+END_CENTER
+
+* Work
+
+** Overview
+
+\Large
+- My background
+- Research scientist at a core facility
+- The open source bioinformatics community
+- Why you want to work as a research scientist
+- How to prepare yourself
+
+** Practical
+
+\Large
+- Work in a support core
+- Consulting
+- Team of 8 researchers \\
+  \normalsize http://bioinformatics.sph.harvard.edu/people/
+\Large
+- Specialize, but also overlap
+- Research scientists
+
+** 
+#+ATTR_LATEX: :width 1.1\textwidth
+[[./images7/careers.jpg]]
+
+\scriptsize http://www.sciencedirect.com/science/article/pii/S0968000414001728
+
+** Who we work with?
+
+\Large
+- Academic Researchers: Harvard Stem Cell Institute, Harvard Medical School,
+  Harvard NeuroDiscovery Center, Massachusetts General Hospital
+- Large consortium projects: Cure Alzheimer's, Global Alliance for Genomic Health
+- Industry: AstraZeneca, Biogen, Merck
+- Startups
+
+** Day to day work
+
+\Large
+- Collaboration with researchers
+- Data analysis
+- Teaching and training
+- Large scale infrastructure development
+
+** Biological questions
+
+\Large
+
+- Alzheimer's -- large populations of affected families
+- Cancer treatment -- detection of driver mutations, relapse after treatment
+- HIV -- detection of low frequency drug resistant sub-populations
+
+** Human whole genome sequencing
+
+[[./images5/human_genome.png]]
+
+\footnotesize
+http://ensembl.org/Homo_sapiens/Location/Genome
+\normalsize
+
+** High throughput sequencing
+
+[[./images5/reads.png]]
+
+** Variant calling
+
+[[./images5/SNV_calling.png]]
+
+\footnotesize
+http://en.wikipedia.org/wiki/SNV_calling_from_NGS_data
+\normalsize
+
+** Scale: exome to whole genome
+
+[[./images5/exome_proportion.png]]
+
+\footnotesize
+https://www.flickr.com/photos/119980645@N06/
+\normalsize
+
+
+* Open source bioinformatics
+
+** Overview
+
+\Large
+- My background
+- Research scientist at a core facility
+- The open source bioinformatics community
+- Why you want to work as a research scientist
+- How to prepare yourself
+
+** Large scale infrastructure development
+
+\Large
+- Find shared problems
+- Community developed analyses
+- Validation
+- Scaling
+- Supporting a community of users
+\normalsize
+
+** White box software
+
+[[./images5/clear_box.jpg]]
+
+** Overview
+
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images3/bcbio_nextgen_highlevel.png]]
+
+\vspace{1cm}
+https://github.com/chapmanb/bcbio-nextgen
+
+** Provides
+
+\Large
+- Community -- collected set of expertise
+- Tool integration
+- Validation -- outputs + automated evaluation
+- Scaling
+- Installation of tools and data
+\normalsize
+
+** Solution
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width .5\textwidth
+[[./images/community.png]]
+#+END_CENTER
+
+\scriptsize
+[[http://www.amazon.com/Community-Structure-Belonging-Peter-Block/dp/1605092770]]
+\normalsize
+
+** Community: contribution
+
+[[./images5/bcbio_github.png]]
+
+[[https://github.com/chapmanb/bcbio-nextgen]]
+
+** Community: documentation
+
+[[./images/community-docs.png]]
+
+[[https://bcbio-nextgen.readthedocs.org]]
+
+** Sustainability
+
+\Large
+A piece of software is being sustained if people are using it, fixing it, and
+improving it rather than replacing it.
+
+\vspace{0.5cm}
+
+\normalsize
+http://software-carpentry.org/blog/2014/08/sustainability.html
+
+
+
+* Why research scientist
+
+** Overview
+
+\Large
+- My background
+- Research scientist at a core facility
+- The open source bioinformatics community
+- Why you want to work as a research scientist
+- How to prepare yourself
+
+** Research scientist as a career -- pros
+
+\Large
+- Wide range of projects
+- Collaboration
+- Respected
+- Help others
+- Grow and learn
+\normalsize
+
+** Open source communities -- pros
+
+\Large
+- Work on problems with impact
+- Large set of peers
+- Fortuitous interactions
+- Transferable skills
+
+** Research scientist -- cons
+
+\Large
+- Less control over overall biological questions
+- Juggle more simultaneous projects
+
+* Training
+
+** Overview
+
+\Large
+- My background
+- Research scientist at a core facility
+- The open source bioinformatics community
+- Why you want to work as a research scientist
+- How to prepare yourself
+
+** Learning good practices
+
+[[./images6/software-carpentry.png]]
+
+\vspace{0.3cm}
+
+[[./images6/mozilla-science-lab.png]]
+
+\vspace{0.3cm}
+
+\Large
+http://software-carpentry.org \\
+\vspace{0.1cm}
+http://mozillascience.org
+\normalsize
+
+** Revision control
+
+#+ATTR_LATEX: :width 0.6\textwidth
+[[./images6/github.png]]
+
+\vspace{0.3cm}
+
+#+ATTR_LATEX: :width 0.6\textwidth
+[[./images6/bitbucket-logo.png]]
+
+\vspace{0.3cm}
+
+\Large
+http://github.com \\
+\vspace{0.1cm}
+https://bitbucket.org
+\normalsize
+
+** Reproducible environments
+
+[[./images6/ipython.png]]
+
+\vspace{0.3cm}
+
+#+ATTR_LATEX: :width 0.6\textwidth
+[[./images6/rstudio.png]]
+
+\vspace{0.3cm}
+
+\Large
+http://jupyter.org/ \\
+http://ipython.org \\
+\vspace{0.1cm}
+http://www.rstudio.com/
+\normalsize
+
+** Good practices = good science
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width 0.4\textwidth
+[[./images6/biodata_skills.jpg]]
+#+END_CENTER
+
+http://shop.oreilly.com/product/0636920030157.do
+
+** Open Source Communities
+
+#+ATTR_LATEX: :width 0.3\textwidth
+[[./images6/obf.jpg]]
+
+\vspace{0.2cm}
+
+#+ATTR_LATEX: :width 0.5\textwidth
+[[./images6/galaxy.png]]
+
+\vspace{0.3cm}
+http://www.open-bio.org \\
+\vspace{0.05cm}
+http://www.open-bio.org/wiki/BOSC_2014 \\
+\vspace{0.05cm}
+http://usegalaxy.org \\
+\vspace{0.05cm}
+https://wiki.galaxyproject.org/Events/GCC2014
+\normalsize
+
+
+** Summary
+
+\Large
+- Bioinformatics core at Harvard Chan School
+- Collaborative research work
+- Open source community
+- Contribute to public health research
+
+\Large
+\vspace{1cm}
+https://bcb.io \\
+\vspace{.5cm}
+https://j.mp/bcbiolinks
+\normalsize
