@@ -124,10 +124,10 @@ https://github.com/chapmanb/bcbio-nextgen
 ** Uses
 
 \Large
-- Aligners: bwa, novoalign, bowtie2
+- Aligners: bwa, novoalign, bowtie2, HISAT2
 - Variantion: FreeBayes, GATK, VarDict, MuTecT, Scalpel, SnpEff, VEP, GEMINI,
-  Lumpy, Manta, CNVkit
-- RNA-seq: Tophat, STAR, cufflinks, Sailfish, HISAT2
+  Lumpy, Manta, CNVkit, WHAM
+- RNA-seq: Tophat, STAR, Cufflinks, Sailfish
 - Quality control: fastqc, bamtools, RNA-SeQC
 - Manipulation: bedtools, bcftools, biobambam, sambamba, samblaster, samtools,
   vcflib, vt
@@ -208,7 +208,7 @@ http://software-carpentry.org/blog/2014/08/sustainability.html
 
 ** Parts of bcbio
 
-*** \LARGE What can we replace?
+*** \LARGE What components are essential?
 
 \Large
 - Installation
@@ -273,14 +273,14 @@ https://github.com/galaxyproject/planemo
 ** Vision: pluggable components
 
 \Large
-- CWL description + platforms for run
-- Docker containers with tools + code
+- Installation: Docker containers with tools + code
+- Infrastructure: CWL description + platforms
 - Mix and match implementations
 - Do research and development and production in same environment
 
 * Real biology
 
-** Practical: Human build 38 validation
+** Biology: Human build 38 validation
 
 #+BEGIN_CENTER
 #+ATTR_LATEX: :width .7\textwidth
@@ -289,7 +289,7 @@ https://github.com/galaxyproject/planemo
 
 http://bcb.io/2015/09/17/hg38-validation/
 
-** Practical: cancer validation
+** Biology: cancer validation
 
 #+BEGIN_CENTER
 #+ATTR_LATEX: :width .8\textwidth
@@ -299,7 +299,7 @@ http://bcb.io/2015/09/17/hg38-validation/
 \scriptsize
 https://github.com/bcbio/bcbio.github.io/blob/master/_posts/2015-10-05-vardict-filtering.md
 
-** Practical: structural variant calling
+** Biology: structural variant calling
 
 #+BEGIN_CENTER
 #+ATTR_LATEX: :width .9\textwidth
@@ -311,5 +311,8 @@ https://github.com/bcbio/bcbio.github.io/blob/master/_posts/2015-10-05-vardict-f
 \Large
 - Do more science faster
 - Community -- integrate, not re-implement
-- Docker + CWL enables integration
+- Enabled with Docker + CWL
 - Let's talk about ways to work together
+
+\vspace{1cm}
+http://bcb.io/
