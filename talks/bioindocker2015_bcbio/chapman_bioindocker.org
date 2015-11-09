@@ -70,7 +70,7 @@ http://www.nature.com/nmeth/journal/vaop/ncurrent/full/nmeth.3407.html
 ** Combining analyses
 
 #+BEGIN_CENTER
-#+ATTR_LATEX: :width .65\textwidth
+#+ATTR_LATEX: :width .6\textwidth
 [[./images7/cancer_multiple.png]]
 #+END_CENTER
 
@@ -102,7 +102,7 @@ http://exac.broadinstitute.org/about
 ** Large scale infrastructure development
 
 \Large
-- Find shared problems
+- Shared problems -- academic, industry, startups
 - Community developed analyses
 - Validation
 - Scaling
@@ -264,7 +264,7 @@ https://arvados.org/
 ** Infrastructure
 
 #+BEGIN_CENTER
-#+ATTR_LATEX: :width .8\textwidth
+#+ATTR_LATEX: :width .7\textwidth
 [[./images7/galaxy_cwl.png]]
 #+END_CENTER
 
@@ -283,10 +283,11 @@ https://github.com/galaxyproject/planemo
 ** Biology: Human build 38 validation
 
 #+BEGIN_CENTER
-#+ATTR_LATEX: :width .7\textwidth
+#+ATTR_LATEX: :width .65\textwidth
 [[./images7/hg38_val.png]]
 #+END_CENTER
 
+\footnotesize
 http://bcb.io/2015/09/17/hg38-validation/
 
 ** Biology: cancer validation
@@ -296,22 +297,26 @@ http://bcb.io/2015/09/17/hg38-validation/
 [[./images7/vardict_val.png]]
 #+END_CENTER
 
+
 \scriptsize
 https://github.com/bcbio/bcbio.github.io/blob/master/_posts/2015-10-05-vardict-filtering.md
 
 ** Biology: structural variant calling
 
 #+BEGIN_CENTER
-#+ATTR_LATEX: :width .9\textwidth
+#+ATTR_LATEX: :width .8\textwidth
 [[./images7/sv_val.png]]
 #+END_CENTER
+
+\footnotesize
+http://imgur.com/a/Gajsg
 
 ** Summary
 
 \Large
 - Do more science faster
 - Community -- integrate, not re-implement
-- Enabled with Docker + CWL
+- Docker + Common Workflow Language
 - Let's talk about ways to work together
 
 \vspace{1cm}
