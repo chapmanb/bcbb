@@ -14,7 +14,6 @@
 #+BEAMER_INNER_THEME: rectangles
 
 * Variant calling overview
-
 ** Outline
 
 \Large
@@ -210,7 +209,6 @@ https://github.com/AstraZeneca-NGS/VarDictJava
 \normalsize
 
 * Validating calls
-
 ** Outline
 
 \Large
@@ -247,7 +245,6 @@ https://www.synapse.org/#!Synapse:syn312572
 #+END_CENTER
 
 http://bcb.io/2015/03/05/cancerval/
-
 
 * Post-calling annotation and analysis
 

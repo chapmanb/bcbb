@@ -275,8 +275,8 @@ https://github.com/galaxyproject/planemo
 \Large
 - Installation: Docker containers with tools + code
 - Infrastructure: CWL description + platforms
-- Mix and match implementations
-- Do research and development and production in same environment
+- Mix and match implementations: BioBoxes
+- Research and development + production in same environment
 
 * Real biology
 
@@ -316,7 +316,7 @@ http://imgur.com/a/Gajsg
 \Large
 - Do more science faster
 - Community -- integrate, not re-implement
-- Docker + Common Workflow Language
+- Docker + Common Workflow Language + BioBoxes
 - Let's talk about ways to work together
 
 \vspace{1cm}
