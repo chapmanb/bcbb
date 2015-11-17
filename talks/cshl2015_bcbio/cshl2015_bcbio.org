@@ -18,7 +18,7 @@
 - Motivate for using open source community resources
 - Overview of bcbio validated variant calling
 - Science
-   - \Large Human build 38
+   - \Large Human build 38 + HLA
    - \Large Cancer calling of low frequency variants
    - \Large Structural variation
 - Practical calling example
@@ -241,7 +241,7 @@ http://software-carpentry.org/blog/2014/08/sustainability.html
 ** Outline: Science
 
 \Large
-- \textbf{Human build 38}
+- \textbf{Human build 38 + HLA}
 - Low frequency somatic calling
 - Structural variation
 
@@ -306,7 +306,7 @@ http://www.genomeinabottle.org/
 http://ga4gh.org/\#/benchmarking-team
 https://www.synapse.org/\#!Synapse:syn312572
 
-**
+** 
 
 #+BEGIN_CENTER
 #+ATTR_LATEX: :width .9\textwidth
@@ -341,7 +341,7 @@ Need conversion approaches for resources not yet available on build 38
   \normalsize http://www.ncbi.nlm.nih.gov/genome/tools/remap
 \Large
 - Both performed well
-- NCBI remap has additional sensitivity, but needs tuning
+- NCBI remap has additional sensitivity, but requires tuning
 
 ** Major histocompatibility complex (MHC) -- HLAs
 
@@ -364,15 +364,15 @@ https://github.com/lh3/bwa/blob/master/README-alt.md
 ** HLA typing
 
 \Large
-- bwakit implementation
 - 1000 genomes: build 38 + IMGT/HLA-3.18.0
-- bwa extracts HLA reads
-- fermi de novo assembly
-- Remap assemblies back to HLA choices
-- Call HLA types
+- bwa mem extracts HLA reads
+- Map reads only to HLA sequences
+- OptiType: Call HLA types
 
+\vspace{0.5cm}
 \footnotesize
-https://github.com/lh3/bwa/blob/master/README-alt.md\#hla-typing
+https://github.com/lh3/bwa/blob/master/README-alt.md\#hla-typing \newline
+https://github.com/FRED-2/OptiType
 
 ** HLA nomenclature
 
@@ -386,14 +386,23 @@ http://hla.alleles.org/alleles/p_groups.html
 
 \Large
 - Omixon example data
-- bwakit calls on exome and deep targeted data
+- Exome (1000 genomes) and deep targeted data
 - P-group resolution
-- Good results for exome
-- Assembly problems with deep targeted
+- HLA type I calls (A, B, C)
+- Great results across exome and targeted
 
 \footnotesize
-http://www.omixon.com/hla-typing-example-data/
-https://gist.github.com/chapmanb/8e2a18c7bbbee3167395
+http://www.omixon.com/hla-typing-example-data/ \newline
+https://gist.github.com/chapmanb/8f994618a7fc5e88f893
+
+** HLA complexity
+
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images9/hla-vg-graph.png]]
+
+\scriptsize
+https://docs.google.com/presentation/d/1hPZv6M3N3kQ2LYVHX1dpqe--bxvWOXOPB5kM32Q3B5s
+\normalsize
 
 ** Genome graphs and variation
 
@@ -412,15 +421,26 @@ http://www.nature.com/ng/journal/v46/n12/fig_tab/ng.3121_SF6.html
 #+END_CENTER
 
 \tiny
+\scriptsize
 https://docs.google.com/presentation/d/1bbl2zY4qWQ0yYBHhoVuXb79HdgajRotIUa_VEn3kTpI
 \normalsize
+
+** vg -- future variant calling
+
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images9/vg-variant-calls.png]]
+
+\scriptsize
+https://docs.google.com/presentation/d/1hPZv6M3N3kQ2LYVHX1dpqe--bxvWOXOPB5kM32Q3B5s
+\normalsize
+
 
 * Somatic calling
 
 ** Outline: science
 
 \Large
-- Human build 38
+- Human build 38 + HLA
 - \textbf{Low frequency somatic calling}
 - Structural variation
 
@@ -521,7 +541,7 @@ https://www.synapse.org/\#!Synapse:syn312572/wiki/62018
 ** Outline: science
 
 \Large
-- Human build 38
+- Human build 38 + HLA
 - Low frequency somatic calling
 - \textbf{Structural variation}
 
@@ -594,7 +614,7 @@ http://www.amazon.com/The-Biology-Cancer-Robert-Weinberg/dp/0815340761
 - Open source community resources
 - bcbio validated variant calling
 - Science
-   - \Large Human build 38
+   - \Large Human build 38 + HLA
    - \Large Cancer calling of low frequency variants
    - \Large Structural variation
 
@@ -609,7 +629,18 @@ http://bcb.io
 - Small dataset -- single chromosome, exome
 - Cancer sample from DREAM synthetic dataset 3
 - Call against build 38
-- Structrural variants
+
+\footnotesize
+https://www.synapse.org/#!Synapse:syn312572/wiki/58893
+
+** Demonstrates
+
+\Large
+- Somatic tumor/normal samples
+- SNP and indel calling at lower frequency
+- Structural variant detection
+- Prioritization with CIViC
+- HLA typing
 
 ** bcbio configuration file
 
@@ -626,7 +657,7 @@ details:
       variantcaller: [vardict, mutect, freebayes]
       ensemble:
         numpass: 2
-      svcaller: [cnvkit, lumpy, manta]
+      svcaller: [lumpy, manta]
 #+END_SRC
 
 \footnotesize
@@ -667,8 +698,13 @@ bcbio_nextgen.py project1.yaml -n 8
 \scriptsize
 https://bcbio-nextgen.readthedocs.org/en/latest/contents/testing.html
 
-** Overview on AWS
+** AWS example configuration and output
 
-- Downloaded and prepared
-- AMI
-- Move to step by step docs
+https://bcbio-nextgen.readthedocs.org/en/latest/contents/teaching.html
+
+\vspace{0.5cm}
+
+\Large
+- Pre-downloaded and analysis run
+- AMI (ami-5e84fe34)
+- Move to step by step overview
