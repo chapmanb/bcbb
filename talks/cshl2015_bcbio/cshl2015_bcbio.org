@@ -139,7 +139,7 @@ https://github.com/chapmanb/bcbio-nextgen
 - Variantion: FreeBayes, GATK, VarDict, MuTecT, Scalpel, SnpEff, VEP, GEMINI,
   Lumpy, Manta, CNVkit, WHAM
 - RNA-seq: Tophat, STAR, Cufflinks, Sailfish
-- Quality control: fastqc, bamtools, RNA-SeQC
+- Quality control: fastqc, bamtools, Qualimap
 - Manipulation: bedtools, bcftools, biobambam, sambamba, samblaster, samtools,
   vcflib, vt
 \normalsize
@@ -631,7 +631,7 @@ http://bcb.io
 - Call against build 38
 
 \footnotesize
-https://www.synapse.org/#!Synapse:syn312572/wiki/58893
+https://www.synapse.org/\#!Synapse:syn312572/wiki/58893
 
 ** Demonstrates
 
@@ -708,3 +708,9 @@ https://bcbio-nextgen.readthedocs.org/en/latest/contents/teaching.html
 - Pre-downloaded and analysis run
 - AMI (ami-5e84fe34)
 - Move to step by step overview
+
+\Large
+#+BEGIN_SRC sh
+ssh ubuntu@52.71.255.95
+password: teaching
+#+END_SRC
