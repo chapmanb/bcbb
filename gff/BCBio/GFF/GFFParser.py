@@ -522,8 +522,10 @@ class _AbstractMapReduceGFF:
         """Add a new feature that is missing from the GFF file.
         """
         base_rec_id = list(set(c[0] for c in cur_children))
+        child_strands = list(set(c[1].strand for c in cur_children))
+        inferred_strand = child_strands[0] if len(child_strands) == 1 else None
         assert len(base_rec_id) > 0
-        feature_dict = dict(id=parent_id, strand=None,
+        feature_dict = dict(id=parent_id, strand=inferred_strand,
                             type="inferred_parent", quals=dict(ID=[parent_id]),
                             rec_id=base_rec_id[0])
         coords = [(c.location.nofuzzy_start, c.location.nofuzzy_end)
