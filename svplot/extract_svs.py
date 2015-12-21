@@ -41,7 +41,7 @@ def main():
         #         writer.writerow(row)
 
 def filter_shared(in_file, region_bed):
-    cmd = "sort -V -k1,1 -k2,2n {region_bed} | bedtools merge -i - -d 10000 -c 4 -o count_distinct"
+    cmd = "sort -k1,1 -k2,2n {region_bed} | bedtools merge -i - -d 10000 -c 4 -o count_distinct"
     overlaps = subprocess.check_output(cmd.format(**locals()), shell=True)
     shared = 0
     noshared = 0
