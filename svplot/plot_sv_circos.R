@@ -44,8 +44,6 @@ crc.lst <- lapply(sv.grl, function(gr.cur){
 })
 
 pdf(file=out.file, width=8, height=8)
-print(crc.lst[1])
-print(crc.lst[2])
-print(crc.lst[3])
+bquiet = lapply(crc.lst, print)
 #arrangeGrobByParsingLegend(crc.lst, legend.idx = 1, ncol = 3)
 dev.off()
