@@ -1,0 +1,164 @@
+#+title: HLA typing with build 38 and OptiType
+#+author: Brad Chapman, Miika Ahdesmaki, Justin Johnson \newline AstraZeneca Translational Oncology \newline Bioinformatics Core, Harvard Chan School \newline
+#+date: 10 February 2016
+
+#+OPTIONS: toc:nil H:2
+
+#+startup: beamer
+#+LaTeX_CLASS: beamer
+#+latex_header: \usepackage{url}
+#+latex_header: \usepackage{hyperref}
+#+latex_header: \hypersetup{colorlinks=true}
+#+BEAMER_THEME: default
+#+BEAMER_COLOR_THEME: seahorse
+#+BEAMER_INNER_THEME: rectangles
+
+* Build 38
+
+
+** HLA typing
+
+\Large
+- 1000 genomes: build 38 + IMGT/HLA-3.18.0
+- bwa mem extracts HLA reads
+- Map reads only to HLA sequences
+- OptiType: Call HLA types
+
+\vspace{0.5cm}
+\footnotesize
+https://github.com/lh3/bwa/blob/master/README-alt.md\#hla-typing \newline
+https://github.com/FRED-2/OptiType
+https://github.com/chapmanb/bcbio-nextgen
+
+** GRCh38 -- graph based, many more alternative loci
+
+#+ATTR_LATEX: :width .8\textwidth
+[[./images8/GRCh38.jpg]]
+
+\footnotesize
+http://www.slideshare.net/GenomeRef/transitioning-to-grch38
+ftp://ftp.1000genomes.ebi.ac.uk/vol1/ftp/technical/reference/GRCh38_reference_genome/
+
+** Alignment: bwa alternative allele support
+
+#+ATTR_LATEX: :width .9\textwidth
+[[./images8/bwa-alts.png]]
+
+\small
+https://github.com/lh3/bwa/blob/master/README-alt.md
+
+** OptiType
+
+\Large
+- Map reads to HLA exomes 2 and 3 from IMGT
+- Matrix of sequence matches to alleles
+- Formulate as integer linear program (ILP)
+- Use ILP solver, like GNU Linear Programming Kit (GLPK)
+
+\small
+https://github.com/FRED-2/OptiType \\
+http://bioinformatics.oxfordjournals.org/content/30/23/3310
+
+** Validations
+
+\Large
+- Omixon example data
+- Exome (1000 genomes) and deep targeted data
+- HLA type I calls (A, B, C)
+- Good validation results
+  - \Large 24/24 (100%) on targeted
+  - \Large 22/24 (92%) on exome
+
+\footnotesize
+http://www.omixon.com/hla-typing-example-data/ \newline
+https://gist.github.com/chapmanb/8f994618a7fc5e88f893
+
+** HLA P-group resolution
+
+#+ATTR_LATEX: :width .9\textwidth
+[[./images7/hla_naming.png]]
+
+https://www.ebi.ac.uk/ipd/imgt/hla/
+http://hla.alleles.org/alleles/p_groups.html
+
+** build 38 validation 
+
+\Large
+- Build 37 and 38
+- Validation sets: Genome in a Bottle, Illumina Platinum Genomes
+- Lift-over methods: CrossMap/LiftOver, NCBI Remap
+- 38 builds: with/without alternative alleles
+- Variant callers: FreeBayes, GATK HaplotypeCaller
+
+\normalsize
+http://bcb.io/2015/09/17/hg38-validation/
+
+** GRCh38 -- advantage for variant calling
+
+#+ATTR_LATEX: :width .9\textwidth
+[[./images8/GRCh38-advantages.jpg]]
+
+\footnotesize
+http://www.slideshare.net/GenomeRef/transitioning-to-grch38
+
+** Avoiding collapsed repeats
+
+#+ATTR_LATEX: :width 0.8\textwidth
+[[./images7/hg38_collapsed_repeats.jpg]]
+
+\tiny
+http://www.slideshare.net/kmsteinberg/the-importance-of-high-quality-reference-genome-assemblies-to-personal-and-medical-genomics
+
+** Reference materials
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width .5\textwidth
+[[./images/giab.png]]
+
+#+ATTR_LATEX: :width .7\textwidth
+[[./images7/ga4gh.png]]
+
+#+ATTR_LATEX: :width .9\textwidth
+[[./images7/dream_challenge.png]]
+#+END_CENTER
+
+http://www.genomeinabottle.org/
+http://ga4gh.org/\#/benchmarking-team
+https://www.synapse.org/\#!Synapse:syn312572
+
+** 
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width .9\textwidth
+[[./images7/hg38_val.png]]
+#+END_CENTER
+
+** 
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width .8\textwidth
+[[./images7/hg38_val_giab.png]]
+#+END_CENTER
+
+** Small variant results
+
+\Large
+- SNPs: build 38 more sensitive
+- SNPs: build 38 reduces false positives
+- Indels: build 38 detected more
+- Indels: work on sensitivity and precision
+
+** Remapping results
+
+\Large
+Need conversion approaches for resources not yet available on build 38
+
+\Large
+- CrossMap: \newline
+  \normalsize http://crossmap.sourceforge.net/
+\Large
+- NCBI remap: \newline
+  \normalsize http://www.ncbi.nlm.nih.gov/genome/tools/remap
+\Large
+- Both performed well
+- NCBI remap has additional sensitivity, but requires tuning
