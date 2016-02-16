@@ -50,7 +50,7 @@ https://github.com/lh3/bwa/blob/master/README-alt.md
 ** OptiType
 
 \Large
-- Map reads to HLA exomes 2 and 3 from IMGT
+- Map reads to HLA exons 2 and 3 from IMGT
 - Matrix of sequence matches to alleles
 - Formulate as integer linear program (ILP)
 - Use ILP solver, like GNU Linear Programming Kit (GLPK)
