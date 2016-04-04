@@ -19,7 +19,7 @@
 Running multi-step bioinformatics analyses requires coordinating software and
 data across a wide variety of heterogeneous computational resources. We've
 actively developed bcbio (<https://github.com/chapmanb/bcbio-nextgen>) for the
-past six years as a open, community built approach to creating variant calling,
+past six years as a open, community built approach to developing variant calling,
 RNA-seq and small RNA analyses. The complexity of supporting scalable parallel
 workflows has become a barrier to allowing bcbio to interact with other open
 source platforms.
