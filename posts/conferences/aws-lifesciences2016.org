@@ -1,0 +1,77 @@
+#+BLOG: smallchangebio
+#+TITLE: Notes: AWS Life Sciences Day 2016
+#+CATEGORY: conference
+#+TAGS: bioinformatics, aws, cloud
+#+OPTIONS: toc:nil num:nil
+
+I'm at the [[https://aws.amazon.com/events/2016-aws-hcls-days/2016-aws-lifesciences-days-boston/][AWS Life Sciences Day, 2016]] in Boston, learning about new work
+happening on [[http://aws.amazon.com/][Amazon Web Services]] in Life Sciences. I talked about our work
+porting [[http://bcb.io][bcbio]] to use the [[http://commonwl.org][Common Workflow Language]]: [[https://docs.google.com/presentation/d/1zigvx1VL2FGA0EZWsix95xPyvN0L7Map9nNGQws-KTQ/edit#slide=id.g1125ee8fbf_1_76][slides]].
+
+** Competing on knowledge and insights: an academic medical center's perspective
+/Trung Do, Partners HealthCare/
+
+Partners is MGH and Bringham and Women's -- largest employer in Massachusetts
+and my former employer. Large research and discovery budget and focused on
+combining the Electronic Health Records (EHRs)/Hospital Data with research. The
+major challenges are the amount of data and interoperability between systems.
+40,000 consented patients linked to EHR. The data in health systems is of
+unpredictable quality -- phenotypes based on billing codes, not the actual
+medical assessment. Use machine learning to translate these codes into correct
+computed phenotypes. This gets the right patients into the right cohorts.
+
+Some applications of machine learning in clinical applications: Processing
+imaging data and working on early detection. Starting [[http://www.massgeneral.org/News/newsarticle.aspx?id=5781][MGH clinical data science
+center]] to combine imaging, genetic, EHR and other data using machine learning
+resources.
+
+** Best practices when building a validated system on AWS for the Life Sciences
+/Chris McCurdy, AWS/
+
+Chris is talking about DevOps, regulatory concerns and security at AWS. DevOps:
+plan, create, verify, configure, pre-production, release, monitoring. Rollback
+and recovery important at each point in the process. Can take more risks if you
+can recover from problems quickly. Hard to embed security into DevOps -- need to
+treat security as code. Codify and automated SOPs so they're part of your
+process and can scale. Nice example of permissions as code: can specify
+permissions on an AWS bucket so you can only upload if AES encrypted -- prevents
+mistakes.
+
+Observed industrry cloud techniques with AWS: AWS provides security on the
+cloud, but customers responsible for security in the cloud. Separation approach:
+keep separate VPCs with sensitive and general data. Indirection strategy: only
+allow connections between secure systems, insecure systems get messages only not
+the actual data.
+
+Matt Szenher from [[https://www.mdsol.com/en][Medidata]], talking about audit ingestion approaches. Audits are
+records of actions that create, modify or delete clinically relevant data.
+Audit needs: persisted, immutable, consistent, consistent, secure and cheap.
+There are tons of these: 1/2 million patient points per day, 600 audits per
+second.The auditing solution they use is MAudit, build on AWS.
+
+** Cognizant: Agile Cloud Native Development with AWS
+/Maran Marudhamuthu, Cognizant/
+
+Change in architecture of distributed systems -- smaller, independent services.
+No longer think about infrastructure, use services rather than building[[https://www.cognizant.com/][ them
+yourself.
+Cognizant]] provides building tools on top of AWS services and have a nice
+overview of available services.
+
+** Scalable Genomics Analysis in the Cloud with ADAM
+/Ujwal Ratan, Amazon and Timothy Danford, Tamr and UC Berkley/
+
+Talking through Amazon Elastic MapReduce (EMR) -- a managed Hadoop cluster. EMR
+can ingest data from DynamoDB, RDS, Redshift, Kafka streaming. Can also build a
+Spark cluster.on top of this. Timothy talks about the awesome
+[[https://github.com/bigdatagenomics/adam][ADAM project]], which provides genomic analysis and interfaces with Spark. He
+motivates by talking about the current state of bioinformatics tools: shared
+file formats, independent parallelization of pipelines, and combining platforms
+with the actual algorithm. Good example of combination of concerns -- file
+handle specification in Picard. Can we separate out platform concerns from
+bioinformatics concerns? Many algorithms underneath are large sums from
+probabilistic models and ER, which we can parallelize on Spark. Some issues to
+do this though when looking at details of algorithms. Nice example from MuTect
+paper where assume BAM file format for filter. Also motivates for using
+Avro/Parquet instead of custom file format. Ujwal finishes with a demo of
+running ADAM on EMR processing a VCF file and converting into ADAM.

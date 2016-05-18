@@ -1,0 +1,122 @@
+#+BLOG: smallchangebio
+#+POSTID: 102
+#+DATE: [2015-11-10 Tue 09:34]
+#+BLOG: smallchangebio
+#+TITLE: Notes: Bio in Docker Symposium 2015 day 2: Docker infrastructure and hackathon
+#+CATEGORY: conference
+#+TAGS: bioinformatics, open-bio, open-source
+#+OPTIONS: toc:nil num:nil
+
+I'm at day 2 of the [[https://github.com/KHP-Informatics/bioindocker15][Bio in Docker Symposium]] at the
+[[http://wellcomecollection.org/what-we-do/franks-and-steel-rooms][Wellcome Collection]] in London. This is a great 2 day set of talks and coding
+sessions around the use of [[https://www.docker.com/][Docker containerization]] in biology workflows. The
+idea is to coordinate around using these tools to be able to improve our ability
+to do science. There is hackathon for half of today but the morning talks focus
+on tools within the Docker ecosystem and learning how to use these to design
+better applications for biology. There is a ton of cool engineering ongoing, but
+untangling all of the different components is a challenge hopefully these talks
+will help with.
+
+- [[https://smallchangebio.wordpress.com/2015/11/09/bioindocker2015-day1/][Notes for day 1]]: NGS pipelines, workflow tools and data volume management
+
+* Publication
+
+** F1000Research - a publishing platform for the Docker community
+/Thomas Ingraham & Michael Markie/
+
+ [[http://f1000research.com/][F1000 Research]] is an open publisher that both handles traditional articles but
+ also outputs like posters and presentations. The do open post-publication peer
+ review and are generally a great way to publish research. Articles are only
+ indexed and officially published when passing peer review. Articles have
+ versions so you can see changes over time. Collections organize related content
+ for easier discoverability. One example is the [[http://f1000research.com/channels/bosc][Bioinformatics Open Source
+ Conference (BOSC) channel]]. Today they're announcing a channel for [[http://f1000research.com/channels/containers][Container
+ virtualization in informatics]]. A great way to make Docker-enabled posts
+ publicly available.
+
+* New Docker functionality
+
+** Weaving Containers in Amazon's ECS
+/Alfonso Acosta/
+
+Microservice oriented architecture model work around small components that each
+do a single job. This helps avoid complexity, but introduces challenges in
+coordinating and putting things together. [[http://weave.works/][WeaveWorks]] has tools to connect,
+observe and control containers. It connects containers, managed IP issues, sorts
+out DNS, and does load balancing between identically named containers. It
+handles node failures with recovery. Weave does not require a distributed
+key/value store -- uses gossip in a peer-to-peer fashion so resistant to
+failures. On each machine you start up a new weave client. It only needs to know
+the name of one other host on the network, then they're all connected. Then you
+start and register containers in the network. Weave sits on top of
+[[https://aws.amazon.com/ecs/][Amazon ECS]], providing all of the container registry and discovery
+
+** Orchestrating containers with docker compose
+/Aanand Prasad/
+
+[[http://docs.docker.com/compose/][Docker compose]] allows defining and running multi-container Docker applications.
+Motivation is that multi-container apps are a hassle to setup, configure and
+coordinate. Coordinates with [[http://docs.docker.com/machine/][Docker machine]], which creates Docker hosts on a
+machine, and [[http://docs.docker.com/swarm/][Docker swarm]], which provides clustering of Docker containers. From
+our previous talk, it looks like [[http://blog.weave.works/2015/11/06/weave-discovery-and-docker-swarm/][Weave can work with Swarm directly]]. For a demo,
+Aanand shows docker compose talking directly to a swarm cluster. The swarm
+integration with Docker is nice -- all of the standard docker commands work when
+you're running a coordinated cluster. It does a great job of distributing
+containers across multiple hosts. Docker machine does work on running inside VMs
+in an easy way, but you also lose all the native goodness of docker by going
+this route.
+
+** Manage your infrastructure like Google
+/Matt Barker & Matt Banes/
+
+[[http://www.jetstack.io/][JetStack]] helps with management and orchestration of containers. At Google
+everything runs in a container with 2 billion containers a week. [[http://kubernetes.io/][Kubernetes]] is
+the open source version of their internal cluster management tool. [[http://kubernetes.io/v1.1/docs/user-guide/pods.html][Pods]] look
+really cool and are a way to group together multiple applications with shared
+volumes. The [[http://kubernetes.io/v1.1/docs/user-guide/replication-controller.html][replication controller]] does the work of maintaining a consistent
+state of pods, restarting when things fail. [[http://stackoverflow.com/questions/28857993/how-does-kubernetes-scheduler-work][Kubernete's shared-state scheduler]]
+does the job of scheduling containers to machines based on resource requests.
+[[http://kubernetes.io/v1.1/docs/user-guide/services.html][Services]] provides a way to label pods and then do discovery based on the naming,
+instead of introducing this complexity into your code. As of the new version,
+Kubernetes now has a [[https://github.com/kubernetes/kubernetes/blob/master/docs/user-guide/jobs.md][Job object]] which explicity managed jobs. Nice live example
+wrapping [[https://github.com/iqbal-lab/Mykrobe-predictor][Mykrobe predictor]] inside a Docker container and then running with
+Kubernetes -- mykrobe predictor spits out JSON which gets sucked into MongoDB
+from a watcher in another container. Kubernetes is impressive and the
+discoverability of coordinating between services is nice.
+
+** Docker and real world problems
+/Clive Stringer and Adam Hatherly/
+
+[[https://www.kch.nhs.uk/][King's College London is a NHS hospital]] with big hospital problem. Many of the
+components don't fit well together so things don't interoperate. Major need is
+components that slot together easily. [[http://developer.nhs.uk/library/interoperability/ciao-care-integration-orchestration/][CIAO]] (Care Integration and Orchestration)
+is an open source middleware to make it easier to use standards and share
+information. The NHS is a complex set of organizations so not set up to work as
+a whole system. Encapsulates the complex XML integration code inside of
+components composed in Docker containers. Each components is a microservice and
+self-contained. Each component in a reference standard for libraries. A second
+focus is on trying to characterize genes based on genetic components. Challenge
+is to make medical records available.
+
+** OSwitch: One-line access to other operating systems.
+/Yannick Wurm/
+
+Yannick works with ants, and starts with a plugs for ant being cool. Shows
+example of leaf cutter ants using symbiotic fungus to digest leaves. Sold. Then
+he motivates about the difficulties of working with computational tools to
+answer biological questions. [[https://github.com/wurmlab/oswitch][Also sold. oSwitch]] is an awesome tool that provides
+a small wrapper around Docker. It creates an interactive instance around a tool,
+run things on the files in the current directory, then exiting. It removes all
+of the abstraction around Docker. We should have docs on debugging bcbio runs
+with oSwitch when running more with Docker.
+
+
+* Hackathon
+
+The afternoon of the workshop is for working on problems and getting coding
+done. The organizers have nicely setup up tutorials ranging from learning
+Docker, to learning advanced Docker concepts to working with tools like Nextflow
+and Nextflow workbench that build on top of Docker. I'm working on continuing to
+improve [[https://github.com/chapmanb/bcbio-nextgen/tree/master/cwl][CWL support in bcbio]], moving towards the vision of bcbio running on
+alternative infrastructure presented in
+[[https://github.com/chapmanb/bcbb/blob/master/talks/bioindocker2015_bcbio/chapman_bioindocker.pdf][my talk at the conference]].

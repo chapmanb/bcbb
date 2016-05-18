@@ -1,0 +1,158 @@
+#+BLOG: smallchangebio
+#+POSTID: 99
+#+DATE: [2015-11-09 Mon 11:57]
+#+BLOG: smallchangebio
+#+TITLE: Notes: Bio in Docker Symposium 2015
+#+CATEGORY: conference
+#+TAGS: bioinformatics, open-bio, open-source
+#+OPTIONS: toc:nil num:nil
+
+I'm at the [[https://github.com/KHP-Informatics/bioindocker15][Bio in Docker Symposium]] at the
+[[http://wellcomecollection.org/what-we-do/franks-and-steel-rooms][Wellcome Collection]] in London. This is a great 2 day set of talks and coding
+sessions around the use of [[https://www.docker.com/][Docker containerization]] in biology workflows. The
+idea is to coordinate around using these tools to be able to improve our ability
+to do science.
+
+* Pipelines and Workflows
+
+** Evaluating and ranking bioinformatics software using docker containers. plus Overview of the BioBoxes project
+/Peter Belmann/
+
+[[http://bioboxes.org/][BioBoxes]] is a community effort driven by two efforts: [[http://cami-challenge.org][CAMI]] and [[http://nucleotid.es][nucleotid.es]]. The
+goal is to improve reproducibility and reuse. Avoids issues with compilation and
+file format management to focus on putting things together. BioBoxes is a
+standard for creating interchangeable software containers. It groups software
+based on interface definitions. For example: Assembler takes a list of Fastq
+files and produces Fasta. This allows you to plug in any set of assemblers that
+work with this interface. Built a [[http://bioboxes.org/docs/command-line-interface/][command line interface]] that hides
+configuration and usage of Docker to make it transparent. The key is agreeing on
+[[https://github.com/bioboxes/rfc][specifications to implement]], which the community can iterate on. Good question
+about how to handle external data and mount into containers.
+
+** Portable workflow and tool descriptions with Common Workflow Language and Rabix
+/Nebojsa Tijanic/
+
+Nebojsa works at [[https://www.sbgenomics.com/][Seven Bridges]] on building reproducible computational analyses.
+Large issue = hard to setup environment to run another analysis. Docker solves
+these problems for us by encapsulating the environment and code. Remaining
+issues: understand resource needed, how to supply inputs and how to capture
+outputs. A second usage pattern, which is what we do in bcbio, is to provide a
+docker image with multiple tools together, running in parts. Once you start to
+orchestrate these individual tools, need a workflow engine to organize and run
+things. Result of multiple workflow engines is to have a single specification
+for describing workflows: [[https://github.com/common-workflow-language/common-workflow-language][Common Workflow Language (CWL)]].
+The goal of CWL is to have a specification for portable workflows.
+Some implementations that run CWL now: reference implementation, [[https://github.com/rabix/rabix][Rabix]], [[https://arvados.org/][Arvados]]
+Work in progress implementations:[[https://github.com/broadinstitute/cromwell][ Cromwell (Broad)]], [[https://galaxyproject.org/][Galaxy]].
+Design choices for CWL: declarative, extendable, uses Docker for packaging,
+YAML/JSON encoding, re-uses existing work as much as possible. Contains a
+description for defining tools, which defines all of inputs and outputs.
+Combining with a community sourced specification like BioBoxes this creates a
+standard usage for interoperability between workflow runners. Beyond tools,
+contains a directed acyclic graph of workflow steps. Workflow supports
+parallelization through scatter/gather. Rabix is the open source toolkit for CWL
+from Seven Bridges and will focus on consolidating with reference
+implementation.
+
+** Manage reproducibility in genomics pipelines with Nextflow and Docker containers
+/Paolo Di Tommaso/
+
+Paolo starts by talking about results of survey from [[http://twitter.com/pathogenomenick][Nick Loman]] to figure out
+common obstacles to running computational workflows. Why are things so hard?
+They're complex, experimental and run on heterogeneous hardware. Containers
+solve a lot of these issues and are more lightweight than VMs -- smaller images,
+fast start time and almost native performance. From a reproducibility
+standpoint, they have transparent build processes. To scale out, tools like
+Swarm, Fleet, Kubernetes and Mesos orchestrate containers. These are not for
+task scheduling, but for orchestration. The main cost is the startup time --
+it's small for Docker but matters if you're running a lot of very fast runs.
+
+Paolo helps develop [[http://www.nextflow.io/][Nextflow]] which manages compute, data registry and local
+filesystem. Benchmarked native runs versus docker and very close in execution time. It
+provides a DSL on top of the JVM with high level parallelization. Workflow based
+on [[https://en.wikipedia.org/wiki/Dataflow][dataflow processing]]. Nextflow is well thought out including specifications
+for resources used and scaling. Works locally, on clusters with multiple
+schedulers, and on AWS with [[https://clusterk.com/][ClusterK]]. A nice feature is direct interaction with
+GitHub -- you can pull a workflow from a repository automatically. Brave live
+demo of an RNA-seq analysis -- cool example showing not working locally because
+of tool installation but does if you use Docker containers.
+
+** Next generation sequencing pipelines in Docker
+/Amos Folarin and Stephen Newhouse/
+
+Amos and Steve, the organizers of this great workshop, present their work on
+[[https://github.com/KHP-Informatics/ngseasy][NGSeasy]]. The idea is to explore the use of Docker for workflow pipelines. Amos
+describes the motivations and good bits of Docker containers. There is a lot of
+promise but some technical challenges: moving quickly, user namespaces not yet
+supported (but planned for next release) so need root equivalent access.
+In biology you create a larger number of interfaces, potentially introducing
+complexity. NGSeasy strike balance in terms of separation of tools inside
+containers. In general, use a larger container with large number of available
+tools. Similar to the approach in bcbio, although NGSeasy has smaller suites of
+tools instead of everything. Uses bash scripts for orchestration and calling out
+to docker. Goal of conference is to bring together all of the projects to work
+together.
+
+** Pipelines to analysis data from the 100,000 genomes project as part of the Genomics England Clinical Interpretation Partnership (GeCIP) 
+/Tim Hubbard/
+
+The goal oof Genomics England is to transform the NHS to use genomics on a large
+scale -- focus on treatment, not research design. It does all clinical whole
+genome sequencing for rare disease and cancer. Also meant to build up genomics
+infrastructure in England, leaving a legacy of infrastructure human capacity and
+capability. For pipelines. Split up components into sub-pipelines and get these
+available from local companies. For health records, use [[https://github.com/OpenClinica/OpenClinica][OpenClinica]]. It's an
+impressive model around helping patients with genomic sequencing. For research
+work with data, setting up a [[http://www.genomicsengland.co.uk/about-gecip/][Clinical Interpretation Partnership (GECIP)]]. How
+can we improve the 50% intepretation rate for rare diseases? Feed these to
+research groups to improve interpretation for specific diseases. Practically
+there are 11 Genomic Medicine Centers, 70 hospitals, 9000 participants
+consented. Infrastructure is fully leased and virtualized with rented compute.
+For data sharing a couple of current models: open to all (1000 genomes), managed
+repositories like DbGap. The new model for Genomics England is managed access
+but no redistribution. You have to work inside the environment. Long term goals
+of GEL: engine for NHS transformation to genomics, data standardization,
+acceptance of data centers for securely processing patient data.
+
+** MetaR and the Nextflow Workbench: application of Docker and language workbench technology to simplify bioinformatics training and data analysis.
+/Fabien Campagne/
+
+[[http://campagnelab.org/software/metar/][MetaR]] tries to help newer users have reproducible analysis. New user often
+prefer a graphical user interface but this is challenging to reproduce and
+scale. MetaR is a workbench for teaching R analysis to new users.
+[[http://campagnelab.org/software/nextflow-workbench/][Nextflow Workbench]] builds on top of Nextflow, trying to make it easier to write
+Nextflow workflows. The workbench allows you to organize them into modules for
+reproducibility. It provides a lot of nice user interface elements around
+Nextflow. Impressive interaction with Docker, along with specification of
+resources required. Shows real example of [[https://github.com/COMBINE-lab/salmon][SALMON ]]transcript indexes which
+require transcripts plus other resources to pull in. Data managed inside the
+Docker image with Nextflow Workbench. I wonder if there are better ways to
+handle this data and link them into Docker containers. The workbench also allows
+writing a bash script and easily converts to workflow processes. The workbench
+is interactive with auto-completion. Overall a nice development environment. It
+builds on top of [[https://www.jetbrains.com/mps/][JetBrains language workbench]].
+
+** Bioinformatics and the packaging melee
+/Elijah Charles/
+
+Elijah makes the good point that we need distributions that have pre-built tools
+so we can start at a higher level. Docker provides solutions for configuration
+management, isolation and versioning.
+
+** Data, Volumes and portability with Flocker
+/Kai Davenport/
+
+[[https://clusterhq.com/][ClusterHQ]] provides data solutions for working with Docker. Excited to hear about
+ideas for this. Why containers? Isolated: immutable environments you can keep
+separate as needed. Expediate: pre-built binary images. Compact: better resource
+usage compared to VMs. Images: save each layer, making everything pluggable. Now
+on to Docker Storage: Volumes. Each container has it's own mount namespace, but
+volumes are bind mounted directories from the host into the container for
+maintenance beyond the lifetime of the container. Challenge is scaling this to
+multiple machines. [[https://github.com/ClusterHQ/flocker][Flocker]] solves this problem by orchestrating storage for a
+cluster of machines. Flocker control service pushes volumes to specific machines
+running clients. Supports a range of backend storage drivers. Integrates
+orchestration platforms (Mesos, Marathon, Kubernetes, Docker Swarm and friends)
+with Storage (EMC and friends). The orchestration tools hide the hardware and
+manage a pool of compute resources, handling monitoring and failures. Looks like
+a really nice abstraction to make this easier.
