@@ -1,0 +1,66 @@
+#+title: Promoting platform interoperability with portable bcbio workflows
+#+author: Brad Chapman \newline Bioinformatics Core, Harvard Chan School \newline https://bcb.io \newline http://j.mp/bcbiolinks
+#+date: 8 July 2016
+
+#+OPTIONS: toc:nil H:2
+
+#+startup: beamer
+#+LaTeX_CLASS: beamer
+#+latex_header: \usepackage{url}
+#+latex_header: \usepackage{hyperref}
+#+latex_header: \hypersetup{colorlinks=true}
+#+BEAMER_THEME: default
+#+BEAMER_COLOR_THEME: seahorse
+#+BEAMER_INNER_THEME: rectangles
+
+* Talk
+
+** Blue Collar Bioinformatics
+
+[[./images/bcbio.png]]
+
+#+BEGIN_CENTER
+\LARGE
+http://bcb.io
+#+END_CENTER
+
+** Good quality high throughput sequencing analyses
+\Large
+- Variant calling: SNPs and indels
+- Structural variation
+- Cancer heterogeneity
+- RNA-seq
+- small RNA
+- Quality control
+
+** Validate and move quickly
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width .8\textwidth
+[[./images/grading-summary-24385.png]]
+#+END_CENTER
+
+** Infrastructure Goals
+\Large
+- Free, open source, community developed
+- Welcoming to contributions
+- Local machines
+- Clusters: SLURM, SGE, Torque, PBS, LSF
+- Clouds: Amazon, Google, Azure
+- Clinical environments
+- User interface for researchers
+- Integrate with LIMS
+- Accessible to the general public
+
+** Open source communities not yet optimal
+
+[[./images/fitness.png]]
+
+\tiny
+https://en.wikipedia.org/wiki/Fitness_landscape
+
+** Better abstractions = more interoperability
+
+[[./images/abstractions.png]]
+
+https://bcbio-nextgen.readthedocs.io/en/latest/contents/cwl.html
