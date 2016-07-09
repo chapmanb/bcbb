@@ -1,0 +1,155 @@
+#+BLOG: smallchangebio
+#+POSTID: 104
+#+DATE: [2016-07-08 Fri 14:20]
+#+BLOG: smallchangebio
+#+TITLE: Notes: Bioinformatics Open Source Conference 2016 day 1 morning -- Open Data and infectious disease, workflows
+#+CATEGORY: conference
+#+TAGS: bioinformatics, open-bio, open-source
+#+OPTIONS: toc:nil num:nil
+
+I'm at the [[http://www.open-bio.org/wiki/BOSC_2016][2016 Bioinformatics Open Source Conference (BOSC)]] in Orlando,
+Florida. BOSC is a two day community conference devoted to open scientific
+development communities. Nomi Harris starts the day off with an introduction to
+the 17th annual BOSC. The theme this year is about connecting Communities of
+Communities and Nomi emphasizes the importance of bringing together multiple
+independent groups to create a larger community that can solve important
+problems. This is the key goal of BOSC and why we come together to share and
+learn from each other.
+
+* Keynote
+** Jennifer Gardy -- The open-source outbreak: can data prevent the next pandemic?
+
+Jennifer starts the conference off talking about the roll of open data in
+infectious disease. She has some great stories about presentations from [[http://open-bio.org/bosc2004/][BOSC
+2004]] and trips to Orlando when she was in high school. On the science side,
+Jennifer talks about using genomic data to understand where new diseases come
+from and how we can understand their spread. 56 million deaths a year and 1/3 of
+these are due to infectious disease; 5x higher death rate in low income
+countries. Tuberculosis has been found in mummies from 2050BC, so we have both
+old and new diseases to deal with. Old diseases can change and become resistant,
+so lots of things to worry about. Beautiful map of where diseases emerge on a
+global scale. We know where they come from but are not looking for new diseases
+in a systematic way. Most locations do not have systems for collecting and
+sharing data, mostly resource constrained. Good example is Ebola: December 6th
+first deadh, March 22nd first pro-med e-mail alert, August declaration of
+emergency. Public health is quite bureaucratic and most data is kept private to
+research groups.
+
+Awesome work on crowd sourcing problem: [[http://www.epicollect.net/][EpiCollect]] for your phone, [[https://epihack.org/][EpiHack for
+in depth problems]]. Called Digitial epidemiology. [[http://www.healthmap.org/en/][HealthMap]] provides reports on
+issues located nearby. They identified Ebola before pro-med. [[http://retscio.net/projects/nemesis/][nEmesis]] monitors
+tweets for food poisoining updates.
+
+Lots of bioinformatics opportunities in disease detection: rapid ID of
+pathogenes from metagenomic surveillance data. Example of the great [[http://zibraproject.github.io/][ZIBRA]]
+project sequencing Zika in Brazil and releasing data in real time.
+
+Shows the incredible John Snow graphic from Cholera outbreak in London.
+Identified infected water pump. Still useful technique -- identify isolates, use
+molecular epidemiology to id clustered isolates. Then try to find connections
+between clusters. However, lots of current limitations: you don't get
+order/direction of transmission, size and membership of cluster varies, lots of
+manual work to identify underlying transmission structure. Genomic epidemiology:
+use genomic sequence to track how it spreads without needing to manually talk to
+everyone. Data is simple to use -- 21 base pairs vary over whole genome in
+tuberculosis outbreak and can compare only these. Easy to visualize and see
+sub-groups with high resolution picture. Next work -- want to automatically
+infer transmission from this structure. Infer a transimission tree from
+phylogenetic tree: uses Beast to draw tree of outbreak, and identifies locations
+where there are jumps using this to infer an infection network.
+
+Cool examples of open data and analyses available to anyone: [[http://virological.org/][Virological]],
+[[https://github.com/blab/nextflu][NextFlu]]. Open-source crowd-sourced analysis of E coli outbreak paper. So
+incredible, how can the community do it regularly? Challenge is to bridge the
+evolutionary-math-bioinformatics gap. Better information visualization and
+interpretation needed.
+
+* Workflows
+
+** Ted Liefeld -- GenomeSpace: Open source interoperability platform with crowd-sourced analysis recipes 
+
+[[http://www.genomespace.org/][GenomeSpace]] is an open source tool to connect bioinformatics programs. Provides
+a standard way to organize files in the cloud, then ship them off to integrated
+tools. Has publicly shared files. 20 GenomeSpace tools, including cBio portal,
+Galaxy, GenePattern, ISATools, Cytospace. Great example of connecting tools
+together and creating community of communities. To integrate a tool it needs to
+be able to handle authorization, read files from URLs. Have a recipe resource
+with step-by-step instructions for doing integrative analyses. Awesome community
+distributed way to document and share.
+
+** Michael Crusoe -- This is Why We Can Have Nice Things: Getting to 1.0 of the Common Workflow Language
+
+Michael talks about the release of [[http://www.commonwl.org/][Common Workflow Language (CWL)]] v1.0. The
+motivation is that there are many workflow standards and could we move workflows
+between them. Standards create a surface for collaboration that promotes
+innovation. Works on both shared-nothing clusters (cloud), academic clusters
+with shared filesystems. Michael does a great job of explaining the goals of CWL
+(practical standard) and the community (large set of members) and lessons
+learned. He also presents an awesome vision of building great full reproducible
+workflows with the workshope for sustainable software in science.
+
+** Dan Leehr -- CWL in Practice: Experiences, challenges, and results from adopting Common Workflow Language 
+
+Dan talks about his experience adopting CWL for practical usage in a biological
+research project. Some challenges: change in paradigm and new way of thinking.
+Advantages: better representation of workflow and portability. Required changing
+an architecture from bash scripts into CWL tools and using sub-workflows to group
+them together into steps, and high level workflows to run the full thing. Need
+to think through the data flow dependencies. Shows example of ChiP-seq workflow
+with quality control. Some things to do in CWL: no branching/conditionals so
+have distinct workflows for each code path, use scatter/gather instead of loops.
+Useful things: simple javascript expressions, embraces linux conventions and
+requirement specifications. Use a different CWL implementation: [[http://toil.readthedocs.io][Toil]] to run
+distributed on SLURM.
+
+** Peter Amstutz -- Using the Common Workflow Language (CWL) to run portable workflows with Arvados and Toil
+
+Peter works on the [[https://arvados.org/][Arvados project]] and will talk about work running pipelines in
+CWL in multiple environments. What kind of software can we have if we have the
+baseline assumption that we can move workflows between systems. Can we run an
+unmodified workflow using completely different workflow software, cloud
+providers, storage systems and schedulers. Used bcbio to run in two
+environments: Toil and Arvados. Toil: running on AWS, S3 storage, Mesos
+scheduler, converts CWL to Toil workflow graph. Arvados is a managed
+multi-tenant architecture with web workbench, running on Azure, Arvados Keep
+storage for files, Crunch + SLURM scheduler. Ran and got the exact same outputs.
+Great demonstration. To ensure this kind of compatibility, there is continuous
+validation: a CI server and continuously tests every implementation and provide
+guidance to users of CWL. If you can trust ability to bring your own workflow
+you can choose the platform that matches your needs. Portable APIs associated
+with this: [[https://github.com/ga4gh/tool-registry-schemas][GA4GH Tool Registry API]]. [[https://dockstore.org/][DockStore]] implements this API and is a
+usable implementation available now.
+[[https://github.com/ga4gh/workflow-execution-schemas][GA4GH Workflow submission API]] for further standardization.
+
+** John Chilton -- Planemo – A Scientific Workflow SDK
+
+[[https://usegalaxy.org/][Galaxy]] philosophy on workflows -- the most important user is the bench scientist
+using the GUI. Galaxy will never require an SDK, but the SDKs are rather for
+bioinformaticians who prefer this approach over the GUI. [[https://github.com/galaxyproject/planemo][Planemo]] (pronounced
+Plah-nemo -- Nemo like the famous fish) is the way to develop Galaxy tools and
+focuses on developers. planemo creates a profile for testing workflows, then can
+re-run without needing setup every time. Galaxy's workflow format is JSON, hard
+to read and impossible to write. Swapped over to a Format 2 workflow which is
+very similar to CWL. CWL-inspired and hopefully real CWL soon. Planemo also
+provides nice facilities to test workflows. CWL and Galaxy: right now CWL tools
+work with Galaxy tools. No support for CWL workflows yet but hopeful outcome for
+BOSC 2017. Planemo can lint CWL tools -- useful functionality for standard CWL
+development. John describes other great work to make tool installation easier:
+bioconda, docker.
+
+** Daniel Blankenberg -- Sample Size Does Matter: Scaling Up Analysis in Galaxy with Metagenomics
+
+Dan talking about enabling metagenomic work with Galaxy. Handles a whole bunch
+of standard metagenomic tools. Dan is incredibly fast having trouble
+keeping up. Handles normalization, metadata, graphs of differentiation between
+results, integrated Phinch from Holly Bik (last year's keynote -- awesome). Also
+handles large-scale multiple sample analysis -- 500 samples. 5000+ -- still
+under development.
+
+** Fabien Campagne -- NextflowWorkbench: Reproducible and Reusable Workflows for Beginners and Experts
+
+[[http://campagnelab.org/software/nextflow-workbench/][Nextflow Workbench]] is an integrated development enviornment for Nextflow. Nice
+typing system, auto-completion, error highlighting. It's a GUI environment that
+makes developers much more productive. Looks like a great environment, built on
+top of Nextflow so can work on laptops, clusters, or Google cloud. It's also
+built in MPS as a cloud language.

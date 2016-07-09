@@ -1,0 +1,174 @@
+#+BLOG: smallchangebio
+#+POSTID: 106
+#+DATE: [2016-07-08 Fri 17:24]
+#+BLOG: smallchangebio
+#+TITLE: Notes: Bioinformatics Open Source Conference 2016 day 1 afternoon: Standards; Panel on growing communities
+#+CATEGORY: conference
+#+TAGS: bioinformatics, open-bio, open-source
+#+OPTIONS: toc:nil num:nil
+
+I'm at the [[http://www.open-bio.org/wiki/BOSC_2016][2016 Bioinformatics Open Source Conference (BOSC)]] in Orlando and
+these are the notes from the afternoon sessions from the first day focusing on
+standards and a panel on growing and sustaining open source communities.
+
+Other notes:
+
+- [[https://smallchangebio.wordpress.com/2016/07/08/bosc2016_day1a/][Day 1 morning notes]] -- Jennifer Gardy keynote on open data and infectious
+  diseases, plus workflow development
+
+* Standards
+** Andre Masella -- Enhancements to MISO: An open-source community-driven LIMS 
+
+Andre describes the use of [[https://github.com/TGAC/miso-lims][MISO LIMS]] at OICR integrating with [[https://github.com/SeqWare/seqware][SeqWare]]. Cool
+because a different workflow system than development team at TGAC/Earlham
+Institute. 1 developer at Earlham and 4 developers at OICR. Require code reviews
+for everything with at least two developers -- have a mainline with
+site-specific repositories for configuration. Nice development processes. Lots
+of configurable plug ins to externalize the configuration so handles lots of new
+integration features. Planning to expand the tissue processing workflow used at
+OICR. Also planning to continue to improve UI with new Excel-like [[https://handsontable.com/][handsontable]]
+interface.
+
+** Chunlei Wu -- Biothings APIs: high-performance bioentity-centric web services
+
+Building a unified API for biological entities. Represent heterogeneous data in
+a document database -- JSON documents with nested key/value pairs. [[http://mygene.info][MyGene.info]]
+and [[http://myvariant.info][MuVariant.info]] -- great resources for querying and retrieving information
+about genes and variants. Easy to use for developers -- two endpoints, no API
+keys or sign ins. Python and R clients available for usage. Incredible update
+rate: weekly for genes, monthly for variants. [[http://biothings.io/][BioThings.io]] is an great resource
+for the community. Scales to 5M hits/day with 99.9%+ availability and quick
+return times. Used by MyGene CIViC, jBrowse
+
+** Seth Carbon -- The Noctua Modeling Tool
+
+[[http://noctua.berkeleybop.org/][Noctua]] provides collaborative editing of RDF instance graphs for modeling
+biological processes ([[https://github.com/geneontology/noctua-models][models]]). Use a LEGO abstraction for modeling biology and
+under the covers uses OWL for modeling LEGO. Noctua is really an abstract graph
+editor. It avoids pitfalls of tabular models that causes issues. By being highly
+collaborative you can work together at the same time remotely. Nice demo of
+using Noctua for chaining together complicated biological interactions: feedback
+loops with positive and negative feedback.
+
+** Chris Mungall -- Processing phenotype data using Phenopackets-API and PXFTools
+
+Chris emphasizes that standards enable computation, but for phenotypic
+information a big lack of standards compared to genomics (GFF, VCF, BED).
+Phenotypes are hard, so walks us through important example using Mickey Mouse.
+Hard to capture in words how perfect and funny this is. In seriousness, there is
+a lot of squishiness in defining things and we can improve this using
+ontologies. Shows how hard this is -- in many cases need to combine multiple
+terms to describe. To try and improve this situation developed PXF: Phenotype
+Exchange Format. Handles much of the complexity required in real life
+descriptions. [[https://github.com/phenopackets/pxftools][PXFTools]] makes it easier to work with these formats. Can use
+JSON-LD/RDF magic that I don't understand to convert into triples for modeling
+and query. Has a reference API in Java, plus Python and Javascript bindings.
+
+** John Bradley -- Towards traceable, scriptable, and efficient data distribution for next-generation genomics 
+
+John talks about the data lifecycle in research -- wants to have
+reproducibility, provenance and versioning. Typically we have terrible ID
+management based on filesystems. [[https://github.com/Duke-Translational-Bioinformatics/duke-data-service][Duke Data Service]] handles better provenance and
+management. Have a full workflow around this. Cool, similar ideas to Arvados.
+
+* Panel: Growing and sustaining open source communities
+
+This is the always great BOSC discussion panel. The goal of this panel is to
+discuss how open source communities can grow and develop. We have five great
+panelists:
+
+- Natasha Wood -- Establishing a bioinformatics community in western cape of
+  South Africa using Bioinformatics unseminars.
+- Bastian Greshake -- Created openSNP, a crowdsourced environment to share
+  genomic data. Growing quickly with lots of users and 5-10 contributors on
+  coding side.
+- Abby Cabunoc Mayes -- Developer for the Mozilla Science Lab, engaging external
+  researchers. To build a community, you need to make things.
+- John Chilton -- Developer in the Galaxy project. It exists for the community
+  and has a strong focus on users and researchers. Awesome 200 person Galaxy
+  conference showing the strong devoted community.
+- Jamie Whitacre -- Background in software development at Smithsonian, now
+  technical project manager for Jupyter (IPython) project. Core team of 25
+  developers.
+
+Discussion questions:
+
+What is the motivation for community development? Natasha -- knowing
+people from a large number of backgrounds helps with getting things done.
+Networking helps everyone. Abby -- initial motivation for most people is
+selfish. Have to offer something useful, then they start to care about the
+bigger mission. Jamie and John -- Galaxy origins: very bare bones initially, but
+got using it as more useful. For IPython, early small project that expanded as
+it got picked up. Bastian -- different situation because people
+
+Project solving a need, but how to define that need and differentiate to grow
+the community? Abby -- learn things from startups. Very clear about value
+proposition and understanding what makes them unique. People come because they
+care about your mission so you have to be clear about that. John -- easy to be
+technically focused but need to stay focused on use cases, and helping people.
+Jamie -- having a really good idea and a strong personality. Fernando helps draw
+people to the project and picks a great team.
+
+What is the value of empathy in the community building process? Jamie --
+recommends [[https://www.amazon.com/Art-Community-Building-New-Participation/dp/1449312063/][Art of Community]] to learn better about what your community needs.
+John -- need to understand what people want key to bringing people in. Example
+from Galaxy: fully opened up the development process and gave the community a
+voice.
+
+Building bridges between communities and maintaining identity and ownership.
+Abby -- difficult problem, unfortunate about Mozilla Persona. OpenID. Jamie --
+Jupyter hub wants to maintain a single identity so people can take research and
+work with them.
+
+How to foster volunteers to continue to develop within established projects that
+are often engrained? Abby -- being able to delegate tasks. Leave small tasks for
+others to get do as well. As a leader, don't do too much. Idea: have easier bugs
+that you can mentor people through. John -- seconds Abby's comments. In
+additional, breaking project into smaller units allows them to have ownership of
+specific components. This ownership provides incentives for people to
+contribute. Abby -- make people feel appreciated and show what they
+accomplished.
+
+How can you convert non-initiated people into your project? Abby -- okay if
+everyone not intimately involved, can get good feedback from closely associated
+paper.
+
+What about contributor badges for community contributions? Abby -- a great idea.
+Badges show what people actually accomplished, uniquely identified with ORCiD.
+John -- names, names, names. Highlight what people did in release notes to show
+you value their contributions.
+
+What is the best strategy for dissemination and growth? Natasha -- get people
+involved in a project. Hackathons worked. Not worked: get non-bioinformaticians
+involved as they are looking for bioinformaticians not wanting to get involved.
+Jamie -- Jupyter gets best developers through long tail of interested
+contributors. Lots of ways to communicate and get involved with discussions.
+Newsletter and mailing list. They also attend a lot of events and host specific
+events. John -- full time people doing outreach and help (Dave, Jennifer). Put
+in the effort to get the word out. Abby -- want things to be more open by
+focusing on face to face and events. Mozilla Global Sprint good example of
+later. Study groups meet in different cities around the world.
+
+Advice on people starting a project with a couple of developers; pitfalls? Abby
+-- be open so everyone knows what is happening, don't forget about rest of
+world. Bastian -- patience, it can take time before something comes. Natasha --
+useful to have a clear exit strategy for people who want to be part time
+contributors. John -- build a community by becoming part of a larger community.
+A lot benefit from using other projects instead of developing your own things.
+This helps find commonalities and collaborations.
+
+When is a project large enough to recruit people to do community development?
+John -- Dave Clements early on, 7th employee of Galaxy. Abby -- even one person
+can do this. Michael -- CWL, first person.
+
+* Hilmar Lapp -- Open Bioinformatics Foundation (OBF) update
+
+Hilmar starts by taking a poll of audience to see who is at BOSC for the first
+time. ~50% of audience -- awesome to have some many new people. Provides an
+overview of all the work OBF does. Describes some difficult things currently
+affecting the community: running infrastructure with volunteers is hard. Easier
+to setup than to maintain over time. Open Bioinformatics involved in Google
+Summer of Code thanks to Kai Blin, the organization admin: 8 projects, none are
+original Bio* project showing the cool growth of the community. This year we
+have an [[https://news.open-bio.org/2016/03/01/obf-travel-fellowship-program/][OBF Travel Fellowship]] to improve diversity in the community. 3 travel
+awards from April 15th round, applications for August 15t rounds are now open.
