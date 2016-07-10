@@ -1,0 +1,167 @@
+#+BLOG: smallchangebio
+#+POSTID: 108
+#+DATE: [2016-07-09 Sat 14:09]
+#+BLOG: smallchangebio
+#+TITLE: Notes: Bioinformatics Open Source Conference 2016 day 2 morning: Open research and data science
+#+CATEGORY: conference
+#+TAGS: bioinformatics, open-bio, open-source
+#+OPTIONS: toc:nil num:nil
+
+I'm at the [[http://www.open-bio.org/wiki/BOSC_2016][2016 Bioinformatics Open Source Conference (BOSC)]] in Orlando and
+these are the notes from the morning session on the second day. This includes a
+keynote from Steven Salzberg on openness in science and a session on data science.
+
+Other notes:
+
+- [[https://smallchangebio.wordpress.com/2016/07/08/bosc2016_day1a/][Day 1 morning notes]] -- Jennifer Gardy keynote on open data and infectious
+  diseases, plus workflow development
+- [[https://smallchangebio.wordpress.com/2016/07/08/bosc2016day1b/][Day 1 afternoon results]] -- Talks on standards and a panel on growing
+  communities.
+
+* Keynote
+
+** Steven Salzberg -- Open source, open access, and open data: why science moves faster in an open world
+
+Steven talking about power of open science in doinng better work. Tells a story
+about [[https://ccb.jhu.edu/software/glimmer/][Glimmer]] -- developed at TIGR -- initial open source release from Steven.
+Lawyers preferred to try and sell Glimmer, but ended up making executive
+decision to release open source. Next open source package was
+[[http://mummer.sourceforge.net/][MUMmer 3]], which did super fast large scale alignments (moving to GitHub soon).
+Also very popular and well cited, thanks to being open. Citations source of
+credit in academia -- currency we need. Bowtie/TopHat/Cufflinks -- open software
+for NGS with over 20k citations. [[http://ccb.jhu.edu/software/hisat2/index.shtml][HISTAT2]] is the successor to TopHat and
+StringTie is the successor to Cufflinks. If you develop useful open software,
+people will use it. Mentions GATK as example of not following this model --
+initially open source, supported by public grants, now has
+free-only-to-academics license.
+
+Open Data is a bigger issue and talks through the human genome sequence race
+(1998-2001): Celera versus public project. ABI3700 was the technology enabling
+this. Questions about how Celera would make money: one idea was patenting human
+genes. Now invalidated thanks to BRCA Supreme Court decision. At the time NHGRI
+released data immediately to the public domain so it couldn't be patented. A
+personal example from Steven -- sequencing of 12 Drosophila species. Wolbachia
+bacteria co-evolve with most fruit flies. Q from Michael Eisen -- did any of the
+11 new Drosophila have Wolbachia? Yes, found 3 new species. Possible due to
+sharing of the data. Another open project -- rapid data release from Influenza
+Genome Project to develop flu: 19,000 genomes and counting. At start asked
+Influenza researchers for samples -- paid for it and only restriction is that it
+would be publicly available. Most declined because did not want to release data
+publicly. Some examples of major genomics projects that failed at data sharing.
+ENCODE was a pure data generation project without any hypothesis. Data released
+but embargoed and in 2014 changed the policy due to outside pressure. So
+2003-2014 data harder to use than it should be. GTEx -- massive RNA-seq analysis
+project. V3: could not publish until consortium does. V4: 9 month restriction,
+and finally in V5 lifted restrictions. Human data can be harder to share because
+of restrictions. However there are loopholes that allow producers to sit on data
+for 5 years or more until publication. Some positive developments: Biden launch
+of major open access database to advance cancer research. Good examples: ADNI
+Alzheimer's project + Sage with great access policies. Releasing data helps
+correct bad science: example of tardigrade with initial paper claiming lots of
+horizontal gene transfer. A second group did not have transfer -- looked at new
+data plus theirs and found everything is contamination in first paper. There are
+downsides to sharing data. If you publish a dataset, you lose control over
+authorship. Current problem where we need credit. How can we include better
+credit/co-authorship to help the people who produced the data?
+
+Open access papers: everyone has access. Journal distribution artifact of 1800's
+journal service to scientists. Now we have the internet. Patients forced changed
+to make NIH data be open access after 12 months. Why 12 months? Lobbying from
+journal publishers. Science kept secret is no different from science that was
+never done. What is the goal of science? Solve problems, communicate to others
+so they can help. Progress is slower without working together. Great reminder
+about working on hard problems together to help the world become a better place.
+
+* Data Science
+
+** Alyssa Morrow -- Mango: Data Exploration on Large Genomic Datasets
+
+Why do we need distributed visualization? Data explosion -- human genome (10Gb)
+to TCGA (3Pb). Current browsers don't scale -- single node: 0.00125% of entire
+genome. Ideally you'd be multicore and able to explore thousands of whole genome
+samples. [[https://github.com/bigdatagenomics/mango][Mango browser]] uses Parquet and GA4GH Schemas, runs on Apache Spark
+managed with Toil, using ADAM for data management. avacado -- scalable variant
+calling plus gnocchi -- parallel variant analysis. Architecture -- ADAM, Access
+optimization on top of it, Scalatra and [[https://github.com/hammerlab/pileup.js/][pileup.js]] on frontend side. Goal is to
+have interactive latencies on top of batch-oriented platform. Provides
+persistent store optimizations with a front end cache. Provided memory
+optimizations for data already in memory -- interval trees for region selection.
+Implemented discovery mode to do intelligent pre-fetching of feature/variant
+density. Scales nicely over lots of nodes.
+
+** Frank Nothaft -- ADAM Enables Distributed Analyses Across Large Scale Genomic Datasets
+
+[[https://github.com/bigdatagenomics/adam][ADAM genome analysis platform]] is a great project to build analyses on top of
+Apache Spark. Frank show examples of GATK best practice and run times -- slow
+because designed for flat file formats on cluster systems. Formats optimize for
+specific use cases. Flat architectures expose bad programming interfaces that
+are not productive and hard to do. In ADAM start with a schema data model and
+build from that. Successes in other fields (networking) thanks to data formats
+(IP). You can optimize whatever you want on both sides as long as you have the
+same schema. ADAM/Spark has horizontal scalability -- nice graph of utiliziation
+over 1024 cores. Working on validation project of ADAM framework against GATK
+best practices using Toil for parallelization. Uses 260 individuals from 
+[[https://www.simonsfoundation.org/life-sciences/simons-genome-diversity-project-dataset/][Simons Genome Diversity project]]. [[http://toil.readthedocs.io/en/latest/][Toil pipeline system]] designed for cloud and
+takes advantage of spot pricing and failures. To run on Toil, they adapted to
+start up service job that manages Spark. Then workflow speaks to Spark cluster.
+Produces statistically similar results to GATK, 30x faster anad 3x cheaper than
+GATK. Working pipeline using hg19 and hg38.
+
+** Hannes Hettling -- SUPERSMART - A Self-Updating platform for Estimating Rates of Speciation and Migration, Ages, and Relationships of Taxa 
+
+[[http://www.supersmart-project.org/][SUPERSMART]] works to understand global biodiversity and biogeography by handling
+large scale phylogenies. Typical processing workflow -- data retrieval,
+filtering/quality control, multiple sequence alignment then tree inference.
+SUPERSMART integrates all of these components with scaling for very large
+phylogenies. Uses cleaned data from [[http://phylota.net/][PhyLoTA]] as baseline in SUPERSMART. As an
+integrated tool, it has a lot of dependencies. To make it easier provide
+virtualized installs with all version -- uses Vagrant/VirtualBox so only two
+dependencies. Host a box at Naturalis/supersmart. Also [[http://hub.docker.com/r/naturalis/supermart][Docker container]] and
+integrates with Galaxy.
+
+** Lorena Pantano Rubino -- Characterization of the small RNA transcriptome using the bcbio-nextgen python framework
+
+Lorena talking about [[http://bcb.io/2016/03/24/mirqc/][her great work integrating small RNA analysis into bcbio]].
+microRNA have important functionality and lots of diversity with isomiRs.
+Small, complex and biologically important. bcbio has variant calling, RNA-seq,
+small RNA-seq and contains over 200 peer reviewed tools installed via Bioconda.
+small RNA pipeline does everything you can imagine wanting to process with short
+RNAs -- lots of custom tools also built by Lorena. seqcluster to deal with
+multi-mapped reads on the same small RNA. Visualization interface built in to
+select. Fits into [[https://github.com/ewels/MultiQC][MultiQC]] for interactive summarization of results. Used 
+[[http://www.nature.com/nmeth/journal/v11/n8/full/nmeth.3014.html][miRQC]] for validation and quality control of pipeline. Shows plots of resource
+usage. Starting an open project for small RNA annotation and analysis: [[http://mirtop.github.io/][MIRTop]].
+
+** Fabien Campagne -- MetaR: simple, high-level languages for data analysis with the R ecosystem
+
+[[http://campagnelab.org/software/metar/][MetaR]] aims at providing an interactive data analysis environment as part of R.
+IDEs like Rstudio are primarily useful for experienced programmers. Provide some
+nice features, along with interactive notebooks like IPython. Notebooks can be
+challenging because of breaking up into fragmented chunks. MetaR tries to put
+advantages of UI with ability to program using language workbench technolgy.
+Provides composable R -- can combine a Biomart statement with R and then it
+generates it into pure R. End up with seamless interaction trying to remove
+disconnect between different interactive languages. Works with source control
+and provides better reproducibility by combining MetaR with Docker.
+
+** Jorge Duitama -- Development of NGSEP as an open-source comprehensive solution for analysis of high throughput sequencing data
+
+[[https://sourceforge.net/p/ngsep/wiki/Home/][NGSEP]] is yet another tool, in Jorge's words, to help with sequencing analysis.
+Does alignment, variant calling including custom algorithms. Contains
+implementation of Indel realignment, structural variant detection with
+CNVnator + custom algorithms. Integrates with Galaxy, iPlant and DNANexus. Uses
+for WGS of 100 genomes in rice, now part of Rice 3000 genomes project. Cool
+examples of structural variation in important rice genes detected.
+
+** Kam Dahlquist -- GRNmap and GRNsight: open source software for dynamical systems modeling and visualization of medium-scale gene regulatory networks
+
+[[https://github.com/kdahlquist/GRNmap/][GRNmap]] and [[https://github.com/dondi/GRNsight][GRNsight]] used as platform for talking about the open science
+ecosystem. How can open science facilitate teaching and connections. Students
+benefit from Open Source and Open Data -- helps them become involved with the
+community and analysis. Software development done for teaching and as student
+projects. Cool way of integrating research in wet lab into teaching
+undergraduates. GRNmap collaboration with math students, GNRsight with computer
+science students. Math collaborators not used to working with open source
+repositories. GRNsight with computer science folks and used GitHub and open
+collaboration from the beginning. We need to teach software best practices while
+developing useful code. Great opportunities for undergraduates.

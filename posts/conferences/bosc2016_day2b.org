@@ -1,0 +1,163 @@
+#+BLOG: smallchangebio
+#+POSTID: 110
+#+DATE: [2016-07-09 Sat 19:47]
+#+BLOG: smallchangebio
+#+TITLE: Notes: Bioinformatics Open Source Conference 2016 day 2 afternoon: developer tools and reproducible analyses
+#+CATEGORY: conference
+#+TAGS: bioinformatics, open-bio, open-source
+#+OPTIONS: toc:nil num:nil
+
+I'm at the [[http://www.open-bio.org/wiki/BOSC_2016][2016 Bioinformatics Open Source Conference (BOSC)]] in Orlando and
+these are the notes from the afternoon session on the second day, focused on
+developer tools and libraries, approaches for improving open science and
+reproducibility and a set of lightning talks to wrap up the day. It was another
+great conference thanks to Nomi, Peter, Hilmar, Moni, Heather, Chris, Karsten
+and the rest of the Open Bioinformatics Community.
+
+Other notes:
+
+- [[https://smallchangebio.wordpress.com/2016/07/08/bosc2016_day1a/][Day 1 morning notes]] -- Jennifer Gardy keynote on open data and infectious
+  diseases, plus workflow development
+- [[https://smallchangebio.wordpress.com/2016/07/08/bosc2016day1b/][Day 1 afternoon notes]] -- Talks on standards and a panel on growing
+  communities.
+- [[https://smallchangebio.wordpress.com/2016/07/09/bosc2016day2a/][Day 2 afternoon notes]] -- Steven Salzberg keynote on open source, data and
+  access in science plus talk session on data science.
+
+* Developer tools and libraries
+
+** Christian Brueffer -- Biopython Project Update 2016
+
+Christian talks through the history of Biopython from 1999 until today. [[https://www.openhub.net/][OpenHub]]
+has some great statistics on new contributors and contributions over the past
+year from GitHub. There is an entire filled slide with new contributors over the
+last year -- an amazing platform for bringing new people into the community.
+Some cool changes -- updates to Bio.SeqIO, Bio.PDB, Bio.Restriction, Bio.Data...
+Amazing diversity of new changes cool to have them catalogued in a single place
+and highlight contributors. New things coming for Biopython 1.68: updates to
+Bio.pairwise2 to make it faster. Cool since one of the initial things written by
+Jeff Chang early in the project. Christian personally working on improving
+standard style in Biopython since there are widely different coding styles in
+the past. Now providing standard style checking through TravisCI.
+
+** Peter Humburg -- ReportMD: Writing complex scientific reports in R
+
+Provide reproducibility of data analysis through literate programming. Rmarkdown
+makes this easy in R but flow of analysis may limit presentation of results.
+Want to communicate the story without two different stories. [[https://github.com/humburg/reportmd][ReportMD]] generates
+multi-page HTML and amanages dependencies between markdown files. Lots of useful
+flexibility in analyses.
+
+** Shaun Jackman -- Linuxbrew and Homebrew-Science to Navigate the Software Dependency Labyrinth
+
+Shaun talks about the importance of reproducibility in analyses -- be able to
+generate the same results, both yourself and others. Installing tools to do this
+is a huge challenge, hence the incredible work on [[https://github.com/Linuxbrew/linuxbrew][Linuxbrew]] and [[https://github.com/homebrew/homebrew-science][Homebrew
+science]]. Amazing work porting homebrew to linux and building a community to
+install scientific packages.
+
+** Benjamin Hitz -- SnoVault and encodeD: A novel object-based storage system and applications to ENCODE metadata
+
+ENCODE DCC manages data for ENCODE project, [[https://github.com/ENCODE-DCC/encoded][encodeD]] provides a flexible metadata
+modle for representing samples and [[https://github.com/ENCODE-DCC/snovault][SnoVault]] is a general purpose database it
+uses for representing it. Uses JSON-SCHEMA and JSON-LD to validate and normalize
+the data. Database can be exported as RDF and put into a SPARQL store and has an
+auditing system to check cross-object data integrity. Cool ideas, would love to
+understand how it compares to Datomic for representation.
+
+* Open Science and Reproducibility
+
+** Bastian Greshake -- State of the openSNP.org Union: Dockerizing, Crowdfunding & Opening for Contributors
+
+[[https://www.opensnp.org/][OpenSNP]] leverages the availability of direct to consumer sequencing. Allows
+users to directly share their data and many people willing to share phenotypes
+as well. Different sharing for traits (hair color) versus diseases (allergy).
+Can also share if you prefer vi or emacs (both, thank you Spacemacs). Lots of
+examples of open discussion but also danger of too much information if people
+don't want to know. Some current growing issues (4500 users) -- unassociated
+with any institution so looking for funding to support infrastructure and
+development. Patreon, Gratipay for community; SevenBridges helping as well.
+Broken up infrastructure into individual machines, managed with Docker
+containers deployed across machines. Lots of great community work to bring more
+people into the project. Three Google Summer of Code students working on
+project: adding fitbit support, phenotype integration, UI overhaul.
+
+** Michael Reich -- The GenePattern Notebook Environment
+
+Analysis approaches: analysis notebook environment like Jupyter allow you to
+describe, document and run analysis if you have programming skills.
+Bioinformatics Tool Aggregation Portals wrap existing tools and make them
+available to the non-programmer (Molbyle, Galaxy, GenePattern). GenePattern
+notebook environment makes Jupyter available to research users without requiring
+any programming. Michael switches over to demonstration of Jupyter versus
+GenePattern notebook for SVM training and prediction. Jupyter requires coding up
+pa bunch of loading while GenePattern avoids this by baking in lots of machine
+learning methods. Almost [[http://notebook.genepattern.org][available and ready to go]]. Shows movie demo of
+trying to predict pediatric medulloblastoma outcome from genomic data.
+
+** Brett Beaulieu-Jones -- Reproducibility in computationally intensive workflows with continuous analysis 
+
+Emphasizes that open science doesn't equal reproducibility, since it can be so
+much work to reproduce other's analysis. Data changes over time, so without
+version specified cannot get back what you did previously. Continuous analysis
+-- combines Docker and Continuous Integration. Need Docker container + script to
+integrate with CI. Available on GitHub: [[https://github.com/greenelab/continuous_analysis][Continuous analysis]].
+
+** Nils Gehlenborg -- Reproducible Research in the Cloud with the Refinery Platform
+
+[[http://www.refinery-platform.org/][Refinery Project]] provides a set of visualization tool built around an ISA-TAB
+data repository. Uses Galaxy and CloudMan for analysis platforms. Runs on AWS to
+spin up CloudMan for analysis. Nice work to handle provenance graphs by
+collapsing and expansion -- so can try to see the correct representation based
+on interest: called Avacado.
+
+* Lightning talks
+
+** Mónica Muñoz-Torres -- Apollo Genome Annotation Editor: Latest Updates, Including Galaxy Integration
+
+[[http://genomearchitect.org/][Apollo]] provides real time interactive collaborative editing. Architecture is an
+Apollo Server connected to clients -- web clients, jBrowse. Latest news: export
+and update Chado databases, annotate multiple organisms per server, integration
+with Galaxy. Can bring in annotations from many different inputs.
+
+** Michael Zentner -- An invitation to the bioinformatics community to participate in the HUBzero® open source release
+
+[[https://hubzero.org/][HubZero]] is a software platform to create web sites to for scientific research
+and teaching. Tries to help folks provide web interfaces for tools. Organized
+through containers, showing examples from molecular dynamics. Looking at hosting
+Jupyter and arbitrary web apps. Remidi Central is a collection of 250 hospitals
+that share date through HubZero. Looking for partners in the bioinformatics
+community.
+
+** Peter Rose -- PDB on steroids – compressive structural bioinformatics
+
+PDB needing to work with larger structures and more data. 120,000 structures in
+June 2016. Need to have ways to compress and manage data for storage. For
+analysis, hold in memory on the cluster and run analyses using Apache Spark.
+Provide custom compression in [[http://mmtf.rcsb.org/][MacroMolecular Transmission Format]], using
+messagepack for compressed JSON-like binary.
+
+** Robin Andeer -- Puzzle: VCF/GEMINI interface for genetic disease analysis
+
+[[https://github.com/robinandeer/puzzle][Puzzle]] designed to handle human genome analysis of VCF files. VCFs are
+complex so need standardization for improved analysis, including visualization.
+Will suck up a directory of files and prepare for visualization. Can handle VCF,
+BCF and Gemini databases. Viewers for structural variants, standard variants.
+
+** Keiichiro Ono -- Modernization of the Cytoscape ecosystem
+
+[[http://www.cytoscape.org/][Cytoscape]] is a popular platform for network analysis and visualization. It has a
+single small core, layered with core apps and community third party apps with
+~300 applications. It's an application publishing platform for network biology.
+Many tools written in non-Java -- how can you integrate well with Cytoscape?
+Support multiple plugins now at [[https://github.com/cycomponent/cywiki][CyWiki]].
+
+** Abigail Cabunoc Mayes -- Collaborative Software Development: Lessons from Open Source
+
+Abby is the lead developer for open source engagement at
+[[https://science.mozilla.org/][Mozilla Science Lab]]. History: netscape released as free software -- want to
+bring this ethos to open source. Need to be public and participatory:
+structuring events so outsiders can participate and become insiders. Inspiration
+from Disney: do a great job of showing you the right way to go. Open Source
+checklist: public repo, open license, readme, roadmap, code of conduct,
+contributing and mentorship. Need to be better at this in bcbio. Mozilla
+Fellowships -- bring open ethos to your community.
