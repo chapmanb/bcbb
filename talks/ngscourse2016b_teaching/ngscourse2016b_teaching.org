@@ -1,0 +1,802 @@
+#+title: Variant calling with validated, scalable, community developed tools
+#+author: Brad Chapman \newline Bioinformatics Core, Harvard Chan School \newline https://bcb.io \newline http://j.mp/bcbiolinks
+#+date: 11 August 2016
+
+#+OPTIONS: toc:nil H:2
+
+#+startup: beamer
+#+LaTeX_CLASS: beamer
+#+latex_header: \usepackage{url}
+#+latex_header: \usepackage{hyperref}
+#+latex_header: \hypersetup{colorlinks=true}
+#+BEAMER_THEME: default
+#+BEAMER_COLOR_THEME: seahorse
+#+BEAMER_INNER_THEME: rectangles
+
+** Outline
+\Large
+- Overview of variant calling
+- Motivate for using open source community resources
+- bcbio validated variant calling
+- Science
+   - \Large Human build 38 + HLA
+   - \Large Cancer calling of low frequency variants
+   - \Large Structural variation
+- Practical calling example
+
+* Variant calling overview
+** Human whole genome sequencing
+
+[[./images5/human_genome.png]]
+
+\footnotesize
+http://ensembl.org/Homo_sapiens/Location/Genome
+\normalsize
+
+** High throughput sequencing
+
+[[./images5/reads.png]]
+
+** Variant calling
+
+[[./images5/SNV_calling.png]]
+
+\footnotesize
+http://en.wikipedia.org/wiki/SNV_calling_from_NGS_data
+\normalsize
+
+** Scale: exome to whole genome
+
+[[./images5/exome_proportion.png]]
+
+\footnotesize
+https://www.flickr.com/photos/119980645@N06/
+\normalsize
+
+* Calling methods
+
+** SNPs and Indels
+
+[[./images8/mutations.png]]
+
+http://carolguze.com/text/442-2-mutations.shtml
+
+** Structural variations
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width .55\textwidth
+[[./images8/svs.jpg]]
+#+END_CENTER
+
+\footnotesize
+http://www.nature.com/nmeth/journal/v9/n2/full/nmeth.1858.html
+
+** Germline population calling
+
+#+ATTR_LATEX: :width .8\textwidth
+[[./images8/Utah-Pedigree-1463-with-NA12878.png]]
+
+\tiny
+http://blog.goldenhelix.com/grudy/the-state-of-ngs-variant-calling-dont-panic/
+\normalsize
+
+** Genome Analysis Toolkit (GATK)
+
+[[./images8/gatk.png]]
+
+\vspace{0.5cm}
+
+https://www.broadinstitute.org/gatk/
+
+** GATK Best Practices
+
+[[./images8/gatk-bp.png]]
+
+\small
+https://www.broadinstitute.org/gatk/guide/best-practices
+\normalsize
+
+** HaplotypeCaller
+
+[[./images8/gatk-hc.png]]
+
+\tiny
+http://gatkforums.broadinstitute.org/discussion/5464/workshop-presentations-2015-uk-4-20-24
+\normal
+
+** Joint calling on large populations
+
+[[./images8/gatk-joint.png]]
+
+\tiny
+http://gatkforums.broadinstitute.org/discussion/5464/workshop-presentations-2015-uk-4-20-24
+\normal
+
+** Support and availability
+
+#+BEGIN_CENTER
+[[./images8/gatk-license.png]]
+#+END_CENTER
+
+\vspace{0.5cm}
+
+https://github.com/broadgsa
+
+** FreeBayes
+
+[[./images8/freebayes.png]]
+
+https://github.com/ekg/freebayes
+
+** Filtering -- Variant Quality Score Recalibration
+
+#+ATTR_LATEX: :width .9\textwidth
+[[./images8/gatk-vqsr.png]]
+
+\tiny
+http://gatkforums.broadinstitute.org/discussion/5464/workshop-presentations-2015-uk-4-20-24
+\normal
+
+** Filtering -- hard cutoffs
+
+[[./images8/hard-filters.png]]
+
+\vspace{1cm}
+
+http://bcb.io/2014/05/12/wgs-trio-variant-evaluation/
+
+* Post-calling annotation and analysis
+** Effects prediction
+
+#+ATTR_LATEX: :width 1.1\textwidth
+[[./images8/vep-consequences.jpg]]
+
+\scriptsize
+http://www.ensembl.org/info/genome/variation/predicted_data.html
+
+** Tools for effects predictions
+
+\Large
+- snpEff
+
+\small
+http://snpeff.sourceforge.net/
+
+\vspace{0.5cm}
+
+\Large
+- Variant Effect Predictor (VEP) from Ensembl
+
+\small
+http://www.ensembl.org/info/docs/tools/vep/index.html
+
+** Annotation and analysis -- GEMINI
+
+[[./images9/gemini_overview.png]]
+
+\small
+https://github.com/arq5x/gemini
+\normalsize
+
+* Understanding outputs
+
+** VCF -- overview
+
+#+ATTR_LATEX: :width 1.05\textwidth
+[[./images8/vcf-overview.png]]
+
+http://vcftools.sourceforge.net/VCF-poster.pdf
+
+** VCF -- representations
+
+[[./images8/vcf-representation.png]]
+
+http://vcftools.sourceforge.net/VCF-poster.pdf
+
+** Learning to read VCFs
+
+\Large
+- Step by step guide from Broad
+\small
+https://www.broadinstitute.org/gatk/guide/article?id=1268
+
+\vspace{0.5cm}
+\Large
+- Specification
+\small
+http://samtools.github.io/hts-specs/
+
+
+* Motivation
+
+** We need to do science faster
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width .9\textwidth
+[[./images7/rare_disease.png]]
+#+END_CENTER
+
+\scriptsize
+https://twitter.com/KMS_Meltzy/status/661206070308794368
+\normalsize
+
+** We need to incorporate improvements faster
+
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width .9\textwidth
+[[./images7/build38_release.png]]
+#+END_CENTER
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width .8\textwidth
+[[./images7/build38_reddit.png]]
+#+END_CENTER
+
+\tiny
+https://www.reddit.com/r/genome/comments/3b3s3t/switch_from_hg19build37_to_hg20build38/
+
+** Daily bioinformatics work
+
+\Large
+- Install tools
+- Put tools together
+- Test and validate
+- Scale
+- Improve algorithms
+- Read literature
+- Do biology
+\normalsize
+
+** Standard analyses not routine
+
+\Large
+#+BEGIN_QUOTE
+Four major genome centers predicted single-nucleotide variants (SNVs) for The
+Cancer Genome Atlas (TCGA) lung cancer samples, but only 31.0% (1,667/5,380) of
+SNVs were identified by all four.
+#+END_QUOTE
+
+\scriptsize
+http://www.nature.com/nmeth/journal/vaop/ncurrent/full/nmeth.3407.html
+\normalsize
+
+** Combining analyses = better results
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width .6\textwidth
+[[./images7/cancer_multiple.png]]
+#+END_CENTER
+
+\scriptsize
+http://www.cell.com/cell-systems/abstract/S2405-4712%2815%2900113-1
+
+** Working together produces great things
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images7/exac.png]]
+#+END_CENTER
+
+http://exac.broadinstitute.org/about
+
+** Solution
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width .5\textwidth
+[[./images/community.png]]
+#+END_CENTER
+
+\scriptsize
+[[http://www.amazon.com/Community-Structure-Belonging-Peter-Block/dp/1605092770]]
+\normalsize
+
+
+* Open source bioinformatics
+
+** Large scale infrastructure development
+
+\Large
+- Shared problems -- academic, industry, startups
+- Community developed analyses
+- Validation
+- Scaling
+- Supporting a community of users
+\normalsize
+
+** White box software
+
+[[./images5/clear_box.jpg]]
+
+** Overview
+
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images3/bcbio_nextgen_highlevel.png]]
+
+\vspace{1cm}
+https://github.com/chapmanb/bcbio-nextgen
+
+** Uses
+
+\Large
+- Aligners: bwa, novoalign, bowtie2, HISAT2
+- Variantion: FreeBayes, GATK, VarDict, MuTecT2, Scalpel, SnpEff, VEP, GEMINI,
+  Lumpy, Manta, CNVkit, WHAM
+- RNA-seq: Tophat, STAR, Cufflinks, Sailfish
+- Quality control: fastqc, bamtools, Qualimap
+- Manipulation: bedtools, bcftools, biobambam, sambamba, samblaster, samtools,
+  vcflib, vt
+\normalsize
+
+** Provides
+
+\Large
+- Community -- collected set of expertise
+- Installation of tools and data
+- Tool integration
+- Validation -- outputs + automated evaluation
+- Scaling
+\normalsize
+
+** Quality differences between methods
+
+#+ATTR_LATEX: :width .7\textwidth
+[[./images/gcat_comparison.png]]
+
+[[http://www.bioplanet.com/gcat]]
+** We made a pipeline -- so what?
+
+\tiny
+#+BEGIN_QUOTE
+There have been a number of previous efforts to create publicly available
+analysis pipelines for high throughput sequencing data. Examples include
+Omics-Pipe, bcbio-nextgen, TREVA and NGSane. These pipelines
+offer a comprehensive, automated process that can analyse raw sequencing reads
+and produce annotated variant calls. However, the main audience for these
+pipelines is the research community. Consequently, there are many features
+required by clinical pipelines that these examples do not fully address. Other
+groups have focused on improving specific features of clinical pipelines. The
+Churchill pipeline uses specialised techniques to achieve high performance,
+while maintaining reproducibility and accuracy. However it is not freely
+available to clinical centres and it does not try to improve broader clinical
+aspects such as detailed quality assurance reports, robustness, reports and
+specialised variant filtering. The Mercury pipeline offers a comprehensive
+system that addresses many clinical needs: it uses an automated workflow system
+(Valence) to ensure robustness, abstract computational resources and
+simplify customisation of the pipeline. Mercury also includes detailed coverage
+reports provided by ExCID, and supports compliance with US privacy laws
+(HIPAA) when run on DNANexus, a cloud computing platform specialised for
+biomedical users. Mercury offers a comprehensive solution for clinical users,
+however it does not achieve our desired level of transparency, modularity and
+simplicity in the pipeline specification and design. Further, Mercury does not
+perform specialised variant filtering and prioritisation that is specifically
+tuned to the needs of clinical users.
+#+END_QUOTE
+
+\scriptsize
+http://www.genomemedicine.com/content/7/1/68
+
+** Sustainability
+
+\Large
+A piece of software is being sustained if people are using it, fixing it, and
+improving it rather than replacing it.
+
+\vspace{0.5cm}
+
+\normalsize
+http://software-carpentry.org/blog/2014/08/sustainability.html
+
+** Complex, rapidly changing baseline functionality
+
+[[./images2/gatk_changes.png]]
+** Community: sustainability
+
+#+ATTR_LATEX: :width 1.1\textwidth
+[[./images9/bcbio_commits_mar2016.png]]
+
+\vspace{1cm}
+
+[[https://github.com/chapmanb/bcbio-nextgen]]
+
+** Community: support
+
+#+ATTR_LATEX: :width 1.1\textwidth
+[[./images9/bcbio_issues_mar2016.png]]
+
+\vspace{1cm}
+
+[[https://bcbio-nextgen.readthedocs.org]]
+
+** Community: contribution
+
+[[./images9/bcbio_github_mar2016.png]]
+
+[[https://github.com/chapmanb/bcbio-nextgen]]
+
+** Community: documentation
+
+[[./images/community-docs.png]]
+
+[[https://bcbio-nextgen.readthedocs.org]]
+
+** Supported analysis types
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width 0.4\textwidth
+[[./images9/bcbio_pipelines.png]]
+#+END_CENTER
+
+\scriptsize
+https://bcbio-nextgen.readthedocs.org/en/latest/contents/pipelines.html
+
+* Build 38
+
+** Outline: Science
+
+\Large
+- \textbf{Human build 38 + HLA}
+- Low frequency somatic calling
+- Structural variation
+
+** GRCh37/hg19
+
+#+ATTR_LATEX: :width .9\textwidth
+[[./images8/GRCh37.jpg]]
+
+\small
+http://www.ncbi.nlm.nih.gov/books/NBK153600/?report=reader
+
+** GRCh38 -- graph based, many more alternative loci
+
+#+ATTR_LATEX: :width .9\textwidth
+[[./images8/GRCh38.jpg]]
+
+\footnotesize
+http://www.slideshare.net/GenomeRef/transitioning-to-grch38
+
+** GRCh38 -- advantage for variant calling
+
+#+ATTR_LATEX: :width .9\textwidth
+[[./images8/GRCh38-advantages.jpg]]
+
+\footnotesize
+http://www.slideshare.net/GenomeRef/transitioning-to-grch38
+
+** Avoiding collapsed repeats
+
+#+ATTR_LATEX: :width 0.8\textwidth
+[[./images7/hg38_collapsed_repeats.jpg]]
+
+\tiny
+http://www.slideshare.net/kmsteinberg/the-importance-of-high-quality-reference-genome-assemblies-to-personal-and-medical-genomics
+
+** Comparison
+
+\Large
+- Build 37 and 38
+- Validation sets: Genome in a Bottle, Illumina Platinum Genomes
+- 38 builds: with/without alternative alleles
+- Variant callers: FreeBayes, GATK HaplotypeCaller
+
+\normalsize
+http://bcb.io/2015/09/17/hg38-validation/
+
+** Reference materials
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width .5\textwidth
+[[./images/giab.png]]
+
+#+ATTR_LATEX: :width .7\textwidth
+[[./images7/ga4gh.png]]
+
+#+ATTR_LATEX: :width .9\textwidth
+[[./images7/dream_challenge.png]]
+#+END_CENTER
+
+http://www.genomeinabottle.org/
+http://ga4gh.org/\#/benchmarking-team
+https://www.synapse.org/\#!Synapse:syn312572
+
+** 
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width .9\textwidth
+[[./images7/hg38_val.png]]
+#+END_CENTER
+
+** Small variant results
+
+\Large
+- SNPs: build 38 more sensitive
+- SNPs: build 38 reduces false positives
+- Indels: build 38 detected more
+- Indels: work on sensitivity and precision
+
+** Major histocompatibility complex (MHC) -- HLAs
+
+[[./images8/MHC.png]]
+
+\small
+\vspace{1cm}
+http://www.ebi.ac.uk/ipd/imgt/hla/ \\
+\scriptsize
+http://sciscogenetics.com/technology/human-leukocyte-antigen-complex/
+
+** Alignment: bwa alternative allele support
+
+#+ATTR_LATEX: :width .9\textwidth
+[[./images8/bwa-alts.png]]
+
+\small
+https://github.com/lh3/bwa/blob/master/README-alt.md
+
+** HLA typing
+
+\Large
+- 1000 genomes: build 38 + IMGT/HLA-3.18.0
+- bwa mem extracts HLA reads
+- Map reads only to HLA sequences
+- OptiType: Call HLA types
+
+\vspace{0.5cm}
+\footnotesize
+https://github.com/lh3/bwa/blob/master/README-alt.md\#hla-typing \newline
+https://github.com/FRED-2/OptiType
+
+** Validations
+
+\Large
+- Omixon example data
+- Exome (1000 genomes) and deep targeted data
+- P-group resolution
+- HLA type I calls (A, B, C)
+- Great results across exome and targeted
+
+\footnotesize
+http://www.omixon.com/hla-typing-example-data/ \newline
+https://gist.github.com/chapmanb/8f994618a7fc5e88f893
+
+
+* Somatic calling
+
+** Outline: science
+
+\Large
+- Human build 38 + HLA
+- \textbf{Low frequency somatic calling}
+- Structural variation
+
+** Cancer somatic calling
+
+[[./images8/cancer-somatic.png]]
+
+\vspace{0.5cm}
+\scriptsize
+http://www.nature.com/nmeth/journal/v10/n8/fig_tab/nmeth.2562_F1.html
+\normalsize
+
+** Cancer heterogeneity
+
+[[./images8/Treatment_bottleneck.pdf]]
+
+\small
+http://en.wikipedia.org/wiki/Tumour_heterogeneity
+\normalsize
+
+** VarDict
+
+\Large
+- AstraZeneca
+- Germline + Cancer calling
+- SNP + Insertion/Deletions
+- Whole genome + exome
+- Also works on deep targeted data
+
+\vspace{1cm}
+\small
+https://github.com/AstraZeneca-NGS/VarDictJava
+http://nar.oxfordjournals.org/content/early/2016/04/07/nar.gkw227.full
+\normalsize
+
+** DREAM synthetic dataset 4
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images7/dream_syn4.png]]
+#+END_CENTER
+
+\footnotesize
+https://www.synapse.org/\#!Synapse:syn312572/wiki/62018
+
+** VarDict sensivitity/precision before
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images7/vardict_val_orig.png]]
+#+END_CENTER
+
+** VarDict sensivitity/precision after
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images7/vardict_val.png]]
+#+END_CENTER
+
+** How? Filter summary
+
+\Large
+#+BEGIN_SRC sh
+((AF * DP < 6) &&
+ ((MQ < 55.0 && NM > 1.0) ||
+  (MQ < 60.0 && NM > 2.0) ||
+  (DP < 10) ||
+  (QUAL < 45)))
+#+END_SRC
+
+** Example filter: mapping quality and number of mismatches
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images7/vardict_filter_nmmq.png]]
+#+END_CENTER
+
+* Structural variation
+
+** Outline: science
+
+\Large
+- Human build 38 + HLA
+- Low frequency somatic calling
+- \textbf{Structural variation}
+
+** Structural variants critical in cancer
+
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images9/nature14169-sf2.jpg]]
+
+\scriptsize
+http://www.nature.com/nature/journal/v518/n7540/full/nature14169.html
+
+** Improvements in speed, sensitivity and precision
+
+- \Large Manta: \footnotesize https://github.com/Illumina/manta
+- \Large CNVkit: \footnotesize https://github.com/etal/cnvkit
+- \Large Lumpy: \footnotesize https://github.com/arq5x/lumpy-sv
+- \Large WHAM: \footnotesize https://github.com/zeeev/wham
+- \Large MetaSV: \footnotesize https://github.com/bioinform/metasv
+
+** Results: Germline deletions
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width 0.8\textwidth
+[[./images7/sv_giab_del.png]]
+#+END_CENTER
+
+** Results: Somatic deletions
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width 0.9\textwidth
+[[./images7/sv_dream_del.png]]
+#+END_CENTER
+
+** Prioritize in previously known regions
+
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images9/prioritize-overview.png]]
+
+** Public cancer variant databases
+
+- CIViC: https://civic.genome.wustl.edu
+- IntOGen: http://www.intogen.org
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width 0.3\textwidth
+[[./images9/biology-of-cancer.jpg]]
+#+END_CENTER
+\vspace{0.01cm}
+\scriptsize
+http://www.amazon.com/The-Biology-Cancer-Robert-Weinberg/dp/0815340761
+\normalsize
+
+* Practical
+
+** Practical overview
+
+\Large
+- Small dataset -- single chromosome, exome
+- Cancer sample from DREAM synthetic dataset 3
+- Call against build 38
+
+\footnotesize
+https://www.synapse.org/\#!Synapse:syn312572/wiki/58893
+
+** Demonstrates
+
+\Large
+- Somatic tumor/normal samples
+- SNP and indel calling at lower frequency
+- Structural variant detection
+- Prioritization with CIViC
+- HLA typing
+
+** bcbio configuration file
+
+#+BEGIN_SRC yaml
+---
+details:
+  - analysis: variant2
+    genome_build: hg38
+    algorithm:
+      aligner: bwa
+      mark_duplicates: true
+      recalibrate: false
+      realign: false
+      variantcaller: [vardict, mutect, freebayes]
+      ensemble:
+        numpass: 2
+      svcaller: [lumpy, manta]
+#+END_SRC
+
+\footnotesize
+https://bcbio-nextgen.readthedocs.org/en/latest/contents/configuration.html
+
+** bcbio template file -- CSV
+
+#+BEGIN_SRC sh
+samplename,description,batch,phenotype,sex,variant_regions
+sample1,ERR256785,batch1,normal,female,/path/to/regions.bed
+sample2,ERR256786,batch1,tumor,,/path/to/regions.bed
+#+END_SRC
+
+\vspace{1cm}
+\scriptsize
+https://bcbio-nextgen.readthedocs.org/en/latest/contents/configuration.html#automated-sample-configuration
+
+** Template to full configuration
+
+#+BEGIN_SRC sh
+bcbio_nextgen.py -w template \
+   tumor-paired.yaml project1.csv \
+   sample1.bam sample2_1.fq sample2_2.fq
+#+END_SRC
+
+\vspace{1cm}
+\scriptsize
+https://bcbio-nextgen.readthedocs.org/en/latest/contents/configuration.html#automated-sample-configuration
+
+** Running bcbio
+
+\Large
+#+BEGIN_SRC sh
+bcbio_nextgen.py project1.yaml -n 8
+#+END_SRC
+
+\vspace{1cm}
+\scriptsize
+https://bcbio-nextgen.readthedocs.org/en/latest/contents/testing.html
+
+** AWS example configuration and output
+
+https://bcbio-nextgen.readthedocs.org/en/latest/contents/teaching.html
+
+\vspace{0.5cm}
+
+\Large
+- Pre-downloaded and analysis run
+- AMI (ami-5e84fe34)
+* Summary
+** Summary
+\Large
+- Overview of variant calling tools
+- Motivate for using open source community resources
+- bcbio validated variant calling
+- Science
+   - \Large Human build 38 + HLA
+   - \Large Cancer calling of low frequency variants
+   - \Large Structural variation
+- Practical calling example
+
+\vspace{0.5cm}
+http://bcb.io
