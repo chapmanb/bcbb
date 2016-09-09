@@ -96,6 +96,9 @@ class GFF3Writer:
             val = [str(x) for x in val]
             quals[key] = val
         feature.qualifiers = quals
+        # Support for Biopython 1.68 and above, which removed sub_features
+        if not hasattr(feature, "sub_features"):
+            feature.sub_features = []
         clean_sub = [self._clean_feature(f) for f in feature.sub_features]
         feature.sub_features = clean_sub
         return feature

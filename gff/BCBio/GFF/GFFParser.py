@@ -548,6 +548,9 @@ class _AbstractMapReduceGFF:
         location = SeqFeature.FeatureLocation(*feature_dict['location'])
         new_feature = SeqFeature.SeqFeature(location, feature_dict['type'],
                 id=feature_dict['id'], strand=feature_dict['strand'])
+        # Support for Biopython 1.68 and above, which removed sub_features
+        if not hasattr(new_feature, "sub_features"):
+            new_feature.sub_features = []
         new_feature.qualifiers = feature_dict['quals']
         return new_feature
 
