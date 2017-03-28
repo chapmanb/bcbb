@@ -1,0 +1,141 @@
+#+title: Heterogeneity summary, validation and development plans
+#+author: Brad Chapman \newline Bioinformatics Core, Harvard Chan School \newline https://bcb.io \newline http://j.mp/bcbiolinks
+#+date: 29 March 2017
+
+#+OPTIONS: toc:nil H:2
+
+#+startup: beamer
+#+LaTeX_CLASS: beamer
+#+latex_header: \usepackage{url}
+#+latex_header: \usepackage{hyperref}
+#+latex_header: \hypersetup{colorlinks=true}
+#+BEAMER_THEME: default
+#+BEAMER_COLOR_THEME: seahorse
+#+BEAMER_INNER_THEME: rectangles
+
+* Introduction
+
+** Heterogeneity goals
+\Large
+- Automated characterization of tumor purity and clonality
+- Support for tumor-only and capture/exome
+- Inform SNP, Indel and SV calling
+
+** 
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images/phylowgs_het_overview.png]]
+#+END_CENTER
+
+\tiny
+http://genomebiology.biomedcentral.com/articles/10.1186/s13059-015-0602-8
+
+** Practical challenges
+
+\Large
+- Want similar workflow for WGS, capture and tumor-only samples
+- Lack of good truth sets
+- Tools not fully automated, require manual decision making
+
+* Informatics
+
+** Heterogeneity inputs
+
+\Large
+- Small variants (SNPs)
+- CNVs, either with segmentation (CNVkit) or exons/genes (Seq2C)
+- Filter SNP artifacts -- UMIs + damage/bias
+- Filter CNVs with blacklists \\
+  \small https://github.com/chapmanb/bcbio-nextgen/issues/963
+
+** Heterogeneity initial outputs
+\Large
+- Purity and ploidy \\
+  (PureCN, TitanCNA, BubbleTree, Battenberg)
+- CNV Major and minor allele copy numbers \\
+  (PureCN, TitanCNA, Battenberg)
+- LOH regions \\
+  (PureCN, TitanCNA)
+- Assignment of tumor-only variants to somatic/germline with allele frequencies \\
+  (PureCN)
+
+** Heterogeneity final outputs
+
+\Large
+- Reconstruction: subclones + evolution
+  - \Large PhyloWGS (TitanCNA or Battenberg input + variant calls)
+\Large
+- Subclonal identification
+  - \Large SciClone (Copy number + variant calls)
+  - \Large Guan UofM SMC-Het winning algorithm
+
+** Planned implementation
+
+\Large
+- PureCN -- handles tumor-only and capture with process matched normals; provides purity/ploidy, LOH
+- TitanCNA -- WGS/exome; purity/ploidy + LOH + allelic CNVs
+- PhyloWGS -- take TitanCNA input and produce clones and phylogenies
+- BubbleTree -- supplementary: purity/ploidy + clonal analysis
+
+** Current status
+
+\Large
+- BubbleTree -- integrated with CNVkit inputs
+- PhyloWGS -- integrated with Battenberg inputs (WGS only)
+- Initial validation work done with PureCN compared to ABSOLUTE and BubbleTree
+
+* Validation
+
+** Outputs are complex
+
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images/log2_baf_plot.jpg]]
+
+http://genome.cshlp.org/content/24/11/1881.full
+
+** Multiple potential solutions
+
+#+ATTR_LATEX: :width 0.6\textwidth
+[[./images/ascat_sunrise.png]]
+
+\scriptsize
+http://cda.currentprotocols.com/WileyCDA/CPUnit/refId-bi1509.html
+
+** CNV/SV validation
+
+\Large
+- Currently have good validations for small variants/indels
+- CNVs and SVs less established, more dificult
+- Genome in a Bottle NA24385 crowdsourced CNVs,
+  subset to exome regions (60 deletions) \\
+  \small http://biorxiv.org/content/early/2016/12/13/093526
+- \Large HCC2218 breast carcinoma cell line/blood exomes
+  (43 deletions, 67 duplications) \\
+  \small https://github.com/Illumina/Canvas\#demo-tumor-normal-enrichment-data
+
+** Heterogeneity validation
+
+\Large
+- tHapMix -- somatic genome simulator
+- purity
+- multiple clones
+- evolutionary history of clones
+
+\small
+https://github.com/Illumina/tHapMix
+
+* Required inputs
+
+** Sequence deeply enough
+
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images/aml31_depth.jpg]]
+
+** Process matched normal BAMs
+
+\Large
+- Critical for tumor-only samples
+- CNVs: controls for log2 depth ratios
+- Establish germline heterozygous SNPs -- PureCN can estimate based on
+  purity/ploidy in addition to being in public databases
