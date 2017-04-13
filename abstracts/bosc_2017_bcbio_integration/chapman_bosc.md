@@ -1,5 +1,5 @@
 --------------     -----------------------------------------------------------------------
-**Title**          Collaboration and interoperable, multi-platform workflow development
+**Title**          Interoperable, multi-platform workflow collaboration with bcbio
 
 **Authors**        _Brad Chapman_, Rory Kirchner, Lorena Pantano, Shannan Ho Sui, Oliver Hofmann
 
@@ -49,11 +49,11 @@ in research environments where it is typically difficult to fund maintenance of
 large scale infastructure development.
 
 The talk will discuss the practicalities of adjusting bcbio to use CWL and WDL.
-We have to balance infrastructure work for the transition to CWL with continued
+We balance infrastructure work for the transition to CWL with continued
 improvement of workflows and community support. Testing and documentation of
-bcbio becomes more complex since we validate analyses, like germline and somatic
-variant calling with both small and large variants, across many environments.
-This requires coordination between groups with different focus and directions as
-platforms, analyses and standards develop. This type of high level coordination
-will become increasingly important as we do more complex science, and we'll
-describe the role of the open bioinformatics community in enabling it.
+bcbio is more complex since we validate workflows, like germline and somatic
+variant calling, in many environments. This requires coordination between
+groups with different focus and directions as platforms, analyses and standards
+develop. High level collaboration is increasingly important as we do more
+complex science, and we'll describe the role of the open bioinformatics
+community in enabling it.
