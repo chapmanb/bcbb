@@ -5,7 +5,7 @@
 
 **Affiliations**   Harvard Chan School, Bioinformatics Core (<http://bioinformatics.sph.harvard.edu/>), \newline
                    The University of Melbourne Centre for Cancer Research
-                   (<http://www.gla.ac.uk/researchinstitutes/cancersciences/ics/facilities/wwcrc/>)
+                   (<https://umccr.github.io/>)
 
 **Contact**        bchapman@hsph.harvard.edu
 
