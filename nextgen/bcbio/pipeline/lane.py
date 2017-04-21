@@ -27,7 +27,9 @@ def process_lane(lane_items, fc_name, fc_date, dirs, config):
     """Prepare lanes, potentially splitting based on barcodes.
     """
     lane_name = "%s_%s_%s" % (lane_items[0]['lane'], fc_date, fc_name)
-    logger.info("Demulitplexing %s" % lane_name)
+    if lane_items[0].get('sample_id', None):
+        lane_name = "%s_%s_%s_%s" % (lane_items[0]['lane'], lane_items[0]['sample_id'], fc_date, fc_name)
+    logger.info("Demultiplexing %s" % lane_name)
     full_fastq1, full_fastq2 = get_fastq_files(dirs["fastq"], dirs["work"],
                                                lane_items[0], fc_name,
                                                config=_update_config_w_custom(config, lane_items[0]))
