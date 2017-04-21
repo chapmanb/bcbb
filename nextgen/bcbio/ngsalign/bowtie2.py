@@ -18,7 +18,7 @@ def _bowtie2_args_from_config(config):
         qual_flags = ["--phred64-quals"]
     else:
         qual_flags = []
-    cores = config.get("resources", {}).get("bowtie", {}).get("cores", None)
+    cores = config.get("resources", {}).get("bowtie2", {}).get("cores", None)
     core_flags = ["-p", str(cores)] if cores else []
     return core_flags + qual_flags
 

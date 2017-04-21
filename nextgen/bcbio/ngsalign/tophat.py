@@ -15,6 +15,7 @@ from bcbio.ngsalign import bowtie, bowtie2
 from bcbio.utils import safe_makedir, file_exists, get_in, flatten
 from bcbio.distributed.transaction import file_transaction
 from bcbio.log import logger
+import copy
 
 
 _out_fnames = ["accepted_hits.sam", "junctions.bed",
@@ -49,7 +50,9 @@ def tophat_align(fastq_file, pair_file, ref_file, out_base, align_dir, config,
     """
     run alignment using Tophat v2
     """
-    options = get_in(config, ("resources", "tophat", "options"), {})
+    # make our own copy of this since we are going to change it
+    options = copy.deepcopy(get_in(config, ("resources", "tophat", "options"),
+                                   {}))
     options = _set_quality_flag(options, config)
     options = _set_gtf(options, config)
     options = _set_cores(options, config)
@@ -59,7 +62,7 @@ def tophat_align(fastq_file, pair_file, ref_file, out_base, align_dir, config,
         options["bowtie1"] = True
 
     out_dir = os.path.join(align_dir, "%s_tophat" % out_base)
-    out_file = os.path.join(out_dir, _out_fnames[0])
+    out_file = os.path.join(out_dir, "%s.sam" % out_base)
     if file_exists(out_file):
         return out_file
     files = [ref_file, fastq_file]
@@ -84,15 +87,14 @@ def tophat_align(fastq_file, pair_file, ref_file, out_base, align_dir, config,
             # otherwise it silently ignores them
             tophat_ready = tophat_runner.bake(**ready_options)
             tophat_ready(*files)
-    out_file_final = os.path.join(out_dir, "%s.sam" % out_base)
-    os.symlink(os.path.basename(out_file), out_file_final)
-    return out_file_final
+    os.symlink(_out_fnames[0], out_file)
+    return out_file
 
 def align(fastq_file, pair_file, ref_file, out_base, align_dir, config,
           rg_name=None):
 
     out_dir = os.path.join(align_dir, "%s_tophat" % out_base)
-    out_file = os.path.join(out_dir, _out_fnames[0])
+    out_file = os.path.join(out_dir, "%s.sam" % out_base)
 
     if file_exists(out_file):
         return out_file
@@ -122,7 +124,20 @@ def _estimate_paired_innerdist(fastq_file, pair_file, ref_file, out_base,
     if len(dists) == 0:
         dists = _bowtie_for_innerdist("1", fastq_file, pair_file, ref_file,
                                       out_base, out_dir, config, True)
-    return int(round(numpy.mean(dists))), int(round(numpy.std(dists)))
+    raw_median = int(round(numpy.mean(dists)))
+    raw_std = int(round(numpy.std(dists)))
+    logger.info("Raw inner distance for %s and %s calculated as "
+                "median: %d std: %f." % (fastq_file, pair_file, raw_median,
+                                         raw_std))
+    # bowtie2 has forgot about the -X option, so manually implement it
+    # 2000 is the default from the bowtie module
+    cleaned = [x for x in dists if x < 2000]
+    clean_median = int(round(numpy.mean(cleaned)))
+    clean_std = int(round(numpy.std(cleaned)))
+    logger.info("Outlier filtered inner distance for %s and %s calculated as "
+                "median: %d std: %f." % (fastq_file, pair_file, clean_median,
+                                         clean_std))
+    return clean_median, clean_std
 
 
 def _bowtie_for_innerdist(start, fastq_file, pair_file, ref_file, out_base,
