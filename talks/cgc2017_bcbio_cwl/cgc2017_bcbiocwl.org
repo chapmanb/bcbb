@@ -16,14 +16,11 @@
 * Introduction
 ** Overview
 \Large
-- Development challenges and open source communities
-- bcbio: community developed analyses
-- Value of variant validation
+- Barriers to building analysis pipelines
+- bcbio: open source community development
 - Interoperable infrastructure on the Cancer Genomics Cloud
 
-* Motivation
-
-** I want to build a variant calling pipeline
+** You want to build a variant calling pipeline
 
 #+BEGIN_CENTER
 #+ATTR_LATEX: :width 1.0\textwidth
@@ -33,15 +30,22 @@
 \scriptsize
 https://software.broadinstitute.org/gatk/best-practices/
 
-** Feature support burden
+** 
 
 #+BEGIN_CENTER
-#+ATTR_LATEX: :width 0.65\textwidth
-[[./images11/nextflow_comparison.png]]
+#+ATTR_LATEX: :width 0.8\textwidth
+[[./images11/efficiency.png]]
 #+END_CENTER
+\tiny
+https://commons.wikimedia.org/wiki/File:Efficiency_diagram_by_Zureks.svg
 
-\scriptsize
-http://www.nature.com/nbt/journal/v35/n4/full/nbt.3820.html
+** Barriers to implementing yourself
+
+\Large
+- Validation
+- Changing tools
+- Feature support burden
+- Multi-platform interoperability
 
 ** Build open source communities
 
@@ -71,42 +75,6 @@ http://www.nature.com/nbt/journal/v35/n4/full/nbt.3820.html
 \scriptsize
 http://www.open-bio.org/wiki/BOSC_2017
 
-** Challenge: many communities
-
-#+BEGIN_CENTER
-#+ATTR_LATEX: :width 0.4\textwidth
-[[./images11/cgc.png]]
-#+END_CENTER
-#+BEGIN_CENTER
-#+ATTR_LATEX: :width 0.4\textwidth
-[[./images10/cbioportal_logo.png]]
-#+END_CENTER
-#+BEGIN_CENTER
-#+ATTR_LATEX: :width 0.4\textwidth
-[[./images10/synapse.png]]
-#+END_CENTER
-
-\vspace{0.5cm}
-
-http://www.cancergenomicscloud.org/ \\
-http://www.cbioportal.org/ \\
-https://www.synapse.org/
-
-* Open source bioinformatics
-
-** Large scale infrastructure development
-
-\Large
-- Shared problems -- academic, industry, startups
-- Community developed analyses
-- Validation
-- Scaling
-- Supporting a community of users
-\normalsize
-
-** White box software
-
-[[./images5/clear_box.jpg]]
 
 ** Overview
 
@@ -115,107 +83,6 @@ https://www.synapse.org/
 
 \vspace{1cm}
 https://github.com/chapmanb/bcbio-nextgen
-
-** High level configuration
-
-#+BEGIN_SRC yaml
-  - analysis: variant2
-    genome_build: hg38
-    algorithm:
-      aligner: bwa
-      mark_duplicates: true
-      recalibrate: false
-      realign: false
-      variantcaller: [gatk-haplotype, freebayes, vardict]
-      ensemble:
-        numpass: 2
-      svcaller: [lumpy, manta, cnvkit]
-#+END_SRC
-
-\footnotesize
-https://bcbio-nextgen.readthedocs.org/en/latest/contents/configuration.html
-
-** Uses
-
-\Large
-- Aligners: bwa, novoalign, bowtie2, HISAT2
-- Variantion: FreeBayes, GATK, VarDict, MuTecT2, Scalpel, SnpEff, VEP, GEMINI,
-  Lumpy, Manta, CNVkit, WHAM
-- RNA-seq: Tophat, STAR, Cufflinks, Sailfish
-- Quality control: FastQC, samtools, Qualimap, MultiQC
-- Manipulation: bedtools, bcftools, biobambam, picard, sambamba, samblaster, samtools,
-  vcflib, vt
-\normalsize
-
-** Provides
-
-\Large
-- Community -- collected set of expertise
-- Installation of tools and data
-- Tool integration
-- Validation -- outputs + automated evaluation
-- Scaling
-\normalsize
-
-** We made a pipeline -- so what?
-
-\tiny
-#+BEGIN_QUOTE
-There have been a number of previous efforts to create publicly available
-analysis pipelines for high throughput sequencing data. Examples include
-Omics-Pipe, bcbio-nextgen, TREVA and NGSane. These pipelines
-offer a comprehensive, automated process that can analyse raw sequencing reads
-and produce annotated variant calls. However, the main audience for these
-pipelines is the research community. Consequently, there are many features
-required by clinical pipelines that these examples do not fully address. Other
-groups have focused on improving specific features of clinical pipelines. The
-Churchill pipeline uses specialised techniques to achieve high performance,
-while maintaining reproducibility and accuracy. However it is not freely
-available to clinical centres and it does not try to improve broader clinical
-aspects such as detailed quality assurance reports, robustness, reports and
-specialised variant filtering. The Mercury pipeline offers a comprehensive
-system that addresses many clinical needs: it uses an automated workflow system
-(Valence) to ensure robustness, abstract computational resources and
-simplify customisation of the pipeline. Mercury also includes detailed coverage
-reports provided by ExCID, and supports compliance with US privacy laws
-(HIPAA) when run on DNANexus, a cloud computing platform specialised for
-biomedical users. Mercury offers a comprehensive solution for clinical users,
-however it does not achieve our desired level of transparency, modularity and
-simplicity in the pipeline specification and design. Further, Mercury does not
-perform specialised variant filtering and prioritisation that is specifically
-tuned to the needs of clinical users.
-#+END_QUOTE
-
-\scriptsize
-http://www.genomemedicine.com/content/7/1/68
-
-** Sustainability
-
-\Large
-A piece of software is being sustained if people are using it, fixing it, and
-improving it rather than replacing it.
-
-\vspace{0.5cm}
-
-\normalsize
-http://software-carpentry.org/blog/2014/08/sustainability.html
-
-** Complex, rapidly changing baseline functionality
-
-[[./images2/gatk_changes.png]]
-** Community: sustainability and support
-
-#+ATTR_LATEX: :width 0.9\textwidth
-[[./images11/bcbio_commits_apr2017.png]]
-
-\vspace{0.5cm}
-
-#+ATTR_LATEX: :width 0.9\textwidth
-[[./images11/bcbio_issues_apr2017.png]]
-
-\vspace{0.5cm}
-
-[[https://github.com/chapmanb/bcbio-nextgen]]
 
 ** Supported analysis types
 
@@ -226,6 +93,8 @@ http://software-carpentry.org/blog/2014/08/sustainability.html
 
 \scriptsize
 https://bcbio-nextgen.readthedocs.org/en/latest/contents/pipelines.html
+
+
 
 * Validation
 
@@ -288,12 +157,88 @@ https://www.synapse.org/\#!Synapse:syn312572
    - \Large Platypus SNP sensitivity
 - PrecisionFDA: https://precision.fda.gov/
 
+
+* Changing tools
+
+** We made a pipeline -- so what?
+
+\tiny
+#+BEGIN_QUOTE
+There have been a number of previous efforts to create publicly available
+analysis pipelines for high throughput sequencing data. Examples include
+Omics-Pipe, bcbio-nextgen, TREVA and NGSane. These pipelines
+offer a comprehensive, automated process that can analyse raw sequencing reads
+and produce annotated variant calls. However, the main audience for these
+pipelines is the research community. Consequently, there are many features
+required by clinical pipelines that these examples do not fully address. Other
+groups have focused on improving specific features of clinical pipelines. The
+Churchill pipeline uses specialised techniques to achieve high performance,
+while maintaining reproducibility and accuracy. However it is not freely
+available to clinical centres and it does not try to improve broader clinical
+aspects such as detailed quality assurance reports, robustness, reports and
+specialised variant filtering. The Mercury pipeline offers a comprehensive
+system that addresses many clinical needs: it uses an automated workflow system
+(Valence) to ensure robustness, abstract computational resources and
+simplify customisation of the pipeline. Mercury also includes detailed coverage
+reports provided by ExCID, and supports compliance with US privacy laws
+(HIPAA) when run on DNANexus, a cloud computing platform specialised for
+biomedical users. Mercury offers a comprehensive solution for clinical users,
+however it does not achieve our desired level of transparency, modularity and
+simplicity in the pipeline specification and design. Further, Mercury does not
+perform specialised variant filtering and prioritisation that is specifically
+tuned to the needs of clinical users.
+#+END_QUOTE
+
+\scriptsize
+http://www.genomemedicine.com/content/7/1/68
+
+** Sustainability
+
+\Large
+A piece of software is being sustained if people are using it, fixing it, and
+improving it rather than replacing it.
+
+\vspace{0.5cm}
+
+\normalsize
+http://software-carpentry.org/blog/2014/08/sustainability.html
+
+** Complex, rapidly changing baseline functionality
+
+[[./images2/gatk_changes.png]]
+
+
+* Feature support burden
+
+** Feature support burden
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width 0.65\textwidth
+[[./images11/nextflow_comparison.png]]
+#+END_CENTER
+
+\scriptsize
+http://www.nature.com/nbt/journal/v35/n4/full/nbt.3820.html
+
+** Community: sustainability and support
+
+#+ATTR_LATEX: :width 0.9\textwidth
+[[./images11/bcbio_commits_apr2017.png]]
+
+\vspace{0.5cm}
+
+#+ATTR_LATEX: :width 0.9\textwidth
+[[./images11/bcbio_issues_apr2017.png]]
+
+\vspace{0.5cm}
+
+[[https://github.com/chapmanb/bcbio-nextgen]]
+
+
 * Interoperable infrastructure
 
 ** Infrastructure Goals
 \Large
-- Free, open source, community developed
-- Welcoming to contributions
 - Local machines
 - Clusters: SLURM, SGE, Torque, PBS, LSF
 - Clouds: Amazon, Google, Azure
@@ -301,6 +246,27 @@ https://www.synapse.org/\#!Synapse:syn312572
 - User interface for researchers
 - Integrate with LIMS
 - Accessible to the general public
+
+** Challenge: many communities
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width 0.4\textwidth
+[[./images11/cgc.png]]
+#+END_CENTER
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width 0.4\textwidth
+[[./images10/cbioportal_logo.png]]
+#+END_CENTER
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width 0.4\textwidth
+[[./images10/synapse.png]]
+#+END_CENTER
+
+\vspace{0.5cm}
+
+http://www.cancergenomicscloud.org/ \\
+http://www.cbioportal.org/ \\
+https://www.synapse.org/
 
 ** Challenge: open source communities not yet optimal
 
@@ -348,8 +314,8 @@ https://bcbio-nextgen.readthedocs.io/en/latest/contents/cwl.html
 \Large
 - Integrate with multiple platforms
    - \Large Cancer Genomics Cloud + Seven Bridges
-   - \Large Arvados
    - \Large Toil
+   - \Large Arvados
    - \Large DNAnexus
    - \Large Galaxy
    - \Large Nextflow
@@ -365,22 +331,76 @@ https://bcbio-nextgen.readthedocs.io/en/latest/contents/cwl.html
 \scriptsize
 By jham3 - Own work, CC BY-SA 3.0, https://commons.wikimedia.org/w/index.php?curid=17125894
 
+
+* Cancer Genomics Cloud
+
 ** Practical example
 
 \Large
-- Build CWL using bcbio + CGC
-- Use publicly available Simons Genome Diversity Project sample
+- Use bcbio to build CWL that works on the Cancer Genomics Cloud
+- Publicly available Simons Genome Diversity Project sample
+
+** CGC: project and files
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width 1.1\textwidth
+[[./images11/cgc_project.png]]
+#+END_CENTER
+
+\footnotesize
+https://cgc.sbgenomics.com/u/bchapman/sgdp-recalling
+
+** CGC: biological reference data
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images11/cgc_biodata.png]]
+#+END_CENTER
+
+\footnotesize
+https://cgc.sbgenomics.com/u/bchapman/biodata-hg38/
+
+** bcbio: describe your analysis
+
+#+BEGIN_SRC yaml
+  - analysis: variant
+    genome_build: hg38
+    algorithm:
+      aligner: bwa
+      mark_duplicates: true
+      recalibrate: false
+      realign: false
+      variantcaller: [gatk-haplotype, freebayes, vardict]
+      ensemble:
+        numpass: 2
+      svcaller: [lumpy, manta, cnvkit]
+#+END_SRC
+
+** bcbio CGC integration and interoperability
+
+\Large
+- Build CWL with references to CGC data
+- Upload to CGC:
+  - \Large CWL as App
+  - \Large Sample information with App as Task
+- Run same pipeline with CWL
+  - \Large Toil: local HPC environment
+
+\vspace{0.5cm}
+\normalsize
+https://github.com/bcbio/bcbio_validation_workflows
 
 * Summary
 ** Summary
 \Large
-- bcbio community developed resources
-- Value of validation
-   - \Large Germline calling with Genome in a Bottle
-- Interoperable infrastructure
-   - \Large Importance of abstractions
-   - \Large Common Workflow Language
-   - \Large Practical example with Cancer Genomics Cloud
+- Challenges of building analysis workflows
+  - \Large Validation
+  - \Large Changing tools
+  - \Large Feature support burden
+  - \Large Multi-platform interoperability
+- bcbio open source community development
+- Common Workflow Language interoperable infrastructure
+- Practical example with Cancer Genomics Cloud
 
 \vspace{0.5cm}
 http://bcb.io
