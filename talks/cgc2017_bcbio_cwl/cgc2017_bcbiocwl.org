@@ -213,7 +213,7 @@ http://software-carpentry.org/blog/2014/08/sustainability.html
 ** Feature support burden
 
 #+BEGIN_CENTER
-#+ATTR_LATEX: :width 0.65\textwidth
+#+ATTR_LATEX: :width 0.55\textwidth
 [[./images11/nextflow_comparison.png]]
 #+END_CENTER
 
@@ -353,7 +353,7 @@ https://cgc.sbgenomics.com/u/bchapman/sgdp-recalling
 ** CGC: biological reference data
 
 #+BEGIN_CENTER
-#+ATTR_LATEX: :width 1.0\textwidth
+#+ATTR_LATEX: :width 0.9\textwidth
 [[./images11/cgc_biodata.png]]
 #+END_CENTER
 
