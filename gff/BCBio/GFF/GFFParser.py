@@ -190,6 +190,8 @@ def _gff_line_map(line, params):
             else:
                 quals, is_gff2 = collections.defaultdict(list), False
             gff_info["is_gff2"] = is_gff2
+            if gff_parts[0]:
+                quals["seqid"].append(gff_parts[0])
             if gff_parts[1]:
                 quals["source"].append(gff_parts[1])
             if gff_parts[5]:
