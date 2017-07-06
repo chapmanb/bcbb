@@ -300,8 +300,7 @@ https://f1000research.com/slides/5-1617
 \Large
 - Start with high level configuration file
 - Generate CWL
-- Run CWL:
-   - \Large Any infrastructure that supports CWL
+- Run, on any infrastructure that supports CWL
    - \Large Generated CWL
    - \Large Docker or local bcbio installation
    - \Large Genome data
