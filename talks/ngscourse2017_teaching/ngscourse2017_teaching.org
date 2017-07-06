@@ -1,6 +1,6 @@
-#+title: Variant calling with validated, scalable, community developed tools
+#+title: Variant calling with validated community developed tools
 #+author: Brad Chapman \newline Bioinformatics Core, Harvard Chan School \newline https://bcb.io \newline http://j.mp/bcbiolinks
-#+date: 4 July 2017
+#+date: 6 July 2017
 
 #+OPTIONS: toc:nil H:2
 
@@ -15,9 +15,9 @@
 
 ** Outline
 \Large
-- Overview of variant calling
+- Overview of variant calling tools
 - Open source community resources
-- bcbio validated variant calling
+- bcbio validated variant analysis
 - Science
    - \Large Human build 38
    - \Large GATK4 validation
@@ -227,7 +227,7 @@ https://commons.wikimedia.org/wiki/File:Efficiency_diagram_by_Zureks.svg
 
 ** Barriers to implementing yourself
 
-\Large
+\LARGE
 - Changing tools
 - Feature support burden
 - Validation
@@ -741,7 +741,7 @@ https://bcbio-nextgen.readthedocs.org/en/latest/contents/teaching.html
 \Large
 - Overview of variant calling tools
 - Open source community resources
-- bcbio validated variant calling
+- bcbio validated variant analysis
 - Science
    - \Large Human build 38
    - \Large GATK4 validation
