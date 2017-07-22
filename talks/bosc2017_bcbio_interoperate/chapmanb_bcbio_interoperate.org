@@ -1,0 +1,77 @@
+#+title: Interoperable, collaborative multi-platform variant calling with bcbio
+#+author: Brad Chapman \newline Bioinformatics Core, Harvard Chan School \newline https://bcb.io \newline http://j.mp/bcbiolinks
+#+date: 22 July 2017
+
+#+OPTIONS: toc:nil H:2
+
+#+startup: beamer
+#+LaTeX_CLASS: beamer
+#+latex_header: \usepackage{url}
+#+latex_header: \usepackage{hyperref}
+#+latex_header: \hypersetup{colorlinks=true}
+#+BEAMER_THEME: default
+#+BEAMER_COLOR_THEME: seahorse
+#+BEAMER_INNER_THEME: rectangles
+
+* Talk
+
+** 
+
+#+BEGIN_CENTER
+[[./images12/analysis_to_data.png]]
+#+END_CENTER
+
+** Why do we transfer data around?
+
+\Large
+- Lots of work to setup and configure an analysis
+- Hard to port scalable analysis to new environment
+
+** bcbio: community built analyses
+
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images3/bcbio_nextgen_highlevel.png]]
+
+\vspace{1cm}
+https://github.com/chapmanb/bcbio-nextgen
+
+** Support the work you do
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width 0.4\textwidth
+[[./images9/bcbio_pipelines.png]]
+#+END_CENTER
+
+\scriptsize
+https://bcbio-nextgen.readthedocs.org/en/latest/contents/pipelines.html
+
+** Better abstractions = more interoperability
+
+[[./images10/abstractions.png]]
+
+\scriptsize
+https://bcbio-nextgen.readthedocs.io/en/latest/contents/cwl.html
+
+** Supported now
+
+#+BEGIN_CENTER
+[[./images12/bcbio_supported.png]]
+#+END_CENTER
+
+** In progress
+
+#+BEGIN_CENTER
+[[./images12/bcbio_inprogress.png]]
+#+END_CENTER
+
+** Bringing analysis to your data
+
+\Large
+- Community built analysis -- work together
+- Interoperable workflows -- the right abstractions
+- Platform support -- real practical progress
+
+\vspace{0.5cm}
+https://bcb.io \\
+\vspace{0.5cm}
+http://j.mp/bcbiolinks
