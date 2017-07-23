@@ -177,7 +177,7 @@ Lots of use of continuous integration: TravisCI, Appveyor for windows testing,
 
 # Keynote
 
-##Open Sourcing Ourselves
+## Open Sourcing Ourselves
 _Madeleine Ball_
 
 Madeleine starts by describing her background: fixed DNA representation on
