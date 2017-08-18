@@ -104,8 +104,11 @@ effectively in biological research. A major challenge is that this work is not
 well funded or rewarded in the context of traditional academic research, which
 emphasizes answering specific biological questions. My personal goal is to
 continue to develop this critical reusable infrastructure by establishing larger
-collaborations. Development happens within the context of the project but is
-then available to both analyses in the core as well as the larger research
+collaborations. These aim to improve our expertise in research areas essential
+to public health research, such as germline variant calling in large populations
+and somatic variant detection in heterogeneous tumor samples. These projects
+continue to develop expertise in personalized genomics and make the tools
+available for both analyses in the core as well as the larger research
 community.
 
 I'd like to highlight two projects where external collaborations helped the
