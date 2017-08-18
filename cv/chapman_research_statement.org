@@ -10,12 +10,12 @@
 * Job Description
 
 As a member of the Harvard T.H. Chan School of Public Health Bioinformatics
-core, the Senior Research Scientist will provide custom bioinformatics analysis and
+Core, the Senior Research Scientist will provide custom bioinformatics analysis and
 software development for researchers in the school and wider biological
 community, with a focus on high throughput sequence data management and
 analysis. This includes:
 
-- Developing research collaborations, providing bioinformatics support
+- Developing research collaborations and new sources of funding, providing bioinformatics support
   for ongoing investigations.
 
 - Building reusable analysis tools resulting from collaborations, leading to
@@ -56,7 +56,7 @@ The prevalence of high throughput sequencing data in public health research
 requires validated, scalable infrastructure able to effectively process,
 prioritize and distribute results to biological collaborators. Researchers
 want to take advantage of high throughput sequencing for existing cohorts like
-the Nurses' Health Study and need ready to run tools and expertise to
+the Nurses' Health Study and need ready-to-run tools and expertise to
 effectively process, quality control and analyze their data.
 
 The necessary infrastructure is a complex coordination of rapidly changing open
@@ -65,20 +65,20 @@ this infrastructure requires regular maintenance and development work. This
 often conflicts with project budgets and timelines which focus on the underlying
 biological questions.
 
-My work enables science at Harvard Chan School by developing
-re-usable infrastructure for use by the Bioinformatics core and the wider
+My work enables science at the Harvard Chan School by developing
+re-usable infrastructure for use by the Bioinformatics Core and the wider
 scientific community. The key component of my job is understanding the needs of
-existing projects and providing a high quality, easy to use implementation that
-helps improve our ability to collaborate with research scientists. For example,
-by having infrastructure that reliable calls variants on large scale whole
-genome sequencing projects we can devote core hours to downstream analysis and
-presentation of data instead of putting together ad hoc tools to do the
-processing for each new incoming project.
+existing projects and providing a high quality, easy-to-use implementation that
+improves our ability to collaborate with research scientists. For example,
+by having infrastructure that reliably calls variants on large scale whole
+genome sequencing projects, we can devote core hours to understanding the underlying biology through downstream analysis and
+presentation of data, instead of putting together ad hoc tools to
+process each new incoming project.
 
 This infrastructure builds on expertise and available tools from the wider
 bioinformatics community. We aggressively re-use existing software and also
 contribute back to that software in the form of bug reports, fixes and
-validation. Additional, we support our analysis tools in a wide variety of
+validation. Additionally, we support our analysis tools in a wide variety of
 computational environments, ranging from local HPC to cloud infrastructure to
 commercial analysis platforms. This maximizes re-use and interoperability,
 making the software development process as efficient as possible. By being an
@@ -103,19 +103,19 @@ High quality, scalable and validated infrastructure is essential to working
 effectively in biological research. A major challenge is that this work is not
 well funded or rewarded in the context of traditional academic research, which
 emphasizes answering specific biological questions. My personal goal is to
-continue to develop this critical reusable infrastructure by establishing larger
+continue to develop this critical re-usable infrastructure by establishing larger
 collaborations. These aim to improve our expertise in research areas essential
 to public health research, such as germline variant calling in large populations
 and somatic variant detection in heterogeneous tumor samples. These projects
 continue to develop expertise in personalized genomics and make the tools
-available for both analyses in the core as well as the larger research
+available to analyses in the core as well as the larger research
 community.
 
-I'd like to highlight two projects where external collaborations helped the
-Harvard Chan school establish local expertise while simultaneously solving
+I would like to highlight two projects where external collaborations helped the
+Harvard Chan School establish local expertise while simultaneously solving
 difficult scientific problems in the scope of the work. These projects
 led to re-usable tools that are in daily use by myself and other members of the
-Bioinformatics core.
+Bioinformatics Core.
 
 The first is an ongoing collaboration with AstraZeneca Oncology Research and
 Development. This is a multi-year project focused around improving calling for
