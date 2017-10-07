@@ -81,7 +81,7 @@ is compliant. Stresses importance of validation highlighting precisionFDA.
 _Ling Yang Hao, Janssen Pharmaceutical_
 
 Focus is on drugs for Inflamatory Bowel Disease (IBD): Ulcerative Colitis and
-Chron's disease. Due to chronic inflammation of the GI tract. Looked at genetic
+Crohn's disease. Due to chronic inflammation of the GI tract. Looked at genetic
 component and different between different populations: European versus Asian.
 Different risk alleles and complex genetic association -- not exactly sure how.
 Promising ideas: microbiome based approach to improve collection of good
