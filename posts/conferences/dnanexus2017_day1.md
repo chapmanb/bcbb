@@ -5,7 +5,7 @@ planning to go over the next year. He emphasizes the importance of workflow
 flexibility, data organization, sharing and management.
 
 ## Pharma 2020 -- a look ahead in a changing world
-/Steve Arlington, Pistoia Alliance/
+_Steve Arlington, Pistoia Alliance_
 
 Goal is to provide a vision of the future and Steve describes the difficulty in
 predicting ahead based on the past. Predicting that the world medicine will
@@ -30,7 +30,7 @@ integrate it and improve behavior? Shift is moving from doing everything
 yourself to integrated collaborative companies.
 
 ## Moving from a Reactive to a Proactive Approach to Cancer Care
-/Bill Dalton, M2Gen/
+_Bill Dalton, M2Gen_
 
 [ORIEN (Oncology Research Information Exchange Network)]
 (http://www.oriencancer.org/): goal is to bring together multiple cancer centers
@@ -60,7 +60,7 @@ current challenge: getting and harmonizing clinical data.
 
 
 ## Birth of the Cool: Miles Past 200K Exomes
-/Jeff Reid, Regeneron/
+_Jeff Reid, Regeneron_
 
 [Regeneron Genetics Center](https://www.regeneron.com/genetics-center) focus is
 to create an environment where studies interoperate: families, big population
@@ -91,7 +91,7 @@ that completely changed treatment. One challenge is figuring out IRBs to allow
 reporting back for CNV and other issues.
 
 ## Integrative Informatics: How to Bring Semantic and Tabular Data Together to Drive Insight
-/Mathew Woodwark, MedImmune/
+_Mathew Woodwark, MedImmune_
 
 Matthew talks about data integration work ongoing at MedImmune and AstraZeneca.
 Overall goal is to provide targeted therapies. Integrating across a whole ton of
@@ -108,7 +108,7 @@ biological questions to graph. Advantages of linked data: integrating with other
 data providers that are already doing this like EBI.
 
 ## Enabling Standard Bioinformatics Processing at UPMC’s Genome Cente
-/Annerose Berndt, University of Pittsburgh Medical/
+_Annerose Berndt, University of Pittsburgh Medical_
 
 [University of Pittsburgh Medical (UPMC)](http://www.upmc.com/Pages/default.aspx)
 huge integrated health care provider with fully integrated system in multiple
