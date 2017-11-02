@@ -1,0 +1,19 @@
+sample,caller,vtype,metric,value
+NA12878 (NovaSeq),BQSR + HaplotypeCaller,SNPs,tp,196769
+NA12878 (NovaSeq),BQSR + HaplotypeCaller,Indels,tp,26956
+NA12878 (NovaSeq),BQSR + HaplotypeCaller,SNPs,fp,3845
+NA12878 (NovaSeq),BQSR + HaplotypeCaller,Indels,fp,7178
+NA12878 (NovaSeq),BQSR + HaplotypeCaller,SNPs,fn,1660
+NA12878 (NovaSeq),BQSR + HaplotypeCaller,Indels,fn,1998
+NA24385 (x10 + 10x),BQSR + HaplotypeCaller,SNPs,tp,200387
+NA24385 (x10 + 10x),BQSR + HaplotypeCaller,Indels,tp,24942
+NA24385 (x10 + 10x),BQSR + HaplotypeCaller,SNPs,fp,22600
+NA24385 (x10 + 10x),BQSR + HaplotypeCaller,Indels,fp,43867
+NA24385 (x10 + 10x),BQSR + HaplotypeCaller,SNPs,fn,973
+NA24385 (x10 + 10x),BQSR + HaplotypeCaller,Indels,fn,3242
+NA24631 (HiSeq 2500),BQSR + HaplotypeCaller,SNPs,tp,195996
+NA24631 (HiSeq 2500),BQSR + HaplotypeCaller,Indels,tp,24247
+NA24631 (HiSeq 2500),BQSR + HaplotypeCaller,SNPs,fp,1586
+NA24631 (HiSeq 2500),BQSR + HaplotypeCaller,Indels,fp,354
+NA24631 (HiSeq 2500),BQSR + HaplotypeCaller,SNPs,fn,270
+NA24631 (HiSeq 2500),BQSR + HaplotypeCaller,Indels,fn,170
