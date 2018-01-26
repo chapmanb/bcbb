@@ -1,0 +1,631 @@
+#+title: Distributed multi-platform variant calling with bcbio and the Common Workflow Language
+#+author: Brad Chapman \newline Bioinformatics Core, Harvard Chan School \newline https://bcb.io \newline http://j.mp/bcbiolinks
+#+date: 25 January 2018
+
+#+OPTIONS: toc:nil H:2
+
+#+startup: beamer
+#+LaTeX_CLASS: beamer
+#+latex_header: \usepackage{url}
+#+latex_header: \usepackage{hyperref}
+#+latex_header: \hypersetup{colorlinks=true}
+#+BEAMER_THEME: default
+#+BEAMER_COLOR_THEME: seahorse
+#+BEAMER_INNER_THEME: rectangles
+
+* Introduction
+** Overview
+\Large
+- Barriers to building analysis pipelines
+- bcbio: open source community development
+- Common Workflow Language (CWL) and Workflow Description Language (WDL): assembly language for workflows
+- Practical CWL with bcbio: HPC, DNAnexus, Arvados, SevenBridges
+- Scaling and parallelization
+- GA4GH: Automating validation and multi-platform testing
+
+** Takeaways
+
+\LARGE
+- Science = collaboration and re-use
+- Need interoperable workflow abstractions
+- We can build better things together
+
+** You want to build a variant calling pipeline
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images11/gatk_bp.png]]
+#+END_CENTER
+
+\scriptsize
+https://software.broadinstitute.org/gatk/best-practices/
+
+** 
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width 0.8\textwidth
+[[./images11/efficiency.png]]
+#+END_CENTER
+\tiny
+https://commons.wikimedia.org/wiki/File:Efficiency_diagram_by_Zureks.svg
+
+** Barriers to implementing yourself
+
+\Large
+- Changing tools
+- Feature support burden
+- Multi-platform interoperability
+- Validation
+
+** Build open source communities
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images12/gccbosc2018.png]]
+
+\vspace{1cm}
+https://gccbosc2018.sched.com/
+#+END_CENTER
+
+** Overview
+
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images3/bcbio_nextgen_highlevel.png]]
+
+\vspace{1cm}
+https://github.com/chapmanb/bcbio-nextgen
+
+** Supported analysis types
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width 0.4\textwidth
+[[./images9/bcbio_pipelines.png]]
+#+END_CENTER
+
+\scriptsize
+https://bcbio-nextgen.readthedocs.org/en/latest/contents/pipelines.html
+
+* Changing tools
+
+** We made a pipeline -- so what?
+
+\tiny
+#+BEGIN_QUOTE
+There have been a number of previous efforts to create publicly available
+analysis pipelines for high throughput sequencing data. Examples include
+Omics-Pipe, bcbio-nextgen, TREVA and NGSane. These pipelines
+offer a comprehensive, automated process that can analyse raw sequencing reads
+and produce annotated variant calls. However, the main audience for these
+pipelines is the research community. Consequently, there are many features
+required by clinical pipelines that these examples do not fully address. Other
+groups have focused on improving specific features of clinical pipelines. The
+Churchill pipeline uses specialised techniques to achieve high performance,
+while maintaining reproducibility and accuracy. However it is not freely
+available to clinical centres and it does not try to improve broader clinical
+aspects such as detailed quality assurance reports, robustness, reports and
+specialised variant filtering. The Mercury pipeline offers a comprehensive
+system that addresses many clinical needs: it uses an automated workflow system
+(Valence) to ensure robustness, abstract computational resources and
+simplify customisation of the pipeline. Mercury also includes detailed coverage
+reports provided by ExCID, and supports compliance with US privacy laws
+(HIPAA) when run on DNANexus, a cloud computing platform specialised for
+biomedical users. Mercury offers a comprehensive solution for clinical users,
+however it does not achieve our desired level of transparency, modularity and
+simplicity in the pipeline specification and design. Further, Mercury does not
+perform specialised variant filtering and prioritisation that is specifically
+tuned to the needs of clinical users.
+#+END_QUOTE
+
+\scriptsize
+http://www.genomemedicine.com/content/7/1/68
+
+** Sustainability
+
+\Large
+A piece of software is being sustained if people are using it, fixing it, and
+improving it rather than replacing it.
+
+\vspace{0.5cm}
+
+\normalsize
+http://software-carpentry.org/blog/2014/08/sustainability.html
+
+** Complex, rapidly changing baseline functionality
+
+[[./images2/gatk_changes.png]]
+
+
+* Feature support burden
+
+** Feature support burden
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width 0.55\textwidth
+[[./images11/nextflow_comparison.png]]
+#+END_CENTER
+
+\scriptsize
+http://www.nature.com/nbt/journal/v35/n4/full/nbt.3820.html
+
+** Community: sustainability and support
+
+#+ATTR_LATEX: :width 0.9\textwidth
+[[./images11/bcbio_commits_apr2017.png]]
+
+\vspace{0.5cm}
+
+#+ATTR_LATEX: :width 0.9\textwidth
+[[./images11/bcbio_issues_apr2017.png]]
+
+\vspace{0.5cm}
+
+[[https://github.com/chapmanb/bcbio-nextgen]]
+
+
+* Interoperable infrastructure
+
+** Infrastructure Goals
+\Large
+- Local machines
+- Clusters: SLURM, SGE, Torque, PBS, LSF
+- Clouds: Amazon, Google, Azure
+- Clinical environments
+- User interface for researchers
+- Integrate with LIMS
+- Accessible to the general public
+
+
+** 
+
+#+BEGIN_CENTER
+[[./images12/analysis_to_data.png]]
+#+END_CENTER
+
+** Why do we transfer data around?
+
+\Large
+- Lots of work to setup and configure an analysis
+- Hard to port scalable analysis to new environment
+
+** Many great workflow systems: Nexflow
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images12/nextflow_overview.png]]
+
+\vspace{0.2cm}
+http://nextflow.io/
+#+END_CENTER
+
+** Many great workflow systems: Galaxy
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images12/galaxy_overview.png]]
+
+\vspace{0.2cm}
+http://galaxyproject.org/
+#+END_CENTER
+
+** Many great workflow systems: Snakemake
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images12/snakemake_overview.png]]
+
+\vspace{0.2cm}
+https://snakemake.readthedocs.io
+#+END_CENTER
+
+** But, many workflow systems
+
+#+ATTR_LATEX: :width 0.8\textwidth
+[[./images12/existing_workflows.png]]
+
+#+ATTR_LATEX: :width 0.8\textwidth
+[[./images12/existing_workflows2.png]]
+
+\scriptsize
+https://github.com/common-workflow-language/common-workflow-language/wiki/Existing-Workflow-systems
+
+** We'll never agree on one system
+
+\Large
+- Advantages and disadvantages to each
+- Familiarity and teaching
+- Personal preference
+
+** So we can't easily share workflows
+
+\Large
+- Single workflow system allows coordinated groups
+- Create barrier to sharing externally
+- Hard to mix and match components between workflow environments
+- How can we do better?
+
+** Better abstractions = more interoperability
+
+[[./images10/abstractions.png]]
+
+\scriptsize
+https://bcbio-nextgen.readthedocs.io/en/latest/contents/cwl.html
+
+** Common Workflow Language (CWL)
+
+
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images10/cwl_pipeline_example.png]]
+
+#+BEGIN_CENTER
+http://www.commonwl.org/ \\
+\vspace{0.5cm}
+\scriptsize
+https://f1000research.com/slides/5-1617
+#+END_CENTER
+
+** Workflow Description Language (WDL)
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width .6\textwidth
+[[./images12/wdl-logo_white.png]]
+
+\vspace{0.5cm}
+http://openwdl.org/
+#+END_CENTER
+
+** Why use a workflow abstraction?
+
+\Large
+- Integrate with multiple platforms
+   - \Large Rabix Bunny -- local
+   - \Large Toil -- HPC
+   - \Large Arvados
+   - \Large DNAnexus
+   - \Large Seven Bridges + Cancer Genomics Cloud
+- Stop maintaining bcbio specific infrastructure
+- Focus on hard biological problems
+
+** Unique goals with CWL
+
+\Large
+- Multiple concurrent production environments
+  - \Large HPC
+  - \Large External vendors (DNAnexus, SevenBridges, Arvados)
+  - \Large Direct on Cloud (AWS, GCE, Azure)
+- Coordinated release and update process
+  - \Large Workflow
+  - \Large Tools in containers
+  - \Large Reference data
+
+** Connections
+
+#+ATTR_LATEX: :width 0.6\textwidth
+[[./images10/Network_Community_Structure.png]]
+
+\scriptsize
+By jham3 - Own work, CC BY-SA 3.0, https://commons.wikimedia.org/w/index.php?curid=17125894
+
+** CWL in bcbio
+
+\Large
+- Start with high level configuration file
+- Generate CWL
+- Run, on any infrastructure that supports CWL
+   - \Large Generated CWL
+   - \Large Docker or local bcbio installation
+   - \Large Genome data
+
+\scriptsize
+https://bcbio-nextgen.readthedocs.io/en/latest/contents/cwl.html
+
+** bcbio-vm: CWL wrapper
+
+\Large
+- bcbio-like interface integrating with external tools
+- Install wrapper plus supported runners
+
+\vspace{0.2cm}
+\normalsize
+#+BEGIN_SRC sh
+conda install -c conda-forge -c bioconda bcbio-nextgen-vm
+#+END_SRC
+
+\vspace{0.4cm}
+https://github.com/chapmanb/bcbio-nextgen-vm \\
+https://bioconda.github.io/
+
+** Template: describe your analysis
+
+#+BEGIN_SRC yaml
+details:
+ - algorithm:
+     aligner: bwa
+     recalibrate: true
+     variantcaller: gatk-haplotype
+     tools_on: [gatk4, gvcf]
+   analysis: variant2
+   variant_regions: Exome-AZ_V2_pluschr20-hg38.bed
+genome_build: hg38
+#+END_SRC
+
+https://github.com/bcbio/bcbio_validation_workflows
+
+** Define your samples
+
+#+BEGIN_SRC yaml
+samplename,description,batch,validate
+NA12878_R1.fq.gz;NA12878_R2.fq.gz,NA12878,gj1,
+  hg38/validation/giab-NA12878/truth_small_variants.vcf.gz
+NA24385_R,NA24385,gj1,
+  hg38/validation/giab-NA24385/truth_small_variants.vcf.gz
+NA24631_R,NA24631,gj1,
+  hg38/validation/giab-NA24631/truth_small_variants.vcf.gz
+#+END_SRC
+
+** Local or shared filesystem environment
+
+#+BEGIN_SRC yaml
+local:
+  ref: biodata/collections
+  inputs:
+    - biodata/regions
+    - biodata/giab/na12878
+    - biodata/giab/na24385
+    - biodata/giab/na24631
+resources:
+  default:
+    cores: 8
+    memory: 3500M
+    jvm_opts: [-Xms750m, -Xmx3500m]
+#+END_SRC
+
+** Generate CWL for local or HPC run
+
+#+BEGIN_SRC sh
+PNAME=giab-joint
+bcbio_vm.py template --systemconfig bcbio_system.yaml \
+  joint-template.yaml $PNAME.csv
+bcbio_vm.py cwl --systemconfig bcbio_system.yaml \
+  $PNAME/config/$PNAME.yaml
+#+END_SRC
+
+** Run multicore on single machine with Rabix Bunny
+
+#+BEGIN_SRC sh
+bcbio_vm.py cwlrun bunny $PNAME-workflow
+#+END_SRC
+
+\vspace{0.5cm}
+https://github.com/rabix/bunny
+
+** Run distributed on SLURM cluster with Toil
+
+#+BEGIN_SRC sh
+export TOIL_SLURM_ARGS="-t 0-12:00 -p short"
+bcbio_vm.py cwlrun toil --no-container $PNAME-workflow \
+  -- --batchSystem slurm
+#+END_SRC
+
+\vspace{0.5cm}
+http://toil.readthedocs.io
+
+** Arvados -- Veritas and Curoverse
+
+#+BEGIN_SRC yaml
+arvados:
+  reference: 9127147c168e27e26738524cbd3a59c6+1633
+  input: [a1d976bc7bcba2b523713fa67695d715+464]
+resources:
+  default:
+    cores: 8
+    memory: 3500M
+    jvm_opts: [-Xms750m, -Xmx3500m]
+#+END_SRC
+
+\vspace{0.3cm}
+https://arvados.org/
+
+** Generate CWL and run on Arvados
+
+#+BEGIN_SRC sh
+bcbio_vm.py template \
+  --systemconfig bcbio_system_arvados.yaml \
+  $PNAME-template.yaml $PNAME.csv
+bcbio_vm.py cwl \
+  --systemconfig bcbio_system_arvados.yaml \
+  $PNAME/config/$PNAME.yaml
+bcbio_vm.py cwlrun arvados $PNAME-workflow -- \
+  --project-uuid qr1hi-j7d0g-7t73h4hrau3l063
+#+END_SRC
+
+** SevenBridges and the Cancer Genomics Cloud
+
+#+BEGIN_SRC yaml
+sbgenomics:
+  project: bchapman/sgdp-recalling
+  reference: bchapman/biodata-hg38
+resources:
+  default:
+    cores: 8
+    memory: 3500M
+    jvm_opts: [-Xms750m, -Xmx3500m]
+#+END_SRC
+
+https://www.sevenbridges.com/
+
+** CGC: biological reference data
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width 0.9\textwidth
+[[./images11/cgc_biodata.png]]
+#+END_CENTER
+
+\footnotesize
+https://cgc.sbgenomics.com/u/bchapman/biodata-hg38/
+
+** DNAnexus
+
+#+BEGIN_SRC yaml
+dnanexus:
+  project: giab-joint
+  ref:
+    project: bcbio_resources
+    folder: /reference_genomes
+  inputs:
+    - /data/input
+resources:
+  default:
+    cores: 8
+    memory: 3500M
+    jvm_opts: [-Xms750m, -Xmx3500m]
+#+END_SRC
+
+https://platform.dnanexus.com
+
+** dx-cwl: compile to DNAnexus workflow language
+
+#+BEGIN_SRC sh
+dx-cwl compile-workflow PNAME-workflow/main-PNAME.cwl \
+  --project PROJECT_ID --token AUTH_TOKEN
+
+dx-cwl run-workflow /dx-cwl-run/main-PNAME/main-PNAME \
+       /PNAME-workflow/main-PNAME-samples.json \
+       --project PROJECT_ID --token AUTH_TOKEN
+#+END_SRC
+
+https://github.com/dnanexus/dx-cwl
+
+
+* Scaling and parallelization
+** DNAnexus monitoring: align, variant call, QC
+
+#+ATTR_LATEX: :width 1.1\textwidth
+[[./images12/dnanexus-parallel-full.png]]
+
+** Subworkflow parallelization: per sample or batch
+
+#+ATTR_LATEX: :width 1.1\textwidth
+[[./images12/dnanexus-parallel-subworkflow.png]]
+
+** Variant calling parallelization: per region
+
+#+ATTR_LATEX: :width 1.1\textwidth
+[[./images12/dnanexus-parallel-region.png]]
+
+** Region splitting approach
+
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images/parallel-genome.png]]
+
+** Region problem: long tail jobs
+
+#+ATTR_LATEX: :width 1.1\textwidth
+[[./images12/dnanexus-parallel-longtail.png]]
+
+** Region improvement: multicore Spark parallelization
+
+#+ATTR_LATEX: :width 1.1\textwidth
+[[./images12/dnanexus-parallel-longtail-fixed.png]]
+
+** Region-based parallelization improvements
+
+\LARGE Avoid long running jobs on single core
+
+\Large
+- Use multicore support when available (GATK4 HaplotypeCallerSpark, Strelka2,
+  Sentieon)
+- Avoid calling on non chr1-22,X,Y,MT chromosomes
+- Maximum coverage downsampling of collapsed and simple sequence repeats
+- Trimming of low quality reads at 3' ends
+\scriptsize https://blog.dnanexus.com/2018-01-16-evaluating-the-performance-of-ngs-pipelines-on-noisy-wgs-data/
+
+* Validation
+
+** Value of validation
+\LARGE
+- Integration tests for pipelines
+- Unbiased algorithm comparisons
+- Baseline for improving methods
+- Automated tests for platforms
+
+** Reference materials
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width .5\textwidth
+[[./images/giab.png]]
+
+#+ATTR_LATEX: :width .7\textwidth
+[[./images7/ga4gh.png]]
+
+#+ATTR_LATEX: :width .9\textwidth
+[[./images7/dream_challenge.png]]
+#+END_CENTER
+
+http://www.genomeinabottle.org/
+http://ga4gh.org/\#/benchmarking-team
+https://www.synapse.org/\#!Synapse:syn312572
+
+** Validation graphs
+
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images10/grading-example.png]]
+
+
+** NA12878, NA24385, NA24631 GATK4 joint calling
+
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images12/giab-joint-recal.png]]
+
+\footnotesize
+https://github.com/bcbio/bcbio_validations/tree/master/gatk4
+
+** Need continuous integration process
+
+\Large
+- Automate testing across multiple platforms
+- Test new workflow definitions
+- Test new tools and algorithms
+- Transparent process
+
+** GA4GH: workflow coordination
+
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images12/CW-dream-banner.jpg]]
+
+\vspace{0.5cm}
+https://www.synapse.org/#!Synapse:syn8507133/wiki/415976
+
+** GA4GH: next steps
+
+\Large
+- Automation of validation
+- Workflow Execution Service (WES)
+- Shared API for running CWL/WDL workflows
+- Contributors welcome
+
+\vspace{0.3cm}
+\normalsize
+https://github.com/ga4gh/workflow-execution-schemas
+
+* Summary
+** Takeaways
+
+\LARGE
+- Science = collaboration and re-use
+- Workflow abstractions allow interoperability
+- We can build better things together
+
+** Summary
+\Large
+- Challenges of building analysis workflows
+  - \Large Changing tools
+  - \Large Feature support burden
+  - \Large Multi-platform interoperability
+  - \Large Validation
+- bcbio open source community development
+- Practical CWL with bcbio: HPC, DNAnexus, Arvados, SevenBridges
+- Scaling and parallelization
+- GA4GH: Automated multi-platform validation
+
+\vspace{0.2cm}
+http://bcb.io

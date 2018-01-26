@@ -11,7 +11,7 @@
 
 As a member of the Harvard T.H. Chan School of Public Health Bioinformatics
 Core, the Senior Research Scientist will provide custom bioinformatics analysis and
-software development for researchers in the school and wider biological
+software development for researchers in the school and wider biolandcal
 community, with a focus on high throughput sequence data management and
 analysis. This includes:
 
@@ -23,7 +23,7 @@ analysis. This includes:
 
 - Integration of developed analyses within open source and commercial
   frameworks, allowing wide usage across a diverse set of research needs.
-
+, Google Compute Engine and Microsoft Azure
 - Designing custom reporting and visualization of computational results, to
   communicate these results through publication and conference presentation.
 
