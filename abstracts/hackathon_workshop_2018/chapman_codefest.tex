@@ -1,0 +1,203 @@
+\documentclass{sigchi-ext}
+% Please be sure that you have the dependencies (i.e., additional
+% LaTeX packages) to compile this example.
+\usepackage[T1]{fontenc}
+\usepackage{textcomp}
+\usepackage[scaled=.92]{helvet} % for proper fonts
+\usepackage{graphicx} % for EPS use the graphics package instead
+\usepackage{balance}  % for useful for balancing the last columns
+\usepackage{booktabs} % for pretty table rules
+%\usepackage{ccicons}  % for Creative Commons citation icons
+\usepackage{ragged2e} % for tighter hyphenation
+
+% Some optional stuff you might like/need.
+% \usepackage{marginnote} 
+% \usepackage[shortlabels]{enumitem}
+% \usepackage{paralist}
+% \usepackage[utf8]{inputenc} % for a UTF8 editor only
+
+%% EXAMPLE BEGIN -- HOW TO OVERRIDE THE DEFAULT COPYRIGHT STRIP --
+% \copyrightinfo{Permission to make digital or hard copies of all or
+% part of this work for personal or classroom use is granted without
+% fee provided that copies are not made or distributed for profit or
+% commercial advantage and that copies bear this notice and the full
+% citation on the first page. Copyrights for components of this work
+% owned by others than ACM must be honored. Abstracting with credit is
+% permitted. To copy otherwise, or republish, to post on servers or to
+% redistribute to lists, requires prior specific permission and/or a
+% fee. Request permissions from permissions@acm.org.\\
+% {\emph{CHI'14}}, April 26--May 1, 2014, Toronto, Canada. \\
+% Copyright \copyright~2014 ACM ISBN/14/04...\$15.00. \\
+% DOI string from ACM form confirmation}
+%% EXAMPLE END
+
+% Paper metadata (use plain text, for PDF inclusion and later
+% re-using, if desired).  Use \emtpyauthor when submitting for review
+% so you remain anonymous.
+\def\plaintitle{Collaborative community coding events in open source biological research}
+\def\plainauthor{Brad Chapman}
+\def\emptyauthor{}
+\def\plainkeywords{bioinformatics, collaboration, training, diversity,
+  open source, biology}
+
+\title{Collaborative community coding events in open source biological research}
+
+\numberofauthors{1}
+% Notice how author names are alternately typesetted to appear ordered
+% in 2-column format; i.e., the first 4 autors on the first column and
+% the other 4 auhors on the second column. Actually, it's up to you to
+% strictly adhere to this author notation.
+\author{%
+  \alignauthor{%
+    \textbf{Brad Chapman}\\
+    \affaddr{Harvard Chan School Bioinformatics Core} \\
+    \affaddr{\url{http://bioinformatics.sph.harvard.edu/}} \\
+    \email{bchapman@hsph.harvard.edu} } }
+
+% Make sure hyperref comes last of your loaded packages, to give it a
+% fighting chance of not being over-written, since its job is to
+% redefine many LaTeX commands.
+\definecolor{linkColor}{RGB}{6,125,233}
+\hypersetup{%
+  pdftitle={\plaintitle},
+%  pdfauthor={\plainauthor},
+  pdfauthor={\emptyauthor},
+  pdfkeywords={\plainkeywords},
+  bookmarksnumbered,
+  pdfstartview={FitH},
+  colorlinks,
+  citecolor=black,
+  filecolor=black,
+  linkcolor=black,
+  urlcolor=linkColor,
+  breaklinks=true,
+}
+
+% \reversemarginpar%
+
+\begin{document}
+
+%% For the camera ready, use the commands provided by the ACM in the Permission Release Form.
+%\CopyrightYear{2007}
+%\setcopyright{rightsretained}
+%\conferenceinfo{WOODSTOCK}{'97 El Paso, Texas USA}
+%\isbn{0-12345-67-8/90/01}
+%\doi{http://dx.doi.org/10.1145/2858036.2858119}
+
+\maketitle
+
+% Uncomment to disable hyphenation (not recommended)
+% https://twitter.com/anjirokhan/status/546046683331973120
+\RaggedRight{}
+
+% Do not change the page size or page settings.
+\begin{abstract}
+The Open Bioinformatics Foundation Codefest is a multiple day collaborative
+working session. Codefest provides a venue for real time collaboration between
+researchers who have established relationships through decentralized open source
+work, as well as a place for new developers to integrate with a welcoming
+community. We'll describe the unique collaborative structure of Codefest and
+discuss approaches to help improve the event to sustain long term collaborations
+while training a diverse set of attendees.
+\end{abstract}
+
+\keywords{\plainkeywords}
+
+\section{Background and motivation}
+
+The Open Bioinformatics Foundation (\url{https://www.open-bio.org}) is a
+community of scientists creating open source code to solve biological problems.
+A yearly conference, started in 2000, provides the opportunity for in person
+discussion and presentation on technical work about code development and
+biological analyses.
+
+In 2010, we recognized a need for a more practical hands on working session in
+addition to the conference and developed a two day coding event called the
+OpenBio Codefest (\url{https://www.open-bio.org/wiki/Codefest}). This event
+continued the past 8 years in a wide diversity of locations, with the most
+recent taking place at a non-profit, community-run hackerspace in Prague
+(\url{https://www.open-bio.org/wiki/Codefest_2017}).
+
+This summer, we've combined with another open source community to create a full
+bioinformatics community conference including dedicated training, traditional
+conference talks and four days of collaboration
+(\url{https://gccbosc2018.sched.com/}).
+
+Our goals at the CHI 2018 Hackathon Workshop are to describe the unique
+collaborative structure of Codefest, connect with other organizers building
+long term community relationships through collaborative events, and
+learn about how we can improve at training a diverse set of attendees.
+
+\section{Collaborative event design}
+
+Codefest initially started as a space for community members who were already
+collaborating remotely to sit together and work. Over time, it expanded to better
+incorporate new members into the community by serving as a fun and open
+environment for sharing work and meeting like-minded researchers.
+
+We plan to share some unique design elements we've learned in organizing Codefest:
+
+\begin{itemize}
+\item The value of collaboration over competition. Codefest has no prizes or
+  competitive structure, and instead focuses on producing useful practical code that
+  we can share at the associated conference and more widely through blog posts
+  and scientific papers.
+
+\item The power of self-organizing groups. We do not pre-define the agenda for
+  Codefest and let the attendees suggest areas of focus and then provide
+  introductions so working groups can form. This allows newer community members
+  to work alongside more experienced developers in areas they'd like to learn,
+  and to allow the community to shift focus with new technologies and approaches.
+
+\item The advantage of in person discussion for developing interoperability
+  standards. One successful outcome of Codefest have been the development of tool
+  communication standards which allow different communities to share development
+  resources. Like other projects at Codefest, standards creation happened
+  organically due to the need for larger projects to be able to better to re-use
+  analyses. These standards have been essential for forming new long term
+  collaborations for building necessary research infrastructure.
+\end{itemize}
+
+\section{Training and community building}
+
+The biological problems we work on at Codefest require collaboration across
+a diverse set of research areas. We're
+continually focused on strengthening and improving our community and are hoping
+to learn from other organizers at the Workshop:
+
+\begin{itemize}
+\item How to attract a more diverse set of community members. Like many programming
+  and bioinformatics conferences, we struggle to attract a diverse crowd of
+  attendees. As a result, Codefest can feel intimidating or unwelcoming to those
+  outside the community. We've received universal praise that we're welcoming
+  once overcoming that initial hurdle, but would like ways to project this
+  welcoming attitude so under-represented researchers feel comfortable investing
+  their time and expertise at Codefest.
+
+\item Incorporating teaching and training into the content of Codefest. As we've
+  increasingly tried to attract new community members, we've developed the need
+  to help integrate them into the community. In many cases, new members will be
+  experts in some areas but not in the projects or languages under active
+  development at Codefest. We need to develop methods to quickly get them
+  comfortable and productive so they can contribute within a reasonably short
+  time frame. At this year's upcoming Codefest we plan to evaluate the impact of
+  having dedicated training prior to the collaborative hands on event.
+
+\item Scaling events to incorporate new members and approaches. As we actively
+  recruit new attendees we're running into the issue of figuring out how to
+  support them at larger scale. Our approach of having a few mentors who make
+  connections and provide orientation on projects will need improvement if we're
+  successful in recruiting new, diverse attendees.
+\end{itemize}
+
+Attending the Hackathon Workshop is a chance to share areas where we've been
+successful and to learn how to be better organizers. We hope to continue to
+expand and improve Codefest and related events for the open bioinformatics
+community.
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:
