@@ -23,7 +23,7 @@ to develop validated and scalable variant calling, RNA-seq, CHiP-seq and small R
 analyses. bcbio runs across a wide variety of platforms from full stack cloud
 providers to local high performance computing environments by leveraging Common
 Workflow Language (CWL: <http://www.commonwl.org/>) and the GA4GH
-iteroperability standards (<https://github.com/ga4gh/wiki/wiki>),
+interoperability standards (<https://github.com/ga4gh/wiki/wiki>),
 
 bcbio integrates production ready analysis pipelines with automated validations
 using reference materials developed by communities like Genome in a Bottle
@@ -32,7 +32,7 @@ using reference materials developed by communities like Genome in a Bottle
 comparisons across a wide variety of biological analyses, as well as a
 baseline for adjusting and improving existing methods.
 
-We'll highlight four useful validations from our collection of workflows:
+We'll highlight useful validations from our collection of workflows:
 
 - GATK4: an evaluation of the new open source GATK4 variant caller against GATK3
   and other recent methods like strelka2.
@@ -55,7 +55,7 @@ We'll highlight four useful validations from our collection of workflows:
 
 The goal of this work is to coordinate with the bioinformatics community to
 build automated variant test suites that run on any platform of choice. Regular
-automated builds: ensure that tools are always functional across platforms,
+automated builds ensure that tools are always functional across platforms,
 create a historical account of method performance, evaluate new methods, and
-give reseachers a robust and validated way to run variant analyses to answer
+give researchers a robust and validated way to run variant analyses to answer
 difficult biological questions.
