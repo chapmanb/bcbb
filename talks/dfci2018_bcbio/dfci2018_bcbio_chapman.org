@@ -1,0 +1,60 @@
+#+title: Validated low frequency somatic variants and copy number heterogeneity with bcbio
+#+author: Brad Chapman \newline Bioinformatics Core, Harvard Chan School \newline https://bcb.io \newline http://j.mp/bcbiolinks
+#+date: 9 April 2018
+
+#+OPTIONS: toc:nil H:2
+
+#+startup: beamer
+#+LaTeX_CLASS: beamer
+#+latex_header: \usepackage{url}
+#+latex_header: \usepackage{hyperref}
+#+latex_header: \hypersetup{colorlinks=true}
+#+BEAMER_THEME: default
+#+BEAMER_COLOR_THEME: seahorse
+#+BEAMER_INNER_THEME: rectangles
+
+* Talk
+
+** Interoperable, community built workflows
+
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images3/bcbio_nextgen_highlevel.png]]
+
+\vspace{1cm}
+https://github.com/bcbio/bcbio-nextgen
+
+** Validation
+
+\Large
+- Common Workflow Language (CWL) descriptions
+- Multiple platforms (HPC, DNAnexus, Arvados, SevenBridges)
+- Multiple analysis areas:
+   - \Large Germline calling; single and joint
+   - \Large Somatic low frequency
+   - \Large Structural variants
+
+\small
+https://github.com/bcbio/bcbio_validation_workflows
+
+** Somatic low frequency variants
+
+#+ATTR_LATEX: :width 0.8\textwidth
+[[./images12/grading-summary-gm1.png]]
+
+\vspace{0.1cm}
+\large DeepVariant \scriptsize (https://github.com/google/deepvariant)
+
+\vspace{0.2cm}
+https://github.com/bcbio/bcbio_validations/tree/master/strelka2
+
+** Tumor heterogeneity
+
+\Large
+- Difficult inputs: ctDNA, tumor-only, FFPE, panels
+- Baseline calls, variants + CNVs with CNVkit
+- Mixture of methods
+  - \large TitanCNA -- tumor/normal; purity + subclonal CNVs
+  - \large ichorCNA -- circulating tumor; purity estimation
+  - \large PureCN -- tumor only; purity + subclonal CNVs
+  - \large PhyloWGS -- evolutionary influence from subclonal
+- Need standard validation sets
