@@ -20,7 +20,7 @@
 - bcbio: open source community development
 - Common Workflow Language (CWL): assembly language for workflows
 - Practical CWL with bcbio: HPC, Cloud, DNAnexus, Arvados, SevenBridges
-- Personal Genome Project analysis example
+- Personal Genome Project n=1 analysis example
 - GA4GH: Automating validation and multi-platform testing
 
 ** Takeaways
@@ -29,6 +29,7 @@
 - Science = collaboration and re-use
 - bcbio with interoperable workflow abstractions
 - How to run bcbio analyses where you want them
+- Interpreting variant calling outputs
 - We can build better things together
 
 ** You want to build a variant calling pipeline
@@ -52,7 +53,7 @@ https://commons.wikimedia.org/wiki/File:Efficiency_diagram_by_Zureks.svg
 
 ** Barriers to implementing yourself
 
-\Large
+\LARGE
 - Changing tools
 - Feature support burden
 - Multi-platform interoperability
@@ -65,6 +66,7 @@ https://commons.wikimedia.org/wiki/File:Efficiency_diagram_by_Zureks.svg
 [[./images12/gccbosc2018.png]]
 
 \vspace{1cm}
+\scriptsize
 https://galaxyproject.org/events/gccbosc2018/collaboration/
 #+END_CENTER
 
@@ -164,6 +166,16 @@ http://www.nature.com/nbt/journal/v35/n4/full/nbt.3820.html
 
 
 * Interoperable infrastructure
+
+** Outline
+
+\Large
+- Barriers to building analysis pipelines
+- bcbio: open source community development
+- \textbf{Common Workflow Language (CWL): assembly language for workflows}
+- Practical CWL with bcbio: HPC, Cloud, DNAnexus, Arvados, SevenBridges
+- Personal Genome Project n=1 analysis example
+- GA4GH: Automating validation and multi-platform testing
 
 ** Infrastructure Goals
 \Large
@@ -320,6 +332,19 @@ https://github.com/broadinstitute/cromwell/
 \scriptsize
 By jham3 - Own work, CC BY-SA 3.0, https://commons.wikimedia.org/w/index.php?curid=17125894
 
+
+* Practical CWL with bcbio
+
+** Outline
+
+\Large
+- Barriers to building analysis pipelines
+- bcbio: open source community development
+- Common Workflow Language (CWL): assembly language for workflows
+- \textbf{Practical CWL with bcbio: HPC, Cloud, DNAnexus, Arvados, SevenBridges}
+- Personal Genome Project n=1 analysis example
+- GA4GH: Automating validation and multi-platform testing
+
 ** CWL in bcbio
 
 \Large
@@ -430,6 +455,11 @@ bcbio_vm.py cwlrun arvados pgp_sv_hla-workflow -- \
 \vspace{0.5cm}
 https://workbench.su92l.arvadosapi.com/projects/su92l-j7d0g-eoibug3nrwg8ysj
 
+** Arvados pipeline run
+
+#+ATTR_LATEX: :width 0.7\textwidth
+[[./images12/arvados_pgp.png]]
+
 ** Generate CWL for local or HPC run
 
 #+BEGIN_SRC sh
@@ -504,16 +534,51 @@ dx run bcbio_resources:/applets/bcbio-run-workflow \
 
 https://github.com/bcbio/bcbio-dnanexus-wrapper
 
+** DNAnexus monitoring: align, variant call, QC
+
+#+ATTR_LATEX: :width 1.1\textwidth
+[[./images12/dnanexus-parallel-full.png]]
+
+** Subworkflow parallelization: per sample or batch
+
+#+ATTR_LATEX: :width 1.1\textwidth
+[[./images12/dnanexus-parallel-subworkflow.png]]
+
+** Variant calling parallelization: per region
+
+#+ATTR_LATEX: :width 1.1\textwidth
+[[./images12/dnanexus-parallel-region.png]]
+
+** Region problem: long tail jobs
+
+#+ATTR_LATEX: :width 1.1\textwidth
+[[./images12/dnanexus-parallel-longtail.png]]
+
+** Region improvement: multicore Spark parallelization
+
+#+ATTR_LATEX: :width 1.1\textwidth
+[[./images12/dnanexus-parallel-longtail-fixed.png]]
+
 * Variant calling overview
+
+** Outline
+
+\Large
+- Barriers to building analysis pipelines
+- bcbio: open source community development
+- Common Workflow Language (CWL): assembly language for workflows
+- Practical CWL with bcbio: HPC, Cloud, DNAnexus, Arvados, SevenBridges
+- \textbf{Personal Genome Project n=1 analysis example}
+- GA4GH: Automating validation and multi-platform testing
 
 ** Looking at data -- interpreting the results
 
 \Large
-- Example of bcbio outputs
+- Overview of variant calling
+- Example of bcbio outputs in PGP data, n=1 analysis
 - Small variants
-- Structural variants
 - HLA calls
-
+- Structural variants
 
 ** Human whole genome sequencing
 
@@ -638,20 +703,20 @@ http://samtools.github.io/hts-specs/
 
 ** ApoE analysis
 
-- Query and outcomes
+#+BEGIN_SRC sh
+$ tabix huD57BBF-gatk-haplotype.vcf.gz
+    chr19:44908684-44908684
+chr19   44908684        rs429358        T       C
+1116.80    PASS
+ANN=C|missense_variant|MODERATE|APOE|c.388T>C|p.Cys130Arg
+GT:AD:DP:GQ:MMQ:PL      1/1:0,26:26:78:60:1145,78,0
+$ tabix huD57BBF-gatk-haplotype.vcf.gz
+     chr19:44908822-44908822
+#+END_SRC
+
 http://bit.ly/pgp-analysis
 
 * HLA
-
-** Outline
-\Large
-- Overview of the Personal Genome Project
-- Identifying participants of interest
-- Finding and examining variant data
-- Finding raw read data
-- Platforms for data analysis: CWL, Arvados, bcbio
-- Running an interoperable analysis on PGP data
-- \textbf{Examine structural variant and HLA results}
 
 ** Major histocompatibility complex (MHC) -- HLAs
 
@@ -675,7 +740,6 @@ http://sciscogenetics.com/technology/human-leukocyte-antigen-complex/
 \footnotesize
 https://github.com/lh3/bwa/blob/master/README-alt.md\#hla-typing \newline
 https://github.com/FRED-2/OptiType
-
 
 ** HLA outputs
 
@@ -716,6 +780,20 @@ ENSG00000267968&ENSG00000174562|gene_variant|
 GT:FT:GQ:PL:PR:SR       0/1:PASS:504:708,0,501:18,16:23,12
 #+END_SRC
 
+** Viewing deletion -- svviz
+
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images12/hud57bbf-klk15-del.png]]
+
+http://svviz.readthedocs.io
+
+** Viewing deletion -- SV-plaudit
+
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images12/huD57BBF-KLK15-DEL-plaudit.png]]
+
+https://github.com/jbelyeu/SV-plaudit
+
 ** Genomic region with deletion -- KLK15
 
 #+ATTR_LATEX: :width 1.0\textwidth
@@ -744,3 +822,110 @@ https://www.gtexportal.org/home/gene/ENSG00000174562.9
 [[./images12/pgp_huD57BBF_conditions.png]]
 
 https://my.pgp-hms.org/profile/huD57BBF
+
+* Validation
+
+** Outline
+
+\Large
+- Barriers to building analysis pipelines
+- bcbio: open source community development
+- Common Workflow Language (CWL): assembly language for workflows
+- Practical CWL with bcbio: HPC, Cloud, DNAnexus, Arvados, SevenBridges
+- Personal Genome Project n=1 analysis example
+- \textbf{GA4GH: Automating validation and multi-platform testing}
+
+** Validation: key component of bcbio
+
+\LARGE
+- Pre-built workflows with known outputs
+- Cover multiple cases: germline, somatic, low frequency, FFPE, structural variants
+- Large collections of diverse workflows
+
+\normalsize
+https://github.com/bcbio/bcbio_validation_workflows
+
+** Value of validation
+\LARGE
+- Integration tests for pipelines
+- Unbiased algorithm comparisons
+- Baseline for improving methods
+- Automated tests for platforms
+
+** Reference materials
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width .5\textwidth
+[[./images/giab.png]]
+
+#+ATTR_LATEX: :width .7\textwidth
+[[./images7/ga4gh.png]]
+
+#+ATTR_LATEX: :width .9\textwidth
+[[./images7/dream_challenge.png]]
+#+END_CENTER
+
+http://www.genomeinabottle.org/
+http://ga4gh.org/\#/benchmarking-team
+https://www.synapse.org/\#!Synapse:syn312572
+
+** Validation graphs
+
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images10/grading-example.png]]
+
+
+** NA12878, NA24385, NA24631 GATK4 joint calling
+
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images12/giab-joint-recal.png]]
+
+\footnotesize
+https://github.com/bcbio/bcbio_validations/tree/master/gatk4
+
+** Need continuous integration process
+
+\Large
+- Automate testing across multiple platforms
+- Test new workflow definitions
+- Test new tools and algorithms
+- Transparent process
+
+** GA4GH: workflow coordination
+
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images12/CW-dream-banner.jpg]]
+
+\vspace{0.5cm}
+https://www.synapse.org/#!Synapse:syn8507133/wiki/415976
+
+** GA4GH: next steps
+
+\Large
+- Automation of validation
+- Workflow Execution Service (WES)
+- Shared API for running CWL/WDL workflows
+- Contributors welcome
+
+\vspace{0.3cm}
+\normalsize
+https://github.com/ga4gh/workflow-execution-schemas
+
+** Outline
+
+\Large
+- Barriers to building analysis pipelines
+- bcbio: open source community development
+- Common Workflow Language (CWL): assembly language for workflows
+- Practical CWL with bcbio: HPC, Cloud, DNAnexus, Arvados, SevenBridges
+- Personal Genome Project n=1 analysis example
+- GA4GH: Automating validation and multi-platform testing
+
+** Takeaways
+
+\LARGE
+- Science = collaboration and re-use
+- bcbio with interoperable workflow abstractions
+- How to run bcbio analyses where you want them
+- Interpreting variant calling outputs
+- We can build better things together
