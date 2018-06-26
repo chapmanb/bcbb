@@ -1,0 +1,10 @@
+sample,caller,vtype,metric,value
+Low frequency RAS combined,freebayes,SNPs,tp,221
+Low frequency RAS combined,freebayes,SNPs,fp,640
+Low frequency RAS combined,pisces,SNPs,fp,257
+Low frequency RAS combined,vardict,SNPs,tp,202
+Low frequency RAS combined,vardict,SNPs,fp,156
+Low frequency RAS combined,pisces,SNPs,fn,103
+Low frequency RAS combined,freebayes,SNPs,fn,97
+Low frequency RAS combined,vardict,SNPs,fn,95
+Low frequency RAS combined,pisces,SNPs,tp,210

@@ -1,0 +1,70 @@
+#+title: Building a community menagerie of automated variant validations
+#+author: Brad Chapman \newline Bioinformatics Core, Harvard Chan School \newline http://j.mp/bcbiolinks
+#+date: 27 June 2018
+
+#+OPTIONS: toc:nil H:2
+
+#+startup: beamer
+#+LaTeX_CLASS: beamer
+#+latex_header: \usepackage{url}
+#+latex_header: \usepackage{hyperref}
+#+latex_header: \hypersetup{colorlinks=true}
+#+BEAMER_THEME: default
+#+BEAMER_COLOR_THEME: seahorse
+#+BEAMER_INNER_THEME: rectangles
+
+* Validation
+
+** You have a variant calling pipeline
+
+#+ATTR_LATEX: :width 0.6\textwidth
+[[./images/cwl-variant.png]]
+
+https://github.com/bcbio/bcbio-nextgen
+
+** Is it good? How good? What data types?
+
+[[./images/grading-summary-gj1.png]]
+
+** Does it work on my difficult samples?
+
+\Large
+Somatic tumor-only FFPE
+
+[[./images/grading-summary-ras.png]]
+
+** Can I use it to improve callers?
+
+[[./images/grading-summary-dv.png]]
+
+** Will it run correctly on my platform?
+
+\Large
+- Local machines and HPC: Cromwell, Toil
+- AWS, GCP, Azure
+- Arvados
+- DNAnexus
+- SevenBridges
+
+\normalsize
+http://bcbio-nextgen.readthedocs.io/en/latest/contents/cwl.html
+
+** Automated validations for everything
+
+\LARGE
+- Workflows
+
+\normalsize
+https://github.com/bcbio/bcbio_validation_workflows
+
+\LARGE
+- Analyses
+
+\normalsize
+https://github.com/bcbio/bcbio_validations
+
+\LARGE
+- Help us build a community
+
+\normalsize
+https://github.com/bcbio/bcbio-nextgen

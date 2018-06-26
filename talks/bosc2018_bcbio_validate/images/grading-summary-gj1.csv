@@ -1,0 +1,19 @@
+sample,caller,vtype,metric,value
+NA12878 (NovaSeq),HaplotypeCaller,SNPs,tp,197743
+NA12878 (NovaSeq),HaplotypeCaller,Indels,tp,26903
+NA12878 (NovaSeq),HaplotypeCaller,SNPs,fp,5531
+NA12878 (NovaSeq),HaplotypeCaller,Indels,fp,6491
+NA12878 (NovaSeq),HaplotypeCaller,SNPs,fn,1010
+NA12878 (NovaSeq),HaplotypeCaller,Indels,fn,1700
+NA24385 (x10 + 10x),HaplotypeCaller,SNPs,tp,200226
+NA24385 (x10 + 10x),HaplotypeCaller,Indels,tp,24727
+NA24385 (x10 + 10x),HaplotypeCaller,SNPs,fp,31612
+NA24385 (x10 + 10x),HaplotypeCaller,Indels,fp,50974
+NA24385 (x10 + 10x),HaplotypeCaller,SNPs,fn,731
+NA24385 (x10 + 10x),HaplotypeCaller,Indels,fn,2777
+NA24631 (HiSeq 2500),HaplotypeCaller,SNPs,tp,196014
+NA24631 (HiSeq 2500),HaplotypeCaller,Indels,tp,24239
+NA24631 (HiSeq 2500),HaplotypeCaller,SNPs,fp,1955
+NA24631 (HiSeq 2500),HaplotypeCaller,Indels,fp,370
+NA24631 (HiSeq 2500),HaplotypeCaller,SNPs,fn,125
+NA24631 (HiSeq 2500),HaplotypeCaller,Indels,fn,89

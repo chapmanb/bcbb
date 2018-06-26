@@ -1,0 +1,25 @@
+sample,caller,vtype,metric,value
+CHM1_CHM13,GATK4 soft filter,SNPs,tp,220511
+CHM1_CHM13,GATK4 soft filter,Indels,tp,25460
+CHM1_CHM13,GATK4 soft filter,SNPs,fp,2028
+CHM1_CHM13,GATK4 soft filter,Indels,fp,2377
+CHM1_CHM13,GATK4 soft filter,SNPs,fn,7817
+CHM1_CHM13,GATK4 soft filter,Indels,fn,4912
+CHM1_CHM13,Strelka2,SNPs,tp,222267
+CHM1_CHM13,Strelka2,Indels,tp,25648
+CHM1_CHM13,Strelka2,SNPs,fp,1655
+CHM1_CHM13,Strelka2,Indels,fp,2122
+CHM1_CHM13,Strelka2,SNPs,fn,6061
+CHM1_CHM13,Strelka2,Indels,fn,4724
+CHM1_CHM13,FreeBayes,SNPs,tp,223974
+CHM1_CHM13,FreeBayes,Indels,tp,23314
+CHM1_CHM13,FreeBayes,SNPs,fp,3774
+CHM1_CHM13,FreeBayes,Indels,fp,2658
+CHM1_CHM13,FreeBayes,SNPs,fn,4354
+CHM1_CHM13,FreeBayes,Indels,fn,7058
+CHM1_CHM13,DeepVariant 0.6,SNPs,tp,223248
+CHM1_CHM13,DeepVariant 0.6,Indels,tp,25804
+CHM1_CHM13,DeepVariant 0.6,SNPs,fp,2294
+CHM1_CHM13,DeepVariant 0.6,Indels,fp,2371
+CHM1_CHM13,DeepVariant 0.6,SNPs,fn,5080
+CHM1_CHM13,DeepVariant 0.6,Indels,fn,4568

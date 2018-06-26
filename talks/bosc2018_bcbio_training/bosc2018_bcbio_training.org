@@ -1,5 +1,5 @@
 #+title: Community built analyses that run everywhere with bcbio
-#+author: Brad Chapman \newline Bioinformatics Core, Harvard Chan School \newline http://bit.ly/pgp-analysis
+#+author: Brad Chapman \newline Bioinformatics Core, Harvard Chan School \newline http://j.mp/bcbiolinks
 #+date: 26 June 2018
 
 #+OPTIONS: toc:nil H:2
