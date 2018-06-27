@@ -17,7 +17,7 @@
 
 ** You have a variant calling pipeline
 
-#+ATTR_LATEX: :width 0.6\textwidth
+#+ATTR_LATEX: :width 0.5\textwidth
 [[./images/cwl-variant.png]]
 
 https://github.com/bcbio/bcbio-nextgen
@@ -26,6 +26,9 @@ https://github.com/bcbio/bcbio-nextgen
 
 [[./images/grading-summary-gj1.png]]
 
+\scriptsize
+https://github.com/bcbio/bcbio_validations/tree/master/gatk4
+
 ** Does it work on my difficult samples?
 
 \Large
@@ -33,9 +36,15 @@ Somatic tumor-only FFPE
 
 [[./images/grading-summary-ras.png]]
 
+\scriptsize
+https://github.com/bcbio/bcbio_validations/tree/master/somatic-lowfreq
+
 ** Can I use it to improve callers?
 
 [[./images/grading-summary-dv.png]]
+
+\scriptsize
+https://github.com/bcbio/bcbio_validations/tree/master/deepvariant
 
 ** Will it run correctly on my platform?
 
@@ -64,7 +73,7 @@ https://github.com/bcbio/bcbio_validation_workflows
 https://github.com/bcbio/bcbio_validations
 
 \LARGE
-- Help us build a community
+- Join the community: GiaB, GA4GH, NIH Data Commons
 
 \normalsize
 https://github.com/bcbio/bcbio-nextgen
