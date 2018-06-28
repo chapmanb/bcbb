@@ -14,7 +14,7 @@ better together and the first joint Bioinformatics Community Conference.
 # Keynotes
 
 ## Democratizing Data
-/Tracy Teal/
+*Tracy Teal*
 
 [Tracy's
 talk](https://gccbosc2018.sched.com/event/EQF7/opening-keynote-tracy-k-teal-democratizing-data)
@@ -48,7 +48,7 @@ we go from introduction to R to machine learning, say. Want to progress the
 baseline of what people know so we can move to the next level.
 
 ## Sustainable development of scientific open source tools: a view from Jupyter
-/Fernando Pérez/
+*Fernando Pérez*
 
 Fernando [focuses on open source lessons from the Jupyter
 project](https://gccbosc2018.sched.com/event/EQ3d/keynote-fernando-perez-sustainable-development-of-scientific-open-source-tools-a-view-from-jupyter)..
@@ -105,7 +105,7 @@ of the commons.](https://nadiaeghbal.com/tragedy-of-the-commons).
 # Galaxy packaging
 
 ## The journey of a team of engineers in learning packaging technology
-/Laure Quintric, Patrick Durand, Valentin Marcon/
+*Laure Quintric, Patrick Durand, Valentin Marcon*
 
 Laure representing 4 engineeers in 2 different places in France. [Their
 talk](https://gccbosc2018.sched.com/event/EYCM/the-journey-of-a-team-of-engineers-in-learning-packaging-technology)
@@ -120,7 +120,7 @@ frameworks.
 # Translational and Medical Informatics
 
 ## Cloud-based data ingest for the Human Cell Atlas
-/Daniel Vaughan/
+*Daniel Vaughan*
 
 [Dan
 talks](https://gccbosc2018.sched.com/event/Eit5/cloud-based-data-ingest-for-the-human-cell-atlas)
@@ -136,7 +136,7 @@ moving towards managed Kubernetes platforms. [NeMO Neuroscience Multi-Omic
 Archive](https://nemoarchive.org) already running this.
 
 ## The Human Cell Atlas Data Coordination Platform
-/Brian O'Connor/
+*Brian O'Connor*
 
 [Brian's
 talk](https://gccbosc2018.sched.com/event/Eisz/the-human-cell-atlas-data-coordination-platform-an-open-source-cloud-based-system-for-ingesting-storing-analyzing-discovering-and-exploring-single-cell-data)
@@ -163,7 +163,7 @@ standards. All of the code is freely available https:/github.com/HumanCellAtlas
 and data.
 
 ## Open Humans - connecting, sharing and analyzing personal data that enables community-driven research
-/Bastian Greshake Tzovaras/
+*Bastian Greshake Tzovaras*
 
 [Bastian discusses personal data
 use](https://gccbosc2018.sched.com/event/Eity/open-humans-connecting-sharing-and-analyzing-personal-data-that-enables-community-driven-research)
@@ -181,7 +181,7 @@ for integration and anslysis, correlating data sources across multiple inputs.
 Personal Data exploratory is a location for sharing notebooks.
 
 ## Enabling Machine Learning at Scale with “Tiled” Human Genomes,
-/Sarah Wait Zaranek/
+*Sarah Wait Zaranek*
 
 [Tiling is an approach to break up a genome into shorter
 sequences](https://gccbosc2018.sched.com/event/Eiu0/enabling-machine-learning-at-scale-with-tiled-human-genomes).
@@ -197,7 +197,7 @@ Takeways: out of the box ML methods with tiled genomes, next steps to extend to
 more complex models. Open source tiling code: https://github.com/curoserver/l7g
 
 ## JASS: a free and open source software for the joint analysis and interactive analysis of GWAS results
-/Hervé Ménager/
+*Hervé Ménager*
 
 [JASS allows analysis and exploration of GWAS
 results](https://research.pasteur.fr/fr/event/joint-analysis-of-multiple-phenotypes-using-gwas-summary-statistics-by-hugues-aschard/).
@@ -207,7 +207,7 @@ a web interface with zooming and other fancy visualizations.
 http://jass.pasteur.fs and also available locally.
 
 ## Variant Transforms: Loading VCF files into BigQuery for large scale data analysis
-/Asha Rostamianfar/
+*Asha Rostamianfar*
 
 [GCP Variant
 Tranforms](https://github.com/googlegenomics/gcp-variant-transforms) is a tool
@@ -223,7 +223,7 @@ from VEP and snpEff.
 # All About Data
 
 ## miRTop: An open source community project for the development of a unified format file for miRNA data
-/Lorena Pantano Rubino/
+*Lorena Pantano Rubino*
 
 Lorena talking about the [miRTop](https://github.com/miRTop/mirtop)
 collaboration. Goal is to detect and annotate miRNAs from short read sequencing.
@@ -239,7 +239,7 @@ reproducibility with a single tool. iso_snps very variable due to sequencing
 errors. Next step is development of filters to remove non reliable sequences.
 
 ## Reproducible big data science: A case study in continuous FAIRness
-/Ravi K. Madduri/
+*Ravi K. Madduri*
 
 Ravi has two components to talk: 1. reproducibility and tools to help make it
 happen, 2. Case study of data availability. Echos Fernando's discussion this
@@ -258,7 +258,7 @@ learned from proecess: how do we manage data lifecycle and long term storage,
 reproducibility requires planning.
 
 ## InterMine 2.0: More than fifteen years of open biological data integration
-/Yo Yehudi/
+*Yo Yehudi*
 
 [InterMine is a open source data warehouse
 system](https://github.com/intermine/intermine) designed to normalize and
@@ -273,7 +273,7 @@ Value of Google Summer of Code students in expanding contributors and community.
 
 
 ## GRADitude: A computational tool for the analysis of Grad-seq data
-/Silvia Di Giorgio/
+*Silvia Di Giorgio*
 
 Grad-seq separates RNA-RNA and RNA-protein complexes based on molecular weights.
 Can see similarities between experiments using clustering.
@@ -282,7 +282,7 @@ plotting and analysis of data. tSNE plots, RNAs and protein combined plots with
 correlations. Next steps are to share the data and make it public.
 
 ## NIH Data Commons Pilot Phase leverages the cloud to access, analyze, and share FAIR biomedical data
-/David Siedzik/
+*David Siedzik*
 
 David presenting an overview of the NIH Data Commons. Data Commons is an effort
 to address the increase in data that needs to be made available in a FAIR
@@ -293,7 +293,7 @@ lot of standards for interoperability and developing community governance and en
 
 
 ## Reproducible data analysis with Snakemake
-/Johannes Köster/
+*Johannes Köster*
 
 Snakemake is a widely used workflow system, available on bioconda. Concise
 python-based DSL for defining inputs and outputs. Can write declarative
@@ -305,7 +305,7 @@ dependencies and the environment for steps. Also has Singularity integration for
 packages and can combine both conda and Singularity for maximum control.
 
 ## Improving the Bioinformatics Curriculum
-/Jason Williams/
+*Jason Williams*
 
 Conspiracy theory on training: bioinformatics curriculum dominated by unseen
 forces. Lots of centers of gravity driving training: tech sector, biology domain
