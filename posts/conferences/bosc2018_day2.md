@@ -21,6 +21,8 @@ and want to learn if co-locating BOSC with GCC, rather than ISMB, helped or hind
 your ability to attend. Please fill out the
 [Survey](http://bit.ly/gccbosc2018-feedback); we'd love to hear your thoughts.
 
+Please also see the [notes from day 1](https://github.com/chapmanb/bcbb/blob/master/posts/conferences/bosc2018_day1a.md).
+
 # Developer Tools and Libraries
 
 ## iMADS: A sustainable software collaboration for predicting transcription factor binding specificity
