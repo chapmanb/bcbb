@@ -194,7 +194,7 @@ known data. Proof of concept resolution on tiles related to known genes. Second
 test studey on Alzheimer's data, focus on chr19 with ApoE, classifier finding
 known risk factor for ApoE4. Currently scaling approaches to full genome.
 Takeways: out of the box ML methods with tiled genomes, next steps to extend to
-more complex models. Open source tiling code: https://github.com/curoserver/l7g
+more complex models. Open source tiling code: https://github.com/curoverse/l7g
 
 ## JASS: a free and open source software for the joint analysis and interactive analysis of GWAS results
 *Hervé Ménager*
