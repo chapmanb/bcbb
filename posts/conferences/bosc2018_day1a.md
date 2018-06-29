@@ -1,15 +1,18 @@
-I'm at the
+I'm at GCCBOSC 2018, the
 [2018 Bioinformatics Community Conference](https://gccbosc2018.sched.com/) in
 Portland, Oregon. This is a collaboration between the [Galaxy Community
 Conference](https://usegalaxy.org/) and the [Bioinformatics Open Source
-Conference (BOSC)](https://www.open-bio.org/wiki/BOSC). These are my notes from
-the first evening (June 26, 2018) and morning (June 27, 2018).
+Conference (BOSC)](https://www.open-bio.org/wiki/BOSC).
 
 The goal of the conference is to bring together a community working on
 interoperable tools to support biological research. The conference features two
-days of training, two conference days of talks and discussion, and up to four
+days of training, two+ conference days of talks and discussion (with some joint and some parallel sessions), and up to four
 days of collaboration. It's a wonderful group of people dedicated to working
 better together and the first joint Bioinformatics Community Conference.
+
+These are my notes from the first evening (June 26, 2018) and the first full day of the meeting (June 27, 2018).
+(When there were parallel GCC and BOSC sessions, I attended the BOSC sessions, so my
+report does not cover the parallel GCC sessions.)
 
 # Keynotes
 
@@ -325,3 +328,5 @@ undergrad, incubator to help create plug and play lessons. Opportunities:
 community colleges, undergraduate only institutions, target students early in
 degrees, underrepresented students: sell skills they can use like data science
 that are applicable to bioinformatics. Keys: effectively communicating with people.
+
+## [Day 2...](https://github.com/chapmanb/bcbb/blob/master/posts/conferences/bosc2018_day2.md)
