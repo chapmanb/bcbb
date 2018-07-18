@@ -1,6 +1,6 @@
-#+title: Personal Genome Project analysis examples
-#+author: Brad Chapman \newline Bioinformatics Core, Harvard Chan School \newline http://bit.ly/pgp-analysis
-#+date: 26 April 2018
+#+title: Personal Genome Project: Hackathon 1.0 example projects
+#+author: Brad Chapman \newline Bioinformatics Core, Harvard Chan School \newline http://bit.ly/pgp-resources-1 \newline http://bit.ly/pgp-analysis
+#+date: 21 July 2018
 
 #+OPTIONS: toc:nil H:2
 
@@ -13,31 +13,83 @@
 #+BEAMER_COLOR_THEME: seahorse
 #+BEAMER_INNER_THEME: rectangles
 
+* Introduction
+
+** What we'll do
+
+\LARGE
+- Understand the types of data in the personal genome project
+- Learn how to query and find a genome to analyze
+- Analyses you can do with a single genome
+
+** Types of analyses
+
+\LARGE
+- Looking at small variants for traits
+- HLA typing: the adaptive immune system
+- Structural variants: larger events
+
 ** Outline
 \Large
-- \textbf{Overview of the Personal Genome Project}
-- Identifying participants of interest
-- Finding and examining variant data
-- Finding raw read data
-- Platforms for data analysis: CWL, Arvados, bcbio
-- Running an interoperable analysis on PGP data
-- Running structural variant and HLA analyses
+- \textbf{Overview of the Personal Genome Project and Data}
+- Identify participants of interest
+- Overview of human variant data analysis
+- Example of looking at small variant data: ApoE
+- Additional analyses with BAM reads:
+   - \Large HLA typing
+   - \Large Structural variant analysis
+- Platform for data analysis: CWL, Arvados, bcbio
 
 * PGP overview
 
-** Explain PGP and available data
+** Personal Genome Project
 
-- ToDo: existing slides we can use?
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images12/pgp.png]]
+
+http://www.personalgenomes.org/us
+
+** Whole genome sequencing data plus metadata
+
+#+ATTR_LATEX: :width 0.6\textwidth
+[[./images12/pgp_huD57BBF.png]]
+
+https://my.pgp-hms.org/profile/huD57BBF
+
+** Rich set of associated data
+
+#+ATTR_LATEX: :width 0.7\textwidth
+[[./images12/openhumans.png]]
+
+https://www.openhumans.org/member/jameslvick/
+
+** Collections of data in PGP
+
+\Large
+- Processed data: variants
+   - \Large Per participant portable ready to use VCFs
+- Raw data: reads
+   - \Large Per participant BAM files of reads
+
+http://bit.ly/pgp-analysis
+
+\vspace{1cm}
+
+\scriptsize
+https://github.com/bcbio/bcbio_validation_workflows/tree/master/pgp#find-bam-and-vcf-files-in-arvados-collections
+
+* Finding a participant of interest
 
 ** Outline
 \Large
-- Overview of the Personal Genome Project
-- \textbf{Identifying participants of interest}
-- Finding and examining variant data
-- Finding raw read data
-- Platforms for data analysis: CWL, Arvados, bcbio
-- Running an interoperable analysis on PGP data
-- Examine structural variant and HLA results
+- Overview of the Personal Genome Project and Data
+- \textbf{Identify participants of interest}
+- Overview of human variant data analysis
+- Example of looking at small variant data: ApoE
+- Additional analyses with BAM reads:
+   - \Large HLA typing
+   - \Large Structural variant analysis
+- Platform for data analysis: CWL, Arvados, bcbio
 
 ** Find a participant of interest
 
@@ -56,26 +108,54 @@ http://bit.ly/pgp-analysis
 
 \vspace{0.1cm}
 
-- huD57BBF \newline https://my.pgp-hms.org/profile/huD57BBF
+- huD57BBF \normalsize \newline https://my.pgp-hms.org/profile/huD57BBF
+
+** Command line
+
+\Large
+#+BEGIN_SRC sh
+$ cd /mnt/work/pgp/examples
+$ bcbiovm_python \
+    scripts/extract_veritas_pgp.py \
+    untap.db
+
+huD57BBF 53Gb No demographics
+ [u'Family Tree DNA', u'Veritas Genetics',
+  u'23andMe']
+#+END_SRC
+
+** Query, SQL to python pandas dataframe
+
+#+BEGIN_SRC python
+query = ("SELECT uploaded_data.human_id, date, name "
+         "FROM uploaded_data WHERE "
+         "data_type == 'Veritas Genetics' AND "
+         "uploaded_data.name GLOB '*VCF'")
+conn = sqlite3.connect(sys.argv[1])
+df = pd.read_sql_query(query, conn)
+#+END_SRC
+
+http://bit.ly/pgp-analysis
+
+** Other example queries
+
+\Large
+- Jupyter notebooks
+- Summarize Age, Bloodtype, Ethnicity, Gender
+
+\normalsize
+https://github.com/swzCuroverse/PGPGraphics
 
 ** Outline
 \Large
-- Overview of the Personal Genome Project
-- Identifying participants of interest
-- \textbf{Finding and examining variant data}
-- Finding raw read data
-- Platforms for data analysis: CWL, Arvados, bcbio
-- Running an interoperable analysis on PGP data
-- Examine structural variant and HLA results
-
-** Examine existing variation files
-
-\Large
-- Portable VCFs with small variant data
-- Hosted as data collection with standard wget retrieval
-
-\scriptsize
-https://workbench.su92l.arvadosapi.com/collections/su92l-4zz18-2rwb81xy8f1eh42
+- Overview of the Personal Genome Project and Data
+- Identify participants of interest
+- \textbf{Overview of human variant data analysis}
+- Example of looking at small variant data: ApoE
+- Additional analyses with BAM reads:
+   - \Large HLA typing
+   - \Large Structural variant analysis
+- Platform for data analysis: CWL, Arvados, bcbio
 
 * Variant calling overview
 ** Human whole genome sequencing
@@ -105,16 +185,6 @@ http://en.wikipedia.org/wiki/SNV_calling_from_NGS_data
 [[./images8/mutations.png]]
 
 http://carolguze.com/text/442-2-mutations.shtml
-
-** Structural variations
-
-#+BEGIN_CENTER
-#+ATTR_LATEX: :width .55\textwidth
-[[./images8/svs.jpg]]
-#+END_CENTER
-
-\footnotesize
-http://www.nature.com/nmeth/journal/v9/n2/full/nmeth.1858.html
 
 ** Genome Analysis Toolkit (GATK)
 
@@ -187,6 +257,28 @@ https://www.broadinstitute.org/gatk/guide/article?id=1268
 http://samtools.github.io/hts-specs/
 
 
+** Outline
+\Large
+- Overview of the Personal Genome Project and Data
+- Identify participants of interest
+- Overview of human variant data analysis
+- \textbf{Example of looking at small variant data: ApoE}
+- Additional analyses with BAM reads:
+   - \Large HLA typing
+   - \Large Structural variant analysis
+- Platform for data analysis: CWL, Arvados, bcbio
+
+** Examine existing variation files
+
+\Large
+- Portable VCFs with small variant data
+- Hosted as data collection with standard wget retrieval
+- Also downloaded on work machines for PGP event: /mnt/work/pgp/vcf
+
+\vspace{0.5cm}
+\tiny
+https://workbench.su92l.arvadosapi.com/collections/su92l-4zz18-2rwb81xy8f1eh42
+
 * ApoE status
 
 ** 
@@ -202,20 +294,31 @@ http://samtools.github.io/hts-specs/
 
 ** ApoE analysis
 
-- Query and outcomes
+#+BEGIN_SRC sh
+$ tabix huD57BBF-gatk-haplotype.vcf.gz
+    chr19:44908684-44908684
+chr19   44908684        rs429358        T       C
+1116.80    PASS
+ANN=C|missense_variant|MODERATE|APOE|c.388T>C|p.Cys130Arg
+GT:AD:DP:GQ:MMQ:PL      1/1:0,26:26:78:60:1145,78,0
+$ tabix huD57BBF-gatk-haplotype.vcf.gz
+     chr19:44908822-44908822
+#+END_SRC
+
 http://bit.ly/pgp-analysis
 
 * Read analysis
 
 ** Outline
 \Large
-- Overview of the Personal Genome Project
-- Identifying participants of interest
-- Finding and examining variant data
-- \textbf{Finding raw read data}
-- Platforms for data analysis: CWL, Arvados, bcbio
-- Running an interoperable analysis on PGP data
-- Examine structural variant and HLA results
+- Overview of the Personal Genome Project and Data
+- Identify participants of interest
+- Overview of human variant data analysis
+- Example of looking at small variant data: ApoE
+- \textbf{Additional analyses with BAM reads}:
+   - \Large HLA typing
+   - \Large Structural variant analysis
+- Platform for data analysis: CWL, Arvados, bcbio
 
 ** Performing additional analyses
 
@@ -224,32 +327,146 @@ http://bit.ly/pgp-analysis
 - Also hosted as data collection by participant
 - Demonstrate using open platforms for performing additional data analyses
 
-\scriptsize
+\vspace{0.5cm}
+\tiny
 https://workbench.su92l.arvadosapi.com/collections/su92l-4zz18-1rqqi0kpkfmfite
+
+* HLA
+
+** Major histocompatibility complex (MHC) -- HLA
+
+\Large
+- human leukocyte antigen (HLA)
+- Apative immune system
+- Cell surface display and recognition
+- Organ transplants, Cancer immunotherapy
+
+\vspace{0.5cm}
+
+\normalsize
+https://en.wikipedia.org/wiki/Human_leukocyte_antigen
+** HLA -- complex and repetitive
+
+[[./images8/MHC.png]]
+
+\small
+\vspace{1cm}
+http://www.ebi.ac.uk/ipd/imgt/hla/ \\
+\scriptsize
+http://sciscogenetics.com/technology/human-leukocyte-antigen-complex/
+
+** HLA typing
+
+\Large
+- 1000 genomes: build 38 + IMGT/HLA-3.18.0
+- bwa mem extracts HLA reads
+- Map reads only to HLA sequences
+- OptiType: Call HLA types
+
+\vspace{0.5cm}
+\footnotesize
+https://github.com/lh3/bwa/blob/master/README-alt.md\#hla-typing \newline
+https://github.com/FRED-2/OptiType
+
+
+** HLA outputs
+
+\Large
+#+BEGIN_SRC sh
+HLA-A*11:01;HLA-A*24:02
+HLA-B*27:05;HLA-B*55:01
+HLA-C*07:02;HLA-C*07:02
+#+END_SRC
+
+* Structural variation
+** Structural variations
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width .55\textwidth
+[[./images8/svs.jpg]]
+#+END_CENTER
+
+\footnotesize
+http://www.nature.com/nmeth/journal/v9/n2/full/nmeth.1858.html
+
+** Tools used
+
+- \Large Manta: \footnotesize https://github.com/Illumina/manta \\
+   \Large Split and paired end reads
+- \Large Lumpy: \footnotesize https://github.com/arq5x/lumpy-sv \\
+   \Large Split and paired ends reads
+- \Large CNVkit: \footnotesize https://github.com/etal/cnvkit \\
+   \Large Read depth based
+
+** Example deletion call -- 3 callers
+
+#+BEGIN_SRC sh
+chr19   50827242        MantaDEL:67020:0:1:0:0:0
+T   <DEL>   658.0 PASS
+END=50830636;SVTYPE=DEL;SVLEN=-3394;
+ANN=<DEL>|bidirectional_gene_fusion|HIGH|AC011523.2&KLK15|
+ENSG00000267968&ENSG00000174562|gene_variant|
+GT:FT:GQ:PL:PR:SR       0/1:PASS:504:708,0,501:18,16:23,12
+#+END_SRC
+
+** Viewing deletion -- SV-plaudit
+
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images12/huD57BBF-KLK15-DEL-plaudit.png]]
+
+https://github.com/jbelyeu/SV-plaudit
+
+** Viewing deletion -- svviz
+
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images12/hud57bbf-klk15-del.png]]
+
+http://svviz.readthedocs.io
+
+** Genomic region with deletion -- KLK15
+
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images12/chr19_klk15.png]]
+
+http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38
+
+** KLK15 known function
+
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images12/klk15_wikipedia.png]]
+
+https://en.wikipedia.org/wiki/KLK15
+
+** Tissue specific gene expression
+
+#+ATTR_LATEX: :width 0.7\textwidth
+[[./images12/klk15_expression.png]]
+
+\small
+https://www.gtexportal.org/home/gene/ENSG00000174562.9
+
+** Self reported conditions
+
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images12/pgp_huD57BBF_conditions.png]]
+
+https://my.pgp-hms.org/profile/huD57BBF
+
 
 * bcbio motivation
 
 ** Outline
 \Large
-- Overview of the Personal Genome Project
-- Identifying participants of interest
-- Finding and examining variant data
-- Finding raw read data
-- \textbf{Platforms for data analysis: CWL, Arvados, bcbio}
-- Running an interoperable analysis on PGP data
-- Examine structural variant and HLA results
+- Overview of the Personal Genome Project and Data
+- Identify participants of interest
+- Overview of human variant data analysis
+- Example of looking at small variant data: ApoE
+- Additional analyses with BAM reads:
+   - \Large HLA typing
+   - \Large Structural variant analysis
+- \textbf{Platform for data analysis: CWL, Arvados, bcbio}
 
-** Build open source communities
-
-#+BEGIN_CENTER
-#+ATTR_LATEX: :width 1.0\textwidth
-[[./images12/gccbosc2018.png]]
-
-\vspace{1cm}
-https://gccbosc2018.sched.com/
-#+END_CENTER
-
-** Overview
+** Open source community analysis
 
 #+ATTR_LATEX: :width 1.0\textwidth
 [[./images3/bcbio_nextgen_highlevel.png]]
@@ -294,7 +511,6 @@ https://bcbio-nextgen.readthedocs.org/en/latest/contents/pipelines.html
 
 [[https://github.com/bcbio/bcbio-nextgen]]
 
-
 * Interoperable infrastructure
 
 ** Infrastructure Goals
@@ -307,32 +523,6 @@ https://bcbio-nextgen.readthedocs.org/en/latest/contents/pipelines.html
 - Integrate with LIMS
 - Accessible to the general public
 
-** Many great workflow systems
-
-#+ATTR_LATEX: :width 0.8\textwidth
-[[./images12/existing_workflows.png]]
-
-#+ATTR_LATEX: :width 0.8\textwidth
-[[./images12/existing_workflows2.png]]
-
-\scriptsize
-https://github.com/common-workflow-language/common-workflow-language/wiki/Existing-Workflow-systems
-
-** We'll never agree on one system
-
-\Large
-- Advantages and disadvantages to each
-- Familiarity and teaching
-- Personal preference
-
-** So we can't easily share workflows
-
-\Large
-- Single workflow system allows coordinated groups
-- Create barrier to sharing externally
-- Hard to mix and match components between workflow environments
-- How can we do better?
-
 ** Better abstractions = more interoperability
 
 [[./images10/abstractions.png]]
@@ -341,7 +531,6 @@ https://github.com/common-workflow-language/common-workflow-language/wiki/Existi
 https://bcbio-nextgen.readthedocs.io/en/latest/contents/cwl.html
 
 ** Common Workflow Language (CWL)
-
 
 #+ATTR_LATEX: :width 1.0\textwidth
 [[./images10/cwl_pipeline_example.png]]
@@ -366,34 +555,11 @@ https://arvados.org/
 - Integrate with multiple platforms
    - \Large Arvados -- AWS, Azure
    - \Large Cromwell -- HPC, local, GCP
-   - \Large Rabix Bunny -- local
    - \Large Toil -- HPC, local
    - \Large DNAnexus -- AWS, Azure
    - \Large Seven Bridges + Cancer Genomics Cloud
 - Stop maintaining bcbio specific infrastructure
 - Focus on hard biological problems
-
-** Unique goals with CWL
-
-\Large
-- Multiple concurrent production environments
-  - \Large HPC
-  - \Large Platforms (Arvados, DNAnexus, SevenBridges)
-  - \Large Direct on Cloud (AWS, GCP, Azure)
-- Coordinated release and update process
-  - \Large Workflow
-  - \Large Tools in containers
-  - \Large Reference data
-
-** Outline
-\Large
-- Overview of the Personal Genome Project
-- Identifying participants of interest
-- Finding and examining variant data
-- Finding raw read data
-- Platforms for data analysis: CWL, Arvados, bcbio
-- \textbf{Running an interoperable analysis on PGP data}
-- Examine structural variant and HLA results
 
 ** CWL in bcbio
 
@@ -468,119 +634,33 @@ bcbio_vm.py cwlrun arvados pgp_sv_hla-workflow -- \
 \scriptsize
 https://workbench.su92l.arvadosapi.com/projects/su92l-j7d0g-eoibug3nrwg8ysj
 
-* HLA
-
-** Outline
-\Large
-- Overview of the Personal Genome Project
-- Identifying participants of interest
-- Finding and examining variant data
-- Finding raw read data
-- Platforms for data analysis: CWL, Arvados, bcbio
-- Running an interoperable analysis on PGP data
-- \textbf{Examine structural variant and HLA results}
-
-** Major histocompatibility complex (MHC) -- HLAs
-
-[[./images8/MHC.png]]
-
-\small
-\vspace{1cm}
-http://www.ebi.ac.uk/ipd/imgt/hla/ \\
-\scriptsize
-http://sciscogenetics.com/technology/human-leukocyte-antigen-complex/
-
-** HLA typing
-
-\Large
-- 1000 genomes: build 38 + IMGT/HLA-3.18.0
-- bwa mem extracts HLA reads
-- Map reads only to HLA sequences
-- OptiType: Call HLA types
-
-\vspace{0.5cm}
-\footnotesize
-https://github.com/lh3/bwa/blob/master/README-alt.md\#hla-typing \newline
-https://github.com/FRED-2/OptiType
-
-
-** HLA outputs
-
-\Large
-#+BEGIN_SRC sh
-HLA-A*11:01;HLA-A*24:02
-HLA-B*27:05;HLA-B*55:01
-HLA-C*07:02;HLA-C*07:02
-#+END_SRC
-
-* Structural variation
-
-** Structural variants critical -- pancreatic cancer example
-
-#+ATTR_LATEX: :width 1.0\textwidth
-[[./images9/nature14169-sf2.jpg]]
-
-\scriptsize
-http://www.nature.com/nature/journal/v518/n7540/full/nature14169.html
-
-** Tools used
-
-- \Large Manta: \footnotesize https://github.com/Illumina/manta \\
-   \Large Split and paired end reads
-- \Large Lumpy: \footnotesize https://github.com/arq5x/lumpy-sv \\
-   \Large Split and paired ends reads
-- \Large CNVkit: \footnotesize https://github.com/etal/cnvkit \\
-   \Large Read depth based
-
-** Example deletion call -- 3 callers
-
-#+BEGIN_SRC sh
-chr19   50827242        MantaDEL:67020:0:1:0:0:0
-T   <DEL>   658.0 PASS
-END=50830636;SVTYPE=DEL;SVLEN=-3394;
-ANN=<DEL>|bidirectional_gene_fusion|HIGH|AC011523.2&KLK15|
-ENSG00000267968&ENSG00000174562|gene_variant|
-GT:FT:GQ:PL:PR:SR       0/1:PASS:504:708,0,501:18,16:23,12
-#+END_SRC
-
-** Genomic region with deletion -- KLK15
-
-#+ATTR_LATEX: :width 1.0\textwidth
-[[./images12/chr19_klk15.png]]
-
-http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38
-
-** KLK15 known function
-
-#+ATTR_LATEX: :width 1.0\textwidth
-[[./images12/klk15_wikipedia.png]]
-
-https://en.wikipedia.org/wiki/KLK15
-
-** Tissue specific gene expression
+** Arvados pipeline run
 
 #+ATTR_LATEX: :width 0.7\textwidth
-[[./images12/klk15_expression.png]]
+[[./images12/arvados_pgp.png]]
 
-\small
-https://www.gtexportal.org/home/gene/ENSG00000174562.9
-
-** Self reported conditions
-
-#+ATTR_LATEX: :width 1.0\textwidth
-[[./images12/pgp_huD57BBF_conditions.png]]
-
-https://my.pgp-hms.org/profile/huD57BBF
+\scriptsize
+https://workbench.su92l.arvadosapi.com/container_requests/su92l-xvhdp-iprauko4kegv1kz
 
 * Summary
 
 ** Summary
 
 \Large
-- Overview of the Personal Genome Project
-- Identifying participants of interest
-- Finding and examining variant data
-- Finding raw read data
-- Platforms for data analysis: CWL, Arvados, bcbio
-- Running an interoperable analysis on PGP data
-- Running structural variant and HLA analyses
+- Overview of the Personal Genome Project and Data
+- Identify participants of interest
+- Overview of human variant data analysis
+- Example of looking at small variant data: ApoE
+- Additional analyses with BAM reads:
+   - \Large HLA typing
+   - \Large Structural variant analysis
+- Platform for data analysis: CWL, Arvados, bcbio
+
+** Next steps
+
+\Large
+- Work through examples to get started
+- Propose your own projects building off these ideas
+- Brainstorm new research ideas from PGP data
+- Help us improve data access and organization
+- Improve documentation and resources
