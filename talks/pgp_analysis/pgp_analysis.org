@@ -29,6 +29,14 @@
 - HLA typing: the adaptive immune system
 - Structural variants: larger events
 
+** Resources
+\LARGE
+- PGP data
+- Compute on AWS http://bit.ly/pgp-resources-1
+- Example analyses  http://bit.ly/pgp-analysis
+- Mentors and participants
+- Your ideas
+
 ** Outline
 \Large
 - \textbf{Overview of the Personal Genome Project and Data}
@@ -664,3 +672,11 @@ https://workbench.su92l.arvadosapi.com/container_requests/su92l-xvhdp-iprauko4ke
 - Brainstorm new research ideas from PGP data
 - Help us improve data access and organization
 - Improve documentation and resources
+
+** Resources
+\LARGE
+- PGP data
+- Compute on AWS http://bit.ly/pgp-resources-1
+- Example analyses  http://bit.ly/pgp-analysis
+- Mentors and participants
+- Your ideas
