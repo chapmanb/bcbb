@@ -1,6 +1,11 @@
 Collection of useful code related to biological analysis. Much of this is 
 discussed with examples at [Blue collar bioinformatics][1].
 
+All code, images and documents in this repository are freely available for all
+uses. Code is available under the [MIT license](https://opensource.org/licenses/MIT)
+and images, documentations and talks under the [Creative Commons No Rights
+Reserved (CC0) license](https://creativecommons.org/share-your-work/public-domain/cc0/).
+
 Some projects which may be especially interesting:
 
 * CloudBioLinux -- An automated environment to install useful biological software and
