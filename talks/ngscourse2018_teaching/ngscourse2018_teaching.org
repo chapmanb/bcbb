@@ -1,0 +1,801 @@
+#+title: Variant calling with validated community developed tools
+#+author: Brad Chapman \newline Bioinformatics Core, Harvard Chan School \newline http://j.mp/bcbiolinks
+#+date: 10 October 2018
+
+#+OPTIONS: toc:nil H:2
+
+#+startup: beamer
+#+LaTeX_CLASS: beamer
+#+latex_header: \usepackage{url}
+#+latex_header: \usepackage{hyperref}
+#+latex_header: \hypersetup{colorlinks=true}
+#+BEAMER_THEME: default
+#+BEAMER_COLOR_THEME: seahorse
+#+BEAMER_INNER_THEME: rectangles
+
+** Outline
+
+\Large
+- Overview of variant calling tools
+- bcbio: open source, validated, community built
+- Practical example: Personal Genome Project
+- Cancer calling of low frequency variants
+
+* Variant calling overview
+** Human whole genome sequencing
+
+[[./images5/human_genome.png]]
+
+\footnotesize
+http://ensembl.org/Homo_sapiens/Location/Genome
+\normalsize
+
+** High throughput sequencing
+
+[[./images5/reads.png]]
+
+** Variant calling
+
+[[./images5/SNV_calling.png]]
+
+\footnotesize
+http://en.wikipedia.org/wiki/SNV_calling_from_NGS_data
+\normalsize
+
+** Scale: exome to whole genome
+
+[[./images5/exome_proportion.png]]
+
+\footnotesize
+https://www.flickr.com/photos/119980645@N06/
+\normalsize
+
+* Calling methods
+
+** SNPs and Indels
+
+[[./images8/mutations.png]]
+
+http://carolguze.com/text/442-2-mutations.shtml
+
+** Structural variations
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width .55\textwidth
+[[./images8/svs.jpg]]
+#+END_CENTER
+
+\footnotesize
+http://www.nature.com/nmeth/journal/v9/n2/full/nmeth.1858.html
+
+** Germline population calling
+
+#+ATTR_LATEX: :width .8\textwidth
+[[./images8/Utah-Pedigree-1463-with-NA12878.png]]
+
+\tiny
+http://blog.goldenhelix.com/grudy/the-state-of-ngs-variant-calling-dont-panic/
+\normalsize
+
+** Genome Analysis Toolkit (GATK)
+
+[[./images8/gatk.png]]
+
+\vspace{0.5cm}
+
+https://www.broadinstitute.org/gatk/
+
+** GATK Best Practices
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images11/gatk_bp.png]]
+#+END_CENTER
+
+\small
+https://software.broadinstitute.org/gatk/best-practices/
+
+** HaplotypeCaller
+
+[[./images8/gatk-hc.png]]
+
+\tiny
+http://gatkforums.broadinstitute.org/discussion/5464/workshop-presentations-2015-uk-4-20-24
+
+** Joint calling on large populations
+
+[[./images8/gatk-joint.png]]
+
+\tiny
+http://gatkforums.broadinstitute.org/discussion/5464/workshop-presentations-2015-uk-4-20-24
+
+** GATK4 now open source for all uses
+
+#+BEGIN_CENTER
+[[./images8/gatk4-license.png]]
+#+END_CENTER
+
+\vspace{0.5cm}
+
+https://software.broadinstitute.org/gatk/blog?id=9645
+
+** FreeBayes
+
+[[./images8/freebayes.png]]
+
+https://github.com/ekg/freebayes
+
+** DeepVariant
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width .35\textwidth
+[[./images12/deepvariant.png]]
+#+END_CENTER
+
+https://github.com/google/deepvariant
+
+** Filtering -- Variant Quality Score Recalibration
+
+#+ATTR_LATEX: :width .9\textwidth
+[[./images8/gatk-vqsr.png]]
+
+\tiny
+http://gatkforums.broadinstitute.org/discussion/5464/workshop-presentations-2015-uk-4-20-24
+
+** Filtering -- hard cutoffs
+
+[[./images8/hard-filters.png]]
+
+\vspace{1cm}
+
+http://bcb.io/2014/05/12/wgs-trio-variant-evaluation/
+
+** Filtering -- GATK and Deep Learning
+Convolutional Neural Networks
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width .8\textwidth
+[[./images12/gatk_cnn.png]]
+#+END_CENTER
+
+
+https://gatkforums.broadinstitute.org/gatk/discussion/10996/deep-learning-in-gatk4
+
+
+* bcbio
+
+** Outline
+
+\Large
+- Overview of variant calling tools
+- \textbf{bcbio: open source, validated, community built}
+- Practical example: Personal Genome Project
+- Cancer calling of low frequency variants
+
+** You want to build a variant calling pipeline
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images11/gatk_bp.png]]
+#+END_CENTER
+
+\scriptsize
+https://software.broadinstitute.org/gatk/best-practices/
+
+** 
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width 0.8\textwidth
+[[./images11/efficiency.png]]
+#+END_CENTER
+\tiny
+https://commons.wikimedia.org/wiki/File:Efficiency_diagram_by_Zureks.svg
+
+** Barriers to implementing yourself
+
+\LARGE
+- Changing tools
+- Feature support burden
+- Multi-platform interoperability
+- Validation
+
+** Build open source communities
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images12/open-bio.png]]
+
+\vspace{1cm}
+https://www.open-bio.org
+#+END_CENTER
+
+** Overview
+
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images3/bcbio_nextgen_highlevel.png]]
+
+\vspace{1cm}
+https://github.com/bcbio/bcbio-nextgen
+
+** Supported analysis types
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width 0.4\textwidth
+[[./images9/bcbio_pipelines.png]]
+#+END_CENTER
+
+\scriptsize
+https://bcbio-nextgen.readthedocs.org/en/latest/contents/pipelines.html
+
+
+* Changing tools
+
+** We made a pipeline -- so what?
+
+\tiny
+#+BEGIN_QUOTE
+There have been a number of previous efforts to create publicly available
+analysis pipelines for high throughput sequencing data. Examples include
+Omics-Pipe, bcbio-nextgen, TREVA and NGSane. These pipelines
+offer a comprehensive, automated process that can analyse raw sequencing reads
+and produce annotated variant calls. However, the main audience for these
+pipelines is the research community. Consequently, there are many features
+required by clinical pipelines that these examples do not fully address. Other
+groups have focused on improving specific features of clinical pipelines. The
+Churchill pipeline uses specialised techniques to achieve high performance,
+while maintaining reproducibility and accuracy. However it is not freely
+available to clinical centres and it does not try to improve broader clinical
+aspects such as detailed quality assurance reports, robustness, reports and
+specialised variant filtering. The Mercury pipeline offers a comprehensive
+system that addresses many clinical needs: it uses an automated workflow system
+(Valence) to ensure robustness, abstract computational resources and
+simplify customisation of the pipeline. Mercury also includes detailed coverage
+reports provided by ExCID, and supports compliance with US privacy laws
+(HIPAA) when run on DNANexus, a cloud computing platform specialised for
+biomedical users. Mercury offers a comprehensive solution for clinical users,
+however it does not achieve our desired level of transparency, modularity and
+simplicity in the pipeline specification and design. Further, Mercury does not
+perform specialised variant filtering and prioritisation that is specifically
+tuned to the needs of clinical users.
+#+END_QUOTE
+
+\scriptsize
+http://www.genomemedicine.com/content/7/1/68
+
+** Sustainability
+
+\Large
+A piece of software is being sustained if people are using it, fixing it, and
+improving it rather than replacing it.
+
+\vspace{0.5cm}
+
+\normalsize
+http://software-carpentry.org/blog/2014/08/sustainability.html
+
+** Complex, rapidly changing baseline functionality
+
+[[./images2/gatk_changes.png]]
+
+
+* Feature support burden
+
+** Feature support burden
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width 0.55\textwidth
+[[./images11/nextflow_comparison.png]]
+#+END_CENTER
+
+\scriptsize
+http://www.nature.com/nbt/journal/v35/n4/full/nbt.3820.html
+
+** Community: sustainability and support
+
+#+ATTR_LATEX: :width 0.9\textwidth
+[[./images12/bcbio_commits_oct2018.png]]
+
+\vspace{0.1cm}
+
+#+ATTR_LATEX: :width 0.9\textwidth
+[[./images12/bcbio_issues_oct2018.png]]
+
+\vspace{0.1cm}
+
+[[https://github.com/bcbio/bcbio-nextgen]]
+
+* Interoperable infrastructure
+
+** Infrastructure Goals
+\Large
+- Local machines
+- Clusters: SLURM, SGE, Torque, PBS, LSF
+- Clouds: Amazon, Google, Azure
+- Clinical environments
+- User interface for researchers
+- Integrate with LIMS
+- Accessible to the general public
+
+
+** 
+
+#+BEGIN_CENTER
+[[./images12/analysis_to_data.png]]
+#+END_CENTER
+
+** Why do we transfer data around?
+
+\Large
+- Lots of work to setup and configure an analysis
+- Hard to port scalable analysis to new environment
+
+** Many great workflow systems: Nexflow
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images12/nextflow_overview.png]]
+
+\vspace{0.2cm}
+http://nextflow.io/
+#+END_CENTER
+
+** Many great workflow systems: Galaxy
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images12/galaxy_overview.png]]
+
+\vspace{0.2cm}
+http://galaxyproject.org/
+#+END_CENTER
+
+** Many great workflow systems: Snakemake
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images12/snakemake_overview.png]]
+
+\vspace{0.2cm}
+https://snakemake.readthedocs.io
+#+END_CENTER
+
+** But, many workflow systems
+
+#+ATTR_LATEX: :width 0.8\textwidth
+[[./images12/existing_workflows.png]]
+
+#+ATTR_LATEX: :width 0.8\textwidth
+[[./images12/existing_workflows2.png]]
+
+\scriptsize
+https://github.com/common-workflow-language/common-workflow-language/wiki/Existing-Workflow-systems
+
+** We'll never agree on one system
+
+\Large
+- Advantages and disadvantages to each
+- Familiarity and teaching
+- Personal preference
+
+** So we can't easily share workflows
+
+\Large
+- Single workflow system allows coordinated groups
+- Create barrier to sharing externally
+- Hard to mix and match components between workflow environments
+- How can we do better?
+
+** Better abstractions = more interoperability
+
+[[./images10/abstractions.png]]
+
+\scriptsize
+https://bcbio-nextgen.readthedocs.io/en/latest/contents/cwl.html
+
+** Common Workflow Language (CWL)
+
+
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images10/cwl_pipeline_example.png]]
+
+#+BEGIN_CENTER
+http://www.commonwl.org/ \\
+\vspace{0.5cm}
+\scriptsize
+https://f1000research.com/slides/5-1617
+#+END_CENTER
+
+** Why use a workflow abstraction?
+
+\Large
+- Integrate with multiple platforms
+  - \Large Cromwell -- HPC, Cloud, local
+  - \Large Arvados
+  - \Large DNAnexus
+  - \Large Seven Bridges + Cancer Genomics Cloud
+- Stop maintaining bcbio specific infrastructure
+- Focus on hard biological problems
+
+** Connections
+
+#+ATTR_LATEX: :width 0.6\textwidth
+[[./images10/Network_Community_Structure.png]]
+
+\scriptsize
+By jham3 - Own work, CC BY-SA 3.0, https://commons.wikimedia.org/w/index.php?curid=17125894
+
+
+* Practical CWL with bcbio
+
+** Outline
+
+\Large
+- Overview of variant calling tools
+- bcbio: open source, validated, community built
+- \textbf{Practical example: Personal Genome Project}
+- Cancer calling of low frequency variants
+
+** CWL in bcbio
+
+\Large
+- Start with high level configuration file
+- Generate CWL
+- Run, on any infrastructure that supports CWL
+   - \Large Generated CWL
+   - \Large Docker or local bcbio installation
+   - \Large Genome data
+
+\scriptsize
+https://bcbio-nextgen.readthedocs.io/en/latest/contents/cwl.html
+
+** Practical example: Personal Genome Project
+
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images12/pgp.png]]
+
+http://www.personalgenomes.org/us
+
+** Whole genome sequencing data plus metadata
+
+#+ATTR_LATEX: :width 0.6\textwidth
+[[./images12/pgp_huD57BBF.png]]
+
+https://my.pgp-hms.org/profile/huD57BBF
+
+** Rich set of associated data
+
+#+ATTR_LATEX: :width 0.7\textwidth
+[[./images12/openhumans.png]]
+
+https://www.openhumans.org/member/jameslvick/
+
+** Template: describe your analysis
+
+#+BEGIN_SRC yaml
+  - files: huD57BBF.bam
+    description: huD57BBF
+    analysis: variant
+    genome_build: hg38
+    algorithm:
+      aligner: bwa
+      variantcaller: gatk-haplotype
+      svcaller: [manta, lumpy, cnvkit]
+      hlacaller: optitype
+#+END_SRC
+
+https://github.com/bcbio/bcbio_validation_workflows
+
+** Local filesystem environment
+
+#+BEGIN_SRC yaml
+local:
+  ref: biodata/collections
+  inputs:
+    - biodata/regions
+    - biodata/pgp
+resources:
+  default:
+    cores: 8
+    memory: 3500M
+    jvm_opts: [-Xms750m, -Xmx3500m]
+#+END_SRC
+
+** Equivalent on a remote platform
+
+#+BEGIN_SRC yaml
+arvados:
+  reference: su92l-4zz18-3p00f79y4p535ia
+  input: [su92l-4zz18-ihm3wrgyuwcmsx1]
+resources:
+  default: {cores: 16, memory: 3500M,
+            jvm_opts: [-Xms1g, -Xmx3500m]}
+#+END_SRC
+
+** Arvados pipeline run
+
+#+ATTR_LATEX: :width 0.7\textwidth
+[[./images12/arvados_pgp.png]]
+
+** Run on DNAnexus platform
+
+#+BEGIN_SRC yaml
+dnanexus:
+  project: PGP
+  ref:
+    project: bcbio_resources
+    folder: /reference_genomes
+  inputs:
+    - /data/input
+resources:
+  default:
+    cores: 8
+    memory: 3500M
+    jvm_opts: [-Xms750m, -Xmx3500m]
+#+END_SRC
+
+https://platform.dnanexus.com
+
+** DNAnexus monitoring: align, variant call, QC
+
+#+ATTR_LATEX: :width 1.1\textwidth
+[[./images12/dnanexus-parallel-full.png]]
+
+** Variant calling parallelization: per region
+
+#+ATTR_LATEX: :width 1.1\textwidth
+[[./images12/dnanexus-parallel-region.png]]
+
+
+** Outline
+
+\Large
+- Overview of variant calling tools
+- bcbio: open source, validated, community built
+- \textbf{Practical example: Personal Genome Project}
+- Cancer calling of low frequency variants
+* ApoE status
+
+** 
+
+\Large
+- ApoE \small https://www.snpedia.com/index.php/APOE
+- \Large Two variants, on chromosome 19, that impact risk of Alzheimer's disease and
+  cholesterol metabolism
+
+#+ATTR_LATEX: :width 0.7\textwidth
+[[./images12/apoe.png]]
+
+
+** ApoE analysis
+
+#+BEGIN_SRC sh
+$ tabix huD57BBF-gatk-haplotype.vcf.gz
+    chr19:44908684-44908684
+chr19   44908684        rs429358        T       C
+1116.80    PASS
+ANN=C|missense_variant|MODERATE|APOE|c.388T>C|p.Cys130Arg
+GT:AD:DP:GQ:MMQ:PL      1/1:0,26:26:78:60:1145,78,0
+$ tabix huD57BBF-gatk-haplotype.vcf.gz
+     chr19:44908822-44908822
+#+END_SRC
+
+http://bit.ly/pgp-analysis
+
+* HLA
+
+** Major histocompatibility complex (MHC) -- HLAs
+
+[[./images8/MHC.png]]
+
+\small
+\vspace{1cm}
+http://www.ebi.ac.uk/ipd/imgt/hla/ \\
+\scriptsize
+http://sciscogenetics.com/technology/human-leukocyte-antigen-complex/
+
+** HLA typing
+
+\Large
+- 1000 genomes: build 38 + IMGT/HLA-3.18.0
+- bwa mem extracts HLA reads
+- Map reads only to HLA sequences
+- OptiType: Call HLA types
+
+\vspace{0.5cm}
+\footnotesize
+https://github.com/lh3/bwa/blob/master/README-alt.md\#hla-typing \newline
+https://github.com/FRED-2/OptiType
+
+** HLA outputs
+
+\Large
+#+BEGIN_SRC sh
+HLA-A*11:01;HLA-A*24:02
+HLA-B*27:05;HLA-B*55:01
+HLA-C*07:02;HLA-C*07:02
+#+END_SRC
+
+* Structural variation
+
+** Structural variants critical -- pancreatic cancer example
+
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images9/nature14169-sf2.jpg]]
+
+\scriptsize
+http://www.nature.com/nature/journal/v518/n7540/full/nature14169.html
+
+** Tools used
+
+- \Large Manta: \footnotesize https://github.com/Illumina/manta \\
+   \Large Split and paired end reads
+- \Large Lumpy: \footnotesize https://github.com/arq5x/lumpy-sv \\
+   \Large Split and paired ends reads
+- \Large CNVkit: \footnotesize https://github.com/etal/cnvkit \\
+   \Large Read depth based
+
+** Example deletion call -- 3 callers
+
+#+BEGIN_SRC sh
+chr19   50827242        MantaDEL:67020:0:1:0:0:0
+T   <DEL>   658.0 PASS
+END=50830636;SVTYPE=DEL;SVLEN=-3394;
+ANN=<DEL>|bidirectional_gene_fusion|HIGH|AC011523.2&KLK15|
+ENSG00000267968&ENSG00000174562|gene_variant|
+GT:FT:GQ:PL:PR:SR       0/1:PASS:504:708,0,501:18,16:23,12
+#+END_SRC
+
+** Viewing deletion -- svviz
+
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images12/hud57bbf-klk15-del.png]]
+
+http://svviz.readthedocs.io
+
+** Viewing deletion -- SV-plaudit
+
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images12/huD57BBF-KLK15-DEL-plaudit.png]]
+
+https://github.com/jbelyeu/SV-plaudit
+
+** Genomic region with deletion -- KLK15
+
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images12/chr19_klk15.png]]
+
+http://genome.ucsc.edu/cgi-bin/hgTracks?db=hg38
+
+** KLK15 known function
+
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images12/klk15_wikipedia.png]]
+
+https://en.wikipedia.org/wiki/KLK15
+
+** Tissue specific gene expression
+
+#+ATTR_LATEX: :width 0.7\textwidth
+[[./images12/klk15_expression.png]]
+
+\small
+https://www.gtexportal.org/home/gene/ENSG00000174562.9
+
+** Self reported conditions
+
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images12/pgp_huD57BBF_conditions.png]]
+
+https://my.pgp-hms.org/profile/huD57BBF
+
+
+** Outline
+
+\Large
+- Overview of variant calling tools
+- bcbio: open source, validated, community built
+- Practical example: Personal Genome Project
+- \textbf{Cancer calling of low frequency variants}
+
+* Cancer
+** Cancer somatic calling
+
+[[./images8/cancer-somatic.png]]
+
+\vspace{0.5cm}
+\scriptsize
+http://www.nature.com/nmeth/journal/v10/n8/fig_tab/nmeth.2562_F1.html
+\normalsize
+
+** Cancer heterogeneity
+
+[[./images8/Treatment_bottleneck.pdf]]
+
+\small
+http://en.wikipedia.org/wiki/Tumour_heterogeneity
+\normalsize
+
+** VarDict
+
+\Large
+- AstraZeneca
+- Germline + Cancer calling
+- SNP + Insertion/Deletions
+- Whole genome + exome
+- Also works on deep targeted data
+
+\vspace{1cm}
+\small
+https://github.com/AstraZeneca-NGS/VarDictJava
+http://nar.oxfordjournals.org/content/early/2016/04/07/nar.gkw227.full
+\normalsize
+
+* Validation
+
+** Validation: key component of bcbio
+
+\LARGE
+- Pre-built workflows with known outputs
+- Cover multiple cases: germline, somatic, low frequency, FFPE, structural variants
+- Large collections of diverse workflows
+
+\normalsize
+https://github.com/bcbio/bcbio_validation_workflows
+
+** Value of validation
+\LARGE
+- Integration tests for pipelines
+- Unbiased algorithm comparisons
+- Baseline for improving methods
+- Automated tests for platforms
+
+** Reference materials
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width .5\textwidth
+[[./images/giab.png]]
+
+#+ATTR_LATEX: :width .7\textwidth
+[[./images7/ga4gh.png]]
+
+#+ATTR_LATEX: :width .9\textwidth
+[[./images7/dream_challenge.png]]
+#+END_CENTER
+
+http://www.genomeinabottle.org/
+http://ga4gh.org/\#/benchmarking-team
+https://www.synapse.org/\#!Synapse:syn312572
+
+** Validation graphs
+
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images10/grading-example.png]]
+
+** NA12878, NA24385, NA24631 GATK4 joint calling
+
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images12/giab-joint-recal.png]]
+
+\footnotesize
+https://github.com/bcbio/bcbio_validations/tree/master/gatk4
+
+
+** Low frequency variants: VarDict
+
+#+BEGIN_CENTER
+#+ATTR_LATEX: :width 0.7\textwidth
+[[./images12/vardict-filter-validation.png]]
+#+END_CENTER
+
+\scriptsize
+https://github.com/bcbio/bcbio_validations/tree/master/somatic-lowfreq
+
+** Takeaways
+
+\LARGE
+- Overview of variant calling tools
+- bcbio: open source, validated, community built
+- Science = collaboration and re-use
+- How to run bcbio analyses where you want them
+- Interpreting variant calling outputs
+- We can build better things together
