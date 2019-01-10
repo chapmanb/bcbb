@@ -1,0 +1,152 @@
+* George Bell RNA-seq batch effects <2018-10-25 Thu 11:07>
+
+Batch examples: microarray compendium, local RNA-seq experiments, quantitative
+proteomics, single cell, RNA-seq mining from GEO.
+
+Batch designs: barcoded split over multiple lanes for all experiments.
+Non-barcoded in individual lanes.
+
+Barcode crosstalk 1:1000 to 1:10000. For NovaSeq, HiSeq 4000 patterned flowcells
+this went up 10x so much more often. Dual index schemes help with this. Due to
+multiple reads in a location: read barcode from one and read from the other.
+Dual indexes helps a lot for this.
+
+Many other factors besides batch: kits, dates, preparation methods.
+
+Important question: if you correct for batch how do you ensure it was
+successful?
+
+Practically, ComBat: batch correct specifying desired covariates of things that
+should be the same and should be different.
+
+RNA-seq with batches: include batch info in model of gene expression using
+DESeq2. Challenge, often don't have information about batch. limma
+removeBatchEffects, sva, ruvseq
+
+single cell combining cells from different runs. See batch effects on PCA. Use
+Seurat ScaleData with vars.to.regress="batch". ComBat worked for diffusion map.
+
+General advice: avoid correcting for batch in a sample specific manner since
+you're incorrectly wedging apart samples. Happens in unbalanced designs where
+sample correlated with batch.
+
+iPS cell example: ComBat helps with comparison between local cells and results
+from GEO. But corrects for both batch and differences between samples. Not sure
+about best way to combine GEO RNA-seq samples. Perfectly confounded because
+batch and sample correlated.
+
+* Kris Richardson ATAC-seq <2018-11-15 Thu 11:06>
+
+Provides: open chromatin + genome wide information on nucleosome positioning in
+regulatory regions. Accessible chromatin: nucleosome associated but accessible,
+open chromatin -- no nucleosomes at all.
+
+Technique: active transposon that attacks open chromatin, cuts and tags in open
+chromatin, then run paired end sequencing. Get two peaks, 100bp fragments free
+of chromatins, and 200bp nucleosome regions. The get a periodicity of these 400,
+600...
+
+Data processing approach: QC, trimming. ATACseqQC in Bioconductor. Should see
+periodicity peak. If it's messed up don't see much of the 200 and beyond peaks.
+Sometimes can see all 200bp regions: bad ratio of magnetic beads to DNA
+concentration.
+
+Alignment post-processing: remove mitochondrial and non-unique alignments. Peak
+calling: MACS2 most commonly used. Different flags used in 3 recent papers.
+Recommend using -f BAMPE to take advantage of PE reads, versus --nomodel --shift
+to customize. Other shifting models can help in trickier cases.
+
+Downstream analysis. Visualization: compare with transcription factors, try to
+provide additional resolution in those regions. NucleoATAC -- Greenburg lab
+which does nucleosome positioning. Can look at transcription factor motifs in
+nucleosome free regions. Doesn't tell you the exact binding factor but can give
+you occupied sites; lots of overlap of binding motifs.
+
+Footprinting software: CENTIPEDE -- call TF predictions with MEME, look for
+those in NFR (nucleosome free regions), PhastCons conservation filter. ATACseqQC
+also does, looks like a good one stop shop.
+
+Need to control for fragment size by binning and analyzing separately. First
+split fragments by size, then apply. Behavior of mono/di-nucleosomes much
+different than sub-nucleosomal reads.
+* Charlie Whittaker Intragenic Tandem Repeats <2018-12-20 Thu 11:03>
+
+Practical example from human , Zinc finger block: KRAB + Zinc finger repeats.
+
+Types of tandem repeats:
+  - Interspersed repeats
+  - Classes of tandom repeats
+     - Microsats, SSRs, STRs <= 9bp
+     - Minisats, >= 10bp
+     - Megasats > 135bp
+
+Technically hard to assess: poor mapping quality, PCR often stutters on these
+regions, so artifacts.
+
+Tandem Repeat Variation: 10-100,000 times greater mutation rates due to variable
+numbers of repeat copies. More identical repeats = more likely to have repeats.
+Happens due to recombination or replication slippage.
+
+Some disease based examples: ZNF9 in mytonic dystrophy type2 in
+regulatory/intron region. In coding sequences: tri or hexa-nucleotide repeats.
+Genes involved in regulation of expression, embryogenesis; don't see in basic
+metabolic genes. Coding sequences with TRs: 12-21% of genes. In humans found in
+neurodegenerative repeats: CAG poly-glutamine tracts in Huntington disease,
+Kennedy  disease and Spinocerebellar ataxias.
+
+Other tools to use for detection: etandem in emboss.
+
+Domains can be duplicated by ITRs but not always the case. mucin (MUC) is a
+marker for malignant tumors. In human, has a 13kb exon of repeats, which
+provides a substrate for glycosylation.
+
+ZNFs have ITRs in all metazoan species. Not restricted to primates, widely found
+across species.
+
+Tetrahymena thermophila: 45N genome content, strange bacteria which has a
+protein with 2 serine kinanse and repeats of LRR domains. SMART for searching
+protein domains (http://smart.embl-heidelberg.de/). How do they represent
+protein domain knowledge? RDF at UniProt?
+
+* Prat Thiru -- Visualization: Principles and Software <2019-01-10 Thu 11:01>
+
+Starts with examples of problematic visualizations: not terrible but overloaded
+and hard to unpack underlying visuals. Ascombe's Quartet: classic example of
+dataset that has same means but different distributions.
+
+Goal of visualization to record raw data, analyze showing patterns/trends, and
+communicate results to viewers. Effective ways to encode information: marks
+(basic geometric elements and channels (color, size, orientation/direction).
+Nice examples of quantitative and categorical in Figure 2:
+https://www.annualreviews.org/doi/full/10.1146/annurev-biodatasci-080917-013424
+
+Interactive figures: more insight into data. Most common approach is to provide
+overview, then allow zooming for details.
+
+Tufte's principles: graphical integrity, maximize data-ink ratio. Beyond that
+communication influences the way that you're thinking about the report. One
+popular approach is graphical abstracts.
+
+Common examples of types of plots to use. Relationships: data matrix, heat map,
+parallel coordinates for adjacent/changes, scatterplot of all possible
+combinations. Alternative to heat maps are curvemaps, but can show less genes.
+Heatmaps need to be careful because of color perception.
+Genome features: translating linear to either pyramidal matrix or
+Circos-style relationships for connected information. Heirarchies: tree
+structure, tree maps. Can convert into circular polar plots. Nice treemap of GO
+terms from HBC training team. For networks, can show as graph or flatten into
+linear with connections or matrix. Matrix looking most interpretable to me. Some
+other nice examples: hive plots, sankey flow diagram, waterfall plot,
+stripchart/beeswarm with raw data,
+
+Nice summary of different libraries/tools: https://source.opennews.org/articles/what-i-learned-recreating-one-chart-using-24-tools/
+Some good general rules: https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1003833
+
+Transitions into D3 (https://d3js.org/) tutorial with examples. Genome3Dplot is
+an SVG genome browser (https://github.com/brinkmanlab/GenomeD3Plot/). Epiviz4
+browser (https://epiviz.github.io/). Glimma for RNA-seq visualization:
+https://f1000research.com/articles/5-1408/v3
+
+In-depth examples of SVG and D3 magic, typically will want a library on top that
+avoids needing to get into all the nitty gritty. Recommends Bootstrap
+(http://getbootstrap.com) for layout.
