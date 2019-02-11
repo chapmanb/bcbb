@@ -683,6 +683,10 @@ class GFFParser(_AbstractMapReduceGFF):
         class FakeHandle:
             def __init__(self, line_iter):
                 self._iter = line_iter
+            def __iter__(self):
+                return self
+            def __next__(self):
+                return next(self._iter)
             def read(self):
                 return "".join(l for l in self._iter)
             def readline(self):
