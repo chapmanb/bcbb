@@ -1,0 +1,308 @@
+#+title: bcbio usage recommendations
+#+author: Brad Chapman \newline Bioinformatics Core, Harvard Chan School \newline http://j.mp/bcbiolinks
+#+date: 1 March 2019
+
+#+OPTIONS: toc:nil H:2
+
+#+startup: beamer
+#+LaTeX_CLASS: beamer
+#+LaTeX_CLASS_options: [17pt]
+#+latex_header: \usepackage{url}
+#+latex_header: \usepackage{hyperref}
+#+latex_header: \hypersetup{colorlinks=true}
+#+BEAMER_THEME: default
+#+BEAMER_COLOR_THEME: seahorse
+#+BEAMER_INNER_THEME: rectangles
+
+* Overview
+
+** Goals
+
+- Recommendations for bcbio runs
+- Science: Variant calling
+  - Small variants: germline and somatic
+  - CNVs
+  - Structural variations
+  - Heterogeneity
+- Practical aspects
+  - Parallelization/CWL
+  - Cloud/Hosted
+
+** Caveats
+
+- Personal opinions
+- Lots of choices in bcbio
+- Will point out where likely to change over time
+
+* Small variants
+
+** Germline small variants
+
+- GATK4 HaplotypeCaller
+#+BEGIN_SRC
+variantcaller: [gatk-haplotype]
+#+END_SRC
+- Joint calling for scaling
+#+BEGIN_SRC
+tools_on: [gvcf]
+#+END_SRC
+
+** Other germline options
+
+- strelka2
+- DeepVariant
+- FreeBayes
+- Octopus
+
+** Germline small variant validations
+
+#+ATTR_LATEX: :width 0.6\textwidth
+[[./images/germline-validation.png]]
+
+\scriptsize
+https://github.com/bcbio/bcbio_validations/tree/master/deepvariant
+
+** Somatic small variants: tumor only
+
+- VarDict
+#+BEGIN_SRC
+variantcaller: [vardict]
+#+END_SRC
+- Other option: octopus. Performs well, not as fast in complex/deep regions
+
+** Somatic: tumor only validations
+
+#+ATTR_LATEX: :width 0.6\textwidth
+[[./images/vardict-octopus-tumoronly.png]]
+
+\scriptsize
+https://github.com/bcbio/bcbio_validations/tree/master/somatic-lowfreq
+
+** Somatic: tumor and normal
+
+- VarDict
+- MuTect2
+- Strelka2
+- Octopus
+
+** Somatic: tumor and normal
+
+- Ensemble available
+- Costs: runtime and non-standard output VCFs
+
+#+BEGIN_SRC
+variantcaller: [vardict, mutect2,
+                strelka2, octopus]
+ensemble:
+  numpass: 2
+#+END_SRC
+
+\scriptsize
+https://bcbio-nextgen.readthedocs.io/en/latest/contents/configuration.html#ensemble-variant-calling
+
+** Somatic: tricky cases
+
+- Low frequency variants in high depth panels: VarDict
+- Similar suggestions to tumor only, tweak minimum allele fraction
+#+BEGIN_SRC
+variantcaller: [vardict]
+min_allele_fraction: 0.5
+#+END_SRC
+
+* SVs
+
+** CNVs: somatic, tumor only
+
+- seq2c: uses other samples in project as background
+- CNVkit: uses flat background
+
+** CNVs: somatic, tumor only PoN
+
+- For tumor only with process matched normals
+- Recommend generating a Panel of Normals (PoN)
+- Supported
+  - GATK4 CNV
+  - seq2c
+  - CNVkit
+
+** CNVs: tumor/normal
+
+- GATK4 CNV
+- seq2c
+- CNVkit
+
+** CNVs: germline
+
+ - Work in progress
+ - GATK4 GermlineCNV will be recommendation
+ - CNVkit works now if you have case/control
+
+\scriptsize
+https://github.com/bcbio/bcbio-nextgen/issues/2245
+
+** Structural variants -- using one caller
+
+- Manta
+  - Best at reducing false positives
+  - Not the most sensitive but will capture clear events
+
+#+BEGIN_SRC
+svcaller: [manta]
+#+END_SRC
+
+** Structural variants -- more sensitivity
+
+- Lumpy
+  - More sensitive, at the cost of additional false positives
+  - Larger scale/complex events like fusions
+  - Pair with prioritization
+
+#+BEGIN_SRC
+svcaller: [lumpy]
+#+END_SRC
+
+** Structural variant prioritization
+
+- Focus around genes of interest
+- Summarize from multiple callers
+- Provides useful practical filter
+#+BEGIN_SRC
+svcaller: [manta, lumpy]
+svprioritize; cancer/civic
+#+END_SRC
+
+\scriptsize
+https://bcbio-nextgen.readthedocs.io/en/latest/contents/configuration.html#structural-variant-calling
+
+** Heterogeneity overview
+
+- Estimation of purity/ploidy
+- Allele specific copy number calling
+- HLA Loss of heterozygosity
+- LOH + amplification
+  - Disease specific genes of interest (from CIViC)
+
+** Heterogeneity options
+
+- TitanCNA:
+  - tumor/normal
+  - exome or bigger
+- PureCN
+  - tumor/normal
+  - panels or bigger
+
+\scriptsize
+https://github.com/bcbio/bcbio_validations/tree/master/TCGA-heterogeneity
+
+** Heterogeneity details
+
+Inputs:
+- Variant calls from VarDict
+- CNV calls from GATK4 CNV
+
+** Heterogeneity configuration
+
+#+BEGIN_SRC
+algorithm:
+ variantcaller: [vardict]
+ svcaller: [gatk-cnv, purecn, titancna]
+ svprioritize: cancer/civic
+metadata:
+ disease: lung
+#+END_SRC
+
+** Heterogeneity output: genes
+
+#+BEGIN_SRC
+LOH:
+  CDKN2A: LOH
+  HLA: 'no'
+amplification:
+  AKT2: 'no'
+  EGFR: amplification
+ploidy: '1.6921836479328'
+purity: '0.84'
+#+END_SRC
+
+** Heterogeneity output: plots
+
+[[./images/purecn-loh.png]]
+
+** Heterogeneity future work
+
+- PureCN can support tumor-only panels
+- Need panel of normals for proper CNV calls
+- Pending additional work on PoN calling
+
+* Practical
+
+** Practical running suggestions
+
+When to run bcbio with what where and why \\
+2 options:
+- Original/old approach
+   - multicore for local
+   - IPython on cluster
+- Common Workflow Language (CWL)
+   - Cromwell runner: local + cluster + GCP
+   - Hosted support: DNAnexus, Arvados, SevenBridges
+
+** Common Workflow Language
+
+- Future (and present) of bcbio runs
+- bcbio generates a workflow and supplies tools + implementation
+- Supports Docker (and in the future Singularity)
+- Uses external runners: Cromwell
+
+\scriptsize
+https://bcbio-nextgen.readthedocs.io/en/latest/contents/cwl.html
+
+** Original bcbio runner
+
+- Runs single/few samples multicore on single machines
+- Uses IPython for distribution on local clusters
+- Easier to debug than equivalent CWL runs right now
+
+** Cloud, single machine
+
+- Traditional bcbio runner with multicore
+- Spin up single machine, attach external stable EBS volume
+- Use ansible to attach and provision
+- Bigger machine size during runs, take down when finished
+
+\scriptsize
+https://github.com/bcbio/bcbio-nextgen/tree/master/scripts/ansible
+
+** Cloud, multiple machines
+
+- Common Workflow Language
+- Google Cloud Platform, Google Pipelines API
+- Cromwell runner
+- bcbio Docker containers
+
+\scriptsize
+https://bcbio-nextgen.readthedocs.io/en/latest/contents/cloud.html#docs-cloud-gcp
+
+** Hosted cloud
+
+- Common Workflow Language
+- Platform specific runners
+  - Arvados
+  - DNAnexus
+  - SevenBridges
+- Public genome resources available
+
+\scriptsize
+https://bcbio-nextgen.readthedocs.io/en/latest/contents/cwl.html#running-on-arvados-hosted-cloud
+
+
+** Summary of recommendations
+
+- Science: Variant calling
+  - Small variants: germline and somatic
+  - CNVs
+  - Structural variations
+  - Heterogeneity
+- Practical aspects
+  - Parallelization/CWL
+  - Cloud/Hosted
