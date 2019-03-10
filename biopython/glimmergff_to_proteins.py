@@ -43,7 +43,7 @@ def protein_recs(glimmer_file, ref_recs):
                     seq_exons.append(rec.seq[
                         cds.location.nofuzzy_start:
                         cds.location.nofuzzy_end])
-                gene_seq = reduce(operator.add, seq_exons)
+                gene_seq = reduce(operator.add, seq_exons, "")
                 if feature.strand == -1:
                     gene_seq = gene_seq.reverse_complement()
                 protein_seq = gene_seq.translate()

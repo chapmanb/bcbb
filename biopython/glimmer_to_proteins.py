@@ -40,7 +40,7 @@ def protein_recs(glimmer_file, ref_rec):
             seq_exons = []
             for start, end in exons:
                 seq_exons.append(ref_rec.seq[start:end])
-            gene_seq = reduce(operator.add, seq_exons)
+            gene_seq = reduce(operator.add, seq_exons, "")
             if strand == '-':
                 gene_seq = gene_seq.reverse_complement()
             protein_seq = gene_seq.translate()
