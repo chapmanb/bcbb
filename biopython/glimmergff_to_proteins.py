@@ -17,6 +17,7 @@ from __future__ import with_statement
 import sys
 import os
 import operator
+from functools import reduce
 
 from Bio import SeqIO
 from Bio.SeqRecord import SeqRecord
