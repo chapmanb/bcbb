@@ -1,0 +1,382 @@
+#+title: Data organization: normalization and modeling
+#+author: Brad Chapman \newline Ginkgo Bioworks
+#+date: 28 March 2019
+
+#+OPTIONS: toc:nil H:2
+
+#+startup: beamer
+#+LaTeX_CLASS: beamer
+#+LaTeX_CLASS_options: [17pt]
+#+latex_header: \usepackage{url}
+#+latex_header: \usepackage{hyperref}
+#+latex_header: \hypersetup{colorlinks=true}
+#+LATEX_HEADER: \RequirePackage{fancyvrb}
+#+LATEX_HEADER: \DefineVerbatimEnvironment{verbatim}{Verbatim}{fontsize=\normal}
+#+BEAMER_THEME: default
+#+BEAMER_COLOR_THEME: seahorse
+#+BEAMER_INNER_THEME: rectangles
+
+* Ginkgo overview
+
+** 
+
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images/ginkgobioworks.png]]
+
+https://www.ginkgobioworks.com/
+
+** Motivation
+
+#+ATTR_LATEX: :width 0.9\textwidth
+[[./images/ipcc.png]]
+
+\tiny
+https://www.theguardian.com/environment/2018/oct/08/global-warming-must-not-exceed-15c-warns-landmark-un-report
+
+** Agriculture
+
+#+ATTR_LATEX: :width 0.8\textwidth
+[[./images/ag_energy.png]]
+
+\tiny
+https://www.gatesnotes.com/Energy/We-should-discuss-soil-as-much-as-coal
+
+** Argicultural fertilizer usage
+
+#+ATTR_LATEX: :width 0.8\textwidth
+[[./images/nitrogen_runoff.png]]
+
+\scriptsize
+https://twitter.com/BuildSoil/status/1081664237997481989
+
+** JoynBio
+
+#+ATTR_LATEX: :width 0.55\textwidth
+[[./images/joynbio.png]]
+
+https://joynbio.com/
+
+** Animal proteins
+
+#+ATTR_LATEX: :width 0.75\textwidth
+[[./images/animal_impact.png]]
+
+\scriptsize
+https://www.new-harvest.org/about
+
+** Motif Ingredients
+
+#+ATTR_LATEX: :width 0.55\textwidth
+[[./images/motif.png]]
+
+https://www.motifingredients.com/
+
+** Synthetic Biology as a solution
+
+#+ATTR_LATEX: :width 0.5\textwidth
+[[./images/ilovegmos.png]]
+
+\scriptsize
+https://grist.org/series/panic-free-gmos/
+
+** What does Ginkgo do?
+
+- Make an organism that produces some product
+- Multiple hosts: bacteria, yeasts, mammalian cells
+- Multiple goals: find activity, improve activity, make protein...
+
+** Design: what to make
+
+- Source input enzymes and pathways
+  - Existing biological knowledge
+  - Permutations of known enzymes
+- Adjust to be possible to make
+  - Codon optimization
+  - Restriction site/design issues
+- Transcriptional machinery
+
+** Build: how to make it
+
+- Order parts: \small https://www.twistbioscience.com/
+\normal
+- Synthesize difficult parts: internal BioFab (<- Gen9 <- Codon)
+- Combine parts into pathways: internal assembly approaches
+
+** Test: how well did we make it
+
+- Develop high throughput assays for compound of interest
+- Scaling
+   - Samples (plate-based)
+   - Size (fermentation
+- Analysis: combining results from multiple inputs
+
+* Data modeling challenges
+
+** Data challenges
+
+- Multiple levels of highly specialized work
+- Custom designs, builds, assays required
+- Lots of simultaneous projects with different needs
+
+** Data goals
+
+- Capture intent and process in a lightweight way
+- Data interoperability
+- Enable permisionless data analysis
+- Inform decision making
+
+** Data reality
+
+#+ATTR_LATEX: :width 0.6\textwidth
+[[./images/data_work.png]]
+
+\tiny
+https://twitter.com/NickDoesData/status/1095160141207531520
+
+** Do science, not cleaning
+
+#+ATTR_LATEX: :width 0.7\textwidth
+[[./images/data_cleaning.png]]
+
+\scriptsize
+https://twitter.com/vboykis/status/1085183529527508992
+
+** Interoperable structured data is hard
+
+#+ATTR_LATEX: :width 0.6\textwidth
+[[./images/json_xml.png]]
+
+\scriptsize
+https://twitter.com/cemerick/status/1110373707183210501
+
+** Analogous to workflows
+
+#+ATTR_LATEX: :width 0.6\textwidth
+[[./images/bwa_cwl.png]]
+
+#+ATTR_LATEX: :width 0.7\textwidth
+[[./images/bwa_shell.png]]
+
+** Common issue everywhere
+
+- Most knowledge in documents, presentations, people's brains
+- A lot of work to represent specialized knowledge in a structured way
+- Need a lot of context in new biological areas
+
+* Approaches
+
+** Data approach
+
+Without imposing too much extra work:
+
+- Capture scientific intent
+- Improve naming with ontologies
+
+* Scientific Intent
+
+** Scientific intent: challenges
+
+- High level data structures to organize projects
+- Multiple ways of doing design and test
+- Ad-hoc capture of intent: Jupyter, Excel, Slack
+
+** Scientific intent: approach
+
+- Examine characteristic analyses
+- Model uncaptured data
+- Provide data structures
+
+** Example: lab workflow
+
+#+ATTR_LATEX: :width 0.4\textwidth
+[[./images/assay_workflow.png]]
+
+** Example: analysis setup
+
+#+ATTR_LATEX: :width 0.8\textwidth
+[[./images/assay_notebook.png]]
+
+** Example: analysis output
+
+#+ATTR_LATEX: :width 1.0\textwidth
+[[./images/assay_output.png]]
+
+** Example: missing connections
+
+- Experimental intent
+- Design to assay connection
+- Assay to analysis connection
+- Analysis output hits to reporting
+
+** Data model view
+
+#+ATTR_LATEX: :width 0.8\textwidth
+[[./images/assay_model.png]]
+
+** Flexible data model
+
+#+ATTR_LATEX: :width 0.7\textwidth
+[[./images/assay_hodur.png]]
+
+\scriptsize
+https://github.com/luchiniatwork/hodur-engine
+
+** Translating into database storage
+
+#+ATTR_LATEX: :width 0.65\textwidth
+[[./images/datomic.png]]
+
+\small
+https://www.datomic.com/
+
+* Ontologies
+
+** Ontologies: extend key/values
+
+- Need
+  - Standard naming
+  - Flexibility
+- Adopt existing ontologies
+  - Avoid work of inventing
+  - Contribute and extend community standards
+
+** Adoption: descriptions and assays
+
+- Feature descriptions: Sequence Ontology
+  - http://www.sequenceontology.org/
+- HTS: BioAssay Ontology
+  - http://bioassayontology.org/
+- Mapping to Gene Ontology
+  - http://geneontology.org/docs/download-mappings/
+
+** Example key names: OD600
+
+#+BEGIN_SRC
+600
+OD600
+OD600:600
+abs600_raw
+#+END_SRC
+
+** BioAssay Ontology
+
+#+ATTR_LATEX: :width 0.75\textwidth
+[[./images/bao_od600.png]]
+
+\small
+https://www.ebi.ac.uk/ols/ontologies/bao
+
+** Microbial Conditions Ontology
+
+#+ATTR_LATEX: :width 0.75\textwidth
+[[./images/mco_od600.png]]
+
+\small
+https://www.ebi.ac.uk/ols/ontologies/mco
+
+** Other issues
+
+- Where to put units
+- Which mean the same thing?
+
+#+BEGIN_SRC
+Time
+Timepoint
+Timepoint (second)
+Timestamp
+#+END_SRC
+
+** Initial steps: data mine from existing
+
+- Need to make practical
+- Extract examples
+- SciGraph
+- Semi-automatically map to ontologies
+
+\small
+https://github.com/ginkgobioworks/ontology-clean
+
+** SciGraph
+
+#+ATTR_LATEX: :width 0.7\textwidth
+[[./images/scigraph.png]]
+
+\small
+https://github.com/SciGraph/SciGraph
+
+** Search example
+
+\scriptsize
+#+BEGIN_SRC
+$ curl 'http://localhost:9000/scigraph/vocabulary/search/time' \
+  | json_pp
+{
+ "definitions" : [
+  "A unit which is a standard measure of the dimension "
+  "in which events occur in sequence."],
+ "labels" : ["time unit"],
+ "iri" : "http://purl.obolibrary.org/obo/UO_0000003"
+},
+{
+ "definitions" : [
+   "A quality in which events occur in sequence."],
+ "labels" : ["time"],
+ "iri" : "http://purl.obolibrary.org/obo/PATO_0000165"
+}
+#+END_SRC
+
+** RDF like modeling
+
+Ontologies map naturally to flexible \\
+  entity - attribute - value
+
+\small
+#+BEGIN_SRC
+assay1 - sample - sample1
+assay1 - sample - sample2
+sample1 - time - 30
+sample1 - time unit - seconds
+sample1 - OD600 - 0.986
+sample2 - time - 30
+sample2 - time unit - seconds
+sample2 - OD600 - 1.13
+#+END_SRC
+
+** Table like modeling
+
+Many tools work with tabular formats, but have to transform arbitrary columns
+into final analysis tables
+
+| assay  | sample  | time | time unit | OD600 |
+|--------+---------+------+-----------+-------|
+| assay1 | sample1 |   30 | seconds   | 0.986 |
+| assay1 | sample2 |   30 | seconds   |  1.13 |
+
+* Sumamary
+
+** \normalsizej Elements and Principles of Data Science
+
+#+ATTR_LATEX: :width 0.6\textwidth
+[[./images/dataanalysis_thread.png]]
+
+\scriptsize
+https://arxiv.org/abs/1903.07639 \\
+\tiny
+https://twitter.com/stephaniehicks/status/1108462768099856384
+
+** Framework for organizing analyses
+
+#+ATTR_LATEX: :width 0.7\textwidth
+[[./images/dataanalysis_units.jpg]]
+
+** In conclusion: machine learning
+
+#+ATTR_LATEX: :width 0.7\textwidth
+[[./images/jupyter_ml.png]]
+
+** Real conclusion
+
+- Ginkgo: synthetic biology for agricultural sustainability
+- General data challenges
+- Capture scientific intent
+- Improve naming with ontologies
