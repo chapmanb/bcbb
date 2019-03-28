@@ -17,5 +17,5 @@ setup(name="bcbio-gff",
       description="Read and write Generic Feature Format (GFF) with Biopython integration.",
       url="https://github.com/chapmanb/bcbb/tree/master/gff",
       packages=find_packages(),
-      install_requires=["six"]
+      install_requires=["six", "biopython"]
       )
