@@ -1,4 +1,4 @@
-#+title: Data organization: normalization and modeling
+#+title: Data organization: modeling and normalization
 #+author: Brad Chapman \newline Ginkgo Bioworks
 #+date: 28 March 2019
 
@@ -81,9 +81,16 @@ https://grist.org/series/panic-free-gmos/
 
 ** What does Ginkgo do?
 
-- Make an organism that produces some product
+- Make organisms that produce products
 - Multiple hosts: bacteria, yeasts, mammalian cells
-- Multiple goals: find activity, improve activity, make protein...
+- Many projects: find activity, improve enzymes, make proteins...
+
+** Organization of making
+
+- Organism Engineers: define a project goal
+- Design: what to make
+- Build: the designed constructs
+- Test: find best performing constructs
 
 ** Design: what to make
 
@@ -107,7 +114,7 @@ https://grist.org/series/panic-free-gmos/
 - Develop high throughput assays for compound of interest
 - Scaling
    - Samples (plate-based)
-   - Size (fermentation
+   - Size (fermentation)
 - Analysis: combining results from multiple inputs
 
 * Data modeling challenges
@@ -159,9 +166,9 @@ https://twitter.com/cemerick/status/1110373707183210501
 
 ** Common issue everywhere
 
-- Most knowledge in documents, presentations, people's brains
+- Most knowledge in documents, presentations, scientists's brains
 - A lot of work to represent specialized knowledge in a structured way
-- Need a lot of context in new biological areas
+- We need context in new biological areas
 
 * Approaches
 
@@ -354,7 +361,7 @@ into final analysis tables
 
 * Sumamary
 
-** \normalsizej Elements and Principles of Data Science
+** \normalsize Elements and Principles of Data Science
 
 #+ATTR_LATEX: :width 0.6\textwidth
 [[./images/dataanalysis_thread.png]]
