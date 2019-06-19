@@ -756,6 +756,8 @@ def parse_simple(gff_files, limit_info=None):
             yield rec["child"][0]
         elif "parent" in rec:
             yield rec["parent"][0]
+        elif "feature" in rec:
+            yield rec["feature"][0]
         # ignore directive lines
         else:
             assert "directive" in rec
