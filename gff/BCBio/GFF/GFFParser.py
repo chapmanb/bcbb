@@ -689,6 +689,7 @@ class GFFParser(_AbstractMapReduceGFF):
                 return self
             def __next__(self):
                 return next(self._iter)
+            next = __next__
             def read(self):
                 return "".join(l for l in self._iter)
             def readline(self):
