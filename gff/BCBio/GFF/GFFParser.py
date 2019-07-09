@@ -19,8 +19,10 @@ import os
 import copy
 import re
 import collections
+import io
 import itertools
 import warnings
+import six
 from six.moves import urllib
 # Make defaultdict compatible with versions of python older than 2.4
 try:
@@ -687,6 +689,7 @@ class GFFParser(_AbstractMapReduceGFF):
                 return self
             def __next__(self):
                 return next(self._iter)
+            next = __next__
             def read(self):
                 return "".join(l for l in self._iter)
             def readline(self):
@@ -770,6 +773,8 @@ def _file_or_handle(fn):
         if hasattr(in_file, "read"):
             need_close = False
             in_handle = in_file
+            if six.PY3 and not isinstance(in_handle, io.TextIOBase):
+                raise TypeError('input handle must be opened in text mode')
         else:
             need_close = True
             in_handle = open(in_file)

@@ -135,6 +135,27 @@ class GFF3Test(unittest.TestCase):
         print()
         pprint.pprint(pc_map)
 
+    def t_parent_child_file_modes(self):
+        """Summarize parent-child relationships in a GFF file.
+        """
+        gff_examiner = GFFExaminer()
+        # Use the loaded-from-filename as reference
+        pc_map = gff_examiner.parent_child_map(self._test_gff_file)
+
+        with open(self._test_gff_file, "rt") as handle:
+            assert pc_map == gff_examiner.parent_child_map(handle)
+
+        with open(self._test_gff_file, "rb") as handle:
+            if six.PY2:
+                assert pc_map == gff_examiner.parent_child_map(handle)
+            else:
+                try:
+                    gff_examiner.parent_child_map(handle)
+                except TypeError as e:
+                    assert str(e) == "input handle must be opened in text mode", e
+                else:
+                    assert False, "expected TypeError to be raised"
+
     def t_flat_features(self):
         """Check addition of flat non-nested features to multiple records.
         """
