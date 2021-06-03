@@ -690,8 +690,13 @@ class GFFParser(_AbstractMapReduceGFF):
             def __next__(self):
                 return next(self._iter)
             next = __next__
-            def read(self):
-                return "".join(l for l in self._iter)
+            def read(self, size=-1):
+                if size < 0:
+                    return "".join(l for l in self._iter)
+                elif size == 0:
+                    return ""  # Used by Biopython to sniff unicode vs bytes
+                else:
+                    raise NotImplementedError
             def readline(self):
                 try:
                     return next(self._iter)
