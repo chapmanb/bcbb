@@ -2,7 +2,11 @@
 """Convert a GFF and associated FASTA file into GenBank format.
 
 Usage:
-    gff_to_genbank.py <GFF annotation file> <FASTA sequence file>
+    gff_to_genbank.py <GFF annotation file> [<FASTA sequence file> <molecule type>]
+
+ FASTA sequence file: input sequences matching records in GFF. Optional if sequences
+   are in the GFF
+ molecule type: type of molecule in the GFF file. Defaults to DNA, the most common case.
 """
 from __future__ import print_function
 
@@ -10,16 +14,19 @@ import sys
 import os
 
 from Bio import SeqIO
-from Bio.Alphabet import generic_dna
-from Bio import Seq
 
 from BCBio import GFF
 
-def main(gff_file, fasta_file):
+
+def main(gff_file, fasta_file=None, molecule_type="DNA"):
     out_file = "%s.gb" % os.path.splitext(gff_file)[0]
-    fasta_input = SeqIO.to_dict(SeqIO.parse(fasta_file, "fasta", generic_dna))
+    if fasta_file:
+        fasta_input = SeqIO.to_dict(SeqIO.parse(fasta_file, "fasta"))
+    else:
+        fasta_input = {}
     gff_iter = GFF.parse(gff_file, fasta_input)
-    SeqIO.write(_check_gff(_fix_ncbi_id(gff_iter)), out_file, "genbank")
+    SeqIO.write(_check_gff(_fix_ncbi_id(gff_iter), molecule_type), out_file, "genbank")
+
 
 def _fix_ncbi_id(fasta_iter):
     """GenBank identifiers can only be 16 characters; try to shorten NCBI.
@@ -32,15 +39,15 @@ def _fix_ncbi_id(fasta_iter):
             rec.name = new_id
         yield rec
 
-def _check_gff(gff_iterator):
+
+def _check_gff(gff_iterator, molecule_type):
     """Check GFF files before feeding to SeqIO to be sure they have sequences.
     """
     for rec in gff_iterator:
-        if isinstance(rec.seq, Seq.UnknownSeq):
-            print("Warning: FASTA sequence not found for '%s' in GFF file" % (
-                    rec.id))
-            rec.seq.alphabet = generic_dna
+        if "molecule_type" not in rec.annotations:
+            rec.annotations["molecule_type"] = molecule_type
         yield _flatten_features(rec)
+
 
 def _flatten_features(rec):
     """Make sub_features in an input rec flat for output.
@@ -60,6 +67,7 @@ def _flatten_features(rec):
             cur = nextf
     rec.features = out
     return rec
+
 
 if __name__ == "__main__":
     main(*sys.argv[1:])
