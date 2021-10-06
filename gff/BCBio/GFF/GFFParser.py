@@ -386,8 +386,11 @@ class _AbstractMapReduceGFF:
                 else:
                     val = tuple(parts[1:])
                 # specific directives that need special handling
-                if key == "sequence-region": # convert to Python 0-based coordinates
-                    val = (val[0], int(val[1]) - 1, int(val[2]))
+                if key == "sequence-region":  # convert to Python 0-based coordinates
+                    if len(val) == 2:  # handle regions missing contig
+                        val = (int(val[0]) - 1, int(val[1]))
+                    elif len(val) == 3:
+                        val = (val[0], int(val[1]) - 1, int(val[2]))
                 dir_keyvals[key].append(val)
         for key, vals in dir_keyvals.items():
             for rec in base.values():

@@ -1,0 +1,7 @@
+##gff-version 3
+#!gff-spec-version 1.21
+#!processor NCBI annotwriter
+##sequence-region  1 2482535
+##species https://www.ncbi.nlm.nih.gov/Taxonomy/Browser/wwwtax.cgi?id=1282
+1	Local	region	1	2482535	.	+	.	ID=1:1..2482535;Dbxref=taxon:1282;Is_circular=true;Name=ANONYMOUS;gbkey=Src;genome=chromosome;mol_type=genomic DNA
+1	.	gene	1	1356	.	+	.	ID=gene-test_000001;Name=dnaA;gbkey=Gene;gene=dnaA;gene_biotype=protein_coding
