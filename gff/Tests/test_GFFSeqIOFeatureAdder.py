@@ -519,6 +519,8 @@ class DirectivesTest(unittest.TestCase):
     def setUp(self):
         self._test_dir = os.path.join(os.path.dirname(__file__), "GFF")
         self._gff_file = os.path.join(self._test_dir, "hybrid1.gff3")
+        self._ncbi_gff = os.path.join(self._test_dir, "hybrid2.gff3")
+        self._ncbi_fa = os.path.join(self._test_dir, "hybrid2.fa")
         self._problem_seq_region_file = os.path.join(self._test_dir, "problem_sequence_region.gff3")
 
     def t_basic_directives(self):
@@ -536,6 +538,24 @@ class DirectivesTest(unittest.TestCase):
         """Parse FASTA sequence information contained in a GFF3 file.
         """
         recs = SeqIO.to_dict(GFF.parse(self._gff_file))
+        assert len(recs) == 1
+        test_rec = recs['chr17']
+        assert str(test_rec.seq) == "GATTACAGATTACA"
+
+    def t_fasta_directive_w_ncbi(self):
+        """Parse FASTA sequence information contained in a GFF3 file with NCBI style IDs.
+        """
+        with open(self._ncbi_fa) as seq_handle:
+            seq_dict = SeqIO.to_dict(SeqIO.parse(seq_handle, "fasta"))
+        recs = SeqIO.to_dict(GFF.parse(self._ncbi_gff, seq_dict))
+        assert len(recs) == 1
+        test_rec = recs['lcl|chr17']
+        assert str(test_rec.seq) == "GATTACAGATTACA"
+
+    def t_fasta_directive_w_ncbi_fa(self):
+        """Parse FASTA sequence information contained in a separate file with NCBI style IDs.
+        """
+        recs = SeqIO.to_dict(GFF.parse(self._ncbi_gff))
         assert len(recs) == 1
         test_rec = recs['chr17']
         assert str(test_rec.seq) == "GATTACAGATTACA"

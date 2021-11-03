@@ -397,12 +397,35 @@ class _AbstractMapReduceGFF:
                 self._add_ann_to_rec(rec, key, vals)
         return base
 
+    def _get_matching_record_id(self, base, find_id):
+        """Find a matching base record with the test identifier, handling tricky cases.
+
+        NCBI IDs https://en.wikipedia.org/wiki/FASTA_format#NCBI_identifiers
+        """
+        # Straight matches for identifiers
+        if find_id in base:
+            return find_id
+        # NCBI style IDs in find_id
+        elif find_id.find("|") > 0:
+            for test_id in [x.strip() for x in find_id.split("|")[1:]]:
+                if test_id and test_id in base:
+                    return test_id
+        # NCBI style IDs in base IDs
+        else:
+            for base_id in base.keys():
+                if base_id.find("|") > 0:
+                    for test_id in [x.strip() for x in base_id.split("|")[1:]]:
+                        if test_id and test_id == find_id:
+                            return base_id
+        return None
+
     def _add_seqs(self, base, recs):
         """Add sequence information contained in the GFF3 to records.
         """
         for rec in recs:
-            if rec.id in base:
-                base[rec.id].seq = rec.seq
+            match_id = self._get_matching_record_id(base, rec.id)
+            if match_id:
+                base[match_id].seq = rec.seq
             else:
                 base[rec.id] = rec
         return base
@@ -509,19 +532,20 @@ class _AbstractMapReduceGFF:
         """Retrieve a record to add features to.
         """
         max_loc = info_dict.get('location', (0, 1))[1]
-        try:
-            cur_rec = base[info_dict['rec_id']]
+        match_id = self._get_matching_record_id(base, info_dict['rec_id'])
+        if match_id:
+            cur_rec = base[match_id]
             # update generated unknown sequences with the expected maximum length
             if isinstance(cur_rec.seq, UnknownSeq):
                 cur_rec.seq._length = max([max_loc, cur_rec.seq._length])
             return cur_rec, base
-        except KeyError:
-            if self._create_missing:
-                new_rec = SeqRecord(UnknownSeq(max_loc), info_dict['rec_id'])
-                base[info_dict['rec_id']] = new_rec
-                return new_rec, base
-            else:
-                raise
+        elif self._create_missing:
+            new_rec = SeqRecord(UnknownSeq(max_loc), info_dict['rec_id'])
+            base[info_dict['rec_id']] = new_rec
+            return new_rec, base
+        else:
+            raise KeyError("Did not find matching record in %s for %s" %
+                           (base.keys(), info_dict))
 
     def _add_missing_parent(self, base, parent_id, cur_children):
         """Add a new feature that is missing from the GFF file.
