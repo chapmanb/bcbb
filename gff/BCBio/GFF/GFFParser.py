@@ -406,7 +406,7 @@ class _AbstractMapReduceGFF:
         if find_id in base:
             return find_id
         # NCBI style IDs in find_id
-        elif find_id.find("|") > 0:
+        elif find_id and find_id.find("|") > 0:
             for test_id in [x.strip() for x in find_id.split("|")[1:]]:
                 if test_id and test_id in base:
                     return test_id
