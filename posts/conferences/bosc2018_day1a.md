@@ -257,7 +257,7 @@ morning: very hard to make your work reproducible after the fact. Case study
 required a ton of effort. Need to be baking this into our work from the
 beginning. Parallel between reproducibility and teaching kids to brush their
 teeth. It's easy once it becomes a habit but need good tools and on ramp to
-getting into making that possible. Globus Auth: foundational serivce for
+getting into making that possible. Globus Auth: foundational service for
 authentication and authorization ecosystem. Used across NIH Data Commons for
 data sharing and transfer. Two elements of interoperability in the FAIRness
 experiment: minimal identifiers for tracking files (Minid) and self-describing
