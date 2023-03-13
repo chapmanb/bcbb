@@ -31,7 +31,15 @@ except AttributeError:
     import _utils
     collections.defaultdict = _utils.defaultdict
 
-from Bio.Seq import UnknownSeq
+unknown_seq_avail = False
+try:
+    from Bio.Seq import UnknownSeq
+    unknown_seq_avail = True
+except ImportError:
+    # Starting with biopython 1.81, has been removed
+    from Bio.Seq import _UndefinedSequenceData
+    from Bio.Seq import Seq
+
 from Bio.SeqRecord import SeqRecord
 from Bio import SeqFeature
 from Bio import SeqIO
@@ -69,7 +77,7 @@ def _gff_line_map(line, params):
 
         GFF3 has key value pairs like:
           count=9;gene=amx-2;sequence=SAGE:aacggagccg
-        GFF2 and GTF have:           
+        GFF2 and GTF have:
           Sequence "Y74C9A" ; Note "Clone Y74C9A; Genbank AC024206"
           name "fgenesh1_pg.C_chr_1000003"; transcriptId 869
         """
@@ -170,7 +178,7 @@ def _gff_line_map(line, params):
         should_do = True
         if params.limit_info:
             for limit_name, limit_values in params.limit_info.items():
-                cur_id = tuple([parts[i] for i in 
+                cur_id = tuple([parts[i] for i in
                     params.filter_info[limit_name]])
                 if cur_id not in limit_values:
                     should_do = False
@@ -286,7 +294,7 @@ class _AbstractMapReduceGFF:
     information.
     """
     def __init__(self, create_missing=True):
-        """Initialize GFF parser 
+        """Initialize GFF parser
 
         create_missing - If True, create blank records for GFF ids not in
         the base_dict. If False, an error will be raised.
@@ -305,7 +313,7 @@ class _AbstractMapReduceGFF:
         limit_info - A dictionary specifying the regions of the GFF file
         which should be extracted. This allows only relevant portions of a file
         to be parsed.
-        
+
         base_dict - A base dictionary of SeqRecord objects which may be
         pre-populated with sequences and other features. The new features from
         the GFF file will be added to this dictionary.
@@ -536,11 +544,16 @@ class _AbstractMapReduceGFF:
         if match_id:
             cur_rec = base[match_id]
             # update generated unknown sequences with the expected maximum length
-            if isinstance(cur_rec.seq, UnknownSeq):
+            if unknown_seq_avail and isinstance(cur_rec.seq, UnknownSeq):
                 cur_rec.seq._length = max([max_loc, cur_rec.seq._length])
+            elif not unknown_seq_avail and isinstance(cur_rec.seq._data, _UndefinedSequenceData):
+                cur_rec.seq._data._length = max([max_loc, cur_rec.seq._data._length])
             return cur_rec, base
         elif self._create_missing:
-            new_rec = SeqRecord(UnknownSeq(max_loc), info_dict['rec_id'])
+            if unknown_seq_avail:
+                new_rec = SeqRecord(UnknownSeq(max_loc), info_dict['rec_id'])
+            else:
+                new_rec = SeqRecord(Seq(None, length=max_loc), info_dict['rec_id'])
             base[info_dict['rec_id']] = new_rec
             return new_rec, base
         else:
@@ -654,7 +667,7 @@ class GFFParser(_AbstractMapReduceGFF):
     def __init__(self, line_adjust_fn=None, create_missing=True):
         _AbstractMapReduceGFF.__init__(self, create_missing=create_missing)
         self._line_adjust_fn = line_adjust_fn
-    
+
     def _gff_process(self, gff_files, limit_info, target_lines):
         """Process GFF addition without any parallelization.
 
@@ -704,7 +717,7 @@ class GFFParser(_AbstractMapReduceGFF):
                 yield out_info.get_results()
                 out_info = _GFFParserLocalOut((target_lines is not None and
                         target_lines > 1))
-            if (results and results[0][0] == 'directive' and 
+            if (results and results[0][0] == 'directive' and
                     results[0][1] == 'FASTA'):
                 found_seqs = True
                 break
@@ -741,7 +754,7 @@ class DiscoGFFParser(_AbstractMapReduceGFF):
     """
     def __init__(self, disco_host, create_missing=True):
         """Initialize parser.
-        
+
         disco_host - Web reference to a Disco host which will be used for
         parallelizing the GFF reading job.
         """
@@ -755,7 +768,7 @@ class DiscoGFFParser(_AbstractMapReduceGFF):
         # make these imports local; only need them when using disco
         import simplejson
         import disco
-        # absolute path names unless they are special disco files 
+        # absolute path names unless they are special disco files
         full_files = []
         for f in gff_files:
             if f.split(":")[0] != "disco":
@@ -829,7 +842,7 @@ class GFFExaminer:
     def __init__(self):
         self._filter_info = dict(gff_id = [0], gff_source_type = [1, 2],
                 gff_source = [1], gff_type = [2])
-    
+
     def _get_local_params(self, limit_info=None):
         class _LocalParams:
             def __init__(self):
@@ -838,13 +851,13 @@ class GFFExaminer:
         params.limit_info = limit_info
         params.filter_info = self._filter_info
         return params
-    
+
     @_file_or_handle
     def available_limits(self, gff_handle):
         """Return dictionary information on possible limits for this file.
 
         This returns a nested dictionary with the following structure:
-        
+
         keys -- names of items to filter by
         values -- dictionary with:
             keys -- filter choice
@@ -884,7 +897,7 @@ class GFFExaminer:
 
         keys -- tuple of (source, type) for each parent
         values -- tuple of (source, type) as children of that parent
-        
+
         Not a parallelized map-reduce implementation.
         """
         # collect all of the parent and child types mapped to IDs
