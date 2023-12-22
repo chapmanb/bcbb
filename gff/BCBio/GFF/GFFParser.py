@@ -21,7 +21,6 @@ import re
 import collections
 import io
 import itertools
-import warnings
 import six
 from six.moves import urllib
 # Make defaultdict compatible with versions of python older than 2.4
@@ -43,8 +42,6 @@ except ImportError:
 from Bio.SeqRecord import SeqRecord
 from Bio import SeqFeature
 from Bio import SeqIO
-from Bio import BiopythonDeprecationWarning
-warnings.simplefilter("ignore", BiopythonDeprecationWarning)
 
 def _gff_line_map(line, params):
     """Map part of Map-Reduce; parses a line of GFF into a dictionary.
