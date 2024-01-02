@@ -12,7 +12,7 @@ from Bio import SeqIO
 from BCBio import GFF
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
-from Bio.SeqFeature import SeqFeature, FeatureLocation
+from Bio.SeqFeature import SeqFeature, FeatureLocation, SimpleLocation
 from BCBio.GFF import (GFFExaminer, GFFParser, DiscoGFFParser)
 
 
@@ -362,12 +362,12 @@ class SolidGFFTester(unittest.TestCase):
         parser = GFFParser()
         rec_dict = SeqIO.to_dict(parser.parse(self._test_gff_file))
         test_feature = rec_dict['3_341_424_F3'].features[0]
-        assert test_feature.location.nofuzzy_start == 102716
-        assert test_feature.location.nofuzzy_end == 102736
+        assert test_feature.location.start == 102716
+        assert test_feature.location.end == 102736
         assert len(test_feature.qualifiers) == 7
         assert test_feature.qualifiers['score'] == ['10.6']
         assert test_feature.qualifiers['source'] == ['solid']
-        assert test_feature.strand == -1
+        assert test_feature.location.strand == -1
         assert test_feature.type == 'read'
         assert test_feature.qualifiers['g'] == ['T2203031313223113212']
         assert len(test_feature.qualifiers['q']) == 20
@@ -458,8 +458,8 @@ class GFF2Tester(unittest.TestCase):
         """
         rec_dict = SeqIO.to_dict(GFF.parse(self._jgi_file))
         tfeature = rec_dict['chr_1'].features[0]
-        assert tfeature.location.nofuzzy_start == 37060
-        assert tfeature.location.nofuzzy_end == 38216
+        assert tfeature.location.start == 37060
+        assert tfeature.location.end == 38216
         assert tfeature.type == 'inferred_parent'
         assert len(tfeature.sub_features) == 6
         sfeature = tfeature.sub_features[1]
@@ -634,10 +634,10 @@ class OutputTest(unittest.TestCase):
         rec = SeqRecord(seq, "ID1")
         qualifiers = {"source": "prediction", "score": 10.0, "other": ["Some", "annotations"], "ID": "gene1"}
         sub_qualifiers = {"source": "prediction"}
-        top_feature = SeqFeature(FeatureLocation(0, 20), type="gene", strand=1, qualifiers=qualifiers)
+        top_feature = SeqFeature(FeatureLocation(0, 20, strand=1), type="gene", qualifiers=qualifiers)
         top_feature.sub_features = [
-            SeqFeature(FeatureLocation(0, 5), type="exon", strand=1, qualifiers=sub_qualifiers),
-            SeqFeature(FeatureLocation(15, 20), type="exon", strand=1, qualifiers=sub_qualifiers)
+            SeqFeature(FeatureLocation(0, 5, strand=1), type="exon", qualifiers=sub_qualifiers),
+            SeqFeature(FeatureLocation(15, 20, strand=1), type="exon", qualifiers=sub_qualifiers)
         ]
         rec.features = [top_feature]
         out_handle = StringIO()
@@ -657,7 +657,7 @@ class OutputTest(unittest.TestCase):
         seq = Seq("GATCGATCGATCGATCGATC")
         rec = SeqRecord(seq, "ID1")
         qualifiers = {"source": "prediction", "score": 10.0, "other": ["Some", "annotations"], "ID": "gene1"}
-        rec.features = [SeqFeature(FeatureLocation(0, 20), type="gene", strand=1, qualifiers=qualifiers)]
+        rec.features = [SeqFeature(FeatureLocation(0, 20, strand=1), type="gene", qualifiers=qualifiers)]
         out_handle = StringIO()
         GFF.write([rec], out_handle, include_fasta=True)
         wrote_info = out_handle.getvalue().split("\n")
@@ -672,7 +672,7 @@ class OutputTest(unittest.TestCase):
         seq = Seq("GATCGATCGATCGATCGATC")
         rec = SeqRecord(seq, "ID1")
         qualifiers = {"source": "prediction", "score": 10.0, "other": ["Some", "annotations"], "ID": "gene1"}
-        rec.features = [SeqFeature(FeatureLocation(0, 20), type="gene", strand=1, qualifiers=qualifiers)]
+        rec.features = [SeqFeature(FeatureLocation(0, 20, strand=1 ), type="gene", qualifiers=qualifiers)]
         out_handle = StringIO()
         GFF.write([rec], out_handle, include_fasta=True)
         wrote_info = out_handle.getvalue().split("\n")

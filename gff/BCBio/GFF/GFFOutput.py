@@ -121,9 +121,9 @@ class GFF3Writer:
             parent_id=None):
         """Write a feature with location information.
         """
-        if feature.strand == 1:
+        if feature.location.strand == 1:
             strand = '+'
-        elif feature.strand == -1:
+        elif feature.location.strand == -1:
             strand = '-'
         else:
             strand = '.'
@@ -145,8 +145,8 @@ class GFF3Writer:
         parts = [str(rec_id),
                  feature.qualifiers.get("source", ["feature"])[0],
                  ftype,
-                 str(feature.location.nofuzzy_start + 1), # 1-based indexing
-                 str(feature.location.nofuzzy_end),
+                 str(feature.location.start + 1), # 1-based indexing
+                 str(feature.location.end),
                  feature.qualifiers.get("score", ["."])[0],
                  strand,
                  self._get_phase(feature),

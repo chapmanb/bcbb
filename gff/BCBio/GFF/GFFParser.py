@@ -468,7 +468,7 @@ class _AbstractMapReduceGFF:
             # one child, do not nest it
             if len(cur_children) == 1:
                 rec_id, child = cur_children[0]
-                loc = (child.location.nofuzzy_start, child.location.nofuzzy_end)
+                loc = (child.location.start, child.location.end)
                 rec, base = self._get_rec(base,
                                           dict(rec_id=rec_id, location=loc))
                 rec.features.append(child)
@@ -564,13 +564,13 @@ class _AbstractMapReduceGFF:
         """Add a new feature that is missing from the GFF file.
         """
         base_rec_id = list(set(c[0] for c in cur_children))
-        child_strands = list(set(c[1].strand for c in cur_children))
+        child_strands = list(set(c[1].location.strand for c in cur_children))
         inferred_strand = child_strands[0] if len(child_strands) == 1 else None
         assert len(base_rec_id) > 0
         feature_dict = dict(id=parent_id, strand=inferred_strand,
                             type="inferred_parent", quals=dict(ID=[parent_id]),
                             rec_id=base_rec_id[0])
-        coords = [(c.location.nofuzzy_start, c.location.nofuzzy_end)
+        coords = [(c.location.start, c.location.end)
                   for r, c in cur_children]
         feature_dict["location"] = (min([c[0] for c in coords]),
                                     max([c[1] for c in coords]))
@@ -587,9 +587,10 @@ class _AbstractMapReduceGFF:
     def _get_feature(self, feature_dict):
         """Retrieve a Biopython feature from our dictionary representation.
         """
-        location = SeqFeature.FeatureLocation(*feature_dict['location'])
-        new_feature = SeqFeature.SeqFeature(location, feature_dict['type'],
-                id=feature_dict['id'], strand=feature_dict['strand'])
+        #location = SeqFeature.FeatureLocation(*feature_dict['location'])
+        rstart, rend = feature_dict['location']
+        new_feature = SeqFeature.SeqFeature(SeqFeature.SimpleLocation(start=rstart, end=rend, strand=feature_dict['strand']), feature_dict['type'],
+                id=feature_dict['id'])
         # Support for Biopython 1.68 and above, which removed sub_features
         if not hasattr(new_feature, "sub_features"):
             new_feature.sub_features = []
