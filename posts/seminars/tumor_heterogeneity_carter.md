@@ -13,7 +13,7 @@ number estimates to infer purity and ploidy. Favor models with the least amount
 of evolutions from a diploid cell.
 
 Other work: classifying point-mutations by multiplicity: loss of
-heterogeneity. Looked as expected: tumor supressors are homozygous, onocogenes
+heterogeneity. Looked as expected: tumor suppressors are homozygous, onocogenes
 are not. Found frequent whole genome doublings in cancer. Used exome sequencing
 to identify subclonal populations: both CNVs and SNPs shared.
 
