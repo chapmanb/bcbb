@@ -68,7 +68,7 @@ def _gff_line_map(line, params):
                 out.append(p)
         return out
 
-    gff3_kw_pat = re.compile("\w+=")
+    gff3_kw_pat = re.compile(r"\w+=")
     def _split_keyvals(keyval_str):
         """Split key-value pairs in a GFF2, GTF and GFF3 compatible way.
 
