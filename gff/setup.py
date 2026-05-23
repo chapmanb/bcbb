@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 """Python setup file for Blue Collar Bioinformatics scripts and modules.
 """
-from distribute_setup import use_setuptools
-use_setuptools()
 from setuptools import setup, find_packages
 
 __version__ = "Undefined"
